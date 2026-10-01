@@ -2,9 +2,14 @@
 
 This directory is the canonical place for safe, reusable REMOTE-operation helpers.
 
-The user-facing and agent-facing contract is described in [../../docs/REMOTE_INTERACTION.md](../../docs/REMOTE_INTERACTION.md).
+Main documentation:
 
-## Planned logical commands
+- [REMOTE interaction](../../docs/REMOTE_INTERACTION.md)
+- [REMOTE bridge](../../docs/REMOTE_BRIDGE.md)
+
+The standard transport is the private `msp-server-bridge` GitHub Actions repository with a self-hosted Linux runner on REMOTE.
+
+## Logical commands
 
 ```text
 status        show service/component state
@@ -17,11 +22,9 @@ restart       restart an explicitly selected service
 
 ## Design rules
 
-- No IP addresses, passwords, tokens or private keys are embedded in scripts.
-- Authentication is supplied by the authorized execution environment.
+- No passwords, tokens or private keys are embedded in scripts.
+- Authentication belongs to the authorized execution environment.
 - Service targets use names from `inventory/services.yaml`.
 - Read-only operations should be safe to repeat.
-- State-changing operations should fail clearly and be followed by verification.
+- State-changing operations must be followed by verification.
 - Scripts must not echo secret environment variables.
-
-Executable implementations will be added once the actual REMOTE execution transport is finalized.

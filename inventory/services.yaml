@@ -12,14 +12,18 @@ stack:
 
 remote_interaction:
   documentation: docs/REMOTE_INTERACTION.md
+  bridge_documentation: docs/REMOTE_BRIDGE.md
   helper_root: scripts/remote
-  access:
-    model: authorized-external-channel
+  bridge:
+    repository: alexpmtk-afk/msp-server-bridge
+    visibility: private
+    transport: github-actions-self-hosted-runner
+    target_os: linux
+    target_label: msp-remote
     credentials_in_repository: false
-    concrete_transport: to-be-finalized
+    status: bootstrap-pending
   workflow:
     - discover-target
-    - confirm-authorized-channel
     - read-only-diagnostics
     - execute
     - verify
@@ -27,6 +31,12 @@ remote_interaction:
     - sync-repository-if-needed
 
 components:
+  - id: remote-bridge
+    kind: transport
+    status: bootstrap-pending
+    source: alexpmtk-afk/msp-server-bridge
+    secrets: external
+
   - id: orchestration-agent
     kind: application
     status: planned
