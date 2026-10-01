@@ -1,0 +1,77 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+secrets/
+**/secrets/
+credentials/
+**/credentials/
+config/local/
+*.secret
+*.secrets
+*.token
+
+# Private keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+authorized_keys
+
+# Sessions, cookies and credentials
+*.session
+*.session-journal
+cookies.json
+cookies.txt
+auth.json
+credentials.json
+token.json
+tokens.json
+oauth*.json
+
+# Runtime data
+data/
+runtime/
+logs/
+backups/
+*.log
+*.pid
+*.sock
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+*.dump
+*.bak
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

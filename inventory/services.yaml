@@ -1,0 +1,40 @@
+version: 1
+
+stack:
+  name: msp-server-stack
+  server_root: /opt/mcp
+  operating_system:
+    family: ubuntu
+    target_release: "24.04"
+  policy:
+    public_repository: true
+    production_secrets_in_git: false
+
+components:
+  - id: orchestration-agent
+    kind: application
+    status: planned
+    source: to-be-defined
+    secrets: external
+
+  - id: codex-runtime
+    kind: runtime
+    status: planned
+    source: external
+    secrets: external
+
+  - id: telegram-integration
+    kind: application
+    status: planned
+    source: to-be-defined
+    secrets: external
+
+  - id: mcp-services
+    kind: service-group
+    status: planned
+    source: to-be-defined
+    secrets: external
+
+external_dependencies:
+  - id: ai-model-provider
+    credentials: external
