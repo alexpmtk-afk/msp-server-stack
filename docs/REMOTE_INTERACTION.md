@@ -29,6 +29,18 @@ See [REMOTE_BRIDGE.md](REMOTE_BRIDGE.md) for the bridge contract.
 
 Current transport status: **OPERATIONAL / PASS**.
 
+## Chat-triggered command channel
+
+The private bridge supports a whitelisted GitHub issue command:
+
+`[REMOTE] status`
+
+The workflow accepts only this exact command from the repository owner, runs a safe read-only status check on REMOTE, posts the result back to the issue and closes the request automatically.
+
+Arbitrary shell commands from issue text are not allowed.
+
+The current `status` command reports only basic host health: uptime, load, memory, root disk usage, architecture and whether `/opt/mcp` exists.
+
 GitHub stores the procedure and reproducible code. GitHub access by itself does **not** grant server access.
 
 ## Standard workflow
