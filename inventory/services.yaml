@@ -10,6 +10,22 @@ stack:
     public_repository: true
     production_secrets_in_git: false
 
+remote_interaction:
+  documentation: docs/REMOTE_INTERACTION.md
+  helper_root: scripts/remote
+  access:
+    model: authorized-external-channel
+    credentials_in_repository: false
+    concrete_transport: to-be-finalized
+  workflow:
+    - discover-target
+    - confirm-authorized-channel
+    - read-only-diagnostics
+    - execute
+    - verify
+    - report
+    - sync-repository-if-needed
+
 components:
   - id: orchestration-agent
     kind: application
