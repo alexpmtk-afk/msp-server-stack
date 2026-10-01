@@ -24,6 +24,9 @@ remote_interaction:
     status: operational
     acceptance: pass
     acceptance_workflow: REMOTE Smoke Test
+    command_channel: github-issue-whitelist
+    supported_commands:
+      - status
   workflow:
     - discover-target
     - read-only-diagnostics
