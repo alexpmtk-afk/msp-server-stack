@@ -4,7 +4,7 @@ Canonical instruction for chats and agents that need to work with the MSP remote
 
 ## Standard transport
 
-The preferred standard transport is:
+The active standard transport is:
 
 ```text
 Chat / Agent
@@ -27,13 +27,15 @@ result
 
 See [REMOTE_BRIDGE.md](REMOTE_BRIDGE.md) for the bridge contract.
 
+Current transport status: **OPERATIONAL / PASS**.
+
 GitHub stores the procedure and reproducible code. GitHub access by itself does **not** grant server access.
 
 ## Standard workflow
 
 1. Read this document and [../inventory/services.yaml](../inventory/services.yaml).
 2. Identify the target service/project and whether the task is read-only or state-changing.
-3. Use only the authorized `msp-server-bridge` workflow or another explicitly approved REMOTE execution tool.
+3. Use the authorized `msp-server-bridge` workflow.
 4. Prefer read-only diagnostics first.
 5. Execute the smallest required operation.
 6. Verify the result independently.
@@ -41,16 +43,7 @@ GitHub stores the procedure and reproducible code. GitHub access by itself does 
 
 ## Read-only diagnostics
 
-Typical safe checks:
-
-- service status;
-- bounded recent logs without secrets;
-- deployed version / commit;
-- expected directory presence;
-- health endpoint or functional test;
-- process and dependency state.
-
-Do not print secret values.
+Typical safe checks include service status, bounded recent logs without secrets, deployed version/commit, expected directory presence, health endpoints and dependency state.
 
 ## State-changing work
 
@@ -71,8 +64,14 @@ Repository-managed helpers belong under `scripts/remote/`:
 - `deploy`
 - `restart`
 
-The transport should not hard-code production credentials.
+The transport must not hard-code production credentials.
+
+## Acceptance distinction
+
+A successful bridge run proves REMOTE command transport.
+
+Application readiness, `/opt/mcp` layout, individual services and business functionality require their own acceptance checks.
 
 ## If the bridge is unavailable
 
-Do not pretend the task ran. Prepare the exact safe action and report that REMOTE execution is unavailable until the runner/bridge is restored.
+Do not pretend the task ran. Report that REMOTE execution is unavailable until the runner/bridge is restored.

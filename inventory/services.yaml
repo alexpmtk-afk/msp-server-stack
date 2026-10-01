@@ -21,7 +21,9 @@ remote_interaction:
     target_os: linux
     target_label: msp-remote
     credentials_in_repository: false
-    status: bootstrap-pending
+    status: operational
+    acceptance: pass
+    acceptance_workflow: REMOTE Smoke Test
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -33,7 +35,7 @@ remote_interaction:
 components:
   - id: remote-bridge
     kind: transport
-    status: bootstrap-pending
+    status: operational
     source: alexpmtk-afk/msp-server-bridge
     secrets: external
 
