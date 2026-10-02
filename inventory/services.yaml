@@ -27,6 +27,7 @@ remote_interaction:
     command_channel: github-issue-whitelist
     supported_commands:
       - status
+      - agent-status
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -44,14 +45,22 @@ components:
 
   - id: orchestration-agent
     kind: application
-    status: planned
-    source: to-be-defined
+    status: operational
+    source: Hermes
+    local_api: http://127.0.0.1:9119
+    services:
+      - hermes-dashboard.service
+      - hermes-gateway.service
+    task_api: present
+    dispatch_api: present
+    bridge_task_handoff: blocked-by-auth
     secrets: external
 
   - id: codex-runtime
     kind: runtime
-    status: planned
+    status: operational
     source: external
+    command_path: /usr/local/bin/codex
     secrets: external
 
   - id: telegram-integration
