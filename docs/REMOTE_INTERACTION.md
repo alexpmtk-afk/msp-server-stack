@@ -35,11 +35,17 @@ The private bridge supports a whitelisted GitHub issue command:
 
 `[REMOTE] status`
 
+`[REMOTE] agent-status`
+
 The workflow accepts only this exact command from the repository owner, runs a safe read-only status check on REMOTE, posts the result back to the issue and closes the request automatically.
 
 Arbitrary shell commands from issue text are not allowed.
 
 The current `status` command reports only basic host health: uptime, load, memory, root disk usage, architecture and whether `/opt/mcp` exists.
+
+The `agent-status` command checks Hermes/Codex installation, services, processes and local listener state without changing the server.
+
+Current agent state: Hermes services are active and Codex is installed. Hermes exposes a local API on `127.0.0.1:9119`, including task creation and dispatch endpoints. Direct task dispatch from the GitHub bridge is not yet enabled because the runtime currently returns `401 Unauthorized` for dispatch without an approved authentication handoff.
 
 GitHub stores the procedure and reproducible code. GitHub access by itself does **not** grant server access.
 
