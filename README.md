@@ -28,6 +28,8 @@ It defines the standard chain:
 
 GitHub stores the procedure and reproducible code. GitHub access by itself does **not** grant access to the remote server.
 
+Andrey / QRsite API and MCP integration is documented in **[docs/ANDREY_QRSITE.md](docs/ANDREY_QRSITE.md)**.
+
 ## What must never be committed
 
 Real passwords, API tokens, SSH private keys, Telegram sessions, cookies, OAuth credentials, proxy/VPN/tunnel credentials, private certificates, production `.env` files, database dumps, backups, or any other live access material.
