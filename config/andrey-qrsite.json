@@ -1,0 +1,58 @@
+{
+  "name": "Andrey QRsite",
+  "base_url": "https://qrbott.ru",
+  "docs": {
+    "api": "https://qrbott.ru/api/v1/docs/",
+    "mcp": "https://qrbott.ru/api/v1/mcp/docs/"
+  },
+  "auth": {
+    "api": {
+      "secret_env": "ANDREY_API_TOKEN",
+      "token_prefix": "qra_",
+      "header_name": "Authorization",
+      "header_scheme": "Token"
+    },
+    "mcp": {
+      "secret_env": "ANDREY_MCP_TOKEN",
+      "token_prefix": "qr_",
+      "endpoint": "https://qrbott.ru/mcp",
+      "transport": "streamable-http",
+      "header_name": "Authorization",
+      "header_scheme": "Bearer",
+      "protocol_version": "2025-06-18"
+    }
+  },
+  "access_groups": {
+    "marketplaces": [
+      "stocks_1c",
+      "marketplaces_blocks",
+      "wb_orders"
+    ],
+    "plansite": [
+      "plansite_orders",
+      "plansite_estimate"
+    ]
+  },
+  "api": {
+    "stocks_1c": "/api/v1/stocks/1c/",
+    "marketplaces_blocks": "/api/v1/marketplaces/blocks/",
+    "wb_orders": "/api/v1/wb/orders/",
+    "plansite_orders": "/api/v1/plansite/orders/",
+    "plansite_estimate": "/api/v1/plansite/estimate/"
+  },
+  "known_stock_blocks": {
+    "2": "lm",
+    "13": "novok+ultra"
+  },
+  "mcp_verified_tools": [
+    "marketplaces_blocks",
+    "stock_1c_history",
+    "stocks_1c",
+    "wb_orders"
+  ],
+  "security": {
+    "default_mode": "read-only",
+    "never_commit_live_tokens": true,
+    "verify_tools_with_tools_list": true
+  }
+}
