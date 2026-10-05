@@ -1,0 +1,8 @@
+name: channel_archive
+version: 1.0.0
+description: "Read-only persistent archive of Сигналы МП channel posts, with date-range queries."
+author: Local deployment
+provides_tools:
+  - telegram_channel_archive
+provides_hooks:
+  - pre_gateway_dispatch
