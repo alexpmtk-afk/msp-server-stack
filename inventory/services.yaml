@@ -65,14 +65,51 @@ components:
 
   - id: telegram-integration
     kind: application
-    status: planned
-    source: to-be-defined
+    status: operational
+    source: Hermes Telegram Gateway
+    services:
+      - hermes-gateway.service
+    mode:
+      private_management_chat: operational
+      signal_channel_archive: operational
+      linked_discussion_archive: operational
+      automatic_signal_actions: disabled
+    archive_tool: telegram_channel_archive
+    archive_source: apps/hermes/channel_archive
+    runtime_data: external
+    secrets: external
+
+  - id: hermes-browser-access
+    kind: access
+    status: operational
+    transport: tailscale-https-nginx-loopback
+    dashboard_listener: http://127.0.0.1:9119
+    proxy_listener: http://127.0.0.1:9120
+    documentation: docs/HERMES_BROWSER_ACCESS.md
+    secrets: external
+
+  - id: signal-rule-registry
+    kind: application-data
+    status: design-in-progress
+    catalog_snapshot: docs/signals/catalog-2026-10-05.json
+    reviewed_signals: 6
+    total_signal_cards: 32
+    automatic_execution: false
+    runtime_observations_in_git: false
+
+  - id: qrsite-integration
+    kind: external-integration
+    status: partial
+    source: Andrey / QRsite
+    verified_mcp_tools: 4
+    write_action_tools_verified: false
+    documentation: docs/ANDREY_QRSITE.md
     secrets: external
 
   - id: mcp-services
     kind: service-group
-    status: planned
-    source: to-be-defined
+    status: partial
+    source: external-and-project-specific
     secrets: external
 
 external_dependencies:

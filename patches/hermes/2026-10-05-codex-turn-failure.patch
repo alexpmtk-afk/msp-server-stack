@@ -1,0 +1,84 @@
+diff --git a/agent/codex_runtime.py b/agent/codex_runtime.py
+index 0edc8a3e7..1952a5621 100644
+--- a/agent/codex_runtime.py
++++ b/agent/codex_runtime.py
+@@ -706,6 +706,7 @@ def _turn_result(interrupt: tuple[bool, Any], messages: List[Dict[str, Any]], *,
+     return {
+         "final_response": final_response, "messages": messages, "api_calls": api_calls,
+         "completed": completed, "partial": not completed, "interrupted": user_interrupted,
++        "failed": bool(error) and not user_interrupted,
+         **({"interrupt_message": interrupt_message} if interrupt_message else {}),
+         "error": error, **extra,
+     }
+diff --git a/agent/transports/codex_event_projector.py b/agent/transports/codex_event_projector.py
+index 01291bd9d..67ac3bcd2 100644
+--- a/agent/transports/codex_event_projector.py
++++ b/agent/transports/codex_event_projector.py
+@@ -75,7 +75,10 @@ class CodexEventProjector:
+ 
+     def _project_agent_message(self, item: dict) -> ProjectionResult:
+         text = item.get("text") or ""
+-        return ProjectionResult(messages=[self._assistant_message(text)], final_text=text)
++        return ProjectionResult(
++            messages=[self._assistant_message(text)],
++            final_text=None if item.get("phase") == "commentary" else text,
++        )
+ 
+     @staticmethod
+     def _project_user_message(item: dict) -> ProjectionResult:
+diff --git a/tests/agent/transports/test_codex_app_server_session.py b/tests/agent/transports/test_codex_app_server_session.py
+index fc5a96303..a3ebc10a5 100644
+--- a/tests/agent/transports/test_codex_app_server_session.py
++++ b/tests/agent/transports/test_codex_app_server_session.py
+@@ -1160,3 +1160,16 @@ def test_only_current_turn_progress_reaches_hermes_activity_clock():
+     assert result.error is None and not result.interrupted
+     assert agent._turn_liveness_activity_generation == generation + 1
+     assert agent._last_activity_desc == "codex app-server: item/agentMessage/delta"
++
++
++def test_overload_after_commentary_is_error_not_success():
++    client = FakeClient()
++    client.queue_notification("item/completed", threadId="t", turnId="turn-fake-001",
++        item={"type": "agentMessage", "id": "progress", "text": "Checking API", "phase": "commentary"})
++    client.queue_notification("turn/completed", threadId="t",
++        turn={"id": "turn-fake-001", "status": "failed",
++              "error": {"message": "Selected model is at capacity. Please try a different model.",
++                        "codexErrorInfo": "serverOverloaded"}})
++    result = make_session(client).run_turn("audit", turn_timeout=2.0)
++    assert result.error and "capacity" in result.error
++    assert not result.final_text
+diff --git a/tests/agent/transports/test_codex_event_projector.py b/tests/agent/transports/codex_event_projector.py
+index 0aee2a383..4a3d0497d 100644
+--- a/tests/agent/transports/test_codex_event_projector.py
++++ b/tests/agent/transports/test_codex_event_projector.py
+@@ -339,3 +339,13 @@ class TestRoleAlternationInvariant:
+         assert msgs[0]["role"] == "assistant"
+         assert msgs[1]["role"] == "tool"
+         assert msgs[1]["tool_call_id"] == msgs[0]["tool_calls"][0]["id"]
++
++
++def test_commentary_cannot_be_a_terminal_response():
++    result = CodexEventProjector().project({
++        "method": "item/completed",
++        "params": {"item": {"type": "agentMessage", "id": "progress",
++                             "text": "Checking API", "phase": "commentary"}},
++    })
++    assert result.messages[0]["content"] == "Checking API"
++    assert result.final_text is None
+diff --git a/tests/agent/test_codex_runtime_failure_result.py b/tests/agent/test_codex_runtime_failure_result.py
+new file mode 100644
+index 000000000..52201910d
+--- /dev/null
++++ b/tests/agent/test_codex_runtime_failure_result.py
+@@ -0,0 +1,11 @@
++from agent.codex_runtime import _turn_result
++
++def test_provider_error_is_marked_failed_for_gateway_delivery():
++    result = _turn_result((False, None), [], api_calls=1, completed=False,
++                          error="server_overloaded", final_response="")
++    assert result["failed"] is True
++
++def test_user_interruption_is_not_failure():
++    result = _turn_result((True, "stop"), [], api_calls=1, completed=False,
++                          error="interrupted", final_response="")
++    assert result["failed"] is False

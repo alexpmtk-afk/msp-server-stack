@@ -1,0 +1,22 @@
+[Unit]
+Description=Hermes Web Dashboard (local only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+WorkingDirectory=/home/hermes/workspace
+Environment=HOME=/home/hermes
+Environment=HERMES_HOME=/home/hermes/.hermes
+Environment=PATH=/home/hermes/.local/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-/home/hermes/.hermes/.env
+ExecStart=/home/hermes/.local/bin/hermes dashboard --host 127.0.0.1 --port 9119 --no-open --skip-build
+Restart=always
+RestartSec=10
+RestartPreventExitStatus=78
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

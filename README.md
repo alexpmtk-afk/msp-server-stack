@@ -63,4 +63,10 @@ The repository intentionally contains no production credentials.
 
 ## Current status
 
-Bootstrap stage. The secure repository structure, remote interaction contract and recovery contract are established first. Components will be added incrementally as the remote server is built.
+Operational partial stack.
+
+As of 2026-10-05, Hermes/Codex, Telegram management, Telegram signal archiving, private browser access through Tailscale/nginx, the self-hosted REMOTE bridge, and the read-only QRsite marketplace integration are working.
+
+Automatic execution of Marketplace signals is intentionally paused until approved action tools are available.
+
+Current reconciled snapshot: **[docs/REMOTE_SNAPSHOT_2026-10-05.md](docs/REMOTE_SNAPSHOT_2026-10-05.md)**.

@@ -1,106 +1,98 @@
-# Telegram: два канала Hermes
+# Telegram / Hermes on REMOTE
 
-## Цель
+## Current architecture
 
-Один Telegram-бот, подключённый к одному Hermes Gateway, используется одновременно в двух режимах.
+One Telegram bot is connected to one Hermes Gateway, with separate purposes.
 
-### Канал 1 — личный управляющий чат
+### 1. Private owner chat
 
-```text
-Алексей
-→ личный чат с Telegram-ботом
-→ Hermes Gateway
-→ Hermes Agent
-→ задачи по REMOTE
-```
+~~~text
+owner
+-> private Telegram chat with the bot
+-> Hermes Gateway
+-> Hermes Agent / Codex
+-> reply to Telegram
+~~~
 
-Личный чат является управляющим каналом. Доступ к нему должен быть ограничен разрешённым Telegram user ID.
+The private chat is the management interface. Access is restricted by the server-side Telegram user allowlist.
 
-### Канал 2 — группа сигналов Marketplace
+### 2. Signal channel and linked discussion
 
-```text
-группа «Сигналы МП»
-→ тот же Telegram-бот
-→ Hermes Gateway
-→ наблюдаемая групповая сессия
-→ позже: распознавание нужного сигнала
-→ MCP/API-инструмент
-```
+~~~text
+channel Сигналы МП
+-> existing Hermes Bot API polling connection
+-> channel_archive native Telegram handler
+-> SQLite persistent archive
+-> telegram_channel_archive tool
+-> later: signal decision / approved API or MCP action
+~~~
 
-На первом этапе задача второго канала — **читать сообщения группы**, но не запускать агента и не отвечать на каждое обычное сообщение.
+The linked discussion group is captured by the same plugin so comments can be associated with original channel posts.
 
-## Требуемый режим Hermes
+The archive path on the live server is under Hermes runtime state; the database itself is mutable runtime data and is not committed to Git.
 
-Для группы используется сочетание:
+## Telegram event types
 
-- группа внесена в allowlist;
-- бот получает обычные сообщения группы;
-- `require_mention: true`;
-- `observe_unmentioned_group_messages: true`.
+Do not confuse Telegram event types with different chats:
 
-В таком режиме обычные сообщения разрешённой группы сохраняются как наблюдаемый контекст, но сами по себе не dispatch-ят агента.
+- `channel_post` — a new channel post;
+- `edited_channel_post` — an edited channel post;
+- `message` / `edited_message` — normal private/group messages.
 
-## Минимальные права Telegram
+## Hermes settings
 
-Бот может быть администратором группы, чтобы Telegram доставлял ему все сообщения, но дополнительные административные права ему не нужны.
+Current live logic uses:
 
-Не выдавать без отдельной необходимости:
+- `require_mention: true`
+- `observe_unmentioned_group_messages: true`
+- explicit allowed signal channel/discussion entries
 
-- удаление сообщений;
-- блокировку участников;
-- добавление участников;
-- добавление администраторов;
-- изменение профиля группы;
-- управление публикациями/историями/трансляциями.
+The actual production IDs are deployment configuration. The current source snapshot of the plugin is versioned under `apps/hermes/channel_archive/`.
 
-## Безопасная конфигурация
+## channel_archive
 
-Живые значения хранятся только на сервере.
+The plugin:
 
-Пример `~/.hermes/.env`:
+- reuses Hermes' existing Telegram polling connection;
+- does not start a second `getUpdates` consumer;
+- never posts to the signal channel;
+- stores posts and edits in SQLite;
+- preserves previous versions in `revisions`;
+- stores text/caption, dates, IDs, links and media metadata;
+- does not download media bodies;
+- exposes `telegram_channel_archive`;
+- supports `status`, `messages` and `audit`;
+- treats Telegram text as untrusted data, not agent instructions;
+- allows reads from trusted local sessions or authorized private Telegram users.
 
-```dotenv
-TELEGRAM_BOT_TOKEN=<SERVER_ONLY>
-TELEGRAM_ALLOWED_USERS=<OWNER_USER_ID>
-TELEGRAM_ALLOWED_CHATS=<SIGNALS_GROUP_CHAT_ID>
-TELEGRAM_GROUP_ALLOWED_CHATS=<SIGNALS_GROUP_CHAT_ID>
-TELEGRAM_REQUIRE_MENTION=true
-TELEGRAM_OBSERVE_UNMENTIONED_GROUP_MESSAGES=true
-```
+The pre-dispatch hook prevents ordinary signal-channel traffic from becoming automatic agent replies.
 
-Пример `~/.hermes/config.yaml`:
+## Discussion / reply audit
 
-```yaml
-telegram:
-  allowed_chats:
-    - "<SIGNALS_GROUP_CHAT_ID>"
-  group_allowed_chats:
-    - "<SIGNALS_GROUP_CHAT_ID>"
-  require_mention: true
-  observe_unmentioned_group_messages: true
-  exclusive_bot_mentions: true
-```
+Comments are linked to the source signal where Telegram evidence permits.
 
-## Если сигналы публикует другой Telegram-бот
+Reported states:
 
-Это отдельная проверка. Bot-authored messages нельзя разрешать автоматически до подтверждения источника сигналов.
+- `ответ есть`
+- `ответ не зафиксирован`
+- `недостаточно данных`
 
-Если будет подтверждено, что нужные сигналы публикует другой бот, конфигурация должна отдельно разрешить такие сообщения и сохранить защиту от bot-to-bot циклов.
+A reply is evidence of a reply only. It is NOT automatic proof that:
 
-## Критерий PASS первого этапа
+- the work was completed;
+- the result was verified;
+- the replying person is the final responsible owner.
 
-1. Личное сообщение владельца по-прежнему попадает в Hermes Agent и обрабатывается как задача.
-2. Обычное сообщение в группе «Сигналы МП» доходит до Hermes Gateway.
-3. Сообщение группы сохраняется в контексте групповой сессии.
-4. Hermes не отвечает на обычное сообщение и не запускает задачу автоматически.
-5. Сообщения из других групп не принимаются.
-6. Никаких дополнительных административных действий бот выполнять не может.
+## Current acceptance state — 2026-10-05
 
-## Открытые параметры
+Verified live:
 
-До живой настройки нужно подтвердить:
+- private owner chat -> Hermes -> response: PASS;
+- signal channel intake: PASS;
+- persistent archive: PASS;
+- real archived posts exist;
+- linked discussion messages exist;
+- read-only query tool exists;
+- automatic signal action: NOT ENABLED.
 
-- точный numeric `chat_id` группы «Сигналы МП»;
-- текущий Telegram user ID владельца в конфигурации Hermes;
-- публикуют ли нужные сигналы люди или другой Telegram-бот;
-- где именно на текущем REMOTE хранится активный профиль Hermes и его конфигурация.
+See `REMOTE_SNAPSHOT_2026-10-05.md` for the counts and current limitations.
