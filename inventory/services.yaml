@@ -28,6 +28,9 @@ remote_interaction:
     supported_commands:
       - status
       - agent-status
+      - telegram-status
+      - codex-rate-limits
+      - canonical-snapshot-audit
   workflow:
     - discover-target
     - read-only-diagnostics
