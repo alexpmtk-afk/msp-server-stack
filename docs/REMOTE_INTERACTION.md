@@ -37,6 +37,14 @@ The private bridge supports a whitelisted GitHub issue command:
 
 `[REMOTE] agent-status`
 
+Additional read-only maintenance probes currently available through the private bridge include:
+
+- `[REMOTE] telegram-status`
+- `[REMOTE] codex-rate-limits`
+- `[REMOTE] canonical-snapshot-audit`
+
+These probes do not grant arbitrary shell access; each workflow has a fixed, reviewed diagnostic scope.
+
 The workflow accepts only this exact command from the repository owner, runs a safe read-only status check on REMOTE, posts the result back to the issue and closes the request automatically.
 
 Arbitrary shell commands from issue text are not allowed.
