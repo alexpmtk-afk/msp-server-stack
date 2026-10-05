@@ -94,3 +94,15 @@ MCP рассматривается прежде всего как контрол
 ## Проработанные сигналы
 
 - [Нехватка остатка до следующего поступления / повышение цены](stock-shortage.md)
+
+
+## Reconciled REMOTE registry — 2026-10-05
+
+The server-side registry currently contains 32 signal cards. Six signals have been partially reviewed with user-confirmed interpretation/handling rules.
+
+See:
+
+- `catalog-2026-10-05.json` — stable ID/title/review-state snapshot;
+- `REVIEWED_RULES_2026-10-05.md` — the six reviewed rules.
+
+Automatic execution remains disabled. The next stage begins only after the required safe API/MCP action tools are supplied and independently verified.
