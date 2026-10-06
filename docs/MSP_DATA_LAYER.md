@@ -48,8 +48,9 @@ No currency is invented. Technical Google columns are excluded.
 
 Each nonempty source row contributes to source_rows and to inserted/updated/unchanged/rejected.
 Invalid rows retain original values and source row in sync_error. The formula sentinel row is explicitly logged as technical and rejected from business history.
+Identical source problems are stored once in sync_error; later runs still report rejected counts in sync_run but do not append duplicate copies of the same error.
 Valid rows commit even when another row fails; partial runs exit nonzero and are retried. Source-level failures do not prevent other sources from being attempted.
-Catalog duplicate business keys are logged rather than silently overwriting. Missing catalog matches reject self purchases and log raw rows; price events are retained with unmatched status.
+Catalog duplicate business keys are logged rather than silently overwriting. Missing catalog matches reject self purchases and log raw rows; price events are retained with unmatched status and are not treated as sync errors.
 No absent source rows are deleted from historical storage. Conditional HTTP and content SHA skip clean identical snapshots; retries of partial snapshots only change modified business rows.
 Multiple same-card same-date rows use source-order ordinal within the key. An immutable source event ID is unavailable: reordering/removal of these rows can make identity ambiguous. This is an explicit limitation, not a guaranteed identity under arbitrary source rewrites.
 Rows transferred between current/archive retain separate origins; cross-segment identity is not guessed.
