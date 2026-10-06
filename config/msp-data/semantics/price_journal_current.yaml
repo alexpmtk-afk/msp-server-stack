@@ -1,0 +1,141 @@
+{
+  "version": 2,
+  "dataset": "price_journal_current",
+  "purpose": "Historical price changes for agent queries",
+  "source": {
+    "spreadsheet_id": "1DK-SI1V_sanPNQPVZBHb8mhSrCzvlZNsTjjSM1IGAVA",
+    "sheet": "журнал цен"
+  },
+  "fields": {
+    "event_key": {
+      "source": "derived",
+      "type": "text",
+      "meaning": "SHA-256 of source segment, listing key, event date, and same-key occurrence ordinal"
+    },
+    "source_segment": {
+      "source": "configuration",
+      "type": "enum current/archive",
+      "meaning": "Origin segment; never deduplicate between segments"
+    },
+    "source_sheet": {
+      "source": "configuration",
+      "type": "text",
+      "meaning": "Exact source tab name"
+    },
+    "marketplace": {
+      "source": "маркетплейс",
+      "type": "enum wb/oz",
+      "meaning": "Marketplace"
+    },
+    "store": {
+      "source": "магазин",
+      "type": "text",
+      "meaning": "Store/cabinet code"
+    },
+    "marketplace_sku": {
+      "source": "Артикул мп",
+      "type": "ascii digits text",
+      "meaning": "Marketplace numeric SKU; current market_article column is empty and is NOT used"
+    },
+    "event_date": {
+      "source": "дата",
+      "type": "ISO date",
+      "meaning": "Date of price change, not import date"
+    },
+    "source_ordinal": {
+      "source": "derived",
+      "type": "positive integer",
+      "meaning": "Occurrence within segment/listing/date in source order; preserves multiple events"
+    },
+    "new_price": {
+      "source": "Новая цена со скидкой",
+      "type": "nullable decimal text",
+      "meaning": "New price after seller discount; buyer final price and Ozon-card price not established"
+    },
+    "old_price": {
+      "source": "старая цена",
+      "type": "nullable decimal text",
+      "meaning": "Old price as recorded in source"
+    },
+    "list_price": {
+      "source": "новая цена (зачеркнутая)",
+      "type": "nullable decimal text",
+      "meaning": "New crossed-out/list price"
+    },
+    "minimum_price": {
+      "source": "новая МИН цена",
+      "type": "nullable decimal text",
+      "meaning": "Recorded new minimum price; application semantics not independently verified"
+    },
+    "discount_percent": {
+      "source": "Скидка",
+      "type": "nullable decimal text",
+      "meaning": "Discount in percent units, not fractional ratio"
+    },
+    "direction": {
+      "source": "направление действия",
+      "type": "text",
+      "meaning": "Source direction label; no inferred enum"
+    },
+    "note": {
+      "source": "примечание",
+      "type": "text",
+      "meaning": "Business reason/comment, untrusted text"
+    },
+    "source_product_label": {
+      "source": "Артикул наш",
+      "type": "text",
+      "meaning": "Misleading header: often product name/short label; NEVER use for linking"
+    },
+    "row_hash": {
+      "source": "derived",
+      "type": "SHA256 text",
+      "meaning": "Business row change fingerprint"
+    },
+    "created_at": {
+      "source": "derived",
+      "type": "UTC timestamp",
+      "meaning": "First local ingestion"
+    },
+    "updated_at": {
+      "source": "derived",
+      "type": "UTC timestamp",
+      "meaning": "Last actual business row modification"
+    }
+  },
+  "business_key": [
+    "source_segment",
+    "marketplace",
+    "store",
+    "marketplace_sku",
+    "event_date",
+    "source_ordinal"
+  ],
+  "uniqueness": "event_key unique; same-day repeated source rows kept as separate occurrences",
+  "relations": "LEFT JOIN product_listing by marketplace/store/marketplace_sku; unmatched historical events remain stored and logged",
+  "normalization": "trim text; lowercase marketplace/store; aliases from config; strict ASCII digits SKU; comma decimal to exact decimal TEXT; date to ISO",
+  "updates": "upsert changed event key; no deletes on absence; full source hash skips clean identical snapshots",
+  "limitations": [
+    "No immutable event ID exists. Same-date repeated-event reordering/removal can make ordinal identity ambiguous; preserve source order.",
+    "Moving an event between sheets retains both origins; do not silently deduplicate.",
+    "Currency not supplied; do not invent it.",
+    "Invalid rows retained with complete raw CSV row in sync_error.",
+    "Current formula sentinel row is logged as technical, not imported as price event."
+  ],
+  "excluded_columns": [
+    "СВЕРКА цены",
+    "флаг импорта",
+    "флаг импорта 1",
+    "КОНТРОЛЬ СТРОК",
+    "market_article",
+    "журнал действий",
+    "новая маржа",
+    "стар маржа",
+    "разница",
+    "оборот остатка дней",
+    "старая СПП",
+    "распродажа",
+    "unnamed/control/count columns"
+  ],
+  "warning": "Артикул наш is a label; authoritative internal_article/product_name come from catalog after matching. Positional column mapping forbidden."
+}
