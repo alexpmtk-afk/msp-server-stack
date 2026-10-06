@@ -1,0 +1,30 @@
+name: MSP data sync tests
+
+on:
+  push:
+    paths:
+      - "apps/msp_data_sync/**"
+      - "config/msp-data/**"
+      - "tests/test_msp_data_sync.py"
+      - "systemd/msp-data-sync.*"
+      - "scripts/deploy/install-msp-data-sync.sh"
+  pull_request:
+    paths:
+      - "apps/msp_data_sync/**"
+      - "config/msp-data/**"
+      - "tests/test_msp_data_sync.py"
+      - "systemd/msp-data-sync.*"
+      - "scripts/deploy/install-msp-data-sync.sh"
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile sync
+        run: python3 -m py_compile apps/msp_data_sync/sync.py
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -p 'test_msp_data_sync.py' -v

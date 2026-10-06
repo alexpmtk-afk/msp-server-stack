@@ -1,0 +1,52 @@
+version: 1
+catalog: self_purchase
+source_sheet: "самовыкупы"
+purpose: >
+  Реестр самовыкупов собственных товаров. Используется для отделения самовыкупов от обычных
+  клиентских продаж и для других аналитических задач, где нужно знать количество самовыкупов
+  конкретной карточки на конкретную дату.
+business_key: [marketplace, store, marketplace_sku, purchase_date]
+fields:
+  marketplace:
+    source: "МП"
+    meaning: Маркетплейс, на котором выполнен самовыкуп.
+  legal_entity:
+    source: "ЮЛ"
+    meaning: Юридическое лицо/внутреннее обозначение направления из исходного реестра.
+  store:
+    source: derived
+    meaning: Код магазина, получаемый из semantic mapping ЮЛ -> store или однозначно из product_catalog.
+  marketplace_sku:
+    source: "Артикул МП"
+    meaning: >
+      Цифровой SKU маркетплейса. Несмотря на имя исходной колонки, это тот же тип идентификатора,
+      что market_article в листе "артикулы".
+    validation: digits_only
+  internal_article:
+    source: "Артикул наш"
+    meaning: Внутренний артикул товара; вспомогательное поле, не основной ключ связи.
+  product_name:
+    source: "Название товара"
+    meaning: Человекочитаемое название товара из реестра самовыкупов.
+  quantity:
+    source: "Кол-во выкупов"
+    meaning: Количество единиц самовыкупа для карточки на указанную дату.
+  purchase_date:
+    source: "Дата выкупа"
+    meaning: Дата самовыкупа. Используется вместе с marketplace_sku при корректировке продаж/заказов.
+  review_date:
+    source: "Дата отзыва"
+    meaning: Дата отзыва, если она указана.
+  review_url:
+    source: "Ссылка на отзыв"
+    meaning: Ссылка на отзыв, если она указана.
+  review_draft:
+    source: "Черновик отзывов"
+    meaning: Черновик/текст отзыва, если он указан.
+order_id_policy: >
+  Идентификатор заказа не требуется для текущих задач. Для расчётов достаточно marketplace_sku,
+  даты самовыкупа и quantity с контекстом marketplace/store.
+matching_rules:
+  - Сначала нормализовать marketplace и marketplace_sku.
+  - store определять по явному mapping ЮЛ -> store; при отсутствии mapping допускается только однозначное сопоставление по product_catalog.
+  - Запись самовыкупа должна ссылаться на существующую карточку product_catalog.

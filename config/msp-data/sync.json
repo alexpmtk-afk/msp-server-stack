@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "spreadsheet_id": "1DK-SI1V_sanPNQPVZBHb8mhSrCzvlZNsTjjSM1IGAVA",
+  "database_path": "/opt/mcp/data/msp/msp_data.sqlite3",
+  "timezone": "Europe/Moscow",
+  "sources": {
+    "product_catalog": {
+      "sheet": "артикулы",
+      "gid": 1280560018
+    },
+    "self_purchase": {
+      "sheet": "самовыкупы",
+      "gid": 1108533081
+    }
+  },
+  "legal_entity_store_mapping": {
+    "ЛМ": "laser",
+    "НМБ": "novok"
+  }
+}
