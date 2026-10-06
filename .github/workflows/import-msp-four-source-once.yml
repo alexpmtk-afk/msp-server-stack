@@ -1,0 +1,79 @@
+name: Import REMOTE MSP four-source agent commit
+
+on:
+  push:
+    branches:
+      - codex/import-msp-four-source-20261006
+    paths:
+      - .github/workflows/import-msp-four-source-once.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-msp-four-source-once
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: [self-hosted, Linux, X64, msp-remote]
+    timeout-minutes: 8
+    steps:
+      - name: Checkout integration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Import local agent commit and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOCAL=/opt/mcp/projects/msp-server-stack
+          AGENT_COMMIT=533332d8b74e8ef955885a8a507f1d4b1828baac
+          AGENT_BASE=270c48a2796d2ba4ca177909a5dddb378673fd25
+
+          test -d "$LOCAL/.git"
+          git -C "$LOCAL" cat-file -e "$AGENT_COMMIT^{commit}"
+          git -C "$LOCAL" cat-file -e "$AGENT_BASE^{commit}"
+
+          PATCH="$RUNNER_TEMP/msp-four-source.patch"
+          git -C "$LOCAL" diff --binary "$AGENT_BASE" "$AGENT_COMMIT" > "$PATCH"
+          test -s "$PATCH"
+
+          git apply --3way "$PATCH"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("inventory/services.yaml")
+          s=p.read_text(encoding="utf-8")
+          old="""    sources:
+      - product_catalog
+      - self_purchase
+    secrets: none
+"""
+          new="""    sources:
+      - product_catalog
+      - self_purchase
+      - price_journal_current
+      - price_journal_archive
+    unified_view: v_price_history
+    secrets: none
+"""
+          if old not in s:
+              raise SystemExit("msp-data-catalog inventory block not found")
+          p.write_text(s.replace(old,new,1),encoding="utf-8")
+          PY
+
+          python3 -m py_compile apps/msp_data_sync/sync.py
+          python3 -m unittest discover -s tests -p 'test_msp*.py' -v
+
+          rm -f .github/workflows/import-msp-four-source-once.yml
+
+          git status --short
+          git diff --check
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Extend MSP data layer to all four sources"
+          git push origin HEAD:codex/import-msp-four-source-20261006
