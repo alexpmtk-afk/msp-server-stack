@@ -1,0 +1,19 @@
+[Unit]
+Description=MSP data catalog synchronization
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=hermes
+Group=hermes
+WorkingDirectory=/opt/mcp/projects/msp-server-stack
+ExecStart=/usr/bin/python3 /opt/mcp/projects/msp-server-stack/apps/msp_data_sync/sync.py --config /opt/mcp/projects/msp-server-stack/config/msp-data/sync.json --source all
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mcp/data/msp
+
+[Install]
+WantedBy=multi-user.target

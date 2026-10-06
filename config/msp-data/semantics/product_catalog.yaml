@@ -1,0 +1,44 @@
+version: 1
+catalog: product_catalog
+source_sheet: "артикулы"
+purpose: >
+  Справочник соответствия карточек товаров маркетплейсов внутренним артикулам и названиям 1С.
+  Основная задача — однозначное сопоставление маркетплейс + магазин + цифровой SKU.
+business_key: [marketplace, store, marketplace_sku]
+fields:
+  marketplace:
+    source: "мп"
+    meaning: Маркетплейс карточки товара.
+    examples: [oz, wb]
+  store:
+    source: "магазин"
+    meaning: Внутреннее кодовое имя магазина/кабинета на маркетплейсе.
+    examples: [laser, novok, ultra]
+  marketplace_sku:
+    source: market_article
+    meaning: Цифровой SKU маркетплейса; главный идентификатор карточки для межтабличных связей.
+    validation: digits_only
+  marketplace_article:
+    source: "артикул_мп"
+    meaning: Артикул товара, установленный внутри карточки маркетплейса; может содержать буквы и знаки.
+  internal_article:
+    source: "артикул_наш"
+    meaning: Внутренний артикул товара компании. Не является уникальным идентификатором карточки.
+  internal_article_normalized:
+    source: "артикул_наш_▼"
+    meaning: Нормализованная версия внутреннего артикула для поиска и сопоставления.
+  product_name:
+    source: "наименование 1С"
+    meaning: Основное внутреннее наименование товара из 1С.
+relations:
+  - Один internal_article может иметь несколько marketplace_sku на одном или разных маркетплейсах.
+  - Конкретную карточку идентифицировать только через marketplace + store + marketplace_sku.
+  - Другие каталоги должны связываться с этим справочником прежде всего через marketplace_sku и контекст marketplace/store.
+excluded_operational_fields:
+  - себестоимость
+  - литраж
+  - остатки FBS/FBO
+  - суммарный остаток
+  - текущая цена
+  - ожидание производства
+  - прочие изменяемые метрики

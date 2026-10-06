@@ -115,6 +115,19 @@ components:
     source: external-and-project-specific
     secrets: external
 
+  - id: msp-data-catalog
+    kind: application-data
+    status: implementation-ready
+    source: apps/msp_data_sync
+    database: /opt/mcp/data/msp/msp_data.sqlite3
+    semantics: config/msp-data/semantics
+    source_workbook: "_05_экпорт: бд для МСП"
+    schedule: "08:00 Europe/Moscow"
+    sources:
+      - product_catalog
+      - self_purchase
+    secrets: none
+
 external_dependencies:
   - id: ai-model-provider
     credentials: external

@@ -1,0 +1,50 @@
+version: 1
+catalog_group: msp_data
+purpose: >
+  Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
+  чтобы сопоставлять один и тот же товар между магазинами и маркетплейсами без повторного
+  чтения рабочих Google-таблиц.
+source:
+  spreadsheet_id: 1DK-SI1V_sanPNQPVZBHb8mhSrCzvlZNsTjjSM1IGAVA
+  title: "_05_экпорт: бд для МСП"
+  access_model: public_by_link_read_only_export
+canonical_identifiers:
+  marketplace_sku:
+    meaning: >
+      Цифровой SKU маркетплейса. Это основной сквозной идентификатор карточки товара внутри
+      маркетплейса. В исходных таблицах может называться market_article, "Артикул МП",
+      "Артикул мп" и другими похожими именами.
+    type: text
+    validation: digits_only
+    examples: ["553855642", "1110110146"]
+    warning: >
+      Не путать marketplace_sku с marketplace_article: marketplace_article может содержать
+      буквы, точки, дефисы и другие символы.
+identity_rules:
+  listing_business_key: [marketplace, store, marketplace_sku]
+  internal_article_is_not_listing_key: true
+  one_internal_article_may_have_many_listings: true
+normalization:
+  marketplace:
+    wb: wb
+    WB: wb
+    wildberries: wb
+    oz: oz
+    OZ: oz
+    ozon: oz
+  legal_entity_to_store:
+    "ЛМ": laser
+    "НМБ": novok
+operational_metrics_policy: >
+  Себестоимость, литраж, остатки, текущая цена, ожидание производства и другие изменяемые
+  показатели не являются частью product_catalog. Если они понадобятся агенту, для них нужно
+  создавать отдельные каталоги/метрики с собственной семантикой и правилами обновления.
+sync_policy:
+  local_store: sqlite
+  database_path: /opt/mcp/data/msp/msp_data.sqlite3
+  full_database_replacement: false
+  row_strategy: upsert_only_changed_or_missing
+  deletion_strategy: do_not_delete_on_source_absence
+  transport_optimization: >
+    Использовать HTTP ETag/Last-Modified, когда Google их возвращает. Если сервер не поддержал
+    условный ответ, сравнивать SHA-256 полученного снимка и не переписывать SQLite при отсутствии изменений.
