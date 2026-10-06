@@ -42,10 +42,15 @@ jobs:
 
           python3 -m py_compile apps/msp_data_sync/sync.py
           python3 -m unittest discover -s tests -p 'test_msp*.py' -v
+
+          # The agent patch also updates a workflow file. GITHUB_TOKEN cannot push
+          # workflow changes, so keep the branch workflow version unchanged here.
+          # It will be updated separately through the GitHub connector.
+          git checkout HEAD -- .github/workflows/msp-data-sync-tests.yml
+
+          rm -f "$B64"
+
           git diff --check
-
-          rm -f "$B64" .github/workflows/apply-msp-four-source-once.yml
-
           git add -A
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
