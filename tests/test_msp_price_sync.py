@@ -66,6 +66,17 @@ class PriceSyncTests(unittest.TestCase):
             result=m.sync(self.c,self.cfg,'price_journal_current')
         self.assertEqual(result['status'],'unchanged_snapshot')
         self.assertEqual(self.c.execute('select count(*) from mutations').fetchone()[0],0)
+    def test_unmatched_price_event_is_history_not_sync_error(self):
+        self.ingest([self.header,self.row])
+        self.assertEqual(self.c.execute("select count(*) from price_event").fetchone()[0],1)
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0],0)
+        self.assertEqual(self.c.execute("select count(*) from v_price_history where catalog_match_status='unmatched'").fetchone()[0],1)
+    def test_identical_invalid_row_is_logged_once_across_runs(self):
+        bad=self.row.copy();bad[2]='ABC'
+        self.ingest([self.header,bad])
+        self.ingest([self.header,bad])
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0],1)
+
     def test_ascii_sku_and_quantity_validation(self):
         for value in ['١٢٣','123.0','1e3','']:
             with self.assertRaises(ValueError):m.sku(value)
