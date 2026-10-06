@@ -4,7 +4,7 @@
 
 Connect the official MPSTATS remote MCP service to the MSP REMOTE agent stack and then describe its real tools in the shared semantic layer.
 
-This integration is intentionally split into two stages:
+The work is intentionally split into two stages:
 
 1. technical connection and acceptance;
 2. inventory and semantic description of the tools and data actually exposed by MPSTATS.
@@ -13,54 +13,123 @@ Do not design the final semantic model before live tool discovery.
 
 ## Official remote MCP endpoint
 
-Use the official MPSTATS remote MCP endpoint pattern:
+MPSTATS documents the remote MCP endpoint in this form:
 
 ```text
 https://mcp.mpstats.io/mcp?token=<MPSTATS_API_TOKEN>
 ```
 
-The real token is a production secret and must never be committed.
+The real token is a production secret and must never be committed to GitHub or printed in diagnostics.
+
+## Verified REMOTE configuration — 2026-10-06
+
+A read-only audit through the private `msp-server-bridge` confirmed:
+
+- Codex CLI: `0.159.3`;
+- the Hermes gateway runs as user `hermes`;
+- gateway Codex configuration: `/home/hermes/.codex/config.toml`;
+- dashboard Codex configuration: `/home/hermes/.codex-dashboard/config.toml`;
+- both config files are mode `0600`;
+- both currently contain one MCP server, `hermes-tools`;
+- `codex mcp add` supports streamable HTTP servers through `--url`;
+- `codex mcp add` also supports bearer-token environment variables, but MPSTATS currently documents MCP authentication through the URL query parameter;
+- `/opt/mcp/secrets` is owned by the `hermes` service user, mode `0700`, and is readable/writable by that user;
+- individual existing secret files are mode `0600`;
+- non-interactive sudo is not available to the bridge runner.
+
+The first MPSTATS integration therefore does not require sudo: protected secret storage and both active Codex configs are writable by the `hermes` user.
 
 ## Secret handling
 
-Preferred protected location on REMOTE:
+Canonical protected location on REMOTE:
 
 ```text
 /opt/mcp/secrets/mpstats.env
 ```
 
-Suggested variable name:
+Variable name:
 
 ```text
 MPSTATS_API_TOKEN=<real value only on REMOTE>
 ```
 
-Repository content may contain only the variable name, placeholder examples and deployment logic.
+Required permissions:
 
-Because MPSTATS authentication is carried in the remote URL, configuration and diagnostics must be reviewed so that the fully expanded URL is not printed to logs, GitHub Actions output, issue comments or process listings.
+```text
+directory: /opt/mcp/secrets 0700
+file:      /opt/mcp/secrets/mpstats.env 0600
+owner:     hermes
+```
+
+Repository content contains only the variable name, placeholder examples and deployment logic.
+
+### Runtime copy in Codex config
+
+MPSTATS currently documents MCP authentication by embedding the token in the remote MCP URL. Codex does not document environment-variable expansion inside the `url` field itself.
+
+For that reason, the current deployment procedure reads the token from the protected secret file and writes the authenticated URL into the two private Codex runtime configs. Those files remain mode `0600` and are not stored in GitHub.
+
+Diagnostics must never print the expanded MPSTATS URL. The reproducible installer accepts no token CLI argument, preventing accidental exposure in command history or process arguments.
+
+If MPSTATS later documents a supported header-based MCP authentication mechanism, prefer `env_http_headers` or another environment-backed credential method and remove the duplicated runtime secret from Codex config.
+
+## Active Codex targets
+
+MPSTATS is installed into both:
+
+```text
+/home/hermes/.codex/config.toml
+/home/hermes/.codex-dashboard/config.toml
+```
+
+The first target is used by the Hermes gateway/current default Codex runtime. The second is used by the Hermes dashboard through its separate `CODEX_HOME`.
+
+## Reproducible installer
+
+Tracked installer:
+
+```text
+scripts/remote/install_mpstats_mcp.py
+```
+
+It:
+
+1. reads the token only from `/opt/mcp/secrets/mpstats.env`;
+2. refuses an empty token or secret-file permissions broader than `0600`;
+3. backs up both current Codex config files locally;
+4. adds/replaces only the `[mcp_servers.mpstats]` table;
+5. keeps both active config files at mode `0600`;
+6. verifies only the non-secret URL shape and never prints the token.
 
 ## Installation sequence
 
-1. Capture a read-only pre-change REMOTE snapshot.
-2. Verify the actual MCP configuration mechanism used by the live Hermes/Codex runtime.
-3. Create protected token storage on REMOTE with restrictive permissions.
-4. Add the MPSTATS MCP definition using the smallest supported configuration change.
-5. Reload/restart only the component that actually requires it.
-6. Verify service health.
-7. Discover the MPSTATS MCP tool list.
-8. Execute one harmless read-only request.
-9. Record the post-change state and any configuration delta.
+1. Capture a read-only pre-change REMOTE snapshot — **PASS**.
+2. Audit actual Codex/Hermes MCP configuration and permissions — **PASS**.
+3. Create protected empty MPSTATS secret file — next operation.
+4. Populate the token directly on REMOTE; never paste it into chat or GitHub.
+5. Run the tracked installer.
+6. Verify `codex mcp list` with sanitization.
+7. Perform a real MCP `initialize` + `tools/list` call without exposing the token.
+8. Record the post-change state and configuration delta.
+9. Choose one harmless read-only MPSTATS tool from the discovered schema and run it.
 10. Only then build the semantic catalog.
+
+## Restart policy
+
+Do not restart Hermes merely to edit Codex MCP configuration.
+
+Existing Codex sessions may keep their already-loaded tool catalog. New Codex sessions should be used for acceptance after the configuration change. Restart the gateway only if a later live test demonstrates that the gateway cannot pick up the MCP configuration in a new session.
 
 ## Acceptance criteria
 
-PASS requires all of the following:
+Technical connection is PASS only when all of the following are true:
 
-- the MPSTATS MCP server is visible to the target agent/runtime;
-- no token is present in GitHub or diagnostic output;
-- tool discovery succeeds;
-- at least one read-only MPSTATS call succeeds;
-- existing services remain healthy;
+- MPSTATS appears in the target Codex MCP configuration;
+- no token appears in GitHub, issue output, logs or chat;
+- MCP initialization succeeds;
+- `tools/list` succeeds;
+- at least one harmless read-only MPSTATS tool call succeeds;
+- existing Hermes/Telegram/nginx/Tailscale/QRsite functions remain healthy;
 - the change is reproducible from this repository plus protected secrets.
 
 ## Semantic-layer follow-up
