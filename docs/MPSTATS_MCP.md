@@ -39,6 +39,8 @@ A read-only audit through the private `msp-server-bridge` confirmed:
 
 The first MPSTATS integration therefore does not require sudo: protected secret storage and both active Codex configs are writable by the `hermes` user.
 
+A state-changing but credential-safe bridge operation then created `/opt/mcp/secrets/mpstats.env` with mode `0600`, owner `hermes:hermes`, and an empty `MPSTATS_API_TOKEN=` placeholder. No credential value has been supplied yet.
+
 ## Secret handling
 
 Canonical protected location on REMOTE:
@@ -105,8 +107,8 @@ It:
 
 1. Capture a read-only pre-change REMOTE snapshot — **PASS**.
 2. Audit actual Codex/Hermes MCP configuration and permissions — **PASS**.
-3. Create protected empty MPSTATS secret file — next operation.
-4. Populate the token directly on REMOTE; never paste it into chat or GitHub.
+3. Create protected empty MPSTATS secret file — **PASS** (2026-10-06; mode `0600`, owner `hermes:hermes`, value empty).
+4. Populate the token directly on REMOTE — **WAITING FOR TOKEN VALUE**. Never paste it into chat or GitHub.
 5. Run the tracked installer.
 6. Verify `codex mcp list` with sanitization.
 7. Perform a real MCP `initialize` + `tools/list` call without exposing the token.
