@@ -32,6 +32,7 @@ remote_interaction:
       - codex-rate-limits
       - canonical-snapshot-audit
       - mcp-config-audit
+      - mpstats-secret-init
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -112,7 +113,7 @@ components:
 
   - id: mpstats-integration
     kind: external-mcp
-    status: prepared-secret-pending
+    status: secret-template-ready-token-pending
     source: MPSTATS
     endpoint: https://mcp.mpstats.io/mcp
     transport: streamable-http
