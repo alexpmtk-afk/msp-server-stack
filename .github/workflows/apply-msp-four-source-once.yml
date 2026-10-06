@@ -1,0 +1,53 @@
+name: Apply MSP four-source agent patch once
+
+on:
+  push:
+    branches:
+      - codex/msp-four-source-ready-20261006
+    paths:
+      - .github/workflows/apply-msp-four-source-once.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-msp-four-source-once
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout integration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Decode, apply and validate agent patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          B64=.github/import/msp-four-source-agent.patch.b64
+          PATCH="$RUNNER_TEMP/msp-four-source-agent.patch"
+
+          base64 -d "$B64" > "$PATCH"
+          test "$(wc -c < "$PATCH")" = "58341"
+          test "$(sha256sum "$PATCH" | awk '{print $1}')" = "f309d133898611fb420dc6666ba1d049d519003af15c592ef6bb38c9ca92c4a2"
+
+          git apply --3way "$PATCH"
+
+          python3 -c 'from pathlib import Path; p=Path("inventory/services.yaml"); s=p.read_text(encoding="utf-8"); old="    sources:\n      - product_catalog\n      - self_purchase\n    secrets: none\n"; new="    sources:\n      - product_catalog\n      - self_purchase\n      - price_journal_current\n      - price_journal_archive\n    unified_view: v_price_history\n    secrets: none\n"; (_ for _ in ()).throw(SystemExit("msp-data-catalog inventory block not found")) if old not in s else None; p.write_text(s.replace(old,new,1),encoding="utf-8")'
+
+          python3 -m py_compile apps/msp_data_sync/sync.py
+          python3 -m unittest discover -s tests -p 'test_msp*.py' -v
+          git diff --check
+
+          rm -f "$B64" .github/workflows/apply-msp-four-source-once.yml
+
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Extend MSP data layer to all four sources"
+          git push origin HEAD:codex/msp-four-source-ready-20261006
