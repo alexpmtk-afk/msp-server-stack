@@ -53,7 +53,14 @@ def cols(header,need):
         if k not in out: raise ValueError(f'missing column {k}: {header!r}')
     return out
 def val(r,i): return r[i] if i<len(r) else ''
-def err(c,run,source,row,e,raw): c.execute('insert into sync_error(run_id,source,source_row,error,raw_json,created_at) values(?,?,?,?,?,?)',(run,source,row,str(e)[:1000],json.dumps(raw,ensure_ascii=False)[:10000],now()))
+def err(c,run,source,row,e,raw):
+    message=str(e)[:1000]; raw_json=json.dumps(raw,ensure_ascii=False)[:10000]
+    exists=c.execute(
+        'select 1 from sync_error where source=? and ifnull(source_row,-1)=ifnull(?,-1) and error=? and raw_json=? limit 1',
+        (source,row,message,raw_json)
+    ).fetchone()
+    if exists:return
+    c.execute('insert into sync_error(run_id,source,source_row,error,raw_json,created_at) values(?,?,?,?,?,?)',(run,source,row,message,raw_json,now()))
 
 def fetch(c,cfg,source):
     st=c.execute('select etag,last_modified from sync_state where source=?',(source,)).fetchone(); hd={'User-Agent':'msp-data-sync/1.0'}
@@ -179,8 +186,8 @@ def prices(c,rows,run,source,cfg):
             elif old['row_hash']!=rh:
                 c.execute('update price_event set new_price=?,old_price=?,list_price=?,minimum_price=?,discount_percent=?,direction=?,note=?,source_product_label=?,row_hash=?,updated_at=? where event_key=?',(*business.values(),rh,stamp,key));n['updated']+=1
             else:n['unchanged']+=1
-            if not c.execute('select 1 from product_listing where marketplace=? and store=? and marketplace_sku=?',(market,store,code)).fetchone():
-                err(c,run,source,no,'unmatched price event; retained in price_event',r)
+            # Unmatched historical price events are valid business history, not sync errors.
+            # They remain queryable through v_price_history.catalog_match_status='unmatched'.
         except Exception as e:n['rejected']+=1;err(c,run,source,no,e,r)
     return n
 
