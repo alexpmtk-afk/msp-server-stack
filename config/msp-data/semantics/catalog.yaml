@@ -48,3 +48,17 @@ sync_policy:
   transport_optimization: >
     Использовать HTTP ETag/Last-Modified, когда Google их возвращает. Если сервер не поддержал
     условный ответ, сравнивать SHA-256 полученного снимка и не переписывать SQLite при отсутствии изменений.
+
+datasets:
+  - product_catalog
+  - self_purchase
+  - price_journal_current
+  - price_journal_archive
+  - v_price_history
+semantics_files:
+  - product_catalog.yaml
+  - self_purchase.yaml
+  - price_journal_current.yaml
+  - price_journal_archive.yaml
+  - price_history.yaml
+constraints: ASCII_numeric_SKU; no_operational_metrics_in_product_catalog; no_automatic_history_deletion

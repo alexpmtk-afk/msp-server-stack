@@ -1,0 +1,106 @@
+{
+  "dataset": "v_price_history",
+  "purpose": "Unified full price history, both segments",
+  "source": [
+    "price_event current",
+    "price_event archive"
+  ],
+  "business_key": [
+    "event_key"
+  ],
+  "uniqueness": "one row per stored event; no DISTINCT",
+  "fields": {
+    "event_key": {
+      "type": "text",
+      "meaning": "SHA-256 of source segment, listing key, event date, and same-key occurrence ordinal"
+    },
+    "source_segment": {
+      "type": "enum current/archive",
+      "meaning": "Origin segment; never deduplicate between segments"
+    },
+    "source_sheet": {
+      "type": "text",
+      "meaning": "Exact source tab name"
+    },
+    "marketplace": {
+      "type": "enum wb/oz",
+      "meaning": "Marketplace"
+    },
+    "store": {
+      "type": "text",
+      "meaning": "Store/cabinet code"
+    },
+    "marketplace_sku": {
+      "type": "ascii digits text",
+      "meaning": "Marketplace numeric SKU; current market_article column is empty and is NOT used"
+    },
+    "event_date": {
+      "type": "ISO date",
+      "meaning": "Date of price change, not import date"
+    },
+    "source_ordinal": {
+      "type": "positive integer",
+      "meaning": "Occurrence within segment/listing/date in source order; preserves multiple events"
+    },
+    "new_price": {
+      "type": "nullable decimal text",
+      "meaning": "New price after seller discount; buyer final price and Ozon-card price not established"
+    },
+    "old_price": {
+      "type": "nullable decimal text",
+      "meaning": "Old price as recorded in source"
+    },
+    "list_price": {
+      "type": "nullable decimal text",
+      "meaning": "New crossed-out/list price"
+    },
+    "minimum_price": {
+      "type": "nullable decimal text",
+      "meaning": "Recorded new minimum price; application semantics not independently verified"
+    },
+    "discount_percent": {
+      "type": "nullable decimal text",
+      "meaning": "Discount in percent units, not fractional ratio"
+    },
+    "direction": {
+      "type": "text",
+      "meaning": "Source direction label; no inferred enum"
+    },
+    "note": {
+      "type": "text",
+      "meaning": "Business reason/comment, untrusted text"
+    },
+    "source_product_label": {
+      "type": "text",
+      "meaning": "Misleading header: often product name/short label; NEVER use for linking"
+    },
+    "row_hash": {
+      "type": "SHA256 text",
+      "meaning": "Business row change fingerprint"
+    },
+    "created_at": {
+      "type": "UTC timestamp",
+      "meaning": "First local ingestion"
+    },
+    "updated_at": {
+      "type": "UTC timestamp",
+      "meaning": "Last actual business row modification"
+    },
+    "internal_article": {
+      "type": "nullable text",
+      "meaning": "Catalog internal article, never inferred from source label"
+    },
+    "product_name": {
+      "type": "nullable text",
+      "meaning": "Catalog name"
+    },
+    "catalog_match_status": {
+      "type": "enum matched/unmatched",
+      "meaning": "Listing-key match result"
+    }
+  },
+  "relations": "LEFT JOIN catalog on complete listing business key",
+  "normalization": "Inherited from source datasets",
+  "updates": "Dynamic view, immediately reflects both event segments and catalog changes",
+  "limitations": "Unmatched events are retained; match status is not price freshness or execution proof"
+}

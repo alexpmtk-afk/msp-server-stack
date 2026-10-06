@@ -20,11 +20,14 @@ install -d -o hermes -g hermes -m 0755 "$TARGET_ROOT/config/msp-data/semantics"
 install -d -o hermes -g hermes -m 0750 "$DATA_DIR"
 install -d -o hermes -g hermes -m 0750 "$BACKUP_DIR"
 
-install -o hermes -g hermes -m 0755 "$SRC_ROOT/apps/msp_data_sync/sync.py" "$TARGET_ROOT/apps/msp_data_sync/sync.py"
-install -o hermes -g hermes -m 0644 "$SRC_ROOT/config/msp-data/sync.json" "$TARGET_ROOT/config/msp-data/sync.json"
-for f in "$SRC_ROOT"/config/msp-data/semantics/*.yaml; do
-  install -o hermes -g hermes -m 0644 "$f" "$TARGET_ROOT/config/msp-data/semantics/$(basename "$f")"
-done
+if [ "$(readlink -f "$SRC_ROOT")" != "$(readlink -f "$TARGET_ROOT")" ]; then
+  install -o hermes -g hermes -m 0755 "$SRC_ROOT/apps/msp_data_sync/sync.py" "$TARGET_ROOT/apps/msp_data_sync/sync.py"
+  install -o hermes -g hermes -m 0644 "$SRC_ROOT/apps/msp_data_sync/schema.sql" "$TARGET_ROOT/apps/msp_data_sync/schema.sql"
+  install -o hermes -g hermes -m 0644 "$SRC_ROOT/config/msp-data/sync.json" "$TARGET_ROOT/config/msp-data/sync.json"
+  for f in "$SRC_ROOT"/config/msp-data/semantics/*.yaml; do
+    install -o hermes -g hermes -m 0644 "$f" "$TARGET_ROOT/config/msp-data/semantics/$(basename "$f")"
+  done
+fi
 
 install -o root -g root -m 0644 "$SRC_ROOT/systemd/msp-data-sync.service" /etc/systemd/system/msp-data-sync.service
 install -o root -g root -m 0644 "$SRC_ROOT/systemd/msp-data-sync.timer" /etc/systemd/system/msp-data-sync.timer

@@ -144,6 +144,9 @@ components:
     sources:
       - product_catalog
       - self_purchase
+      - price_journal_current
+      - price_journal_archive
+    unified_view: v_price_history
     secrets: none
 
 external_dependencies:

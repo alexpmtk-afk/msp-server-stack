@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "spreadsheet_id": "1DK-SI1V_sanPNQPVZBHb8mhSrCzvlZNsTjjSM1IGAVA",
   "database_path": "/opt/mcp/data/msp/msp_data.sqlite3",
   "timezone": "Europe/Moscow",
@@ -11,6 +11,92 @@
     "self_purchase": {
       "sheet": "самовыкупы",
       "gid": 1108533081
+    },
+    "price_journal_current": {
+      "sheet": "журнал цен",
+      "gid": 0,
+      "segment": "current",
+      "columns": {
+        "event_date": [
+          "дата"
+        ],
+        "marketplace": [
+          "маркетплейс"
+        ],
+        "store": [
+          "магазин"
+        ],
+        "marketplace_sku": [
+          "Артикул мп"
+        ],
+        "new_price": [
+          "Новая цена со скидкой"
+        ],
+        "old_price": [
+          "старая цена"
+        ],
+        "list_price": [
+          "новая цена (зачеркнутая)"
+        ],
+        "minimum_price": [
+          "новая МИН цена"
+        ],
+        "discount_percent": [
+          "Скидка"
+        ],
+        "direction": [
+          "направление действия"
+        ],
+        "note": [
+          "примечание"
+        ],
+        "source_product_label": [
+          "Артикул наш"
+        ]
+      }
+    },
+    "price_journal_archive": {
+      "sheet": "журнал цен (архив)",
+      "gid": 2062539510,
+      "segment": "archive",
+      "columns": {
+        "event_date": [
+          "дата"
+        ],
+        "marketplace": [
+          "маркетплейс"
+        ],
+        "store": [
+          "магазин"
+        ],
+        "marketplace_sku": [
+          "Артикул мп"
+        ],
+        "new_price": [
+          "Новая цена со скидкой"
+        ],
+        "old_price": [
+          "старая цена"
+        ],
+        "list_price": [
+          "новая цена (зачеркнутая)"
+        ],
+        "minimum_price": [
+          "новая МИН цена"
+        ],
+        "discount_percent": [
+          "Скидка"
+        ],
+        "direction": [
+          "направление действия"
+        ],
+        "note": [
+          "примечание"
+        ],
+        "source_product_label": [
+          "Артикул наш"
+        ]
+      }
     }
   },
   "legal_entity_store_mapping": {

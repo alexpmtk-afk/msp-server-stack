@@ -50,3 +50,18 @@ matching_rules:
   - Сначала нормализовать marketplace и marketplace_sku.
   - store определять по явному mapping ЮЛ -> store; при отсутствии mapping допускается только однозначное сопоставление по product_catalog.
   - Запись самовыкупа должна ссылаться на существующую карточку product_catalog.
+
+field_type_defaults:
+  default: nullable_text
+  marketplace: enum_wb_oz
+  store: nonempty_text
+  marketplace_sku: ascii_digits_text
+  quantity: positive_integer
+  purchase_date: ISO_date_required
+  review_date: ISO_date_nullable
+uniqueness: business_key_unique
+normalization_rules: trim_text; lowercase_marketplace_store; preserve_SKU_and_article_strings
+update_rules: upsert_changed_rows_only; retain_absent_rows; log_rejected_rows
+limitations: Missing dates or unmatched self purchases are retained in sync_error, not silently omitted.
+source_event_key: business_key_plus_source_ordinal
+source_ordinal_warning: For repeated same-card same-date rows, preserve source order. Reordering these rows makes identity ambiguous; immutable source event IDs are unavailable.

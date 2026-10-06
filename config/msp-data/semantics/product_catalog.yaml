@@ -42,3 +42,16 @@ excluded_operational_fields:
   - текущая цена
   - ожидание производства
   - прочие изменяемые метрики
+
+field_type_defaults:
+  default: nullable_text
+  marketplace: enum_wb_oz
+  store: nonempty_text
+  marketplace_sku: ascii_digits_text
+  quantity: positive_integer
+  purchase_date: ISO_date_required
+  review_date: ISO_date_nullable
+uniqueness: business_key_unique
+normalization_rules: trim_text; lowercase_marketplace_store; preserve_SKU_and_article_strings
+update_rules: upsert_changed_rows_only; retain_absent_rows; log_rejected_rows
+limitations: Missing dates or unmatched self purchases are retained in sync_error, not silently omitted.
