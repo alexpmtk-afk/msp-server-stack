@@ -31,6 +31,7 @@ remote_interaction:
       - telegram-status
       - codex-rate-limits
       - canonical-snapshot-audit
+      - mcp-config-audit
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -107,6 +108,22 @@ components:
     verified_mcp_tools: 4
     write_action_tools_verified: false
     documentation: docs/ANDREY_QRSITE.md
+    secrets: external
+
+  - id: mpstats-integration
+    kind: external-mcp
+    status: prepared-secret-pending
+    source: MPSTATS
+    endpoint: https://mcp.mpstats.io/mcp
+    transport: streamable-http
+    auth: protected-personal-token
+    secret_file: /opt/mcp/secrets/mpstats.env
+    codex_targets:
+      - /home/hermes/.codex/config.toml
+      - /home/hermes/.codex-dashboard/config.toml
+    documentation: docs/MPSTATS_MCP.md
+    installer: scripts/remote/install_mpstats_mcp.py
+    semantic_catalog: pending-live-tool-discovery
     secrets: external
 
   - id: mcp-services
