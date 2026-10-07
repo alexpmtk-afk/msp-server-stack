@@ -113,7 +113,7 @@ components:
 
   - id: mpstats-integration
     kind: external-mcp
-    status: secret-template-ready-token-pending
+    status: configured-awaiting-live-mcp-acceptance
     source: MPSTATS
     endpoint: https://mcp.mpstats.io/mcp
     transport: streamable-http

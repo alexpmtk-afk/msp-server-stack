@@ -108,13 +108,33 @@ It:
 1. Capture a read-only pre-change REMOTE snapshot — **PASS**.
 2. Audit actual Codex/Hermes MCP configuration and permissions — **PASS**.
 3. Create protected empty MPSTATS secret file — **PASS** (2026-10-06; mode `0600`, owner `hermes:hermes`, value empty).
-4. Populate the token directly on REMOTE — **WAITING FOR TOKEN VALUE**. Never paste it into chat or GitHub.
-5. Run the tracked installer.
-6. Verify `codex mcp list` with sanitization.
-7. Perform a real MCP `initialize` + `tools/list` call without exposing the token.
+4. Populate the token directly on REMOTE — **PASS** (performed locally on REMOTE; value never entered into chat or GitHub).
+5. Run the tracked installer — **PASS** on 2026-10-07. Backups created for both Codex configs.
+6. Verify `codex mcp list` with sanitization — **PASS**. `mpstats` is enabled as `streamable_http` in both Codex configs; endpoint verified as `https://mcp.mpstats.io/mcp` with query redacted.
+7. Perform a real MCP `initialize` + `tools/list` call without exposing the token — next operation.
 8. Record the post-change state and configuration delta.
 9. Choose one harmless read-only MPSTATS tool from the discovered schema and run it.
 10. Only then build the semantic catalog.
+
+## Post-install verification — 2026-10-07
+
+A read-only bridge audit after installation confirmed:
+
+- `/home/hermes/.codex/config.toml`: 2 MCP servers (`hermes-tools`, `mpstats`), mode `0600`;
+- `/home/hermes/.codex-dashboard/config.toml`: 2 MCP servers (`hermes-tools`, `mpstats`), mode `0600`;
+- `mpstats.enabled = true`;
+- transport: `streamable_http`;
+- safe endpoint: `https://mcp.mpstats.io/mcp` (query/token redacted in audit output);
+- `/opt/mcp/secrets/mpstats.env`: mode `0600`, owner `hermes:hermes`;
+- `hermes-gateway.service`: active/running after the configuration change;
+- `hermes-dashboard.service`: active/running after the configuration change.
+
+The installer created local pre-change backups:
+
+- `/home/hermes/.codex/config.toml.pre-mpstats.20261007T134519Z.bak`;
+- `/home/hermes/.codex-dashboard/config.toml.pre-mpstats.20261007T134519Z.bak`.
+
+This proves configuration registration and service health. It does **not** yet prove that the remote MPSTATS server accepts the credential or that `tools/list` succeeds.
 
 ## Restart policy
 
