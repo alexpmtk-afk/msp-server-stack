@@ -113,7 +113,7 @@ components:
 
   - id: mpstats-integration
     kind: external-mcp
-    status: configured-awaiting-live-mcp-acceptance
+    status: operational-live-accepted
     source: MPSTATS
     endpoint: https://mcp.mpstats.io/mcp
     transport: streamable-http
@@ -124,7 +124,11 @@ components:
       - /home/hermes/.codex-dashboard/config.toml
     documentation: docs/MPSTATS_MCP.md
     installer: scripts/remote/install_mpstats_mcp.py
-    semantic_catalog: pending-live-tool-discovery
+    discovered_tools: 108
+    protocol_version: "2025-06-18"
+    server_version: "3.3.1"
+    tool_inventory: docs/MPSTATS_TOOLS_2026-10-07.md
+    semantic_catalog: pending-semantic-classification
     secrets: external
 
   - id: mcp-services
