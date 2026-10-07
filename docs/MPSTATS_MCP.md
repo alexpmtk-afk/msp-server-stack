@@ -111,10 +111,10 @@ It:
 4. Populate the token directly on REMOTE — **PASS** (performed locally on REMOTE; value never entered into chat or GitHub).
 5. Run the tracked installer — **PASS** on 2026-10-07. Backups created for both Codex configs.
 6. Verify `codex mcp list` with sanitization — **PASS**. `mpstats` is enabled as `streamable_http` in both Codex configs; endpoint verified as `https://mcp.mpstats.io/mcp` with query redacted.
-7. Perform a real MCP `initialize` + `tools/list` call without exposing the token — next operation.
-8. Record the post-change state and configuration delta.
-9. Choose one harmless read-only MPSTATS tool from the discovered schema and run it.
-10. Only then build the semantic catalog.
+7. Perform a real MCP `initialize` + `tools/list` call without exposing the token — **PASS**. Protocol `2025-06-18`, server `mpstats-mcp` `3.3.1`, 108 tools discovered.
+8. Record the post-change state and configuration delta — **PASS**.
+9. Choose one harmless read-only MPSTATS tool from the discovered schema and run it — **PASS** using `account_limits` (`HTTP 200`, `is_error=false`).
+10. Build the semantic catalog — next stage.
 
 ## Post-install verification — 2026-10-07
 
@@ -144,15 +144,17 @@ Existing Codex sessions may keep their already-loaded tool catalog. New Codex se
 
 ## Acceptance criteria
 
-Technical connection is PASS only when all of the following are true:
+Technical connection is now **PASS**. Acceptance evidence:
 
-- MPSTATS appears in the target Codex MCP configuration;
-- no token appears in GitHub, issue output, logs or chat;
-- MCP initialization succeeds;
-- `tools/list` succeeds;
-- at least one harmless read-only MPSTATS tool call succeeds;
-- existing Hermes/Telegram/nginx/Tailscale/QRsite functions remain healthy;
+- MPSTATS appears in both target Codex MCP configurations;
+- no token appears in GitHub, issue output or chat;
+- MCP initialization succeeded with protocol `2025-06-18`;
+- `tools/list` succeeded and returned 108 tools;
+- harmless read-only `account_limits` call succeeded (`HTTP 200`, `is_error=false`);
+- Hermes Gateway and Dashboard remained active after installation;
 - the change is reproducible from this repository plus protected secrets.
+
+Live tool inventory: [MPSTATS_TOOLS_2026-10-07.md](MPSTATS_TOOLS_2026-10-07.md).
 
 ## Semantic-layer follow-up
 
