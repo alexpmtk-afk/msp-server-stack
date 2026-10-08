@@ -40,8 +40,11 @@ def dbopen(path):
         c.execute('alter table self_purchase rename to self_purchase_legacy')
     schema=Path(__file__).with_name('schema.sql').read_text()
     c.executescript(schema)
-    if 'planned' not in [r[1] for r in c.execute('pragma table_info(sync_run)')]:
+    sync_run_columns=[r[1] for r in c.execute('pragma table_info(sync_run)')]
+    if 'planned' not in sync_run_columns:
         c.execute('alter table sync_run add column planned integer not null default 0')
+    if 'skipped_missing_sku' not in sync_run_columns:
+        c.execute('alter table sync_run add column skipped_missing_sku integer not null default 0')
     if migrate:
         c.execute('insert into self_purchase select *,1 from self_purchase_legacy')
         c.execute('drop table self_purchase_legacy')
@@ -70,6 +73,9 @@ def fetch(c,cfg,source):
     if st and st['last_modified']:hd['If-Modified-Since']=st['last_modified']
     last=c.execute('select status from sync_run where source=? and run_id<(select max(run_id) from sync_run where source=?) order by run_id desc limit 1',(source,source)).fetchone()
     if last and last['status']=='partial': hd.pop('If-None-Match',None); hd.pop('If-Modified-Since',None)
+    # A legacy no-SKU plan requires one reprocessing pass under the new skip policy.
+    if source=='self_purchase' and c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone():
+        hd.pop('If-None-Match',None); hd.pop('If-Modified-Since',None)
     gid=cfg['sources'][source]['gid']; sid=cfg['spreadsheet_id']; url=f'https://docs.google.com/spreadsheets/d/{sid}/export?format=csv&gid={gid}'
     try:
         with urllib.request.urlopen(urllib.request.Request(url,headers=hd),timeout=30) as r:
@@ -113,15 +119,20 @@ def selfbuy(c,rows,run,cfg):
     if store_col is None and legal_col is None:
         raise ValueError('missing column магазин (or legacy ЮЛ)')
     n={'source_rows':0,'inserted':0,'updated':0,'unchanged':0,'rejected':0,
-       'planned':0,'planned_inserted':0,'planned_updated':0,'planned_unchanged':0,'promoted':0}
+       'planned':0,'planned_inserted':0,'planned_updated':0,'planned_unchanged':0,'promoted':0,'skipped_missing_sku':0}
     stamp=now(); seen={}; active_plan_rows=set()
     for no,r in enumerate(rows[1:],2):
         if not any(txt(x) for x in r):continue
         n['source_rows']+=1
+        # Owner-approved source contract: blank "Артикул МП" excludes the row entirely,
+        # even if other fields are filled. Never infer its SKU from internal_article.
+        raw_s=txt(val(r,m['sku']))
+        if not raw_s:
+            n['skipped_missing_sku']+=1
+            continue
         try:
             market=mp(val(r,m['marketplace']))
             if market not in ('wb','oz'):raise ValueError('invalid marketplace')
-            raw_s=txt(val(r,m['sku']))
             purchase_date=dt(val(r,m['pd']))
             if store_col is not None:
                 store=txt(val(r,store_col)).lower()
@@ -134,7 +145,7 @@ def selfbuy(c,rows,run,cfg):
             raw_qty=txt(val(r,m['q']))
             # No actual purchase date means a plan, never a completed purchase.
             if purchase_date is None:
-                planned_sku=sku(raw_s) if raw_s else None
+                planned_sku=sku(raw_s)
                 planned_qty=qty(raw_qty) if raw_qty else None
                 review_date=dt(val(r,m['rd']))
                 plan=(market,store,planned_sku,internal,name,planned_qty,None,review_date,
@@ -203,22 +214,25 @@ def sync(c,cfg,source):
             c.execute('update sync_state set etag=?,last_modified=?,last_success_at=? where source=?',(etag,lm,now(),source));c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=? where run_id=?',(now(),'unchanged_snapshot',status,st['source_rows'] or 0,run));c.commit();return {'source':source,'status':'unchanged_snapshot',**n}
         rows=list(csv.reader(io.StringIO(body.decode('utf-8-sig'))))
         if not rows or not rows[0]: raise ValueError('empty or invalid CSV')
-        if st and st['content_sha256']==sha and last_source_clean(c,source,run):
+        needs_policy_recheck=(source=='self_purchase' and
+            c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone())
+        if st and st['content_sha256']==sha and last_source_clean(c,source,run) and not needs_policy_recheck:
             plans=c.execute('select count(*) from v_self_purchase_plan').fetchone()[0] if source=='self_purchase' else 0
-            unchanged=max(0,(st['source_rows'] or 0)-plans)
-            c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,unchanged=?,planned=? where run_id=?',
-                      (now(),'unchanged_snapshot',status,st['source_rows'],unchanged,plans,run))
+            skipped=(c.execute('select skipped_missing_sku from sync_run where source=? and run_id<? order by run_id desc limit 1',(source,run)).fetchone()[0] if source=='self_purchase' else 0)
+            unchanged=max(0,(st['source_rows'] or 0)-plans-skipped)
+            c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,unchanged=?,planned=?,skipped_missing_sku=? where run_id=?',
+                      (now(),'unchanged_snapshot',status,st['source_rows'],unchanged,plans,skipped,run))
             c.commit()
-            return {'source':source,'status':'unchanged_snapshot',**dict(n,source_rows=st['source_rows'],unchanged=unchanged,planned=plans)}
+            return {'source':source,'status':'unchanged_snapshot',**dict(n,source_rows=st['source_rows'],unchanged=unchanged,planned=plans,skipped_missing_sku=skipped)}
         c.execute('begin')
         n=product(c,rows,run) if source=='product_catalog' else selfbuy(c,rows,run,cfg) if source=='self_purchase' else prices(c,rows,run,source,cfg)
         c.execute('insert into sync_state values(?,?,?,?,?,?) on conflict(source) do update set etag=excluded.etag,last_modified=excluded.last_modified,content_sha256=excluded.content_sha256,last_success_at=excluded.last_success_at,source_rows=excluded.source_rows',(source,etag,lm,sha,now(),n['source_rows']));c.commit()
-        c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,inserted=?,updated=?,unchanged=?,rejected=?,planned=? where run_id=?',(now(),'partial' if n['rejected'] else 'success',status,n['source_rows'],n['inserted'],n['updated'],n['unchanged'],n['rejected'],n.get('planned',0),run));c.commit();return {'source':source,'status':'partial' if n['rejected'] else 'success',**n}
+        c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,inserted=?,updated=?,unchanged=?,rejected=?,planned=?,skipped_missing_sku=? where run_id=?',(now(),'partial' if n['rejected'] else 'success',status,n['source_rows'],n['inserted'],n['updated'],n['unchanged'],n['rejected'],n.get('planned',0),n.get('skipped_missing_sku',0),run));c.commit();return {'source':source,'status':'partial' if n['rejected'] else 'success',**n}
     except Exception as e:
         c.rollback(); err(c,run,source,None,e,[]); c.execute('update sync_run set finished_at=?,status=?,message=? where run_id=?',(now(),'failed',f'{type(e).__name__}: {e}',run));c.commit();raise
 
 def verify(c):
-    return {'product_listing_count':c.execute('select count(*) from product_listing').fetchone()[0],'self_purchase_count':c.execute('select count(*) from self_purchase').fetchone()[0],'self_purchase_quantity':c.execute('select coalesce(sum(quantity),0) from self_purchase').fetchone()[0],'self_purchase_planned_count':c.execute('select count(*) from v_self_purchase_plan').fetchone()[0],'self_purchase_planned_without_sku':c.execute('select count(*) from v_self_purchase_plan where marketplace_sku is null').fetchone()[0],'self_purchase_planned_without_quantity':c.execute('select count(*) from v_self_purchase_plan where quantity is null').fetchone()[0],'foreign_key_errors':len(c.execute('pragma foreign_key_check').fetchall()),'invalid_marketplace_sku':c.execute("select count(*) from product_listing where marketplace_sku glob '*[^0-9]*' or marketplace_sku='' ").fetchone()[0],'price_segments':[dict(r) for r in c.execute('select source_segment,count(*) rows,min(event_date) min_date,max(event_date) max_date from price_event group by source_segment')],'price_history_count':c.execute('select count(*) from v_price_history').fetchone()[0],'unmatched_price_events':c.execute("select count(*) from v_price_history where catalog_match_status='unmatched'").fetchone()[0],'integrity':c.execute('pragma integrity_check').fetchone()[0],'last_runs':[dict(r) for r in c.execute('select run_id,source,status,source_rows,inserted,updated,unchanged,rejected,planned,finished_at from sync_run order by run_id desc limit 6')]}
+    return {'product_listing_count':c.execute('select count(*) from product_listing').fetchone()[0],'self_purchase_count':c.execute('select count(*) from self_purchase').fetchone()[0],'self_purchase_quantity':c.execute('select coalesce(sum(quantity),0) from self_purchase').fetchone()[0],'self_purchase_planned_count':c.execute('select count(*) from v_self_purchase_plan').fetchone()[0],'self_purchase_planned_without_sku':c.execute('select count(*) from v_self_purchase_plan where marketplace_sku is null').fetchone()[0],'self_purchase_planned_without_quantity':c.execute('select count(*) from v_self_purchase_plan where quantity is null').fetchone()[0],'foreign_key_errors':len(c.execute('pragma foreign_key_check').fetchall()),'invalid_marketplace_sku':c.execute("select count(*) from product_listing where marketplace_sku glob '*[^0-9]*' or marketplace_sku='' ").fetchone()[0],'price_segments':[dict(r) for r in c.execute('select source_segment,count(*) rows,min(event_date) min_date,max(event_date) max_date from price_event group by source_segment')],'price_history_count':c.execute('select count(*) from v_price_history').fetchone()[0],'unmatched_price_events':c.execute("select count(*) from v_price_history where catalog_match_status='unmatched'").fetchone()[0],'integrity':c.execute('pragma integrity_check').fetchone()[0],'last_runs':[dict(r) for r in c.execute('select run_id,source,status,source_rows,inserted,updated,unchanged,rejected,planned,skipped_missing_sku,finished_at from sync_run order by run_id desc limit 6')]}
 
 
 def last_source_clean(c,source,run):
