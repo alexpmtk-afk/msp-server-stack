@@ -182,6 +182,18 @@ components:
     semantics: config/msp-data/semantics
     source_workbook: "_05_экпорт: бд для МСП"
     schedule: "08:00 Europe/Moscow"
+    schedule_service: msp-data-sync.timer
+    notification_runner: apps/msp_data_sync/run_with_alerts.py
+    notification_policy:
+      transport: "existing Hermes Telegram bot, Telegram Bot API outgoing only"
+      destination: "АП_Лазер / Удалённый сервер"
+      protected_credentials: /opt/mcp/secrets/msp-data-alerts.env
+      alert_state_database: /opt/mcp/data/msp/msp_alert_delivery.sqlite3
+      triggers: [partial, failed]
+      quiet_statuses: [success, unchanged_snapshot, not_modified]
+      deduplication: "per source and normalized problem signature"
+      recovery: "single message when previously alerted source becomes healthy"
+      issue_details: "sync_run_issue table; per-run even when lifetime sync_error is deduplicated"
     sources:
       - product_catalog
       - self_purchase
