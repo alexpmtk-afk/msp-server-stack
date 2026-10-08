@@ -111,6 +111,36 @@ SELECT source,status,source_rows,planned,skipped_missing_sku,rejected FROM sync_
 WHERE source='self_purchase' ORDER BY run_id DESC LIMIT 1;
 ```
 
+## Cleared price archive — owner-approved one-time reset 2026-10-08
+
+Source: `_05_экпорт: бд для МСП`, sheet `журнал цен (архив)` (gid 2062539510).
+The owner intentionally removed every archive business row and instructed REMOTE
+to purge all previously loaded *archive* price events (6,472 events). The
+separate `журнал цен` current source and all current price events (3,459 at
+reset time) are expressly retained.
+
+The archived sheet is empty in business columns A:R, including its header.
+There are 260 residual, **technical-only** rows in W/Y/Z. None contains
+a price event in A:R. These technical scraps are not archive business data.
+The importer now considers an archive source with no values in business
+columns A:R a valid **empty snapshot** (success with 0 source rows).
+Only `price_journal_archive` receives this exception; an empty current
+journal is a source error. The archive may be repopulated later; the normal
+header-based importer will resume automatically.
+
+**CRITICAL SAFEGUARD:** routine synchronization remains non-destructive
+(`do_not_delete_on_source_absence`). No automatic purge occurs merely because
+the archive became empty. The operator specifically authorized a one-time
+admin-only deletion `DELETE FROM price_event WHERE source_segment='archive'`,
+strictly after independent source-empty verification and an online SQLite
+backup. Its preconditions and resulting archive/current counts are audited
+in the corresponding one-time REMOTE deployment report. Old sync-run/error
+logs remain as historical audit records, not live archive price events.
+
+Agents must report archive = 0 and current = actual count **after** the
+completed one-time reset; they must not use the pre-reset 6,472 historical
+archive count as current fact.
+
 ## Accounting and limitations
 
 Each nonempty source row contributes to source_rows; self_purchase also counts planned and skipped_missing_sku independently of inserted/updated/unchanged/rejected.
