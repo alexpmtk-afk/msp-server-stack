@@ -6,6 +6,7 @@ Load these files together with `docs/MPSTATS_TOOLS_2026-10-07.md`.
 - `routing.json` — source-selection and conflict-resolution rules across MPSTATS, internal MSP data and direct marketplace sources.
 - `tool_policy.json` — one policy record for every live MPSTATS MCP tool discovered on 2026-10-07.
 - `response_shapes.json` — privacy-preserving observed response field paths/types for representative live tools; no values are stored.
+- `metric_semantics.json` — conservative business meaning/unit rules for recurrent metrics; unknown currency, percent scale and accounting basis remain explicitly unverified.
 
 The raw MCP schema tells the agent **how to call** a tool. This semantic layer tells it **why/when to call it, what kind of truth it represents and what it must not assume**.
 
