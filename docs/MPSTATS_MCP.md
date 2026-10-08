@@ -175,3 +175,16 @@ Version 1 records for every exposed capability:
 - relationships to internal product/card identifiers.
 
 The semantic layer describes meaning and source-selection rules, not merely MCP tool names. Current coverage includes all 108 tools. The next refinement is representative live-response shape/field semantics and freshness validation without storing private account values.
+
+
+## Agent semantic exposure — 2026-10-08
+
+The MPSTATS semantic layer is now installed as a Hermes custom skill:
+
+```text
+/home/hermes/.hermes/skills/productivity/mpstats/
+```
+
+Deployment from canonical `msp-server-stack` commit `64e0d20c4e48c269a5545acb4956e3106dab5714` passed semantic validation and installed-file contract checks. Gateway and Dashboard remained active; no restart was required.
+
+The skill instructs the agent to apply internal source precedence, identifier rules, freshness caveats and side-effect policies before using the 108 MPSTATS tools. The next acceptance level is behavioral: observe a real new agent task and verify that it applies these rules correctly.
