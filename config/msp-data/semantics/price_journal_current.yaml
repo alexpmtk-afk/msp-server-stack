@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "dataset": "price_journal_current",
   "purpose": "Historical price changes for agent queries",
   "source": {
@@ -120,7 +120,7 @@
     "Moving an event between sheets retains both origins; do not silently deduplicate.",
     "Currency not supplied; do not invent it.",
     "Invalid rows retained with complete raw CSV row in sync_error.",
-    "Current formula sentinel row is logged as technical, not imported as price event."
+    "Known formula sentinel row is skipped as nonbusiness, reported only in skipped_technical, not a rejected event."
   ],
   "excluded_columns": [
     "СВЕРКА цены",
@@ -137,5 +137,20 @@
     "распродажа",
     "unnamed/control/count columns"
   ],
-  "warning": "Артикул наш is a label; authoritative internal_article/product_name come from catalog after matching. Positional column mapping forbidden."
+  "warning": "Артикул наш is a label; authoritative internal_article/product_name come from catalog after matching. Positional column mapping forbidden.",
+  "technical_rows": {
+    "explicit_markers": [
+      {
+        "column": "дата",
+        "value": "СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ",
+        "scope": "exact marker, case-insensitive, trimmed",
+        "additional_guard": "must not contain marketplace, store or Артикул мп"
+      }
+    ],
+    "effect": "The row is a nonbusiness formula sentinel. Skip without creating a price event or sync_error; increment skipped_technical, not rejected. Do not count as partial.",
+    "other_rows": "Do not silently treat empty SKU/date or other incomplete business records as technical; these remain validation errors.",
+    "source_accounting": "source_rows includes nonempty technical rows; skipped_technical recorded separately in sync_run and sync responses.",
+    "historical_errors": "Existing sync_error for this marker may remain as historical audit. Evaluate latest sync_run.rejected for live health.",
+    "statuses": "If only technical marker was excluded and all remaining business rows valid, success. Real invalid rows still produce partial and nonzero process exit."
+  }
 }
