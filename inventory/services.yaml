@@ -188,7 +188,7 @@ components:
     notification_policy:
       transport: "existing Hermes Telegram bot, Telegram Bot API outgoing only"
       destination: "АП_Лазер / Удалённый сервер"
-      protected_credentials: /home/hermes/.config/msp-data/alerts.env
+      protected_credentials: /home/hermes/.hermes/.env
       alert_state_database: /opt/mcp/data/msp/msp_alert_delivery.sqlite3
       triggers: [partial, failed]
       quiet_statuses: [success, unchanged_snapshot, not_modified]
