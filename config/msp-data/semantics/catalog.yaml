@@ -1,4 +1,4 @@
-version: 2
+version: 3
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -47,7 +47,28 @@ source_contracts:
     store_validation: "Product listing match using marketplace+store+marketplace_sku."
     legal_entity_column: "Not present; deprecated field in SQLite, never infer a legal entity from a store."
     mismatch_rule: "Reject and log a source store/SKU inconsistency; do not silently reassign the store."
-    missing_data_rule: "Do not infer missing dates, quantity, or numeric SKU."
+    missing_data_rule: "Missing date means planned, not an error; absent SKU/quantity are SQL NULL; never invent dates, quantity or SKU."
+    lifecycle:
+      planned:
+        condition: "purchase_date missing in source"
+        storage: "self_purchase_plan"
+        view: "v_self_purchase_plan"
+        nullable_fields: [marketplace_sku, quantity, purchase_date, review_date, review_url, review_draft]
+        analytics_policy: "exclude from actual sales/self-purchase quantity"
+        expected_partial: false
+      completed:
+        condition: "valid date, numeric SKU, positive quantity and matched product_listing"
+        storage: "self_purchase"
+        view: "v_self_purchase"
+        analytics_policy: "eligible for reconciliation and sales correction"
+      refresh:
+        strategy: "on each changed source snapshot, re-read all rows, including older planned rows"
+        transition: "validly completed previous plan is promoted to completed, no duplicates"
+        unchanged: "do not re-write unchanged business rows"
+        removed_plan: "retain audit record but mark is_current=0"
+        historical_error_records: "old sync_error kept for audit; evaluate latest run for current errors"
+        identity_limit: "source_row provisional; reordering can change identity without source event ID"
+
     current_correction: "2026-10-08: source rows 68-75 and 80-83 corrected to novok by owner approval."
     legacy_rule: "Only older CSVs with ЮЛ but without магазин use the old ЮЛ→store lookup."
 operational_metrics_policy: >
@@ -67,6 +88,8 @@ sync_policy:
 datasets:
   - product_catalog
   - self_purchase
+  - self_purchase_plan
+  - v_self_purchase_plan
   - price_journal_current
   - price_journal_archive
   - v_price_history
