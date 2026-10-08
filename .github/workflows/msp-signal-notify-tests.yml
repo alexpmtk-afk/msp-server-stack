@@ -1,0 +1,21 @@
+name: MSP passive signals notification tests
+on:
+  pull_request:
+    paths:
+      - 'apps/msp_signal_notify/**'
+      - 'tests/test_msp_signal_notify.py'
+      - '.github/workflows/msp-signal-notify-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run isolated offline simulated notifier tests
+        run: python3 -m unittest discover -s tests -p test_msp_signal_notify.py -v
