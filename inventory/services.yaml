@@ -182,12 +182,13 @@ components:
     semantics: config/msp-data/semantics
     source_workbook: "_05_экпорт: бд для МСП"
     schedule: "08:00 Europe/Moscow"
-    schedule_service: msp-data-sync.timer
+    schedule_service: hermes-user/msp-data-sync.timer
+    unit_sources: [systemd/user/msp-data-sync.service, systemd/user/msp-data-sync.timer]
     notification_runner: apps/msp_data_sync/run_with_alerts.py
     notification_policy:
       transport: "existing Hermes Telegram bot, Telegram Bot API outgoing only"
       destination: "АП_Лазер / Удалённый сервер"
-      protected_credentials: /opt/mcp/secrets/msp-data-alerts.env
+      protected_credentials: /home/hermes/.config/msp-data/alerts.env
       alert_state_database: /opt/mcp/data/msp/msp_alert_delivery.sqlite3
       triggers: [partial, failed]
       quiet_statuses: [success, unchanged_snapshot, not_modified]
