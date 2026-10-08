@@ -135,3 +135,39 @@ Two own-cabinet probes — `lk_wb_dashboard_widget30days` and `lk_ozon_overview`
 Important: observed integer/string types do not establish business units. In particular, currency for category `revenue` and numeric scales/units for bidder CTR/DRR/spending/order sums remain unverified and must not be invented.
 
 Next refinement: expand response-shape/field semantics for the highest-value analytical tools and diagnose the two LK tool errors without exposing private account values.
+
+
+## Live own-cabinet access diagnostic — 2026-10-08
+
+A privacy-preserving read-only diagnostic was performed after the first response-shape audit.
+
+- Wildberries cabinet listing is reachable with the current MPSTATS token.
+- The tested `lk_wb_dashboard_widget30days` call returned a permission-class HTTP 403 tool error in the current environment.
+- Ozon cabinet listing did not return a usable cabinet list in the current environment, and `lk_ozon_overview` returned a cabinet-related tool error.
+- No cabinet ids, names or business values are stored in this public repository.
+
+These are **runtime access observations**, not permanent tool semantics. The agent must not conclude that all LK functionality is absent, and must not arbitrarily change WB cabinet selection to bypass access errors.
+
+## Agent exposure
+
+Semantic files in GitHub are not sufficient by themselves: the Hermes agent needs an installed skill that tells it to load and apply them.
+
+Canonical skill source:
+
+```text
+apps/hermes/mpstats_skill/SKILL.md
+```
+
+Canonical deployer:
+
+```text
+scripts/deploy/install-mpstats-skill.sh
+```
+
+Target on REMOTE:
+
+```text
+/home/hermes/.hermes/skills/productivity/mpstats/
+```
+
+The deployed skill is self-contained: it receives copies of the semantic JSON files, live tool inventory and this semantic-layer document under its `references/` directory. No secret values are copied into the skill.
