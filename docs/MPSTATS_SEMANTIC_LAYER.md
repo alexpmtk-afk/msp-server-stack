@@ -267,3 +267,22 @@ Provider-specific observations that now affect reasoning:
 - the raw MCP `purchase` field has an unresolved mapping across official documents, which means no buyout/self-purchase conclusion can be inferred from its name alone.
 
 First actual business read-only acceptance: bridge [issue #150](https://github.com/alexpmtk-afk/msp-server-bridge/issues/150), `wb_sku(full)`, SKU `218395039`. Values are retained only in the private issue and are not copied into public semantics. The SKU's ownership by MSP has **not** been verified.
+
+## Official provider knowledge deployed — 2026-10-08
+
+The updated MPSTATS skill now includes `references/official-knowledge.md` and source-aware metric semantics. The official REST API skill itself was **not installed**; only selected official source descriptions and links are incorporated into our existing remote MCP semantic layer.
+
+Private bridge acceptance issue: https://github.com/alexpmtk-afk/msp-server-bridge/issues/152
+
+```text
+runner_user=hermes
+canonical_commit=503262060d7d818a6e2ed6fd5dead5dd41aab157
+semantic_json=PASS
+mpstats_skill_contract=PASS
+metric_semantics_installed=yes
+gateway_active=active
+dashboard_active=active
+result=PASS
+```
+
+The MPSTATS-only deployment was protected against concurrent modifications: it checked the prior canonical skill state before replacing the MPSTATS skill tree. No DevExec, other skill, Codex configuration or service restart was needed.

@@ -200,3 +200,9 @@ The MPSTATS foundation can therefore be treated as **installed + live-accepted +
 ## Metric layer deployed — 2026-10-08
 
 Live MPSTATS skill was safely updated from the previously accepted commit to `f1a538ded81b840d2df79b9034dd2724965d0ee6` after a fail-closed baseline comparison. Includes `references/metric_semantics.json` and the second privacy-preserving response-shape audit. Both Hermes services remained active. Verified field paths: 19 distinct tools probed, 14 with successful structural response evidence, five with tool-level access/execution errors. Business units/formulas are not yet fully validated.
+
+## Official knowledge and first business read — 2026-10-08
+
+Official provider knowledge is indexed in [MPSTATS_OFFICIAL_KNOWLEDGE.md](MPSTATS_OFFICIAL_KNOWLEDGE.md) and included in the deployed Hermes MPSTATS skill at commit `503262060d7d818a6e2ed6fd5dead5dd41aab157`.
+
+First actual business read: private bridge issue [#150](https://github.com/alexpmtk-afk/msp-server-bridge/issues/150) succeeded with `wb_sku(report=full)` for WB SKU `218395039`. The result verified external product/price/sales/stock fields and exposed potential differences between FBO/FBS and estimated orders vs Insight-style purchase fields. The fact that a SKU can be queried does not mean it belongs to MSP; compare it with the canonical internal catalog before treating it as an own SKU.
