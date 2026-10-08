@@ -39,6 +39,9 @@ remote_interaction:
       - mpstats-response-shape-audit
       - mpstats-lk-diagnostic
       - hermes-skill-format-audit
+      - mpstats-skill-discovery-audit
+      - hermes-cli-capability-audit
+      - mpstats-agent-acceptance
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -142,12 +145,14 @@ components:
     agent_skill_source: apps/hermes/mpstats_skill/SKILL.md
     agent_skill_installer: scripts/deploy/install-mpstats-skill.sh
     agent_skill_target: /home/hermes/.hermes/skills/productivity/mpstats
-    agent_skill_status: deployed-pass
+    agent_skill_status: deployed-behavior-accepted
     agent_skill_deployed_commit: 64e0d20c4e48c269a5545acb4956e3106dab5714
     agent_skill_deployed_at_utc: "2026-10-08T05:36:35Z"
     semantic_coverage: 108/108
     response_shape_coverage: 8/108
-    next_semantic_stage: expand-live-response-fields-and-validate-agent-use
+    behavioral_acceptance: pass
+    behavioral_acceptance_date: "2026-10-08"
+    next_semantic_stage: expand-live-response-fields
     secrets: external
 
   - id: mcp-services
