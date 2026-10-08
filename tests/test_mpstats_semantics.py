@@ -65,6 +65,52 @@ class TestMpstatsSemantics(unittest.TestCase):
             "observed_tool_error",
         )
 
+    def test_second_audit_is_structural_and_classifies_tool_errors(self):
+        batch = self.response_shapes["batch2"]
+        self.assertEqual(batch["total_probes"], 13)
+        self.assertEqual(batch["successful_probes"], 10)
+        self.assertEqual(batch["tool_error_probes"], 3)
+        self.assertEqual(len(batch["probes"]), 13)
+        self.assertEqual(
+            {
+                k for k, p in batch["probes"].items()
+                if p["validation_status"] == "observed_tool_error"
+            },
+            {"mine_products_list", "lk_wb_products_stocks",
+             "lk_wb_dashboard_business_economics"},
+        )
+        for name, probe in batch["probes"].items():
+            self.assertIn(probe["canonical_tool"], self.policy["tools"], name)
+            for field in probe["fields"]:
+                self.assertEqual(set(field), {"path", "type"})
+                self.assertIn(field["type"], {
+                    "null","boolean","integer","number","string","object","array"
+                })
+        wb = batch["probes"]["wb_sku_full"]["fields"]
+        self.assertIn({"path": "$.price.wallet_price", "type": "integer"}, wb)
+        ozon = batch["probes"]["ozon_sku_full"]["fields"]
+        self.assertIn({"path": "$.price.ozon_card_price", "type": "integer"}, ozon)
+        bidder = batch["probes"]["wbbidder_products"]["fields"]
+        self.assertFalse(any(".data[]" in field["path"] for field in bidder))
+
+    def test_metric_separates_price_and_purchase_definitions(self):
+        self.assertEqual(
+            self.metric_semantics["price_field_semantics"]["wb"]["unit"],
+            "currency_unverified",
+        )
+        self.assertEqual(
+            self.metric_semantics["price_field_semantics"]["ozon"]["unit"],
+            "currency_unverified",
+        )
+        self.assertEqual(
+            self.metric_semantics["purchase_metric_warning"]["canonical_self_purchase_source"],
+            "msp_data.v_self_purchase",
+        )
+        self.assertIn(
+            "unverified",
+            self.metric_semantics["stock_semantics"]["freshness"]
+        )
+
     def test_agent_skill_references_semantic_contract(self):
         text = SKILL.read_text(encoding="utf-8")
         self.assertIn("name: mpstats", text)
