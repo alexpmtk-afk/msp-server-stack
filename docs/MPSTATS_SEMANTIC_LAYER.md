@@ -236,3 +236,18 @@ These observations verify **field paths and JSON types only**, not formula, curr
 In particular, MPSTATS `purchase` / `purchase_after_return` **must not be interpreted as our internal self-purchase records**. Internal self-purchases remain defined by `msp_data.v_self_purchase`.
 
 For current stock and execution, prefer the verified direct marketplace source. Price fields such as WB `wallet_price` and Ozon `ozon_card_price` are not interchangeable without validation.
+
+## Metric semantics skill deployment v2 — 2026-10-08
+
+The updated metric semantics from batch 2 have been installed into the live REMOTE Hermes `mpstats` skill, without restarting services.
+
+Acceptance by guarded private-bridge workflow (issue #148):
+
+- previous deployed skill compared byte-for-byte with the previously approved canonical commit before any write; unexpected external changes would have stopped deployment;
+- new source commit: `f1a538ded81b840d2df79b9034dd2724965d0ee6`;
+- target: `/home/hermes/.hermes/skills/productivity/mpstats/` (no other skill targets);
+- `semantic_json=PASS`, `mpstats_skill_contract=PASS`, `metric_semantics_installed=yes`;
+- `hermes-gateway.service` and `hermes-dashboard.service`: active;
+- no Codex MCP configuration, DevExec service or account tokens were changed.
+
+The new skill now includes `references/metric_semantics.json`. This adds explicit evidence/uncertainty rules for monetary, conversion, pricing, stock, purchase and estimated metrics. **It does not magically validate the monetary units, formulas or freshness**; those remain open until separately verified.

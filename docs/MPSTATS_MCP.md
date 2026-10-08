@@ -195,3 +195,8 @@ The skill instructs the agent to apply internal source precedence, identifier ru
 Hermes skill discovery reports the local `mpstats` skill as enabled. A fixed one-shot acceptance with `--skills mpstats` then passed all four core semantic checks: internal self-purchase routing, internal price-history routing, MPSTATS external-WB analytics routing, and confirmation requirement for the stateful `wb_shelves_project` tool.
 
 The MPSTATS foundation can therefore be treated as **installed + live-accepted + semantically deployed + behaviorally accepted**. Further work is enrichment of response/metric semantics, not basic connectivity or agent awareness.
+
+
+## Metric layer deployed — 2026-10-08
+
+Live MPSTATS skill was safely updated from the previously accepted commit to `f1a538ded81b840d2df79b9034dd2724965d0ee6` after a fail-closed baseline comparison. Includes `references/metric_semantics.json` and the second privacy-preserving response-shape audit. Both Hermes services remained active. Verified field paths: 19 distinct tools probed, 14 with successful structural response evidence, five with tool-level access/execution errors. Business units/formulas are not yet fully validated.
