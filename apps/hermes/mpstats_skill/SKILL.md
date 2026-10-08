@@ -28,8 +28,11 @@ Read the reference files before choosing overlapping sources:
 - `references/tool_policy.json`
 - `references/response_shapes.json`
 - `references/metric_semantics.json`
+- `references/official-knowledge.md`
 - `references/live-tools.md`
 - `references/semantic-layer.md`
+
+Official provider references are indexed in `references/official-knowledge.md`. The official MPSTATS API skill is REST documentation, not a second installed MCP. Reconcile its contracts with live MCP schemas before using a definition. Never ask for or transmit the MPSTATS token in chat.
 
 The live MCP schema explains how to call tools. These references define what each source means, when it should be used, what recurrent metrics mean, and what must not be inferred.
 
@@ -47,11 +50,13 @@ For money/percent/count fields, consult `references/metric_semantics.json` befor
 
 ## Freshness
 
+MPSTATS official documentation distinguishes public-page parsing (external market estimates) from seller cabinet API reporting (internal financial/operational reports). Their totals need not match. WB external orders are often estimated from changes in stock, may default to FBO, and FBS inventory is less reliable. Insight buyouts are separate and may include FBO+FBS. Do not equate `purchase` / `purchase_after_return` with internal company self-purchase.
+
 Most dated external WB/Ozon/Yandex Market analytics are available through yesterday, not today. Do not pass today as the end date when the tool description says today is unavailable.
 
 `wb_check_rates` is a live search-ranking snapshot and has no history. A single call is not a trend.
 
-Before broad pagination or many calls, use `account_limits` and minimize requests.
+Before broad pagination or many calls, use `account_limits` and minimize requests. Use provider sources from `references/official-knowledge.md` for units and formula provenance; REST user-facing metrics may not map one-to-one to raw MCP fields.
 
 ## Identifier rules
 
