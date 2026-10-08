@@ -40,6 +40,8 @@ def dbopen(path):
         c.execute('alter table self_purchase rename to self_purchase_legacy')
     schema=Path(__file__).with_name('schema.sql').read_text()
     c.executescript(schema)
+    if 'planned' not in [r[1] for r in c.execute('pragma table_info(sync_run)')]:
+        c.execute('alter table sync_run add column planned integer not null default 0')
     if migrate:
         c.execute('insert into self_purchase select *,1 from self_purchase_legacy')
         c.execute('drop table self_purchase_legacy')
@@ -103,41 +105,87 @@ def store_for(c,cfg,market,legal,s):
     raise ValueError(f'cannot derive store for {legal!r}/{s}')
 
 def selfbuy(c,rows,run,cfg):
-    # The current source exports canonical store codes in column "магазин".
-    # Old exports with "ЮЛ" are accepted only as a legacy compatibility path.
+    # Current CSV: explicit store in "магазин". Old CSV: legacy "ЮЛ".
     m=cols(rows[0],{'marketplace':['мп'],'sku':['артикул мп'],'ia':['артикул наш'],'name':['название товара'],'q':['кол-во выкупов'],'pd':['дата выкупа'],'rd':['дата отзыва'],'url':['ссылка на отзыв'],'draft':['черновик отзывов']})
     headers={hdr(v):i for i,v in enumerate(rows[0])}
     store_col=headers.get('магазин')
     legal_col=headers.get('юл')
     if store_col is None and legal_col is None:
         raise ValueError('missing column магазин (or legacy ЮЛ)')
-    n={'source_rows':0,'inserted':0,'updated':0,'unchanged':0,'rejected':0}; t=now(); seen={}
+    n={'source_rows':0,'inserted':0,'updated':0,'unchanged':0,'rejected':0,
+       'planned':0,'planned_inserted':0,'planned_updated':0,'planned_unchanged':0,'promoted':0}
+    stamp=now(); seen={}; active_plan_rows=set()
     for no,r in enumerate(rows[1:],2):
         if not any(txt(x) for x in r):continue
         n['source_rows']+=1
         try:
-            market=mp(val(r,m['marketplace'])); s=sku(val(r,m['sku'])); pd=dt(val(r,m['pd']))
+            market=mp(val(r,m['marketplace']))
             if market not in ('wb','oz'):raise ValueError('invalid marketplace')
+            raw_s=txt(val(r,m['sku']))
+            purchase_date=dt(val(r,m['pd']))
             if store_col is not None:
-                st=txt(val(r,store_col)).lower()
-                if st not in ('laser','novok','ultra'):raise ValueError('invalid store code')
-                # "магазин" is NOT a legal-entity field; do not invent a legal entity.
+                store=txt(val(r,store_col)).lower()
+                if store not in ('laser','novok','ultra'):raise ValueError('invalid store code')
                 legal=txt(val(r,legal_col)) if legal_col is not None else ''
             else:
-                legal=txt(val(r,legal_col)); st=store_for(c,cfg,market,legal,s)
-            if not pd:raise ValueError('purchase_date empty')
-            key=(market,st,s,pd)
-            seen[key]=seen.get(key,0)+1
-            ordinal=seen[key]; key=(*key,ordinal)
-            if not c.execute('select 1 from product_listing where marketplace=? and store=? and marketplace_sku=?',(market,st,s)).fetchone():raise ValueError(f'sku not in product_catalog: {key}')
-            x=(market,st,legal,s,txt(val(r,m['ia'])),txt(val(r,m['name'])),qty(val(r,m['q'])),pd,dt(val(r,m['rd'])),txt(val(r,m['url'])),txt(val(r,m['draft'])))
-            rh=h(*x); old=c.execute('select row_hash from self_purchase where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',key).fetchone()
-            if not old:
-                c.execute('insert into self_purchase values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(*x,rh,t,t,ordinal)); n['inserted']+=1
+                legal=txt(val(r,legal_col))
+                store=store_for(c,cfg,market,legal,raw_s)
+            internal=txt(val(r,m['ia'])); name=txt(val(r,m['name']))
+            raw_qty=txt(val(r,m['q']))
+            # No actual purchase date means a plan, never a completed purchase.
+            if purchase_date is None:
+                planned_sku=sku(raw_s) if raw_s else None
+                planned_qty=qty(raw_qty) if raw_qty else None
+                review_date=dt(val(r,m['rd']))
+                plan=(market,store,planned_sku,internal,name,planned_qty,None,review_date,
+                      txt(val(r,m['url'])),txt(val(r,m['draft'])))
+                rh=h(*plan)
+                old=c.execute('select row_hash,is_current from self_purchase_plan where source_row=?',(no,)).fetchone()
+                if old is None:
+                    c.execute('insert into self_purchase_plan(source_row,marketplace,store,marketplace_sku,internal_article,product_name,quantity,purchase_date,review_date,review_url,review_draft,row_hash,first_seen_at,updated_at,is_current,last_change_run) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?)',
+                              (no,*plan,rh,stamp,stamp,run))
+                    n['planned_inserted']+=1
+                elif old['row_hash']!=rh or not old['is_current']:
+                    c.execute('update self_purchase_plan set marketplace=?,store=?,marketplace_sku=?,internal_article=?,product_name=?,quantity=?,purchase_date=?,review_date=?,review_url=?,review_draft=?,row_hash=?,updated_at=?,is_current=1,last_change_run=? where source_row=?',
+                              (*plan,rh,stamp,run,no))
+                    n['planned_updated']+=1
+                else:
+                    n['planned_unchanged']+=1
+                n['planned']+=1; active_plan_rows.add(no)
+                continue
+            # Completed rows require valid SKU, date and quantity plus catalog FK.
+            s=sku(raw_s); amount=qty(raw_qty)
+            base=(market,store,s,purchase_date)
+            seen[base]=seen.get(base,0)+1
+            ordinal=seen[base]; key=(*base,ordinal)
+            if not c.execute('select 1 from product_listing where marketplace=? and store=? and marketplace_sku=?',(market,store,s)).fetchone():
+                raise ValueError(f'sku not in product_catalog: {key}')
+            x=(market,store,legal,s,internal,name,amount,purchase_date,
+               dt(val(r,m['rd'])),txt(val(r,m['url'])),txt(val(r,m['draft'])))
+            rh=h(*x)
+            old=c.execute('select row_hash from self_purchase where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',key).fetchone()
+            if old is None:
+                c.execute('insert into self_purchase values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(*x,rh,stamp,stamp,ordinal))
+                n['inserted']+=1
             elif old['row_hash']!=rh:
-                c.execute('update self_purchase set legal_entity=?,internal_article=?,product_name=?,quantity=?,review_date=?,review_url=?,review_draft=?,row_hash=?,updated_at=? where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',(legal,x[4],x[5],x[6],x[8],x[9],x[10],rh,t,*key)); n['updated']+=1
-            else:n['unchanged']+=1
-        except Exception as e:n['rejected']+=1;err(c,run,'self_purchase',no,e,r)
+                c.execute('update self_purchase set legal_entity=?,internal_article=?,product_name=?,quantity=?,review_date=?,review_url=?,review_draft=?,row_hash=?,updated_at=? where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',
+                          (legal,x[4],x[5],x[6],x[8],x[9],x[10],rh,stamp,*key))
+                n['updated']+=1
+            else:
+                n['unchanged']+=1
+            if c.execute('delete from self_purchase_plan where source_row=?',(no,)).rowcount:
+                n['promoted']+=1
+        except Exception as e:
+            n['rejected']+=1
+            err(c,run,'self_purchase',no,e,r)
+    # An incomplete source row removed, completed or made invalid is not a CURRENT plan.
+    # Retain old plan data for audit, but exclude it from the active-plans view.
+    if active_plan_rows:
+        placeholders=','.join('?' for _ in active_plan_rows)
+        c.execute(f'update self_purchase_plan set is_current=0,updated_at=? where is_current=1 and source_row not in ({placeholders})',
+                  (stamp,*sorted(active_plan_rows)))
+    else:
+        c.execute('update self_purchase_plan set is_current=0,updated_at=? where is_current=1',(stamp,))
     return n
 
 def begin_run(c,source):
@@ -160,12 +208,12 @@ def sync(c,cfg,source):
         c.execute('begin')
         n=product(c,rows,run) if source=='product_catalog' else selfbuy(c,rows,run,cfg) if source=='self_purchase' else prices(c,rows,run,source,cfg)
         c.execute('insert into sync_state values(?,?,?,?,?,?) on conflict(source) do update set etag=excluded.etag,last_modified=excluded.last_modified,content_sha256=excluded.content_sha256,last_success_at=excluded.last_success_at,source_rows=excluded.source_rows',(source,etag,lm,sha,now(),n['source_rows']));c.commit()
-        c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,inserted=?,updated=?,unchanged=?,rejected=? where run_id=?',(now(),'partial' if n['rejected'] else 'success',status,n['source_rows'],n['inserted'],n['updated'],n['unchanged'],n['rejected'],run));c.commit();return {'source':source,'status':'partial' if n['rejected'] else 'success',**n}
+        c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,inserted=?,updated=?,unchanged=?,rejected=?,planned=? where run_id=?',(now(),'partial' if n['rejected'] else 'success',status,n['source_rows'],n['inserted'],n['updated'],n['unchanged'],n['rejected'],n.get('planned',0),run));c.commit();return {'source':source,'status':'partial' if n['rejected'] else 'success',**n}
     except Exception as e:
         c.rollback(); err(c,run,source,None,e,[]); c.execute('update sync_run set finished_at=?,status=?,message=? where run_id=?',(now(),'failed',f'{type(e).__name__}: {e}',run));c.commit();raise
 
 def verify(c):
-    return {'product_listing_count':c.execute('select count(*) from product_listing').fetchone()[0],'self_purchase_count':c.execute('select count(*) from self_purchase').fetchone()[0],'self_purchase_quantity':c.execute('select coalesce(sum(quantity),0) from self_purchase').fetchone()[0],'foreign_key_errors':len(c.execute('pragma foreign_key_check').fetchall()),'invalid_marketplace_sku':c.execute("select count(*) from product_listing where marketplace_sku glob '*[^0-9]*' or marketplace_sku='' ").fetchone()[0],'price_segments':[dict(r) for r in c.execute('select source_segment,count(*) rows,min(event_date) min_date,max(event_date) max_date from price_event group by source_segment')],'price_history_count':c.execute('select count(*) from v_price_history').fetchone()[0],'unmatched_price_events':c.execute("select count(*) from v_price_history where catalog_match_status='unmatched'").fetchone()[0],'integrity':c.execute('pragma integrity_check').fetchone()[0],'last_runs':[dict(r) for r in c.execute('select run_id,source,status,source_rows,inserted,updated,unchanged,rejected,finished_at from sync_run order by run_id desc limit 6')]}
+    return {'product_listing_count':c.execute('select count(*) from product_listing').fetchone()[0],'self_purchase_count':c.execute('select count(*) from self_purchase').fetchone()[0],'self_purchase_quantity':c.execute('select coalesce(sum(quantity),0) from self_purchase').fetchone()[0],'self_purchase_planned_count':c.execute('select count(*) from v_self_purchase_plan').fetchone()[0],'self_purchase_planned_without_sku':c.execute('select count(*) from v_self_purchase_plan where marketplace_sku is null').fetchone()[0],'self_purchase_planned_without_quantity':c.execute('select count(*) from v_self_purchase_plan where quantity is null').fetchone()[0],'foreign_key_errors':len(c.execute('pragma foreign_key_check').fetchall()),'invalid_marketplace_sku':c.execute("select count(*) from product_listing where marketplace_sku glob '*[^0-9]*' or marketplace_sku='' ").fetchone()[0],'price_segments':[dict(r) for r in c.execute('select source_segment,count(*) rows,min(event_date) min_date,max(event_date) max_date from price_event group by source_segment')],'price_history_count':c.execute('select count(*) from v_price_history').fetchone()[0],'unmatched_price_events':c.execute("select count(*) from v_price_history where catalog_match_status='unmatched'").fetchone()[0],'integrity':c.execute('pragma integrity_check').fetchone()[0],'last_runs':[dict(r) for r in c.execute('select run_id,source,status,source_rows,inserted,updated,unchanged,rejected,planned,finished_at from sync_run order by run_id desc limit 6')]}
 
 
 def last_source_clean(c,source,run):
