@@ -74,7 +74,10 @@ def fetch(c,cfg,source):
     last=c.execute('select status from sync_run where source=? and run_id<(select max(run_id) from sync_run where source=?) order by run_id desc limit 1',(source,source)).fetchone()
     if last and last['status']=='partial': hd.pop('If-None-Match',None); hd.pop('If-Modified-Since',None)
     # A legacy no-SKU plan requires one reprocessing pass under the new skip policy.
-    if source=='self_purchase' and c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone():
+    if source=='self_purchase' and (
+        c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone()
+        or (c.execute('select count(*) from self_purchase_source_link').fetchone()[0]==0
+            and c.execute('select count(*) from self_purchase').fetchone()[0]>0)):
         hd.pop('If-None-Match',None); hd.pop('If-Modified-Since',None)
     gid=cfg['sources'][source]['gid']; sid=cfg['spreadsheet_id']; url=f'https://docs.google.com/spreadsheets/d/{sid}/export?format=csv&gid={gid}'
     try:
