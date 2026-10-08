@@ -63,7 +63,16 @@
         "audit_date": "2026-10-08",
         "shape_file": "config/mpstats/semantics/response_shapes.json",
         "note": "Observed category search rows with path/children/revenue/sales. Currency/unit of revenue was not independently verified; do not invent it."
-      }
+      },
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "wb_categories_search_seed",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "wb_categories_children": {
       "family": "wb_market_analytics",
@@ -103,7 +112,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "historical_analytics_normally_through_yesterday",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "wb_category",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "wb_category_stats": {
       "family": "wb_market_analytics",
@@ -146,6 +164,15 @@
       "freshness": "historical_analytics_normally_through_yesterday",
       "notes": [
         "WB sku/nmid should be reconciled to internal marketplace_sku only with marketplace=wb and the correct store context."
+      ],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "wb_sku_full",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
       ]
     },
     "wb_card_content": {
@@ -225,7 +252,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "historical_analytics_normally_through_yesterday",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "wb_subjects_list",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "wb_subject": {
       "family": "wb_market_analytics",
@@ -418,6 +454,15 @@
       "freshness": "provider_defined",
       "notes": [
         "Returned ids are MPSTATS user_token_id values, not marketplace SKU or cabinet ids."
+      ],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "repricer_tokens",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
       ]
     },
     "repricer_limits": {
@@ -578,7 +623,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_defined",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "mine_products_list",
+          "status": "observed_tool_error",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "mine_products_status": {
       "family": "own_products",
@@ -787,7 +841,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_advertising_report_freshness",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "wbbidder_products",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "ozon_categories_search": {
       "family": "ozon_market_analytics",
@@ -810,7 +873,16 @@
         "audit_date": "2026-10-08",
         "shape_file": "config/mpstats/semantics/response_shapes.json",
         "note": "Observed category search rows with path/children/revenue/sales. Currency/unit of revenue was not independently verified; do not invent it."
-      }
+      },
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "ozon_categories_search_seed",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "ozon_categories_children": {
       "family": "ozon_market_analytics",
@@ -848,7 +920,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "historical_analytics_normally_through_yesterday",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "ozon_category_products",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "ozon_sku": {
       "family": "ozon_market_analytics",
@@ -871,6 +952,15 @@
       "freshness": "historical_analytics_normally_through_yesterday",
       "notes": [
         "Ozon sku is marketplace-scoped; never treat it as an internal article."
+      ],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "ozon_sku_full",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
       ]
     },
     "ozon_brand": {
@@ -1492,7 +1582,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_cabinet_report_freshness",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "lk_wb_dashboard_business_economics",
+          "status": "observed_tool_error",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "lk_wb_dashboard_order_analytics": {
       "family": "wb_cabinet",
@@ -1685,7 +1784,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_cabinet_report_freshness",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "lk_wb_products_stocks",
+          "status": "observed_tool_error",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "lk_wb_reports_weekly": {
       "family": "wb_cabinet",
@@ -2046,7 +2154,16 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "version_bound_static_metadata",
-      "notes": []
+      "notes": [],
+      "response_audits": [
+        {
+          "date": "2026-10-08",
+          "probe": "lk_ozon_fields",
+          "status": "observed_success",
+          "shape_file": "config/mpstats/semantics/response_shapes.json",
+          "note": "Batch 2 read-only shape probe"
+        }
+      ]
     },
     "lk_ozon_products": {
       "family": "ozon_cabinet",
@@ -2148,6 +2265,12 @@
   "response_shape_coverage": {
     "observed_tools": 8,
     "live_tool_total": 108,
-    "audit_date": "2026-10-08"
+    "audit_date": "2026-10-08",
+    "batch2": {
+      "audit_date": "2026-10-08",
+      "successful_probes": 10,
+      "total_probes": 13,
+      "source_issue": 146
+    }
   }
 }
