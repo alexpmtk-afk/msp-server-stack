@@ -1,4 +1,4 @@
-version: 8
+version: 9
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -116,7 +116,7 @@ operational_metrics_policy: >
   создавать отдельные каталоги/метрики с собственной семантикой и правилами обновления.
 notification_policy:
   transport: "Existing Hermes Telegram Bot API token, outgoing sendMessage only; do not start another polling consumer"
-  destination: "Protected REMOTE env file /opt/mcp/secrets/msp-data-alerts.env; no credentials in Git"
+  destination: "Protected Hermes user environment file /home/hermes/.config/msp-data/alerts.env (0600), no credentials in Git"
   target_chat: "АП_Лазер"
   target_topic: "Удалённый сервер"
   on_partial: "Warn, include source, rejected count, current sync_run_issue row numbers and reasons"
@@ -125,7 +125,7 @@ notification_policy:
   duplicate_policy: "One message per source/status/error fingerprint; re-alert only if issue signature changes"
   accepted_skips: "planned, skipped_missing_sku and skipped_technical are not notification-worthy errors"
   historical_audit: "sync_error deduplicated lifetime audit; sync_run_issue current-execution errors; msp_alert_delivery.sqlite3 delivery state"
-  schedule: "systemd msp-data-sync.timer daily 08:00 Europe/Moscow with Persistent=true"
+  schedule: "Hermes user systemd timer systemd/user/msp-data-sync.timer daily 08:00 Europe/Moscow, Persistent=true; lingering enabled"
   exit_policy: "partial and failed remain nonzero even when notification was sent"
 sync_policy:
   local_store: sqlite
