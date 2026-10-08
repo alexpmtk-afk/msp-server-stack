@@ -1,4 +1,4 @@
-version: 5
+version: 6
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -77,6 +77,10 @@ source_contracts:
         removed_plan: "retain audit record but mark is_current=0"
         historical_error_records: "old sync_error kept for audit; evaluate latest run for current errors"
         identity_limit: "source_row provisional; reordering can change identity without source event ID"
+        purchase_date_change: "For linked source rows retaining the same store/SKU, move old completed event to self_purchase_revision and update current completed; unlinked legacy records require manual reconciliation."
+        date_cleared: "Linked completed becomes planned, with old completed stored only in audit history."
+        missing_row_policy: "Do not auto-retire completed when source row disappears or changes listing identity."
+
 
     current_correction: "2026-10-08: source rows 68-75 and 80-83 corrected to novok by owner approval."
     legacy_rule: "Only older CSVs with ЮЛ but without магазин use the old ЮЛ→store lookup."
@@ -114,6 +118,9 @@ datasets:
   - product_catalog
   - self_purchase
   - self_purchase_plan
+  - self_purchase_source_link
+  - self_purchase_revision
+  - v_self_purchase_revisions
   - v_self_purchase_plan
   - price_journal_current
   - price_journal_archive
