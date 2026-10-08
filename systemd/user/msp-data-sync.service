@@ -6,7 +6,10 @@ After=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=/opt/mcp/projects/msp-server-stack
-EnvironmentFile=/home/hermes/.config/msp-data/alerts.env
+EnvironmentFile=/home/hermes/.hermes/.env
+Environment=MSP_ALERTS_ENABLED=1
+Environment=MSP_ALERT_CHAT_ID=-1002485321031
+Environment=MSP_ALERT_THREAD_ID=758
 ExecStart=/usr/bin/python3 /opt/mcp/projects/msp-server-stack/apps/msp_data_sync/run_with_alerts.py --config /opt/mcp/projects/msp-server-stack/config/msp-data/sync.json
 TimeoutStartSec=420
 UMask=0077
