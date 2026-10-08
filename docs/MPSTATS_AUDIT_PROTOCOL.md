@@ -35,3 +35,8 @@ Do **not** update the deployed commit or replace an installation merely to make 
 Store the sanitized audit findings and conclusions in the public `msp-server-stack` documentation, but retain secret-bearing TOML, URLs, token files, CLI raw outputs and full business data exclusively on REMOTE. Private bridge issue comments contain only the safe, reduced audit result.
 
 When auditing bridge hygiene, classify obsolete fixed-title workflows as candidates only. Deletion of another chat's active workflows or DevExec files is out of scope.
+
+
+## Audit acceptance — 2026-10-08
+
+The first full pinned REMOTE audit completed **PASS** with zero hard failures and zero warnings. See [MPSTATS_REMOTE_FULL_AUDIT_2026-10-08.md](MPSTATS_REMOTE_FULL_AUDIT_2026-10-08.md) for the complete sanitized evidence, backup counts, legacy bridge workflow review and remaining limitations.
