@@ -120,6 +120,7 @@ class TestMpstatsSemantics(unittest.TestCase):
             "references/tool_policy.json",
             "references/response_shapes.json",
             "references/metric_semantics.json",
+            "references/official-knowledge.md",
             "references/live-tools.md",
             "references/semantic-layer.md",
         ):
@@ -138,6 +139,17 @@ class TestMpstatsSemantics(unittest.TestCase):
         self.assertEqual(metrics["turnover_in_days"]["unit"], "days")
         rules = " ".join(self.metric_semantics["global_rules"]).lower()
         self.assertIn("never invent currency", rules)
+
+    def test_official_mpstats_source_index_has_scope_and_token_rules(self):
+        document = (ROOT / "docs" / "MPSTATS_OFFICIAL_KNOWLEDGE.md").read_text(encoding="utf-8")
+        self.assertIn("https://mpstats.io/instruments/ai/mcp", document)
+        self.assertIn("https://github.com/mpstats-io/claude-code-skills", document)
+        self.assertIn("https://wiki.mpstats.io", document)
+        self.assertIn("do not use that option", document)
+        self.assertIn("purchase", document)
+        evidence = self.metric_semantics["official_reference"]
+        self.assertEqual(evidence["knowledge_index"], "docs/MPSTATS_OFFICIAL_KNOWLEDGE.md")
+        self.assertEqual(evidence["provider_mcp"], "https://mpstats.io/instruments/ai/mcp")
 
     def test_internal_source_precedence_is_explicit(self):
         rules = self.routing["precedence_rules"]

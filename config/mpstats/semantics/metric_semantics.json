@@ -41,6 +41,20 @@
         "wb_sku.full.period_stats.revenue",
         "ozon_category.products.data[].revenue",
         "ozon_sku.full.period_stats.revenue"
+      ],
+      "verified_scope": [
+        {
+          "scope": "WB external REST analytics/v1/wb/category/items",
+          "currency": "RUB",
+          "definition": "provider revenue for selected period, not realized seller payout",
+          "source": "https://github.com/mpstats-io/claude-code-skills/blob/main/mpstats/references/wb-categories.md"
+        },
+        {
+          "scope": "Ozon external REST analytics/v1/oz/category/categories",
+          "currency": "RUB",
+          "definition": "provider-reported category revenue",
+          "source": "https://github.com/mpstats-io/claude-code-skills/blob/main/mpstats/references/ozon-categories.md"
+        }
       ]
     },
     "sales": {
@@ -65,6 +79,11 @@
         "wb_sku.full.period_stats.sales",
         "ozon_category.products.data[].sales",
         "ozon_sku.full.period_stats.sales"
+      ],
+      "provider_warning": "External market sales/order proxy is derived from stock changes in MPSTATS parsing; do not equate with paid own-cabinet sales. Provider REST label can say sales while UI describes orders.",
+      "official_sources": [
+        "https://wiki.mpstats.io/FAQ/Аналитика_данных/Как_MPSTATS_собирает_данные",
+        "https://wiki.mpstats.io/Wildberries/Поиск_по_SKU"
       ]
     },
     "views": {
@@ -113,7 +132,9 @@
       "safe_use": "Preserve raw provider value and label as MPSTATS CTR.",
       "unsafe_use": [
         "Do not divide or multiply by 100 automatically until scale is verified."
-      ]
+      ],
+      "verified_concept_formula": "CTR = click count / impression count, usually displayed as percentage in MPSTATS interface; raw MCP numeric scale still unverified.",
+      "official_source": "https://wiki.mpstats.io/ru/Продвижение/Журнал_продвижения"
     },
     "drr": {
       "provider_labels": [
@@ -129,6 +150,11 @@
       "safe_use": "Compare raw MPSTATS DRR within the same bidder report and period.",
       "unsafe_use": [
         "Do not infer exact formula denominator or percent scale until independently verified."
+      ],
+      "verified_concept_formula": "DRR = advertising spend / report-specific order-or-sales amount; which denominator applies depends on the report variant. UI generally displays percentage.",
+      "official_sources": [
+        "https://wiki.mpstats.io/ru/Продвижение/Журнал_продвижения",
+        "https://wiki.mpstats.io/Личный_кабинет/Товары"
       ]
     },
     "orders": {
@@ -493,7 +519,16 @@
       ],
       "evidence": "live_shape_only",
       "unit": "currency_unverified",
-      "selection_rule": "Choose only after validating consumer/seller/discount and wallet assumptions; do not silently treat one as the universal buyer price."
+      "selection_rule": "Choose only after validating consumer/seller/discount and wallet assumptions; do not silently treat one as the universal buyer price.",
+      "provider_evidence": [
+        "Official WB REST category/items final_price in RUB.",
+        "Official WB wiki distinguishes base, seller-discounted, SPP-adjusted and WB Wallet prices.",
+        "Buyer-specific final paid amount is directly available in internal seller order report, not reliably from generic public card snapshot."
+      ],
+      "official_sources": [
+        "https://github.com/mpstats-io/claude-code-skills/blob/main/mpstats/references/wb-categories.md",
+        "https://wiki.mpstats.io/ru/FAQ/Продажи_и_заказы/Почему_цена_СПП_отличается_от_финальной_цены"
+      ]
     },
     "ozon": {
       "observed_in": "ozon_sku(report=full)",
@@ -529,7 +564,14 @@
       "ozon_sku.full.balance"
     ],
     "freshness": "unverified_for_current_sellable_stock",
-    "rule": "MPSTATS external analytics balance is an observed analytical metric; no zeroing/restock/execution decision may be based on it alone."
+    "rule": "MPSTATS external analytics balance is an observed analytical metric; no zeroing/restock/execution decision may be based on it alone.",
+    "official_notes": [
+      "MPSTATS external WB order estimates derive from scanning public stock changes.",
+      "FBS seller-reported balance can move for reasons other than retail orders, so FBS proxies have lower confidence.",
+      "External product/order report may default to FBO while Insight buyouts use FBO+FBS.",
+      "An external MPSTATS API stock metric does not prove current operational available-to-sell balance."
+    ],
+    "official_source": "https://wiki.mpstats.io/FAQ/Аналитика_данных/Как_MPSTATS_собирает_данные"
   },
   "purchase_metric_warning": {
     "fields": [
@@ -540,7 +582,18 @@
     "meaning": "provider-defined business metric; name alone insufficient to assert calculation or numeric scale",
     "explicitly_not": "internal company self-purchase classification",
     "canonical_self_purchase_source": "msp_data.v_self_purchase",
-    "unit": "unverified"
+    "unit": "unverified",
+    "conflict_evidence": [
+      {
+        "source": "https://github.com/mpstats-io/claude-code-skills/blob/main/mpstats/references/wb-categories.md",
+        "claim": "purchase described as Add-to-cart count in REST category/items fields"
+      },
+      {
+        "source": "https://wiki.mpstats.io/Wildberries/Поиск_по_SKU",
+        "claim": "UI explicitly describes orders and Insight buyouts as separate metrics"
+      }
+    ],
+    "resolution": "Unmapped: live MCP period_stats.purchase and purchase_after_return require explicit field-specific semantic confirmation; user must never see them labeled as company self-purchases."
   },
   "validation_gaps": [
     "WB/Ozon product report types observed but currency and exact price/discount formulas are not yet verified.",
@@ -548,5 +601,39 @@
     "The sample wbbidder_products returned the pagination wrapper but no item fields; advertising per-product metrics remain unverified.",
     "mine_products_list, lk_wb_products_stocks and lk_wb_dashboard_business_economics returned MCP tool-level errors; no response fields were established.",
     "Static lk_ozon_fields returned schema wrapper; extract controlled field definitions separately if needed."
-  ]
+  ],
+  "official_reference": {
+    "indexed_at": "2026-10-08",
+    "knowledge_index": "docs/MPSTATS_OFFICIAL_KNOWLEDGE.md",
+    "provider_mcp": "https://mpstats.io/instruments/ai/mcp",
+    "provider_api_skill": "https://github.com/mpstats-io/claude-code-skills",
+    "official_docs": "https://mpstats.io/integrations/docs/description/",
+    "source_priority": [
+      "live MCP tool/response",
+      "official API exact endpoint contract",
+      "official MPSTATS wiki exact report context",
+      "internal MSP routing"
+    ],
+    "api_skill_note": "Separate REST API contracts; do not install as duplicate MCP or follow any guidance to paste token into chat."
+  },
+  "reconciliation_case_218395039": {
+    "source_issue": "https://github.com/alexpmtk-afk/msp-server-bridge/issues/150",
+    "report": "WB SKU/full",
+    "period": [
+      "2026-09-08",
+      "2026-10-07"
+    ],
+    "observed_distinct_fields": [
+      "period_stats.sales",
+      "period_stats.revenue",
+      "period_stats.purchase",
+      "period_stats.purchase_after_return",
+      "period_stats.days_in_stock",
+      "stock.fbo",
+      "stock.fbs"
+    ],
+    "observed_note": "A real successful MCP call displayed contradictory-looking metrics across scopes. Do not compare sales and purchase without independently verifying semantics, or treat zero days_in_stock as zero physical FBS inventory.",
+    "ownership": "not_verified_as_MSP_company_product",
+    "raw_values": "not_stored_in_public_semantics"
+  }
 }

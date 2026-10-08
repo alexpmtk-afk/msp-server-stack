@@ -251,3 +251,19 @@ Acceptance by guarded private-bridge workflow (issue #148):
 - no Codex MCP configuration, DevExec service or account tokens were changed.
 
 The new skill now includes `references/metric_semantics.json`. This adds explicit evidence/uncertainty rules for monetary, conversion, pricing, stock, purchase and estimated metrics. **It does not magically validate the monetary units, formulas or freshness**; those remain open until separately verified.
+
+
+## Official MPSTATS documentation index — 2026-10-08
+
+See [MPSTATS_OFFICIAL_KNOWLEDGE.md](MPSTATS_OFFICIAL_KNOWLEDGE.md) for the official provider's MCP connector page, API developer contracts, `mpstats-io/claude-code-skills` reference files, and metric collection/price/funnel guidance in the official MPSTATS knowledge base.
+
+The official REST API skill is **not** a separate official remote MCP implementation. We use its reference contracts for field semantics only after checking the live remote MCP schema/response; no duplicate MCP or credential configuration is installed.
+
+Provider-specific observations that now affect reasoning:
+
+- external WB/Ozon analytics is estimated from public listing data and stock movement; internal cabinet data is obtained via authorized marketplace API and may be corrected by WB weekly reports;
+- external WB orders may be FBO-only by default; FBS stock can change without a customer purchase; actual Insight buyouts are a separate measure;
+- a Moscow snapshot after SPP is not the buyer-specific amount paid at another location;
+- the raw MCP `purchase` field has an unresolved mapping across official documents, which means no buyout/self-purchase conclusion can be inferred from its name alone.
+
+First actual business read-only acceptance: bridge [issue #150](https://github.com/alexpmtk-afk/msp-server-bridge/issues/150), `wb_sku(full)`, SKU `218395039`. Values are retained only in the private issue and are not copied into public semantics. The SKU's ownership by MSP has **not** been verified.
