@@ -12,6 +12,7 @@ class TestMpstatsSemantics(unittest.TestCase):
         self.catalog = json.loads((SEM / "catalog.json").read_text(encoding="utf-8"))
         self.routing = json.loads((SEM / "routing.json").read_text(encoding="utf-8"))
         self.policy = json.loads((SEM / "tool_policy.json").read_text(encoding="utf-8"))
+        self.response_shapes = json.loads((SEM / "response_shapes.json").read_text(encoding="utf-8"))
 
     def test_live_inventory_is_fully_covered(self):
         raw = TOOLS_DOC.read_text(encoding="utf-8")
@@ -44,6 +45,22 @@ class TestMpstatsSemantics(unittest.TestCase):
         p = self.policy["tools"]["lk_wb_cabinets"]
         self.assertEqual(p["access_mode"], "mixed_scope_state")
         self.assertTrue(any("select/reset" in n for n in p["notes"]))
+
+    def test_response_shape_audit_is_policy_linked_and_value_free(self):
+        self.assertEqual(len(self.response_shapes["tools"]), 8)
+        for name, observed in self.response_shapes["tools"].items():
+            self.assertIn(name, self.policy["tools"])
+            self.assertIn(observed["validation_status"], {"observed_success", "observed_tool_error"})
+            for field in observed["fields"]:
+                self.assertEqual(set(field), {"path", "type"})
+        self.assertEqual(
+            self.response_shapes["tools"]["lk_wb_dashboard_widget30days"]["validation_status"],
+            "observed_tool_error",
+        )
+        self.assertEqual(
+            self.response_shapes["tools"]["lk_ozon_overview"]["validation_status"],
+            "observed_tool_error",
+        )
 
     def test_internal_source_precedence_is_explicit(self):
         rules = self.routing["precedence_rules"]
