@@ -19,3 +19,5 @@ The raw MCP schema tells the agent **how to call** a tool. This semantic layer t
 5. MPSTATS LK tools are analytical read models for own cabinets, not automatic proof that an operational action completed.
 6. Write/stateful tools are never treated like ordinary analytical reads.
 7. Photo Editor tools are not data sources and require explicit creative intent.
+
+Batch 2 field-path audit is recorded under `response_shapes.json` → `batch2`; metric-level meaning and explicit unknowns are in `metric_semantics.json`. Response-shape observations are not proof of business units or API access for tools that returned `isError=true`.
