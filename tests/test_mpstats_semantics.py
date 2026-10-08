@@ -6,6 +6,8 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SEM = ROOT / "config" / "mpstats" / "semantics"
 TOOLS_DOC = ROOT / "docs" / "MPSTATS_TOOLS_2026-10-07.md"
+SKILL = ROOT / "apps" / "hermes" / "mpstats_skill" / "SKILL.md"
+DEPLOY = ROOT / "scripts" / "deploy" / "install-mpstats-skill.sh"
 
 class TestMpstatsSemantics(unittest.TestCase):
     def setUp(self):
@@ -61,6 +63,23 @@ class TestMpstatsSemantics(unittest.TestCase):
             self.response_shapes["tools"]["lk_ozon_overview"]["validation_status"],
             "observed_tool_error",
         )
+
+    def test_agent_skill_references_semantic_contract(self):
+        text = SKILL.read_text(encoding="utf-8")
+        self.assertIn("name: mpstats", text)
+        for ref in (
+            "references/catalog.json",
+            "references/routing.json",
+            "references/tool_policy.json",
+            "references/response_shapes.json",
+            "references/live-tools.md",
+            "references/semantic-layer.md",
+        ):
+            self.assertIn(ref, text)
+        self.assertIn("wb_shelves_project", text)
+        self.assertIn("v_self_purchase", text)
+        self.assertIn("v_price_history", text)
+        self.assertTrue(DEPLOY.exists())
 
     def test_internal_source_precedence_is_explicit(self):
         rules = self.routing["precedence_rules"]
