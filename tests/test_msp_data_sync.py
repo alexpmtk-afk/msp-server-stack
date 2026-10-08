@@ -185,6 +185,26 @@ class SyncTests(unittest.TestCase):
         self.assertIn("planned",cols)
         self.assertEqual(self.con.execute("select count(*) from v_self_purchase_plan").fetchone()[0],0)
 
+    def test_snapshot_skip_still_reports_plan_count(self):
+        import csv
+        import io
+        from unittest.mock import patch
+        self.seed_listing()
+        rows=[self.self_purchase_header(),
+              ["wb","laser","1535826937","INT","Товар","2","","","",""],
+              ["wb","laser","1535826937","INT","Товар","2","07.10.2026","","",""]]
+        buf=io.StringIO();csv.writer(buf).writerows(rows)
+        payload=buf.getvalue().encode('utf-8')
+        cfg={"sources":{"self_purchase":{"gid":1108533081}},"spreadsheet_id":"not-used"}
+        with patch.object(m,'fetch',return_value=(200,payload,None,None)):
+            first=m.sync(self.con,cfg,'self_purchase')
+            second=m.sync(self.con,cfg,'self_purchase')
+        self.assertEqual((first['planned'],first['inserted'],first['rejected']), (1,1,0))
+        self.assertEqual(second['status'],'unchanged_snapshot')
+        self.assertEqual((second['planned'],second['unchanged']),(1,1))
+        last=self.con.execute("select planned,source_rows,rejected from sync_run order by run_id desc limit 1").fetchone()
+        self.assertEqual(tuple(last),(1,2,0))
+
     def test_sku_must_be_digits_only(self):
         with self.assertRaises(ValueError):
             m.sku("WB-123")
