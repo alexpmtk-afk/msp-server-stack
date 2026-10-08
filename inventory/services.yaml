@@ -123,7 +123,7 @@ components:
 
   - id: mpstats-integration
     kind: external-mcp
-    status: operational-semantic-metrics-v1.2
+    status: operational-official-sources-v1.3
     source: MPSTATS
     endpoint: https://mcp.mpstats.io/mcp
     transport: streamable-http
@@ -149,15 +149,15 @@ components:
     agent_skill_installer: scripts/deploy/install-mpstats-skill.sh
     agent_skill_target: /home/hermes/.hermes/skills/productivity/mpstats
     agent_skill_status: deployed-behavior-accepted
-    agent_skill_deployed_commit: f1a538ded81b840d2df79b9034dd2724965d0ee6
-    agent_skill_deployed_at_utc: "2026-10-08T06:17Z"
+    agent_skill_deployed_commit: 503262060d7d818a6e2ed6fd5dead5dd41aab157
+    agent_skill_deployed_at_utc: "2026-10-08T06:33Z"
     semantic_coverage: 108/108
     response_shape_coverage: 19/108
     successful_response_shape_tools: 14
     observed_tool_error_count: 5
     behavioral_acceptance: pass
     behavioral_acceptance_date: "2026-10-08"
-    next_semantic_stage: expand-ozon-static-field-definitions-and-validate-metric-units
+    next_semantic_stage: expand-real-business-analysis-and-validate-metric-units
     secrets: external
 
   - id: mcp-services
