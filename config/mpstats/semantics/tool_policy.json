@@ -20,7 +20,13 @@
       "freshness": "provider_defined",
       "notes": [
         "Use before planned bulk retrieval to avoid exhausting MPSTATS quota."
-      ]
+      ],
+      "response_validation": {
+        "status": "observed_success",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Observed quota counters. Treat as request-count metadata, not business metrics."
+      }
     },
     "account_bonus": {
       "family": "account",
@@ -51,7 +57,13 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "historical_analytics_normally_through_yesterday",
-      "notes": []
+      "notes": [],
+      "response_validation": {
+        "status": "observed_success",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Observed category search rows with path/children/revenue/sales. Currency/unit of revenue was not independently verified; do not invent it."
+      }
     },
     "wb_categories_children": {
       "family": "wb_market_analytics",
@@ -418,7 +430,13 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_defined",
-      "notes": []
+      "notes": [],
+      "response_validation": {
+        "status": "observed_success",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Observed integer quota/count fields for repricer products and per-repricer limits."
+      }
     },
     "repricer_list": {
       "family": "repricer",
@@ -629,7 +647,13 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_advertising_report_freshness",
-      "notes": []
+      "notes": [],
+      "response_validation": {
+        "status": "observed_success",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Observed period, campaign counts, limits, product summary and current/previous/diff/status metric groups. Exact numeric units/scales for CTR, DRR, spending and monetary sums still require explicit validation."
+      }
     },
     "wbbidder_campaigns": {
       "family": "wb_advertising",
@@ -780,7 +804,13 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "historical_analytics_normally_through_yesterday",
-      "notes": []
+      "notes": [],
+      "response_validation": {
+        "status": "observed_success",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Observed category search rows with path/children/revenue/sales. Currency/unit of revenue was not independently verified; do not invent it."
+      }
     },
     "ozon_categories_children": {
       "family": "ozon_market_analytics",
@@ -1032,7 +1062,13 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_defined",
-      "notes": []
+      "notes": [],
+      "response_validation": {
+        "status": "observed_success",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Observed service-health fields only; not a marketplace business-data source."
+      }
     },
     "pe_remove_background": {
       "family": "photo_editor",
@@ -1607,7 +1643,13 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_cabinet_report_freshness",
-      "notes": []
+      "notes": [],
+      "response_validation": {
+        "status": "observed_tool_error",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Tool was reachable through MCP but returned isError in the current environment. Response-field semantics are not validated yet; do not infer that the capability is globally unavailable."
+      }
     },
     "lk_wb_orders_region_statistics": {
       "family": "wb_cabinet",
@@ -2051,7 +2093,13 @@
       "automatic_use_allowed": true,
       "explicit_user_confirmation_required": false,
       "freshness": "provider_cabinet_report_freshness",
-      "notes": []
+      "notes": [],
+      "response_validation": {
+        "status": "observed_tool_error",
+        "audit_date": "2026-10-08",
+        "shape_file": "config/mpstats/semantics/response_shapes.json",
+        "note": "Tool was reachable through MCP but returned isError in the current environment. Response-field semantics are not validated yet; do not infer that the capability is globally unavailable."
+      }
     },
     "lk_ozon_pulse": {
       "family": "ozon_cabinet",
@@ -2096,5 +2144,10 @@
         "Ozon sku is marketplace-scoped; never treat it as an internal article."
       ]
     }
+  },
+  "response_shape_coverage": {
+    "observed_tools": 8,
+    "live_tool_total": 108,
+    "audit_date": "2026-10-08"
   }
 }
