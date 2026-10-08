@@ -143,6 +143,7 @@ components:
     semantic_tool_policy: config/mpstats/semantics/tool_policy.json
     semantic_response_shapes: config/mpstats/semantics/response_shapes.json
     semantic_metrics: config/mpstats/semantics/metric_semantics.json
+    official_knowledge: docs/MPSTATS_OFFICIAL_KNOWLEDGE.md
     semantic_documentation: docs/MPSTATS_SEMANTIC_LAYER.md
     agent_skill_source: apps/hermes/mpstats_skill/SKILL.md
     agent_skill_installer: scripts/deploy/install-mpstats-skill.sh
