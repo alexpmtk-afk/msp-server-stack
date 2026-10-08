@@ -13,7 +13,7 @@ SEM="$STACK_ROOT/config/mpstats/semantics"
 LIVE_TOOLS="$STACK_ROOT/docs/MPSTATS_TOOLS_2026-10-07.md"
 SEM_DOC="$STACK_ROOT/docs/MPSTATS_SEMANTIC_LAYER.md"
 
-for f in "$SOURCE_SKILL" "$SEM/catalog.json" "$SEM/routing.json" "$SEM/tool_policy.json" "$SEM/response_shapes.json" "$LIVE_TOOLS" "$SEM_DOC"; do
+for f in "$SOURCE_SKILL" "$SEM/catalog.json" "$SEM/routing.json" "$SEM/tool_policy.json" "$SEM/response_shapes.json" "$SEM/metric_semantics.json" "$LIVE_TOOLS" "$SEM_DOC"; do
   if [ ! -r "$f" ]; then
     echo "missing required source: $f" >&2
     exit 3
@@ -23,7 +23,7 @@ done
 python3 - "$SEM" <<'PY'
 import json, pathlib, sys
 root=pathlib.Path(sys.argv[1])
-for name in ("catalog.json","routing.json","tool_policy.json","response_shapes.json"):
+for name in ("catalog.json","routing.json","tool_policy.json","response_shapes.json","metric_semantics.json"):
     json.loads((root/name).read_text(encoding="utf-8"))
 print("semantic_json=PASS")
 PY
@@ -40,6 +40,7 @@ install -m 0644 "$SEM/catalog.json" "$TMP/references/catalog.json"
 install -m 0644 "$SEM/routing.json" "$TMP/references/routing.json"
 install -m 0644 "$SEM/tool_policy.json" "$TMP/references/tool_policy.json"
 install -m 0644 "$SEM/response_shapes.json" "$TMP/references/response_shapes.json"
+install -m 0644 "$SEM/metric_semantics.json" "$TMP/references/metric_semantics.json"
 install -m 0644 "$LIVE_TOOLS" "$TMP/references/live-tools.md"
 install -m 0644 "$SEM_DOC" "$TMP/references/semantic-layer.md"
 

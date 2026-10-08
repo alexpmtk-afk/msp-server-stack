@@ -15,6 +15,7 @@ class TestMpstatsSemantics(unittest.TestCase):
         self.routing = json.loads((SEM / "routing.json").read_text(encoding="utf-8"))
         self.policy = json.loads((SEM / "tool_policy.json").read_text(encoding="utf-8"))
         self.response_shapes = json.loads((SEM / "response_shapes.json").read_text(encoding="utf-8"))
+        self.metric_semantics = json.loads((SEM / "metric_semantics.json").read_text(encoding="utf-8"))
 
     def test_live_inventory_is_fully_covered(self):
         raw = TOOLS_DOC.read_text(encoding="utf-8")
@@ -64,6 +65,52 @@ class TestMpstatsSemantics(unittest.TestCase):
             "observed_tool_error",
         )
 
+    def test_second_audit_is_structural_and_classifies_tool_errors(self):
+        batch = self.response_shapes["batch2"]
+        self.assertEqual(batch["total_probes"], 13)
+        self.assertEqual(batch["successful_probes"], 10)
+        self.assertEqual(batch["tool_error_probes"], 3)
+        self.assertEqual(len(batch["probes"]), 13)
+        self.assertEqual(
+            {
+                k for k, p in batch["probes"].items()
+                if p["validation_status"] == "observed_tool_error"
+            },
+            {"mine_products_list", "lk_wb_products_stocks",
+             "lk_wb_dashboard_business_economics"},
+        )
+        for name, probe in batch["probes"].items():
+            self.assertIn(probe["canonical_tool"], self.policy["tools"], name)
+            for field in probe["fields"]:
+                self.assertEqual(set(field), {"path", "type"})
+                self.assertIn(field["type"], {
+                    "null","boolean","integer","number","string","object","array"
+                })
+        wb = batch["probes"]["wb_sku_full"]["fields"]
+        self.assertIn({"path": "$.price.wallet_price", "type": "integer"}, wb)
+        ozon = batch["probes"]["ozon_sku_full"]["fields"]
+        self.assertIn({"path": "$.price.ozon_card_price", "type": "integer"}, ozon)
+        bidder = batch["probes"]["wbbidder_products"]["fields"]
+        self.assertFalse(any(".data[]" in field["path"] for field in bidder))
+
+    def test_metric_separates_price_and_purchase_definitions(self):
+        self.assertEqual(
+            self.metric_semantics["price_field_semantics"]["wb"]["unit"],
+            "currency_unverified",
+        )
+        self.assertEqual(
+            self.metric_semantics["price_field_semantics"]["ozon"]["unit"],
+            "currency_unverified",
+        )
+        self.assertEqual(
+            self.metric_semantics["purchase_metric_warning"]["canonical_self_purchase_source"],
+            "msp_data.v_self_purchase",
+        )
+        self.assertIn(
+            "unverified",
+            self.metric_semantics["stock_semantics"]["freshness"]
+        )
+
     def test_agent_skill_references_semantic_contract(self):
         text = SKILL.read_text(encoding="utf-8")
         self.assertIn("name: mpstats", text)
@@ -72,6 +119,7 @@ class TestMpstatsSemantics(unittest.TestCase):
             "references/routing.json",
             "references/tool_policy.json",
             "references/response_shapes.json",
+            "references/metric_semantics.json",
             "references/live-tools.md",
             "references/semantic-layer.md",
         ):
@@ -80,6 +128,16 @@ class TestMpstatsSemantics(unittest.TestCase):
         self.assertIn("v_self_purchase", text)
         self.assertIn("v_price_history", text)
         self.assertTrue(DEPLOY.exists())
+
+    def test_metric_semantics_do_not_invent_units(self):
+        metrics = self.metric_semantics["metrics"]
+        self.assertEqual(metrics["ctr"]["unit"], "percent_scale_unverified")
+        self.assertEqual(metrics["drr"]["unit"], "percent_scale_unverified")
+        self.assertEqual(metrics["revenue"]["unit"], "unverified_currency")
+        self.assertEqual(metrics["orders_sum"]["unit"], "unverified_currency")
+        self.assertEqual(metrics["turnover_in_days"]["unit"], "days")
+        rules = " ".join(self.metric_semantics["global_rules"]).lower()
+        self.assertIn("never invent currency", rules)
 
     def test_internal_source_precedence_is_explicit(self):
         rules = self.routing["precedence_rules"]

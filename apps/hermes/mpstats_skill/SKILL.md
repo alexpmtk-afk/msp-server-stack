@@ -27,10 +27,13 @@ Read the reference files before choosing overlapping sources:
 - `references/routing.json`
 - `references/tool_policy.json`
 - `references/response_shapes.json`
+- `references/metric_semantics.json`
 - `references/live-tools.md`
 - `references/semantic-layer.md`
 
-The live MCP schema explains how to call tools. These references define what each source means, when it should be used, and what must not be inferred.
+The live MCP schema explains how to call tools. These references define what each source means, when it should be used, what recurrent metrics mean, and what must not be inferred.
+
+For money/percent/count fields, consult `references/metric_semantics.json` before arithmetic or business conclusions. If currency, percent scale, order-vs-sale basis, or accounting basis is marked unverified, preserve the raw provider value and say that the unit/basis is not yet independently verified.
 
 ## Hard source-routing rules
 

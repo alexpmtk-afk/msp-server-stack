@@ -37,6 +37,7 @@ remote_interaction:
       - mpstats-schema-audit
       - mpstats-smoke-call
       - mpstats-response-shape-audit
+      - mpstats-response-shape-batch2
       - mpstats-lk-diagnostic
       - hermes-skill-format-audit
       - mpstats-skill-discovery-audit
@@ -141,6 +142,7 @@ components:
     semantic_routing: config/mpstats/semantics/routing.json
     semantic_tool_policy: config/mpstats/semantics/tool_policy.json
     semantic_response_shapes: config/mpstats/semantics/response_shapes.json
+    semantic_metrics: config/mpstats/semantics/metric_semantics.json
     semantic_documentation: docs/MPSTATS_SEMANTIC_LAYER.md
     agent_skill_source: apps/hermes/mpstats_skill/SKILL.md
     agent_skill_installer: scripts/deploy/install-mpstats-skill.sh
@@ -149,7 +151,9 @@ components:
     agent_skill_deployed_commit: 64e0d20c4e48c269a5545acb4956e3106dab5714
     agent_skill_deployed_at_utc: "2026-10-08T05:36:35Z"
     semantic_coverage: 108/108
-    response_shape_coverage: 8/108
+    response_shape_coverage: 19/108
+    successful_response_shape_tools: 14
+    observed_tool_error_count: 5
     behavioral_acceptance: pass
     behavioral_acceptance_date: "2026-10-08"
     next_semantic_stage: expand-live-response-fields

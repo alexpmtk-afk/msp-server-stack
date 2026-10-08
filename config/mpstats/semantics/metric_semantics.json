@@ -1,0 +1,552 @@
+{
+  "version": 1,
+  "purpose": "Business interpretation layer for recurrent MPSTATS metrics. This file intentionally separates provider labels from independently verified units/definitions.",
+  "evidence_levels": {
+    "live_shape": "Field/path observed in a live MPSTATS response; value discarded.",
+    "live_description": "Meaning stated by the live MCP tool description.",
+    "inferred_name_only": "Only the field name suggests meaning; never sufficient for automated calculations.",
+    "unverified": "Not yet established."
+  },
+  "global_rules": [
+    "Never invent currency, VAT basis, gross/net basis, order-vs-sale basis, or percent scaling.",
+    "A field named revenue/sales/orders does not by itself establish accounting recognition or marketplace payout semantics.",
+    "For percentage-like fields, preserve the raw provider number until the scale is verified (for example 12 vs 0.12).",
+    "For money-like fields, keep source/currency metadata separate; do not sum across marketplaces or currencies unless explicitly verified compatible.",
+    "For current/prev/diff groups, diff is provider-computed unless independently recalculated and validated.",
+    "MPSTATS self_redemption is a provider-side analytics filter; company self-purchase classification remains canonical in v_self_purchase."
+  ],
+  "metrics": {
+    "revenue": {
+      "provider_labels": [
+        "revenue"
+      ],
+      "family_scope": [
+        "wb_external",
+        "ozon_external",
+        "wb_bidder_if_present"
+      ],
+      "business_meaning": "Provider monetary turnover/revenue-style aggregate for the selected analytical scope.",
+      "evidence": "live_shape+live_description",
+      "unit": "unverified_currency",
+      "accounting_basis": "unverified",
+      "safe_use": "Compare within the same MPSTATS report/scope/period when field definition is unchanged; label as MPSTATS revenue/turnover, not realized payout.",
+      "unsafe_use": [
+        "Do not call it net profit.",
+        "Do not treat it as marketplace payout.",
+        "Do not merge with direct cabinet revenue without reconciliation."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].revenue",
+        "wb_category.data[].revenue",
+        "wb_sku.full.period_stats.revenue",
+        "ozon_category.products.data[].revenue",
+        "ozon_sku.full.period_stats.revenue"
+      ]
+    },
+    "sales": {
+      "provider_labels": [
+        "sales"
+      ],
+      "family_scope": [
+        "wb_external",
+        "ozon_external"
+      ],
+      "business_meaning": "Provider sales-count style metric for external market/category analytics.",
+      "evidence": "live_shape",
+      "unit": "unverified_count_basis",
+      "accounting_basis": "unverified",
+      "safe_use": "Relative comparison inside the same external analytical report.",
+      "unsafe_use": [
+        "Do not assume customer orders, shipped units, or paid/redemption-complete units until verified."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].sales",
+        "wb_category.data[].sales",
+        "wb_sku.full.period_stats.sales",
+        "ozon_category.products.data[].sales",
+        "ozon_sku.full.period_stats.sales"
+      ]
+    },
+    "views": {
+      "provider_labels": [
+        "views"
+      ],
+      "family_scope": [
+        "wb_advertising",
+        "own_cabinet_funnel"
+      ],
+      "business_meaning": "Display/impression-style count in the provider report context.",
+      "evidence": "live_shape+live_description",
+      "unit": "count",
+      "accounting_basis": "not_applicable",
+      "safe_use": "Use as provider-reported exposure count in the same report context.",
+      "unsafe_use": [
+        "Do not compare across tools that may use different exposure definitions without validation."
+      ]
+    },
+    "clicks": {
+      "provider_labels": [
+        "clicks"
+      ],
+      "family_scope": [
+        "wb_advertising"
+      ],
+      "business_meaning": "Provider-reported advertising click count.",
+      "evidence": "live_shape+live_description",
+      "unit": "count",
+      "accounting_basis": "not_applicable",
+      "safe_use": "Advertising traffic comparison inside MPSTATS bidder reports.",
+      "unsafe_use": []
+    },
+    "ctr": {
+      "provider_labels": [
+        "ctr"
+      ],
+      "family_scope": [
+        "wb_advertising",
+        "own_cabinet_funnel"
+      ],
+      "business_meaning": "Click-through-rate style metric.",
+      "evidence": "live_shape+live_description",
+      "unit": "percent_scale_unverified",
+      "formula": "conceptually clicks/views; exact provider scale/rounding not yet validated",
+      "safe_use": "Preserve raw provider value and label as MPSTATS CTR.",
+      "unsafe_use": [
+        "Do not divide or multiply by 100 automatically until scale is verified."
+      ]
+    },
+    "drr": {
+      "provider_labels": [
+        "drr"
+      ],
+      "family_scope": [
+        "wb_advertising"
+      ],
+      "business_meaning": "Advertising-cost-to-order/revenue ratio used by MPSTATS/WB advertising analytics.",
+      "evidence": "live_shape+live_description",
+      "unit": "percent_scale_unverified",
+      "denominator": "unverified_provider_order_sum_basis",
+      "safe_use": "Compare raw MPSTATS DRR within the same bidder report and period.",
+      "unsafe_use": [
+        "Do not infer exact formula denominator or percent scale until independently verified."
+      ]
+    },
+    "orders": {
+      "provider_labels": [
+        "orders"
+      ],
+      "family_scope": [
+        "wb_advertising",
+        "own_cabinet"
+      ],
+      "business_meaning": "Provider order-count metric in the report context.",
+      "evidence": "live_shape+live_description",
+      "unit": "count_basis_unverified",
+      "safe_use": "Use with explicit source/report context.",
+      "unsafe_use": [
+        "Do not equate automatically with paid sales, customer baskets, or units."
+      ]
+    },
+    "orders_sum": {
+      "provider_labels": [
+        "orders_sum",
+        "common_orders_sum"
+      ],
+      "family_scope": [
+        "wb_advertising"
+      ],
+      "business_meaning": "Provider monetary order-sum metric associated with advertising analytics.",
+      "evidence": "live_shape",
+      "unit": "unverified_currency",
+      "accounting_basis": "unverified_order_value_basis",
+      "safe_use": "Compare within MPSTATS bidder reports; preserve provider label.",
+      "unsafe_use": [
+        "Do not call it realized revenue or payout."
+      ]
+    },
+    "spending": {
+      "provider_labels": [
+        "spending"
+      ],
+      "family_scope": [
+        "wb_advertising"
+      ],
+      "business_meaning": "Provider advertising spend metric.",
+      "evidence": "live_shape+live_description",
+      "unit": "unverified_currency",
+      "accounting_basis": "unverified_tax_and_charge_basis",
+      "safe_use": "Use as MPSTATS-reported ad spend within the same report/period.",
+      "unsafe_use": [
+        "Do not combine with direct WB expense ledger without reconciliation."
+      ]
+    },
+    "current_prev_diff_status": {
+      "provider_labels": [
+        "current",
+        "prev",
+        "diff",
+        "status"
+      ],
+      "family_scope": [
+        "wb_advertising"
+      ],
+      "business_meaning": "Provider comparison tuple: current period value, previous period value, provider-computed difference and qualitative status.",
+      "evidence": "live_shape",
+      "unit": "inherits_parent_metric",
+      "safe_use": "Read together with the report period.from/period.to and parent metric.",
+      "unsafe_use": [
+        "Do not interpret diff as percent vs absolute without validating that specific parent metric/tool."
+      ]
+    },
+    "avg_price": {
+      "provider_labels": [
+        "avg_price",
+        "average_price"
+      ],
+      "family_scope": [
+        "wb_subjects",
+        "external_market"
+      ],
+      "business_meaning": "Provider average price metric for the selected market scope.",
+      "evidence": "live_description",
+      "unit": "unverified_currency",
+      "safe_use": "Relative price-position analysis after confirming report currency/context.",
+      "unsafe_use": [
+        "Do not treat as buyer final price or own seller price."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].avg_price_final",
+        "wb_category.data[].final_price_average",
+        "ozon_category.products.data[].final_price_average"
+      ]
+    },
+    "median_price": {
+      "provider_labels": [
+        "median_price"
+      ],
+      "family_scope": [
+        "wb_subjects",
+        "external_market"
+      ],
+      "business_meaning": "Provider median price metric for the selected market scope.",
+      "evidence": "live_description",
+      "unit": "unverified_currency",
+      "safe_use": "Distribution-resistant market price comparison.",
+      "unsafe_use": [
+        "Do not assume seller-discount/final-payment semantics."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].median_price_final",
+        "wb_category.data[].final_price_median",
+        "ozon_category.products.data[].final_price_median"
+      ]
+    },
+    "turnover_in_days": {
+      "provider_labels": [
+        "turnover_in_days"
+      ],
+      "family_scope": [
+        "wb_subjects"
+      ],
+      "business_meaning": "Provider inventory turnover duration indicator expressed by its tool description as days.",
+      "evidence": "live_description",
+      "unit": "days",
+      "safe_use": "Use as MPSTATS turnover-days indicator for niche comparison.",
+      "unsafe_use": [
+        "Do not substitute for internal days-of-stock without formula reconciliation."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].turnover_in_days",
+        "wb_category.data[].turnover_days",
+        "ozon_category.products.data[].turnover_days"
+      ]
+    },
+    "revenue_potential": {
+      "provider_labels": [
+        "revenue_potential"
+      ],
+      "family_scope": [
+        "wb_subjects"
+      ],
+      "business_meaning": "MPSTATS niche opportunity/potential metric.",
+      "evidence": "live_description",
+      "unit": "unverified_currency_or_score",
+      "formula": "unverified",
+      "safe_use": "Ranking/relative opportunity analysis only until formula and unit are validated.",
+      "unsafe_use": [
+        "Do not present as forecasted guaranteed revenue."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].revenue_potential",
+        "wb_category.data[].revenue_potential",
+        "ozon_category.products.data[].revenue_potential"
+      ]
+    },
+    "lost_profit": {
+      "provider_labels": [
+        "lost_profit"
+      ],
+      "family_scope": [
+        "wb_subjects"
+      ],
+      "business_meaning": "MPSTATS lost-profit/opportunity metric for the subject.",
+      "evidence": "live_description",
+      "unit": "unverified_currency",
+      "formula": "unverified",
+      "safe_use": "Use only as MPSTATS provider metric with caveat.",
+      "unsafe_use": [
+        "Do not book/account it as actual financial loss."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].lost_profit",
+        "wb_category.data[].lost_profit",
+        "ozon_category.products.data[].lost_profit"
+      ]
+    },
+    "avg_rating": {
+      "provider_labels": [
+        "avg_rating"
+      ],
+      "family_scope": [
+        "wb_subjects"
+      ],
+      "business_meaning": "Average product/rating indicator for the analytical scope.",
+      "evidence": "live_description",
+      "unit": "rating_scale_unverified",
+      "safe_use": "Relative niche quality comparison.",
+      "unsafe_use": [
+        "Do not assume 5-point scale without observing/validating values."
+      ]
+    },
+    "open_card_count": {
+      "provider_labels": [
+        "open_card_count"
+      ],
+      "family_scope": [
+        "wb_subjects"
+      ],
+      "business_meaning": "Count-style card-opening metric described by the MPSTATS subject tool.",
+      "evidence": "live_description",
+      "unit": "count",
+      "safe_use": "Funnel comparison within the same MPSTATS subject report.",
+      "unsafe_use": [
+        "Do not infer unique users vs events until verified."
+      ]
+    },
+    "add_to_cart_percent": {
+      "provider_labels": [
+        "add_to_cart_percent"
+      ],
+      "family_scope": [
+        "wb_subjects",
+        "own_cabinet_funnel"
+      ],
+      "business_meaning": "Add-to-cart conversion style percentage.",
+      "evidence": "live_description",
+      "unit": "percent_scale_unverified",
+      "safe_use": "Relative funnel comparison, preserving raw provider scale.",
+      "unsafe_use": [
+        "Do not automatically divide/multiply by 100."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].add_to_cart_percent"
+      ]
+    },
+    "cart_to_order_percent": {
+      "provider_labels": [
+        "cart_to_order_percent"
+      ],
+      "family_scope": [
+        "wb_subjects",
+        "own_cabinet_funnel"
+      ],
+      "business_meaning": "Cart-to-order conversion style percentage.",
+      "evidence": "live_description",
+      "unit": "percent_scale_unverified",
+      "safe_use": "Relative funnel comparison, preserving raw provider scale.",
+      "unsafe_use": [
+        "Do not automatically divide/multiply by 100."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].cart_to_order_percent"
+      ]
+    },
+    "seasonality": {
+      "provider_labels": [
+        "seasonality"
+      ],
+      "family_scope": [
+        "wb_subjects",
+        "wb_analytics"
+      ],
+      "business_meaning": "MPSTATS seasonality indicator/structure.",
+      "evidence": "live_description",
+      "unit": "report_specific",
+      "formula": "unverified",
+      "safe_use": "Use only with the exact report and period granularity.",
+      "unsafe_use": [
+        "Do not assume a universal multiplier or percent representation."
+      ]
+    }
+  },
+  "next_validation_targets": [
+    "Observe wb_subjects_list field paths and primitive types.",
+    "Observe wb_category and wb_sku/full response structures.",
+    "Observe ozon_category and ozon_sku/full response structures.",
+    "Observe mine_products_list current-price field paths without storing values.",
+    "Observe wbbidder_products product-level advertising fields.",
+    "Use lk_ozon_fields static metadata to map Ozon own-cabinet field definitions.",
+    "Treat WB LK 403 responses as access-state evidence, not metric definitions."
+  ],
+  "live_field_evidence": {
+    "audit_date": "2026-10-08",
+    "source": "MPSTATS batch2 read-only shape audit, issue #146",
+    "evidence_type": "path_and_type_only",
+    "no_values_logged": true,
+    "unit_warning": "JSON number/integer type does not establish unit, tax basis, currency, formula, or whether fields represent orders versus fulfilled sales.",
+    "observed_profiles": {
+      "wb_subjects_list": [
+        "$.data[].revenue",
+        "$.data[].sales",
+        "$.data[].purchase",
+        "$.data[].purchase_after_return",
+        "$.data[].revenue_estimated",
+        "$.data[].sales_estimated",
+        "$.data[].revenue_potential",
+        "$.data[].lost_profit",
+        "$.data[].avg_price_final",
+        "$.data[].median_price_final",
+        "$.data[].add_to_cart_percent",
+        "$.data[].cart_to_order_percent",
+        "$.data[].turnover_in_days"
+      ],
+      "wb_category": [
+        "$.data[].revenue",
+        "$.data[].sales",
+        "$.data[].basic_price",
+        "$.data[].client_price",
+        "$.data[].final_price",
+        "$.data[].wallet_price",
+        "$.data[].spp_avg",
+        "$.data[].revenue_estimated_before_spp",
+        "$.data[].balance",
+        "$.data[].balance_fbs",
+        "$.data[].purchase_after_return"
+      ],
+      "wb_sku_full": [
+        "$.period_stats.revenue",
+        "$.period_stats.sales",
+        "$.period_stats.purchase",
+        "$.period_stats.purchase_after_return",
+        "$.period_stats.revenue_estimated_before_spp",
+        "$.period_stats.spp_avg",
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.wallet_price",
+        "$.stock.fbo",
+        "$.stock.fbs",
+        "$.updated"
+      ],
+      "ozon_category_products": [
+        "$.data[].revenue",
+        "$.data[].sales",
+        "$.data[].final_price",
+        "$.data[].ozon_card_price",
+        "$.data[].balance",
+        "$.data[].balance_fbs",
+        "$.data[].lost_profit",
+        "$.data[].turnover_days"
+      ],
+      "ozon_sku_full": [
+        "$.period_stats.revenue",
+        "$.period_stats.sales",
+        "$.period_stats.revenue_prev",
+        "$.period_stats.sales_prev",
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.ozon_card_price",
+        "$.balance",
+        "$.updated"
+      ]
+    },
+    "semantic_separations": [
+      "purchase and purchase_after_return in MPSTATS reports are provider metrics; they do NOT identify company self-purchases. The internal v_self_purchase remains canonical.",
+      "WB price.price, price.final_price and price.wallet_price are different observed fields, not interchangeable synonyms; the payment/discount conditions remain unverified.",
+      "Ozon price.ozon_card_price is not equivalent by default to price.final_price or internal Ozon selling price.",
+      "Stock/balance in external MPSTATS analytics is not automatically the current available-to-sell balance in the seller cabinet.",
+      "revenue_estimated, revenue_estimated_before_spp and revenue are distinct metrics; never sum/substitute without a validated formula.",
+      "A representative report=full response is not evidence for sales/by_day/balance report variants."
+    ]
+  },
+  "price_field_semantics": {
+    "wb": {
+      "observed_in": "wb_sku(report=full)",
+      "fields": [
+        "price",
+        "final_price",
+        "wallet_price"
+      ],
+      "json_paths": [
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.wallet_price"
+      ],
+      "evidence": "live_shape_only",
+      "unit": "currency_unverified",
+      "selection_rule": "Choose only after validating consumer/seller/discount and wallet assumptions; do not silently treat one as the universal buyer price."
+    },
+    "ozon": {
+      "observed_in": "ozon_sku(report=full)",
+      "fields": [
+        "price",
+        "final_price",
+        "ozon_card_price"
+      ],
+      "json_paths": [
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.ozon_card_price"
+      ],
+      "evidence": "live_shape_only",
+      "unit": "currency_unverified",
+      "selection_rule": "Do not silently equate Ozon card price with final price or canonical own seller price."
+    },
+    "cross_marketplace": {
+      "warning": "Never compare WB wallet_price against Ozon ozon_card_price as if definitions are identical without reconciliation.",
+      "direct_source_precedence": "For actual own-account current price, verified direct marketplace API is preferred."
+    }
+  },
+  "stock_semantics": {
+    "external_wb_observed": [
+      "wb_category.data[].balance",
+      "wb_category.data[].balance_fbs",
+      "wb_sku.full.stock.fbo",
+      "wb_sku.full.stock.fbs"
+    ],
+    "external_ozon_observed": [
+      "ozon_category.products.data[].balance",
+      "ozon_category.products.data[].balance_fbs",
+      "ozon_sku.full.balance"
+    ],
+    "freshness": "unverified_for_current_sellable_stock",
+    "rule": "MPSTATS external analytics balance is an observed analytical metric; no zeroing/restock/execution decision may be based on it alone."
+  },
+  "purchase_metric_warning": {
+    "fields": [
+      "purchase",
+      "purchase_after_return"
+    ],
+    "evidence": "present in WB subject/category/SKU response shapes",
+    "meaning": "provider-defined business metric; name alone insufficient to assert calculation or numeric scale",
+    "explicitly_not": "internal company self-purchase classification",
+    "canonical_self_purchase_source": "msp_data.v_self_purchase",
+    "unit": "unverified"
+  },
+  "validation_gaps": [
+    "WB/Ozon product report types observed but currency and exact price/discount formulas are not yet verified.",
+    "MPSTATS WB/Ozon external balance fields are not verified as real-time own-cabinet stock.",
+    "The sample wbbidder_products returned the pagination wrapper but no item fields; advertising per-product metrics remain unverified.",
+    "mine_products_list, lk_wb_products_stocks and lk_wb_dashboard_business_economics returned MCP tool-level errors; no response fields were established.",
+    "Static lk_ozon_fields returned schema wrapper; extract controlled field definitions separately if needed."
+  ]
+}
