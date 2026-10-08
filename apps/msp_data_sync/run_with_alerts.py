@@ -118,11 +118,11 @@ def make_message(source, result, issues, recovering=False):
     return "\n".join(lines)
 
 
-def notify_one(connection, source, result):
+def notify_one(connection, business_connection, source, result):
     status = result.get("status", "failed")
     if status not in BAD | GOOD:
         raise ValueError("unknown sync status, refusing to alter alert state")
-    issues = latest_issues(connection, source) if status in BAD else []
+    issues = latest_issues(business_connection, source) if status in BAD else []
     fp = signature(source, result, issues) if status in BAD else None
     row = connection.execute(
         "select state,fingerprint from alert_delivery_state where source=?", (source,)
@@ -145,9 +145,10 @@ def notify_one(connection, source, result):
     return "sent-" + ("problem" if status in BAD else "recovered")
 
 
-def run_alerts(db_path, results):
+def run_alerts(db_path, business_db_path, results):
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(db_path, timeout=20)
+    business = sqlite3.connect('file:' + str(business_db_path) + '?mode=ro', uri=True, timeout=15)
     try:
         con.execute("create table if not exists alert_delivery_state("
                     "source text primary key,state text not null,"
@@ -157,9 +158,10 @@ def run_alerts(db_path, results):
             source = result.get("source", "sync_runner")
             if source not in SOURCES and source != "sync_runner":
                 raise ValueError("unknown source")
-            outcome = notify_one(con, source, result)
+            outcome = notify_one(con, business, source, result)
             print("ALERT " + source + " " + outcome, file=sys.stderr, flush=True)
     finally:
+        business.close()
         con.close()
 
 
@@ -202,7 +204,7 @@ def main():
         print("ALERTS_MISSING_PROTECTED_CONFIGURATION", file=sys.stderr)
         return 1
     try:
-        run_alerts(os.path.join(os.path.dirname(main_db), "msp_alert_delivery.sqlite3"), results)
+        run_alerts(os.path.join(os.path.dirname(main_db), "msp_alert_delivery.sqlite3"), main_db, results)
     except Exception as exc:
         print("ALERT_DELIVERY_FAILURE=" + type(exc).__name__, file=sys.stderr)
         return 1
