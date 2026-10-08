@@ -29,8 +29,8 @@ the Hermes Gateway token/configuration or restarts Hermes services.
 
 Destination is the owner-confirmed `АП_Лазер` forum topic `Удалённый сервер`,
 Telegram `chat_id=-1002485321031` and `message_thread_id=758`.
-The destination and token are stored **only** in the protected server file
-`/opt/mcp/secrets/msp-data-alerts.env`, chmod 0640 root:hermes.
+The destination and token are stored **only** in the protected Hermes user file
+`/home/hermes/.config/msp-data/alerts.env`, chmod 0600 and directory 0700.
 No credential value is committed to public GitHub, included in telemetry, or
 copied to the GitHub Actions issue report.
 
@@ -53,8 +53,19 @@ mark the alert as sent, so the next run can retry. The original sync exit code
 remains nonzero for `partial` and `failed`; notifications never disguise
 business errors.
 
-Daily schedule is in `systemd/msp-data-sync.timer`: 08:00 Europe/Moscow,
-`Persistent=true`. To recover or redeploy: restore `msp-server-stack`,
+The active REMOTE runner has NO passwordless sudo. Therefore the actual daily
+production schedule uses **Hermes user systemd**, versioned in
+`systemd/user/msp-data-sync.service` and `systemd/user/msp-data-sync.timer`.
+The secure EnvironmentFile resides under
+`/home/hermes/.config/msp-data/alerts.env` (mode 0600, hermes-owned).
+The systemd user bus is accessible with
+`XDG_RUNTIME_DIR=/run/user/1001` and
+`DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus`.
+Hermes already has lingering enabled so the user timer can run after reboot.
+The daily schedule remains 08:00 Europe/Moscow, `Persistent=true`.
+The root-level `systemd/msp-data-sync.*` files remain a reproducibility
+alternative only; do not install their root service without a separate
+administrator-approved root deployment. To recover or redeploy: restore `msp-server-stack`,
 copy systemd service/timer, re-create the protected notification env
 from the separately protected existing bot token, enable the timer, and verify
 the group-topic route and exact four-source synchronization. Do not put runtime

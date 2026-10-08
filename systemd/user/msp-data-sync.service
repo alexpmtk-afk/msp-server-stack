@@ -1,0 +1,13 @@
+[Unit]
+Description=MSP four-source data synchronization with Telegram topic alerts (Hermes user)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/mcp/projects/msp-server-stack
+EnvironmentFile=/home/hermes/.config/msp-data/alerts.env
+ExecStart=/usr/bin/python3 /opt/mcp/projects/msp-server-stack/apps/msp_data_sync/run_with_alerts.py --config /opt/mcp/projects/msp-server-stack/config/msp-data/sync.json
+TimeoutStartSec=420
+UMask=0077
+NoNewPrivileges=true
