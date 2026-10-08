@@ -27,7 +27,7 @@ The MSP data sync service and timer remain independent.
 On first service launch, the notifier records a high-watermark of the
 currently archived channel message IDs and **does not backfill history**.
 After that, new posts trigger a simulated report within approximately one
-five-second polling interval, provided the services and network are healthy.
+60-second polling interval configured in `systemd/user/msp-signal-notify.service`, provided the services and network are healthy. This is the *scan interval*, not a guaranteed end-to-end delivery deadline.
 Message edits can cause a fresh report if the content fingerprint changes.
 SQLite `/opt/mcp/data/msp/msp_signal_notifications.sqlite3` tracks confirmed
 deliveries separately from the daily MSP sync alert state. Unrecognized
@@ -56,6 +56,7 @@ None of those writes is attempted, and no text may claim verified completion.
 ## Operation
 
 * Service source: `systemd/user/msp-signal-notify.service`.
+* Current versioned `ExecStart` uses `--interval 60` (seconds); do not use the retired five-second setting.
 * Entry point: `apps/msp_signal_notify/notify.py`.
 * Input: `/home/hermes/.hermes/channel-archive/messages.sqlite3` (read-only).
 * Output: Telegram Bot API via the existing `send_telegram` function.
@@ -65,6 +66,4 @@ None of those writes is attempted, and no text may claim verified completion.
 * To stop: `systemctl --user stop msp-signal-notify.service`.
 * Testing: `python3 -m unittest discover -s tests -p test_msp_signal_notify.py -v`.
 
-Only after the token path, archive schema and six unit tests are independently
-verified should the service be enabled on REMOTE. This is separate from actual
-business-action automation, which remains disabled.
+When redeploying or recovering the simulator, check the existing token path, archive schema, unit tests and active `systemctl --user` unit before making any change. Do not infer actual execution or delivery from the polling interval alone. Business-action automation remains disabled.
