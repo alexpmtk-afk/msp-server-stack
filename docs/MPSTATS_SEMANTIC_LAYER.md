@@ -1,4 +1,4 @@
-# MPSTATS semantic layer — v1
+# MPSTATS semantic layer — v1.1
 
 ## Goal
 
@@ -9,6 +9,7 @@ Machine-readable files:
 - `config/mpstats/semantics/catalog.json`
 - `config/mpstats/semantics/routing.json`
 - `config/mpstats/semantics/tool_policy.json`
+- `config/mpstats/semantics/response_shapes.json`
 
 Raw live tool inventory:
 
@@ -119,4 +120,18 @@ Version 1 covers all 108 tools at the level of:
 - freshness class;
 - tool-specific warnings where needed.
 
-The next refinement stage is **response semantics**: inspect representative live responses without recording private values, map returned fields/units and validate freshness for the main business families. That stage can enrich this layer without changing the routing principles above.
+Representative response semantics have now started. A privacy-preserving live audit on 2026-10-08 stored only field paths/types for eight representative tools; no values were retained.
+
+Observed successful shapes:
+
+- `account_limits`: quota counters `available/use` plus WB/Ozon external counters;
+- `wb_categories_search` and `ozon_categories_search`: rows with `path`, `children`, `revenue`, `sales`;
+- `repricer_limits`: repricer product/quota count fields;
+- `wbbidder_overview`: period, campaign counts, limits, product summary and current/previous/diff/status metric groups for clicks, CTR, DRR, orders, order sum, spending and views;
+- `pe_health`: Photo Editor service-health fields.
+
+Two own-cabinet probes — `lk_wb_dashboard_widget30days` and `lk_ozon_overview` — reached the MCP server but returned `isError=true` in the current environment. This is recorded as **not yet validated**, not as proof that those capabilities are globally unavailable.
+
+Important: observed integer/string types do not establish business units. In particular, currency for category `revenue` and numeric scales/units for bidder CTR/DRR/spending/order sums remain unverified and must not be invented.
+
+Next refinement: expand response-shape/field semantics for the highest-value analytical tools and diagnose the two LK tool errors without exposing private account values.
