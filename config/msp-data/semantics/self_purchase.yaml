@@ -1,4 +1,4 @@
-version: 4
+version: 5
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -118,12 +118,46 @@ lifecycle:
   blank_sku_policy: "Skip row irrespective of all other fields; report skipped_missing_sku; no error"
   prior_plan_without_sku: "Mark inactive in self_purchase_plan audit; exclude from v_self_purchase_plan"
   filled_sku_policy: "If SKU is later provided, the next changed snapshot can import the row normally"
-  completed_storage: "self_purchase; v_self_purchase"
+  completed_storage: "self_purchase; v_self_purchase; ACTIVE completed only"
+  revision_storage: "self_purchase_revision; v_self_purchase_revisions; old completed event with prior date/quantity retained"
+  source_binding: >
+    self_purchase_source_link maps provisional source_row to last accepted completed
+    event business key (marketplace, store, marketplace_sku, purchase_date, source_ordinal).
+    First source sync after installing new code backfills mappings for current completed rows.
+    Never use a different SKU/store/marketplace row at the same source_row to remove a
+    previous event; there is no immutable event ID.
+  completed_to_planned: >
+    If the SAME source_row still has the SAME marketplace+store+SKU but purchase_date
+    becomes empty, move the formerly completed record into self_purchase_revision and
+    remove it from active completed self_purchase in the same transaction; its source
+    row becomes planned. Old event date and quantity remain fully auditable.
+  rescheduled_date: >
+    If a linked completed source row has the same listing but a new valid date,
+    insert/update new completed event and archive the previously linked event;
+    do not count both old and new dates as completed. Repeat sync must be idempotent.
+  matching_guard: >
+    Reconcile only previously linked source rows and only if the prior event
+    is not present anywhere in the current successful completed rows. Repeated
+    SKU events are independent by source_ordinal; never blanket-delete all dates
+    for matching SKU.
+  missing_source_row: >
+    If a whole source row disappears or changes marketplace/store/SKU, DO NOT
+    automatically retire previous completed events; identity is ambiguous.
+    Preserve existing history and surface ambiguity for further review.
+  existing_legacy_exception_2026_10_08: >
+    Five confirmed stale completed records for source rows 42-46 predate source-row
+    linkage. Owner approved ONE-TIME guarded archival of these exact keys into
+    self_purchase_revision after SQLite backup, not general inference or deletion.
   effect_on_sales: "Only completed is deducted or reconciled with actual sales; planned is NEVER a sold unit"
   transition: "planned -> completed upon valid date+SKU+quantity in a later source refresh; no separate user action"
   error_policy: "Missing date/quantity in planned is normal; blank Артикул МП skips row, does not generate sync_error or partial"
   resolved_error_policy: "Prior historical sync_error rows stay as audit history; inspect newest sync_run, not lifetime errors"
   current_upstream_examples_2026_10_08: "planned rows 42-46 and 51-53 (8); row 84 skipped for missing Артикул МП"
+revision_reporting:
+  active_query: "SELECT count(*),coalesce(sum(quantity),0) FROM self_purchase"
+  prior_states_query: "SELECT * FROM v_self_purchase_revisions"
+  no_double_count_revision: true
+  source_row_binding_is_not_immutable_event_id: true
 source_row_identity_warning: >
   Исходный лист не имеет постоянного immutable event ID: source_row означает позицию
   в CSV, а не юридически уникальный ID события. Вставка/сортировка строк может изменить
@@ -132,6 +166,7 @@ source_row_identity_warning: >
 limitations:
   - "Строка без значения Артикул МП не загружается ни в planned, ни в completed."
   - "Не заполнять недостающие даты, SKU и quantity предположениями."
-  - "Исторические completed при удалении из источника автоматически не удаляются."
+  - "При переносе даты подтверждённой ранее покупки старое completed переносится в историю ревизий и исключается из действующего учёта."
+  - "Исторические completed при удалении строки из источника автоматически не удаляются."
   - "Повторные записи одного SKU на одну дату различаются source_ordinal; перестановка может изменить идентичность."
   - "Планы со строками, удалёнными из текущего источника, остаются в таблице аудита с is_current=0."

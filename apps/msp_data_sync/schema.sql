@@ -64,3 +64,29 @@ CREATE VIEW IF NOT EXISTS v_self_purchase_plan AS
 SELECT source_row,marketplace,store,marketplace_sku,internal_article,product_name,
  quantity,purchase_date,review_date,review_url,review_draft,first_seen_at,updated_at
 FROM self_purchase_plan WHERE is_current=1;
+
+
+-- Source-row binding is provisional until the upstream source supplies immutable event IDs.
+-- Only reconcile the prior completed event when row and listing (marketplace/store/SKU)
+-- still match; do NOT delete completed rows merely absent from the current export.
+CREATE TABLE IF NOT EXISTS self_purchase_source_link (
+ source_row INTEGER PRIMARY KEY CHECK(source_row>=2),
+ marketplace TEXT NOT NULL, store TEXT NOT NULL, marketplace_sku TEXT NOT NULL,
+ purchase_date TEXT NOT NULL, source_ordinal INTEGER NOT NULL,
+ linked_at TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_self_purchase_link_listing ON self_purchase_source_link(marketplace,store,marketplace_sku);
+
+-- Previously completed entries removed from active analytics must remain auditable.
+CREATE TABLE IF NOT EXISTS self_purchase_revision (
+ revision_id INTEGER PRIMARY KEY AUTOINCREMENT,
+ marketplace TEXT NOT NULL, store TEXT NOT NULL, legal_entity TEXT NOT NULL,
+ marketplace_sku TEXT NOT NULL, internal_article TEXT, product_name TEXT,
+ quantity INTEGER NOT NULL, purchase_date TEXT NOT NULL, review_date TEXT,
+ review_url TEXT, review_draft TEXT, row_hash TEXT NOT NULL,
+ created_at TEXT NOT NULL, updated_at TEXT NOT NULL, source_ordinal INTEGER NOT NULL,
+ archived_at TEXT NOT NULL, change_reason TEXT NOT NULL,
+ source_row INTEGER, sync_run_id INTEGER
+);
+CREATE INDEX IF NOT EXISTS ix_self_purchase_revision_listing ON self_purchase_revision(marketplace,store,marketplace_sku,purchase_date);
+CREATE VIEW IF NOT EXISTS v_self_purchase_revisions AS SELECT * FROM self_purchase_revision;
