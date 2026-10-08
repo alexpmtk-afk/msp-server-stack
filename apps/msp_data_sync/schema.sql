@@ -37,3 +37,30 @@ CREATE VIEW IF NOT EXISTS v_price_history AS SELECT e.*,
  p.internal_article,p.product_name,
  CASE WHEN p.marketplace_sku IS NULL THEN 'unmatched' ELSE 'matched' END AS catalog_match_status
  FROM price_event e LEFT JOIN product_listing p USING(marketplace,store,marketplace_sku);
+
+
+-- Planned rows intentionally permit missing purchase date, quantity and SKU.
+-- Source row number is the best available provisional identity until an immutable source ID exists.
+CREATE TABLE IF NOT EXISTS self_purchase_plan (
+ source_row INTEGER PRIMARY KEY CHECK(source_row>=2),
+ marketplace TEXT NOT NULL CHECK(marketplace IN ('wb','oz')),
+ store TEXT NOT NULL,
+ marketplace_sku TEXT CHECK(marketplace_sku IS NULL OR (marketplace_sku<>'' AND marketplace_sku NOT GLOB '*[^0-9]*')),
+ internal_article TEXT,
+ product_name TEXT,
+ quantity INTEGER CHECK(quantity IS NULL OR quantity>0),
+ purchase_date TEXT,
+ review_date TEXT,
+ review_url TEXT,
+ review_draft TEXT,
+ row_hash TEXT NOT NULL,
+ first_seen_at TEXT NOT NULL,
+ updated_at TEXT NOT NULL,
+ is_current INTEGER NOT NULL DEFAULT 1 CHECK(is_current IN (0,1)),
+ last_seen_run INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_self_purchase_plan_store_sku ON self_purchase_plan(marketplace,store,marketplace_sku);
+CREATE VIEW IF NOT EXISTS v_self_purchase_plan AS
+SELECT source_row,marketplace,store,marketplace_sku,internal_article,product_name,
+ quantity,purchase_date,review_date,review_url,review_draft,first_seen_at,updated_at
+FROM self_purchase_plan WHERE is_current=1;
