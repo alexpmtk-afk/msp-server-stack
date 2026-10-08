@@ -188,7 +188,8 @@ archive count as current fact.
 ## Accounting and limitations
 
 Each nonempty source row contributes to source_rows; self_purchase also counts planned and skipped_missing_sku independently of inserted/updated/unchanged/rejected.
-Invalid rows retain original values and source row in sync_error. The formula sentinel row is explicitly logged as technical and rejected from business history.
+Price journals use skipped_technical for **explicitly recognized formula sentinel rows**, not for malformed business rows. In the current "журнал цен" export, the row with date-cell label "СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ" is skipped only when marketplace, store and marketplace SKU fields are empty. It is never an actual price event. It is counted in source_rows and skipped_technical, not rejected and not sync_error. A full valid-business-data run therefore reports success, not partial. Missing business SKU/date or other invalid data still produce partial and a recorded error.
+The skipped_technical counter is stored on sync_run (additively migrated), included in successful, unchanged-snapshot and not-modified reporting; old historical formula-row errors remain in sync_error audit, but do not indicate a current failure.
 Identical source problems are stored once in sync_error; later runs still report rejected counts in sync_run but do not append duplicate copies of the same error.
 Valid rows commit even when another row fails; partial runs exit nonzero and are retried. Source-level failures do not prevent other sources from being attempted.
 Catalog duplicate business keys are logged rather than silently overwriting. Missing catalog matches reject self purchases and log raw rows; price events are retained with unmatched status and are not treated as sync errors.

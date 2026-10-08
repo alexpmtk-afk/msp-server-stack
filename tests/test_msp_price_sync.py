@@ -86,6 +86,62 @@ class PriceSyncTests(unittest.TestCase):
         self.assertEqual(m.qty('2,0'),2)
 
 
+    def test_price_current_technical_marker_skipped_without_partial_or_error(self):
+        marker=['СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ']+['']*(len(self.header)-1)
+        buf=io.StringIO()
+        csv.writer(buf).writerows([self.header,marker,self.row])
+        raw=buf.getvalue().encode()
+        with patch.object(m,'fetch',return_value=(200,raw,None,None)):
+            result=m.sync(self.c,self.cfg,'price_journal_current')
+            again=m.sync(self.c,self.cfg,'price_journal_current')
+        self.assertEqual((result['status'],result['source_rows'],result['inserted'],result['rejected'],result['skipped_technical']),
+                         ('success',2,1,0,1))
+        self.assertEqual((again['status'],again['unchanged'],again['skipped_technical']),
+                         ('unchanged_snapshot',1,1))
+        self.assertEqual(self.c.execute("select count(*) from price_event").fetchone()[0],1)
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0],0)
+        run=self.c.execute("select skipped_technical,rejected from sync_run where source='price_journal_current' order by run_id desc limit 1").fetchone()
+        self.assertEqual(tuple(run),(1,0))
+
+    def test_real_business_error_remains_partial_even_with_technical_marker(self):
+        marker=['СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ']+['']*(len(self.header)-1)
+        bad=self.row.copy();bad[2]='ABC'
+        buf=io.StringIO();csv.writer(buf).writerows([self.header,marker,bad,self.row])
+        with patch.object(m,'fetch',return_value=(200,buf.getvalue().encode(),None,None)):
+            result=m.sync(self.c,self.cfg,'price_journal_current')
+        self.assertEqual((result['status'],result['skipped_technical'],result['rejected'],result['inserted']),
+                         ('partial',1,1,1))
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0],1)
+        self.assertEqual(self.c.execute("select source_row from sync_error").fetchone()[0],3)
+
+    def test_sentinel_in_business_row_must_not_hide_data_error(self):
+        bad=self.row.copy()
+        bad[0]='СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ'
+        n=self.ingest([self.header,bad])
+        self.assertEqual((n['skipped_technical'],n['rejected']), (0,1))
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0],1)
+
+    def test_invalid_rows_not_treated_as_technical_by_incomplete_fields(self):
+        empty=self.row.copy();empty[2]=''
+        n=self.ingest([self.header,empty])
+        self.assertEqual((n['skipped_technical'],n['rejected']), (0,1))
+
+    def test_304_retains_technical_counter_without_new_errors(self):
+        marker=['СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ']+['']*(len(self.header)-1)
+        buf=io.StringIO();csv.writer(buf).writerows([self.header,marker,self.row])
+        raw=buf.getvalue().encode()
+        with patch.object(m,'fetch',side_effect=[(200,raw,None,None),(304,None,None,None)]):
+            first=m.sync(self.c,self.cfg,'price_journal_current')
+            second=m.sync(self.c,self.cfg,'price_journal_current')
+        self.assertEqual(first['status'],'success')
+        self.assertEqual((second['status'],second['skipped_technical'],second['source_rows']),('not_modified',1,2))
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0],0)
+
+    def test_additive_migration_creates_skipped_technical_counter(self):
+        cols=[x[1] for x in self.c.execute('pragma table_info(sync_run)')]
+        self.assertIn('skipped_technical',cols)
+        self.assertEqual(self.c.execute('select skipped_technical from sync_run order by run_id desc limit 1').fetchone(),None)
+
     def test_cleared_archive_with_orphan_technical_columns_is_success(self):
         import io
         rows=[['']*26 for _ in range(3)]

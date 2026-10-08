@@ -1,4 +1,4 @@
-version: 6
+version: 7
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -84,6 +84,16 @@ source_contracts:
 
     current_correction: "2026-10-08: source rows 68-75 and 80-83 corrected to novok by owner approval."
     legacy_rule: "Only older CSVs with ЮЛ but without магазин use the old ЮЛ→store lookup."
+  price_journal_current:
+    source: "_05_экпорт: бд для МСП / журнал цен"
+    explicit_technical_markers: ["СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ"]
+    marker_column: "дата"
+    marker_guard: "Marketplace/store/Артикул мп all empty"
+    action: "Skip recognized formula sentinel; no price event and no sync_error"
+    metrics: "sync_run.skipped_technical, not rejected; source_rows still counts the source line"
+    status: "Technical-only skip is success; other invalid business rows remain partial"
+    audit: "Existing historical sync_error rows are kept; only latest rejected describes current errors"
+    fail_safe: "A malformed business row is never silently skipped as technical"
   price_journal_archive:
     source: "_05_экпорт: бд для МСП / журнал цен (архив)"
     state_as_of: "2026-10-08"
