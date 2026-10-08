@@ -111,6 +111,50 @@ SELECT source,status,source_rows,planned,skipped_missing_sku,rejected FROM sync_
 WHERE source='self_purchase' ORDER BY run_id DESC LIMIT 1;
 ```
 
+## Source-linked completed self-purchase dates (owner-approved 2026-10-08)
+
+The Google register is the source of truth for which self-purchases are actually
+completed, including moved or removed purchase dates. Completed items remain
+in `self_purchase` and planned rows in `self_purchase_plan`. The upstream
+source has no immutable event ID. `self_purchase_source_link` records the
+provisional source row and its last completed business key
+(marketplace,store,marketplace_sku,purchase_date,source_ordinal).
+
+On each changed source snapshot, if a linked source row retains the SAME
+marketplace+store+SKU but the date changes, import the newly dated completed
+event and retire the old entry from active `self_purchase` into
+`self_purchase_revision` (`v_self_purchase_revisions`). If the date is
+removed, the formerly completed entry is retired into revisions and the row
+becomes planned; the previous date, quantity, authoring data and timestamps
+stay auditable. This happens transactionally; a repeated refresh must not
+retire again or duplicate new records. An old key still represented elsewhere
+in the current source is not retired, protecting repeated same-SKU purchases.
+
+If a row disappears, or its marketplace/store/SKU changes at the same
+position, it is AMBIGUOUS whether it is the same event: do not automatically
+delete previously completed records. Source-line identity remains provisional
+until the Google register has a permanent immutable event ID. The first new
+sync initializes source links for currently completed records, including
+previously existing rows. Legacy records WITHOUT links are not blindly
+purged.
+
+**One-time confirmed legacy reconciliation:** before source-row linkage,
+five stale completed entries (WB/laser, rows 42-46, SKU 1535826937,
+1591555117, 1682686239, 1683303349, 1685869122) remained in SQLite
+after their dates were cleared from the Google register. The owner explicitly
+approved moving ONLY those five exact events into revision history after
+a full SQLite backup, verified source values and exact-key checks. This is
+not a general permission for indiscriminate completed-event purging.
+
+Queries:
+```sql
+SELECT count(*),coalesce(sum(quantity),0) FROM self_purchase;
+SELECT marketplace_sku,purchase_date,quantity,change_reason,source_row
+FROM v_self_purchase_revisions ORDER BY archived_at DESC;
+SELECT source_row,marketplace_sku,purchase_date
+FROM self_purchase_source_link ORDER BY source_row;
+```
+
 ## Cleared price archive — owner-approved one-time reset 2026-10-08
 
 Source: `_05_экпорт: бд для МСП`, sheet `журнал цен (архив)` (gid 2062539510).
