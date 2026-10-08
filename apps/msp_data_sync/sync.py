@@ -204,7 +204,12 @@ def sync(c,cfg,source):
         rows=list(csv.reader(io.StringIO(body.decode('utf-8-sig'))))
         if not rows or not rows[0]: raise ValueError('empty or invalid CSV')
         if st and st['content_sha256']==sha and last_source_clean(c,source,run):
-            c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,unchanged=? where run_id=?',(now(),'unchanged_snapshot',status,st['source_rows'],st['source_rows'],run));c.commit();return {'source':source,'status':'unchanged_snapshot',**dict(n,source_rows=st['source_rows'],unchanged=st['source_rows'])}
+            plans=c.execute('select count(*) from v_self_purchase_plan').fetchone()[0] if source=='self_purchase' else 0
+            unchanged=max(0,(st['source_rows'] or 0)-plans)
+            c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,unchanged=?,planned=? where run_id=?',
+                      (now(),'unchanged_snapshot',status,st['source_rows'],unchanged,plans,run))
+            c.commit()
+            return {'source':source,'status':'unchanged_snapshot',**dict(n,source_rows=st['source_rows'],unchanged=unchanged,planned=plans)}
         c.execute('begin')
         n=product(c,rows,run) if source=='product_catalog' else selfbuy(c,rows,run,cfg) if source=='self_purchase' else prices(c,rows,run,source,cfg)
         c.execute('insert into sync_state values(?,?,?,?,?,?) on conflict(source) do update set etag=excluded.etag,last_modified=excluded.last_modified,content_sha256=excluded.content_sha256,last_success_at=excluded.last_success_at,source_rows=excluded.source_rows',(source,etag,lm,sha,now(),n['source_rows']));c.commit()
