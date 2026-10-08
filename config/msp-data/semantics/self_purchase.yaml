@@ -1,4 +1,4 @@
-version: 2
+version: 3
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -6,8 +6,10 @@ upstream_source:
   sheet: "Реестр выкупов/отзывов"
   note: "The REMOTE sync reads the separate public export spreadsheet configured in sync.json, not the upstream workbook directly."
 purpose: >
-  Реестр фактически совершённых самовыкупов собственного товара. Для корректировки аналитики
-  продаж используются цифровой SKU маркетплейса, магазин, дата и количество; order_id не требуется.
+  Два разных состояния исходного реестра: planned (товар намечен для будущего самовыкупа,
+  даты ещё нет) и completed (самовыкуп действительно сделан). Для аналитики продаж
+  используются исключительно completed. Planned сохраняются с настоящими NULL в
+  отсутствующих полях, без выдумывания даты, количества или SKU.
 business_key: [marketplace, store, marketplace_sku, purchase_date, source_ordinal]
 fields:
   marketplace:
@@ -46,12 +48,12 @@ fields:
     meaning: Наименование в реестре.
   quantity:
     source: "Кол-во выкупов"
-    meaning: Число единиц совершённого самовыкупа.
-    validation: positive_integer
+    meaning: Число единиц выкупа; в planned может быть NULL, в completed обязательно положительное целое.
+    validation: positive_integer_when_present
   purchase_date:
     source: "Дата выкупа"
-    meaning: Дата фактического самовыкупа. Без неё нельзя засчитать подтверждённую запись.
-    validation: required_ISO_date
+    meaning: Только реальная дата совершения выкупа. Отсутствующая дата -> planned; completed требует ISO date.
+    validation: nullable_in_planned_required_in_completed
   review_date:
     source: "Дата отзыва"
     meaning: Дата отзыва, если указана.
@@ -61,12 +63,24 @@ fields:
   review_draft:
     source: "Черновик отзывов"
     meaning: Текст/черновик отзыва, если указан.
+views:
+  planned: v_self_purchase_plan
+  completed: v_self_purchase
+reporting:
+  planned_count_query: "SELECT count(*) FROM v_self_purchase_plan"
+  completed_count_query: "SELECT count(*) FROM self_purchase"
+  never_sum_planned_quantity_into_sales: true
 source_contract:
   current_headers: ["мп", "магазин", "Артикул МП", "Артикул наш", "Название товара", "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
   header_matching: case_insensitive_and_trimmed
   processing_order: "product_catalog before self_purchase"
   current_store_resolution: "Use explicit source column магазин; no ЮЛ mapping or SKU-only fallback."
-  row_validation: "Match existing product_listing by marketplace + store + marketplace_sku."
+  row_validation: >
+    Для planned проверять маркетплейс и код магазина; если SKU или количество заполнены,
+    проверять их формат, но отсутствие разрешено. Для completed требуются дата, ASCII SKU,
+    положительное количество и точное совпадение карточки product_listing по
+    marketplace+store+marketplace_sku. Одна лишь дата без обязательных полей означает ошибку,
+    а не completed.
   legacy_compatibility: >
     Только для старых выгрузок, где есть "ЮЛ", но отсутствует "магазин",
     допустимо определять store через существующий mapping ЛМ->laser / НМБ->novok.
@@ -79,8 +93,33 @@ source_contract:
 order_id_policy: "No order_id required; event-level order identification is not guaranteed."
 uniqueness: "business key plus source_ordinal; same-card same-day rows are separate occurrences."
 normalization_rules: "trim; lower-case marketplace/store; validate explicit store against [laser,novok,ultra]; numeric SKU as TEXT"
-update_rules: "upsert changed rows only; retain absent rows for history; log rejected rows"
+update_rules: >
+  При КАЖДОМ изменившемся снимке сверять ВСЕ исходные строки, а не только новые.
+  Planned хранить в self_purchase_plan, с исходным source_row как временным идентификатором;
+  поля marketplace_sku, quantity и purchase_date могут быть SQL NULL. Изменение заполненных
+  полей planned = update existing, не новая запись. Появление реальной даты совместно
+  с валидными SKU и количеством = атомарно записать completed в self_purchase
+  и убрать текущую planned-запись, не учитывая её дважды. Повторная загрузка идентичного
+  снимка не меняет бизнес-записи. Старые завершённые выкупы не удалять при исчезновении
+  из источника; исчезнувшие планы помечать неактуальными, а не учитывать как действующие.
+lifecycle:
+  statuses: [planned, completed]
+  planned_when: "purchase_date is empty, even if SKU and/or quantity are already filled"
+  completed_when: "purchase_date + numeric SKU + positive quantity + matching catalog listing"
+  planned_storage: "self_purchase_plan; v_self_purchase_plan exposes only is_current=1"
+  completed_storage: "self_purchase; v_self_purchase"
+  effect_on_sales: "Only completed is deducted or reconciled with actual sales; planned is NEVER a sold unit"
+  transition: "planned -> completed upon valid date+SKU+quantity in a later source refresh; no separate user action"
+  error_policy: "Expected missing fields in planned are not sync_error, do not count as rejected or partial"
+  resolved_error_policy: "Prior historical sync_error rows stay as audit history; inspect newest sync_run, not lifetime errors"
+  current_upstream_examples_2026_10_08: "planned source rows 42-46, 51-53, 84 (9 rows)"
+source_row_identity_warning: >
+  Исходный лист не имеет постоянного immutable event ID: source_row означает позицию
+  в CSV, а не юридически уникальный ID события. Вставка/сортировка строк может изменить
+  соответствие плана; без отдельного ID нельзя гарантировать непрерывность истории
+  одного плана после произвольной перестановки.
 limitations:
-  - "Без purchase_date / quantity / SKU не создавать подтверждённый самовыкуп и не угадывать значения."
-  - "Отсутствующие из текущего источника строки не удаляются автоматически; отдельный признак актуальности пока не реализован."
-  - "Повторные записи одного SKU на одну дату различаются source_ordinal; их произвольная перестановка меняет идентичность события."
+  - "Не заполнять недостающие даты, SKU и quantity предположениями."
+  - "Исторические completed при удалении из источника автоматически не удаляются."
+  - "Повторные записи одного SKU на одну дату различаются source_ordinal; перестановка может изменить идентичность."
+  - "Планы со строками, удалёнными из текущего источника, остаются в таблице аудита с is_current=0."
