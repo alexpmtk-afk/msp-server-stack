@@ -15,6 +15,7 @@ class TestMpstatsSemantics(unittest.TestCase):
         self.routing = json.loads((SEM / "routing.json").read_text(encoding="utf-8"))
         self.policy = json.loads((SEM / "tool_policy.json").read_text(encoding="utf-8"))
         self.response_shapes = json.loads((SEM / "response_shapes.json").read_text(encoding="utf-8"))
+        self.metric_semantics = json.loads((SEM / "metric_semantics.json").read_text(encoding="utf-8"))
 
     def test_live_inventory_is_fully_covered(self):
         raw = TOOLS_DOC.read_text(encoding="utf-8")
@@ -72,6 +73,7 @@ class TestMpstatsSemantics(unittest.TestCase):
             "references/routing.json",
             "references/tool_policy.json",
             "references/response_shapes.json",
+            "references/metric_semantics.json",
             "references/live-tools.md",
             "references/semantic-layer.md",
         ):
@@ -80,6 +82,16 @@ class TestMpstatsSemantics(unittest.TestCase):
         self.assertIn("v_self_purchase", text)
         self.assertIn("v_price_history", text)
         self.assertTrue(DEPLOY.exists())
+
+    def test_metric_semantics_do_not_invent_units(self):
+        metrics = self.metric_semantics["metrics"]
+        self.assertEqual(metrics["ctr"]["unit"], "percent_scale_unverified")
+        self.assertEqual(metrics["drr"]["unit"], "percent_scale_unverified")
+        self.assertEqual(metrics["revenue"]["unit"], "unverified_currency")
+        self.assertEqual(metrics["orders_sum"]["unit"], "unverified_currency")
+        self.assertEqual(metrics["turnover_in_days"]["unit"], "days")
+        rules = " ".join(self.metric_semantics["global_rules"]).lower()
+        self.assertIn("never invent currency", rules)
 
     def test_internal_source_precedence_is_explicit(self):
         rules = self.routing["precedence_rules"]
