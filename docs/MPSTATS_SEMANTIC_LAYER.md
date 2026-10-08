@@ -211,3 +211,28 @@ Results:
 Overall behavioral acceptance: **PASS**.
 
 This closes the core semantic-foundation loop: the MPSTATS MCP is installed, its tools are inventoried, semantic routing/safety rules exist, those rules are deployed as a Hermes skill, Hermes recognizes the skill, and a fresh model turn applies the key rules correctly without external tool use.
+
+## Live business-field audit, batch 2 — 2026-10-08
+
+The first attempt (bridge issue #144) did not run because of escaped GitHub Actions expressions. The workflow was corrected in PR #145. The replacement read-only run, issue #146, completed.
+
+- 13 tool/variant probes; 10 returned usable structural responses; 3 returned tool-level errors;
+- successful product/detail responses: `wb_subjects_list`, `wb_category`, `wb_sku(report=full)`, `ozon_category(report=products)`, `ozon_sku(report=full)`, category searches, `repricer_tokens`, `lk_ozon_fields`, and the `wbbidder_products` envelope;
+- errors: `mine_products_list`, `lk_wb_products_stocks`, `lk_wb_dashboard_business_economics`. Do not treat these as proven data sources until access/scope is diagnosed;
+- `wbbidder_products` returned an envelope but **no product row**, so per-product advertising columns remain unverified;
+- all actual token IDs, SKUs, cabinet identifiers, business values and authenticated URLs were excluded from the recorded audit.
+
+Combined with the first audit, 19 distinct tool names have been probed, 14 with successful response-shape evidence and five with tool-level errors; all 108 remain covered by tool-routing/access policy, but this is **not** 108/108 verified response fields.
+
+Key fields observed:
+
+- WB subject: `revenue`, `sales`, `purchase`, `purchase_after_return`, `revenue_estimated`, `lost_profit`, `avg_price_final`, `median_price_final`, `turnover_in_days`;
+- WB SKU full: `period_stats.revenue`, `period_stats.sales`, `price.price`, `price.final_price`, `price.wallet_price`, `stock.fbo`, `stock.fbs`;
+- Ozon SKU full: `period_stats.revenue`, `period_stats.sales`, `price.price`, `price.final_price`, `price.ozon_card_price`;
+- `lk_ozon_fields`: a schema catalog with field names, descriptions, groups, declared types, filtering and sorting capabilities; its actual business values were not retrieved.
+
+These observations verify **field paths and JSON types only**, not formula, currency, tax basis, price applicability, metric scale or snapshot freshness. The catalog in `config/mpstats/semantics/metric_semantics.json` explicitly records these unknowns.
+
+In particular, MPSTATS `purchase` / `purchase_after_return` **must not be interpreted as our internal self-purchase records**. Internal self-purchases remain defined by `msp_data.v_self_purchase`.
+
+For current stock and execution, prefer the verified direct marketplace source. Price fields such as WB `wallet_price` and Ozon `ozon_card_price` are not interchangeable without validation.
