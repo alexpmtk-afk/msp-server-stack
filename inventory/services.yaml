@@ -36,6 +36,7 @@ remote_interaction:
       - mpstats-live-audit
       - mpstats-schema-audit
       - mpstats-smoke-call
+      - mpstats-response-shape-audit
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -116,7 +117,7 @@ components:
 
   - id: mpstats-integration
     kind: external-mcp
-    status: operational-semantic-v1
+    status: operational-semantic-v1.1
     source: MPSTATS
     endpoint: https://mcp.mpstats.io/mcp
     transport: streamable-http
@@ -134,9 +135,11 @@ components:
     semantic_catalog: config/mpstats/semantics/catalog.json
     semantic_routing: config/mpstats/semantics/routing.json
     semantic_tool_policy: config/mpstats/semantics/tool_policy.json
+    semantic_response_shapes: config/mpstats/semantics/response_shapes.json
     semantic_documentation: docs/MPSTATS_SEMANTIC_LAYER.md
     semantic_coverage: 108/108
-    next_semantic_stage: representative-live-response-field-audit
+    response_shape_coverage: 8/108
+    next_semantic_stage: expand-live-response-fields-and-diagnose-lk-errors
     secrets: external
 
   - id: mcp-services

@@ -1,0 +1,430 @@
+{
+  "version": 1,
+  "audit_date": "2026-10-08",
+  "source": "live REMOTE MPSTATS MCP representative response-shape audit; values intentionally discarded",
+  "privacy_rule": "Only structural key paths and primitive/container types are stored. No account values, cabinet names/ids, product values, promo codes, tokens or authenticated URLs are retained.",
+  "tools": {
+    "account_limits": {
+      "validation_status": "observed_success",
+      "http_status": 200,
+      "mcp_is_error": false,
+      "content_items": 1,
+      "fields": [
+        {
+          "path": "$",
+          "type": "object"
+        },
+        {
+          "path": "$.available",
+          "type": "integer"
+        },
+        {
+          "path": "$.available_ozon_external",
+          "type": "integer"
+        },
+        {
+          "path": "$.available_wb_external",
+          "type": "integer"
+        },
+        {
+          "path": "$.use",
+          "type": "integer"
+        },
+        {
+          "path": "$.use_ozon_external",
+          "type": "integer"
+        },
+        {
+          "path": "$.use_wb_external",
+          "type": "integer"
+        }
+      ],
+      "semantic_notes": [
+        "Observed quota counters. Treat as request-count metadata, not business metrics."
+      ]
+    },
+    "wb_categories_search": {
+      "validation_status": "observed_success",
+      "http_status": 200,
+      "mcp_is_error": false,
+      "content_items": 1,
+      "fields": [
+        {
+          "path": "$",
+          "type": "array"
+        },
+        {
+          "path": "$[]",
+          "type": "object"
+        },
+        {
+          "path": "$[].children",
+          "type": "integer"
+        },
+        {
+          "path": "$[].path",
+          "type": "string"
+        },
+        {
+          "path": "$[].revenue",
+          "type": "integer"
+        },
+        {
+          "path": "$[].sales",
+          "type": "integer"
+        }
+      ],
+      "semantic_notes": [
+        "Observed category search rows with path/children/revenue/sales. Currency/unit of revenue was not independently verified; do not invent it."
+      ]
+    },
+    "ozon_categories_search": {
+      "validation_status": "observed_success",
+      "http_status": 200,
+      "mcp_is_error": false,
+      "content_items": 1,
+      "fields": [
+        {
+          "path": "$",
+          "type": "array"
+        },
+        {
+          "path": "$[]",
+          "type": "object"
+        },
+        {
+          "path": "$[].children",
+          "type": "integer"
+        },
+        {
+          "path": "$[].path",
+          "type": "string"
+        },
+        {
+          "path": "$[].revenue",
+          "type": "integer"
+        },
+        {
+          "path": "$[].sales",
+          "type": "integer"
+        }
+      ],
+      "semantic_notes": [
+        "Observed category search rows with path/children/revenue/sales. Currency/unit of revenue was not independently verified; do not invent it."
+      ]
+    },
+    "repricer_limits": {
+      "validation_status": "observed_success",
+      "http_status": 200,
+      "mcp_is_error": false,
+      "content_items": 1,
+      "fields": [
+        {
+          "path": "$",
+          "type": "object"
+        },
+        {
+          "path": "$.max_for_one_repricer_competitor_products",
+          "type": "integer"
+        },
+        {
+          "path": "$.max_for_one_repricer_products",
+          "type": "integer"
+        },
+        {
+          "path": "$.max_repricer_products",
+          "type": "integer"
+        },
+        {
+          "path": "$.total_repricer_products",
+          "type": "integer"
+        }
+      ],
+      "semantic_notes": [
+        "Observed integer quota/count fields for repricer products and per-repricer limits."
+      ]
+    },
+    "wbbidder_overview": {
+      "validation_status": "observed_success",
+      "http_status": 200,
+      "mcp_is_error": false,
+      "content_items": 1,
+      "fields": [
+        {
+          "path": "$",
+          "type": "object"
+        },
+        {
+          "path": "$.campaign_counts",
+          "type": "object"
+        },
+        {
+          "path": "$.campaign_counts.all",
+          "type": "integer"
+        },
+        {
+          "path": "$.campaign_counts.finished",
+          "type": "integer"
+        },
+        {
+          "path": "$.campaign_counts.in_work",
+          "type": "integer"
+        },
+        {
+          "path": "$.campaign_counts.under_bidder",
+          "type": "integer"
+        },
+        {
+          "path": "$.limits",
+          "type": "object"
+        },
+        {
+          "path": "$.limits.ads_limit",
+          "type": "integer"
+        },
+        {
+          "path": "$.limits.count_ads_displaying_and_paused",
+          "type": "integer"
+        },
+        {
+          "path": "$.limits.count_started",
+          "type": "integer"
+        },
+        {
+          "path": "$.period",
+          "type": "object"
+        },
+        {
+          "path": "$.period.from",
+          "type": "string"
+        },
+        {
+          "path": "$.period.to",
+          "type": "string"
+        },
+        {
+          "path": "$.products",
+          "type": "object"
+        },
+        {
+          "path": "$.products.common_orders_sum",
+          "type": "integer"
+        },
+        {
+          "path": "$.products.count_promote_nms",
+          "type": "integer"
+        },
+        {
+          "path": "$.products.count_promoted_nms_last_30_days",
+          "type": "integer"
+        },
+        {
+          "path": "$.products.sum",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.clicks",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.clicks.current",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.clicks.diff",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.clicks.prev",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.clicks.status",
+          "type": "string"
+        },
+        {
+          "path": "$.stat.ctr",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.ctr.current",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.ctr.diff",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.ctr.prev",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.ctr.status",
+          "type": "string"
+        },
+        {
+          "path": "$.stat.drr",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.drr.current",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.drr.diff",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.drr.prev",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.drr.status",
+          "type": "string"
+        },
+        {
+          "path": "$.stat.orders",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.orders.current",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.orders.diff",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.orders.prev",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.orders.status",
+          "type": "string"
+        },
+        {
+          "path": "$.stat.orders_sum",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.orders_sum.current",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.orders_sum.diff",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.orders_sum.prev",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.orders_sum.status",
+          "type": "string"
+        },
+        {
+          "path": "$.stat.spending",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.spending.current",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.spending.diff",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.spending.prev",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.spending.status",
+          "type": "string"
+        },
+        {
+          "path": "$.stat.views",
+          "type": "object"
+        },
+        {
+          "path": "$.stat.views.current",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.views.diff",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.views.prev",
+          "type": "integer"
+        },
+        {
+          "path": "$.stat.views.status",
+          "type": "string"
+        },
+        {
+          "path": "$.zone",
+          "type": "string"
+        }
+      ],
+      "semantic_notes": [
+        "Observed period, campaign counts, limits, product summary and current/previous/diff/status metric groups. Exact numeric units/scales for CTR, DRR, spending and monetary sums still require explicit validation."
+      ]
+    },
+    "lk_wb_dashboard_widget30days": {
+      "validation_status": "observed_tool_error",
+      "http_status": 200,
+      "mcp_is_error": true,
+      "content_items": 1,
+      "fields": [],
+      "semantic_notes": [
+        "Tool was reachable through MCP but returned isError in the current environment. Response-field semantics are not validated yet; do not infer that the capability is globally unavailable."
+      ]
+    },
+    "lk_ozon_overview": {
+      "validation_status": "observed_tool_error",
+      "http_status": 200,
+      "mcp_is_error": true,
+      "content_items": 1,
+      "fields": [],
+      "semantic_notes": [
+        "Tool was reachable through MCP but returned isError in the current environment. Response-field semantics are not validated yet; do not infer that the capability is globally unavailable."
+      ]
+    },
+    "pe_health": {
+      "validation_status": "observed_success",
+      "http_status": 200,
+      "mcp_is_error": false,
+      "content_items": 1,
+      "fields": [
+        {
+          "path": "$",
+          "type": "object"
+        },
+        {
+          "path": "$.active_tasks",
+          "type": "integer"
+        },
+        {
+          "path": "$.redis",
+          "type": "string"
+        },
+        {
+          "path": "$.redis_error",
+          "type": "null"
+        },
+        {
+          "path": "$.status",
+          "type": "string"
+        }
+      ],
+      "semantic_notes": [
+        "Observed service-health fields only; not a marketplace business-data source."
+      ]
+    }
+  }
+}
