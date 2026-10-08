@@ -29,8 +29,7 @@ the Hermes Gateway token/configuration or restarts Hermes services.
 
 Destination is the owner-confirmed `АП_Лазер` forum topic `Удалённый сервер`,
 Telegram `chat_id=-1002485321031` and `message_thread_id=758`.
-The destination and token are stored **only** in the protected Hermes user file
-`/home/hermes/.config/msp-data/alerts.env`, chmod 0600 and directory 0700.
+The user systemd service reads the **existing** Hermes \`/home/hermes/.hermes/.env\` file (mode 0600, hermes-owned). No bot token is duplicated or newly stored. Non-secret destination chat and topic IDs are set in the versioned user unit.
 No credential value is committed to public GitHub, included in telemetry, or
 copied to the GitHub Actions issue report.
 
@@ -56,8 +55,7 @@ business errors.
 The active REMOTE runner has NO passwordless sudo. Therefore the actual daily
 production schedule uses **Hermes user systemd**, versioned in
 `systemd/user/msp-data-sync.service` and `systemd/user/msp-data-sync.timer`.
-The secure EnvironmentFile resides under
-`/home/hermes/.config/msp-data/alerts.env` (mode 0600, hermes-owned).
+The user unit reads the existing Hermes EnvironmentFile \`/home/hermes/.hermes/.env\` (mode 0600). The alert runner accepts the preexisting \`TELEGRAM_BOT_TOKEN\` key; no separate token is provisioned.
 The systemd user bus is accessible with
 `XDG_RUNTIME_DIR=/run/user/1001` and
 `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus`.
@@ -66,8 +64,7 @@ The daily schedule remains 08:00 Europe/Moscow, `Persistent=true`.
 The root-level `systemd/msp-data-sync.*` files remain a reproducibility
 alternative only; do not install their root service without a separate
 administrator-approved root deployment. To recover or redeploy: restore `msp-server-stack`,
-copy systemd service/timer, re-create the protected notification env
-from the separately protected existing bot token, enable the timer, and verify
+copy user systemd service/timer, make sure existing Hermes .env still contains TELEGRAM_BOT_TOKEN, enable the timer, and verify
 the group-topic route and exact four-source synchronization. Do not put runtime
 SQLite or credentials in Git. Do not use artificial error injections in
 live Google Sheets; alert handling is tested with mocked sendMessage.

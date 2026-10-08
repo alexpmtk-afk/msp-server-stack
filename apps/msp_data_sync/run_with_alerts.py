@@ -34,7 +34,7 @@ def utc_now():
 
 
 def send_telegram(text):
-    token = os.environ["MSP_ALERT_BOT_TOKEN"]
+    token = os.environ.get("MSP_ALERT_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN", "")
     chat = os.environ["MSP_ALERT_CHAT_ID"]
     thread = os.environ["MSP_ALERT_THREAD_ID"]
     if not token or not chat.startswith("-100") or not thread.isdigit():
@@ -199,8 +199,9 @@ def main():
     if os.environ.get("MSP_ALERTS_ENABLED") != "1":
         print("ALERTS_DISABLED: system not fully configured", file=sys.stderr)
         return 1
-    required = ("MSP_ALERT_BOT_TOKEN", "MSP_ALERT_CHAT_ID", "MSP_ALERT_THREAD_ID")
-    if any(not os.environ.get(k) for k in required):
+    required = ("MSP_ALERT_CHAT_ID", "MSP_ALERT_THREAD_ID")
+    if (not (os.environ.get("MSP_ALERT_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN")) or
+            any(not os.environ.get(k) for k in required)):
         print("ALERTS_MISSING_PROTECTED_CONFIGURATION", file=sys.stderr)
         return 1
     try:
