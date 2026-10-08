@@ -37,6 +37,8 @@ remote_interaction:
       - mpstats-schema-audit
       - mpstats-smoke-call
       - mpstats-response-shape-audit
+      - mpstats-lk-diagnostic
+      - hermes-skill-format-audit
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -137,9 +139,13 @@ components:
     semantic_tool_policy: config/mpstats/semantics/tool_policy.json
     semantic_response_shapes: config/mpstats/semantics/response_shapes.json
     semantic_documentation: docs/MPSTATS_SEMANTIC_LAYER.md
+    agent_skill_source: apps/hermes/mpstats_skill/SKILL.md
+    agent_skill_installer: scripts/deploy/install-mpstats-skill.sh
+    agent_skill_target: /home/hermes/.hermes/skills/productivity/mpstats
+    agent_skill_status: prepared-not-deployed
     semantic_coverage: 108/108
     response_shape_coverage: 8/108
-    next_semantic_stage: expand-live-response-fields-and-diagnose-lk-errors
+    next_semantic_stage: deploy-agent-skill-and-expand-live-response-fields
     secrets: external
 
   - id: mcp-services
