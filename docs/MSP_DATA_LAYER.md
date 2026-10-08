@@ -44,6 +44,27 @@ Header mapping is independent per price source: archive has a different SKU colu
 Never match histories by that label. Numeric values remain exact decimal TEXT, not binary float.
 No currency is invented. Technical Google columns are excluded.
 
+## Self-purchase source contract (2026-10-08)
+
+The upstream workbook "Самовыкуп новых товаров" / "Реестр выкупов/отзывов"
+feeds the public export spreadsheet's "самовыкупы" sheet. The current
+headers are "мп", "магазин", "Артикул МП", etc.
+Marketplace codes are wb/oz; store codes are laser/novok/ultra.
+The column "магазин" gives the actual marketplace store/cabinet directly,
+not a legal entity; do NOT derive or override it through the old ЮЛ mapping.
+Always match source marketplace + store + numeric marketplace_sku against
+product_listing. A mismatch or missing SKU/date/quantity is a rejected
+row, not an invitation to guess.
+
+The SQLite legal_entity column remains for backwards compatibility,
+but is not supplied by the current source. New-format imports use an
+empty string in this legacy field to indicate "not supplied" and must not
+claim that legal_entity identifies a company. Old exports containing "ЮЛ"
+and no "магазин" retain an explicit legacy-only mapping.
+Owner-approved upstream source corrections on 2026-10-08 changed
+12 historical entries (rows 68-75 and 80-83) to store novok.
+Canonical semantics are in config/msp-data/semantics/catalog.yaml and self_purchase.yaml.
+
 ## Accounting and limitations
 
 Each nonempty source row contributes to source_rows and to inserted/updated/unchanged/rejected.

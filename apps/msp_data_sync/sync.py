@@ -103,13 +103,28 @@ def store_for(c,cfg,market,legal,s):
     raise ValueError(f'cannot derive store for {legal!r}/{s}')
 
 def selfbuy(c,rows,run,cfg):
-    m=cols(rows[0],{'marketplace':['мп'],'legal':['юл'],'sku':['артикул мп'],'ia':['артикул наш'],'name':['название товара'],'q':['кол-во выкупов'],'pd':['дата выкупа'],'rd':['дата отзыва'],'url':['ссылка на отзыв'],'draft':['черновик отзывов']})
+    # The current source exports canonical store codes in column "магазин".
+    # Old exports with "ЮЛ" are accepted only as a legacy compatibility path.
+    m=cols(rows[0],{'marketplace':['мп'],'sku':['артикул мп'],'ia':['артикул наш'],'name':['название товара'],'q':['кол-во выкупов'],'pd':['дата выкупа'],'rd':['дата отзыва'],'url':['ссылка на отзыв'],'draft':['черновик отзывов']})
+    headers={hdr(v):i for i,v in enumerate(rows[0])}
+    store_col=headers.get('магазин')
+    legal_col=headers.get('юл')
+    if store_col is None and legal_col is None:
+        raise ValueError('missing column магазин (or legacy ЮЛ)')
     n={'source_rows':0,'inserted':0,'updated':0,'unchanged':0,'rejected':0}; t=now(); seen={}
     for no,r in enumerate(rows[1:],2):
         if not any(txt(x) for x in r):continue
         n['source_rows']+=1
         try:
-            market=mp(val(r,m['marketplace'])); legal=txt(val(r,m['legal'])); s=sku(val(r,m['sku'])); pd=dt(val(r,m['pd'])); st=store_for(c,cfg,market,legal,s)
+            market=mp(val(r,m['marketplace'])); s=sku(val(r,m['sku'])); pd=dt(val(r,m['pd']))
+            if market not in ('wb','oz'):raise ValueError('invalid marketplace')
+            if store_col is not None:
+                st=txt(val(r,store_col)).lower()
+                if st not in ('laser','novok','ultra'):raise ValueError('invalid store code')
+                # "магазин" is NOT a legal-entity field; do not invent a legal entity.
+                legal=txt(val(r,legal_col)) if legal_col is not None else ''
+            else:
+                legal=txt(val(r,legal_col)); st=store_for(c,cfg,market,legal,s)
             if not pd:raise ValueError('purchase_date empty')
             key=(market,st,s,pd)
             seen[key]=seen.get(key,0)+1

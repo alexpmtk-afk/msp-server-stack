@@ -1,4 +1,4 @@
-version: 1
+version: 2
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -32,9 +32,24 @@ normalization:
     oz: oz
     OZ: oz
     ozon: oz
-  legal_entity_to_store:
+  # Legacy only: used when an old self-purchase CSV has "ЮЛ" and no "магазин".
+  legacy_legal_entity_to_store:
     "ЛМ": laser
     "НМБ": novok
+  store_codes: [laser, novok, ultra]
+source_contracts:
+  self_purchase:
+    upstream_sheet: "Реестр выкупов/отзывов"
+    export_sheet: "самовыкупы"
+    marketplace_column: "мп"
+    store_column: "магазин"
+    store_source_of_truth: "Explicit canonical store code; never interpret it as a legal entity."
+    store_validation: "Product listing match using marketplace+store+marketplace_sku."
+    legal_entity_column: "Not present; deprecated field in SQLite, never infer a legal entity from a store."
+    mismatch_rule: "Reject and log a source store/SKU inconsistency; do not silently reassign the store."
+    missing_data_rule: "Do not infer missing dates, quantity, or numeric SKU."
+    current_correction: "2026-10-08: source rows 68-75 and 80-83 corrected to novok by owner approval."
+    legacy_rule: "Only older CSVs with ЮЛ but without магазин use the old ЮЛ→store lookup."
 operational_metrics_policy: >
   Себестоимость, литраж, остатки, текущая цена, ожидание производства и другие изменяемые
   показатели не являются частью product_catalog. Если они понадобятся агенту, для них нужно

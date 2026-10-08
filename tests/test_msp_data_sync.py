@@ -52,6 +52,51 @@ class SyncTests(unittest.TestCase):
         row = self.con.execute("select marketplace,store,marketplace_sku,quantity,purchase_date from self_purchase").fetchone()
         self.assertEqual(tuple(row), ("wb", "laser", "1110110146", 2, "2026-06-10"))
 
+    def test_current_store_header_accepts_novok_with_no_legal_entity(self):
+        product_rows = [
+            ["мп", "магазин", "market_article", "артикул_мп", "артикул_наш", "артикул_наш_▼", "наименование 1С"],
+            ["wb", "novok", "985606445", "MR.17", "MR.17", "mr.17", "Товар"],
+        ]
+        m.product(self.con, product_rows, m.begin_run(self.con, "product_catalog"))
+        self.con.commit()
+        header = ["мп", "магазин", "Артикул МП", "Артикул наш", "Название товара", "Кол-во выкупов",
+                  "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+        rows = [header,
+                ["wb", "novok", "985606445", "MR.17", "Товар", "1", "12.05.2026", "", "", ""],
+                ["wb", "novok", "985606445", "MR.17", "Товар", "1", "10.05.2026", "", "", ""]]
+        first = m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual((first["inserted"], first["rejected"]), (2, 0))
+        entries = self.con.execute("select store, legal_entity from self_purchase order by purchase_date").fetchall()
+        self.assertEqual([tuple(x) for x in entries], [("novok", ""), ("novok", "")])
+        second = m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual((second["unchanged"], second["rejected"]), (2, 0))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0], 2)
+
+    def test_current_store_header_never_uses_legacy_legal_mapping(self):
+        product_rows = [
+            ["мп", "магазин", "market_article", "артикул_мп", "артикул_наш", "артикул_наш_▼", "наименование 1С"],
+            ["wb", "novok", "985606445", "MR.17", "MR.17", "mr.17", "Товар"],
+        ]
+        m.product(self.con, product_rows, m.begin_run(self.con, "product_catalog"))
+        self.con.commit()
+        header = ["мп", "магазин", "Артикул МП", "Артикул наш", "Название товара",
+                  "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+        rows = [header, ["wb", "laser", "985606445", "MR.17", "Товар", "1", "12.05.2026", "", "", ""]]
+        result = m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual((result["inserted"], result["rejected"]), (0, 1))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0], 0)
+
+    def test_current_store_header_rejects_unrecognized_store(self):
+        header = ["мп", "магазин", "Артикул МП", "Артикул наш", "Название товара",
+                  "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+        rows = [header, ["wb", "ЛМ", "1110110146", "INT", "Товар", "1", "12.05.2026", "", "", ""]]
+        result = m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual(result["rejected"], 1)
+
     def test_sku_must_be_digits_only(self):
         with self.assertRaises(ValueError):
             m.sku("WB-123")

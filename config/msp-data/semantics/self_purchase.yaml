@@ -1,67 +1,86 @@
-version: 1
+version: 2
 catalog: self_purchase
 source_sheet: "самовыкупы"
+upstream_source:
+  spreadsheet_id: "1-3wfuBW42stIYXlygknKv1fZNuzs-LJTrEvn-_7cKxM"
+  sheet: "Реестр выкупов/отзывов"
+  note: "The REMOTE sync reads the separate public export spreadsheet configured in sync.json, not the upstream workbook directly."
 purpose: >
-  Реестр самовыкупов собственных товаров. Используется для отделения самовыкупов от обычных
-  клиентских продаж и для других аналитических задач, где нужно знать количество самовыкупов
-  конкретной карточки на конкретную дату.
-business_key: [marketplace, store, marketplace_sku, purchase_date]
+  Реестр фактически совершённых самовыкупов собственного товара. Для корректировки аналитики
+  продаж используются цифровой SKU маркетплейса, магазин, дата и количество; order_id не требуется.
+business_key: [marketplace, store, marketplace_sku, purchase_date, source_ordinal]
 fields:
   marketplace:
-    source: "МП"
-    meaning: Маркетплейс, на котором выполнен самовыкуп.
-  legal_entity:
-    source: "ЮЛ"
-    meaning: Юридическое лицо/внутреннее обозначение направления из исходного реестра.
+    source: "мп"
+    meaning: Код маркетплейса, где совершён самовыкуп.
+    accepted_codes: [wb, oz]
+    aliases_for_ingestion: {WB: wb, Wildberries: wb, OZ: oz, OZON: oz}
   store:
-    source: derived
-    meaning: Код магазина, получаемый из semantic mapping ЮЛ -> store или однозначно из product_catalog.
+    source: "магазин"
+    meaning: >
+      Прямой код магазина/кабинета маркетплейса в исходном реестре. Это самостоятельный
+      бизнес-атрибут. НЕ трактовать значение как юридическое лицо и НЕ вычислять его из ЮЛ,
+      когда колонка "магазин" присутствует.
+    accepted_codes: [laser, novok, ultra]
+    canonical: true
+    validation: "must match one of the accepted codes and the product_listing key"
+  legal_entity:
+    source: null
+    meaning: >
+      Устаревшее поле локальной SQLite, сохранённое ради совместимости прежней схемы
+      и представления v_self_purchase. Текущий исходный реестр больше НЕ передаёт ЮЛ.
+      При импорте нового формата записывается пустая строка (неизвестно/не передаётся),
+      а не вымышленное юрлицо по коду магазина. Не использовать в новых бизнес-запросах
+      как подтверждённое юридическое лицо.
+    deprecated: true
+    current_source_provides: false
   marketplace_sku:
     source: "Артикул МП"
-    meaning: >
-      Цифровой SKU маркетплейса. Несмотря на имя исходной колонки, это тот же тип идентификатора,
-      что market_article в листе "артикулы".
-    validation: digits_only
+    meaning: Цифровой SKU карточки маркетплейса; соответствует market_article из листа "артикулы".
+    validation: ascii_digits_only
   internal_article:
     source: "Артикул наш"
-    meaning: Внутренний артикул товара; вспомогательное поле, не основной ключ связи.
+    meaning: Внутренний артикул товара, не ключ карточки.
   product_name:
     source: "Название товара"
-    meaning: Человекочитаемое название товара из реестра самовыкупов.
+    meaning: Наименование в реестре.
   quantity:
     source: "Кол-во выкупов"
-    meaning: Количество единиц самовыкупа для карточки на указанную дату.
+    meaning: Число единиц совершённого самовыкупа.
+    validation: positive_integer
   purchase_date:
     source: "Дата выкупа"
-    meaning: Дата самовыкупа. Используется вместе с marketplace_sku при корректировке продаж/заказов.
+    meaning: Дата фактического самовыкупа. Без неё нельзя засчитать подтверждённую запись.
+    validation: required_ISO_date
   review_date:
     source: "Дата отзыва"
-    meaning: Дата отзыва, если она указана.
+    meaning: Дата отзыва, если указана.
   review_url:
     source: "Ссылка на отзыв"
-    meaning: Ссылка на отзыв, если она указана.
+    meaning: Ссылка на отзыв, если указана.
   review_draft:
     source: "Черновик отзывов"
-    meaning: Черновик/текст отзыва, если он указан.
-order_id_policy: >
-  Идентификатор заказа не требуется для текущих задач. Для расчётов достаточно marketplace_sku,
-  даты самовыкупа и quantity с контекстом marketplace/store.
-matching_rules:
-  - Сначала нормализовать marketplace и marketplace_sku.
-  - store определять по явному mapping ЮЛ -> store; при отсутствии mapping допускается только однозначное сопоставление по product_catalog.
-  - Запись самовыкупа должна ссылаться на существующую карточку product_catalog.
-
-field_type_defaults:
-  default: nullable_text
-  marketplace: enum_wb_oz
-  store: nonempty_text
-  marketplace_sku: ascii_digits_text
-  quantity: positive_integer
-  purchase_date: ISO_date_required
-  review_date: ISO_date_nullable
-uniqueness: business_key_unique
-normalization_rules: trim_text; lowercase_marketplace_store; preserve_SKU_and_article_strings
-update_rules: upsert_changed_rows_only; retain_absent_rows; log_rejected_rows
-limitations: Missing dates or unmatched self purchases are retained in sync_error, not silently omitted.
-source_event_key: business_key_plus_source_ordinal
-source_ordinal_warning: For repeated same-card same-date rows, preserve source order. Reordering these rows makes identity ambiguous; immutable source event IDs are unavailable.
+    meaning: Текст/черновик отзыва, если указан.
+source_contract:
+  current_headers: ["мп", "магазин", "Артикул МП", "Артикул наш", "Название товара", "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+  header_matching: case_insensitive_and_trimmed
+  processing_order: "product_catalog before self_purchase"
+  current_store_resolution: "Use explicit source column магазин; no ЮЛ mapping or SKU-only fallback."
+  row_validation: "Match existing product_listing by marketplace + store + marketplace_sku."
+  legacy_compatibility: >
+    Только для старых выгрузок, где есть "ЮЛ", но отсутствует "магазин",
+    допустимо определять store через существующий mapping ЛМ->laser / НМБ->novok.
+    Это не правило для текущего источника и не доказательство тождественности ЮЛ и магазина.
+  known_correction_2026_10_08: >
+    В исходном реестре 12 записей (строки 68-75, 80-83) имели старое значение ЮЛ "ЛМ",
+    хотя их WB SKU однозначно принадлежат магазину novok. По подтверждённому решению
+    владельца источника значения колонки "магазин" исправлены на novok.
+    Для современных записей приоритет всегда у прямого store, подтверждённого каталогом.
+order_id_policy: "No order_id required; event-level order identification is not guaranteed."
+uniqueness: "business key plus source_ordinal; same-card same-day rows are separate occurrences."
+normalization_rules: "trim; lower-case marketplace/store; validate explicit store against [laser,novok,ultra]; numeric SKU as TEXT"
+update_rules: "upsert changed rows only; retain absent rows for history; log rejected rows"
+limitations:
+  - "Без purchase_date / quantity / SKU не создавать подтверждённый самовыкуп и не угадывать значения."
+  - "Отсутствующие из текущего источника строки не удаляются автоматически; отдельный признак актуальности пока не реализован."
+  - "Повторные записи одного SKU на одну дату различаются source_ordinal; их произвольная перестановка меняет идентичность события."
