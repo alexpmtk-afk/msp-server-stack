@@ -90,3 +90,15 @@ CREATE TABLE IF NOT EXISTS self_purchase_revision (
 );
 CREATE INDEX IF NOT EXISTS ix_self_purchase_revision_listing ON self_purchase_revision(marketplace,store,marketplace_sku,purchase_date);
 CREATE VIEW IF NOT EXISTS v_self_purchase_revisions AS SELECT * FROM self_purchase_revision;
+
+
+-- Per-run error details are distinct from the global deduplicated sync_error audit.
+-- Latest run can report exact row numbers even when a persistent error was seen before.
+CREATE TABLE IF NOT EXISTS sync_run_issue (
+ run_id INTEGER NOT NULL,
+ source TEXT NOT NULL,
+ source_row INTEGER,
+ error TEXT NOT NULL,
+ created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_sync_run_issue_run ON sync_run_issue(run_id,source);
