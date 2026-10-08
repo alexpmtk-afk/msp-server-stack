@@ -426,5 +426,1760 @@
         "Observed service-health fields only; not a marketplace business-data source."
       ]
     }
+  },
+  "batch2": {
+    "audit_date": "2026-10-08",
+    "evidence": "MPSTATS MCP live read-only calls via private issue #146; success means protocol response, not guaranteed rows",
+    "privacy": "Only paths, types, HTTP statuses, content counts, per-tool error booleans; no account/product/financial values or identifiers stored",
+    "probes": {
+      "wb_subjects_list": {
+        "canonical_tool": "wb_subjects_list",
+        "parameters_note": {
+          "limit": 1
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.data",
+            "type": "array"
+          },
+          {
+            "path": "$.data[]",
+            "type": "object"
+          },
+          {
+            "path": "$.data[].add_to_cart_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].avg_price_final",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].avg_price_final_with_sells",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].avg_rating",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].avg_rating_with_sells",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].brands",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].brands_with_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].brands_with_sells_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].cart_to_order_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].comment_valuation_average",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].comment_valuation_with_sells",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].commision_fbo",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].commision_fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].count_sum",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].favorite",
+            "type": "boolean"
+          },
+          {
+            "path": "$.data[].first_date",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].frozen_stocks",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].frozen_stocks_cost",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].frozen_stocks_percent",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].items",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].items_new",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].items_with_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].items_with_count_percent",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].items_with_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].items_with_sells_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].items_with_sells_percent_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].live_items",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].live_items_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].lost_profit",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].lost_profit_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].max_price_final",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].max_price_final_with_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].median_price_final",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].median_price_final_with_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].min_price_final",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].min_price_final_with_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].name",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].open_card_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].purchase",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].purchase_after_return",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue_estimated",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue_potential",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue_purchase",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue_purchase_after_return",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sales",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sales_estimated",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].seasonality_level",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sellers",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sellers_with_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sellers_with_sells_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].turnover_in_days",
+            "type": "integer"
+          },
+          {
+            "path": "$.endRow",
+            "type": "integer"
+          },
+          {
+            "path": "$.startRow",
+            "type": "integer"
+          },
+          {
+            "path": "$.total",
+            "type": "integer"
+          }
+        ],
+        "notes": []
+      },
+      "wb_categories_search_seed": {
+        "canonical_tool": "wb_categories_search",
+        "parameters_note": {
+          "query": "смартфоны",
+          "limit": 1
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "array"
+          },
+          {
+            "path": "$[]",
+            "type": "object"
+          },
+          {
+            "path": "$[].children",
+            "type": "integer"
+          },
+          {
+            "path": "$[].path",
+            "type": "string"
+          },
+          {
+            "path": "$[].revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$[].sales",
+            "type": "integer"
+          }
+        ],
+        "notes": []
+      },
+      "wb_category": {
+        "canonical_tool": "wb_category",
+        "parameters_note": {
+          "limit": 1
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.data",
+            "type": "array"
+          },
+          {
+            "path": "$.data[]",
+            "type": "object"
+          },
+          {
+            "path": "$.data[].balance",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].balance_fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].basic_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].basic_sale",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].brand",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].category",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].category_position",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].client_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].client_sale",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].color",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].comments",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].comments_for_period",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].commission_fbo",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].commission_fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].country",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].days_in_site",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].days_in_stock",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].days_with_sales",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].description_length",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].final_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].final_price_average",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].final_price_max",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].final_price_median",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].final_price_min",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].firstcommentdate",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].frozen_stocks",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].frozen_stocks_cost",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].frozen_stocks_percent",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].gender",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].groups",
+            "type": "array"
+          },
+          {
+            "path": "$.data[].has3d",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].hasvideo",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].is_fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].itemid",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].lost_profit",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].lost_profit_percent",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].name",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].name_length",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].package_height",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].package_length",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].package_width",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].percent_from_revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].picscount",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].promo_sale",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].purchase",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].purchase_after_return",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].rating",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue_estimated_before_spp",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue_potential",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sales",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sales_estimated",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sales_per_day_average",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].search_visibility",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].search_words_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].seller",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].size_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].size_count_in_stock",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sku_first_date",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].spp_avg",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].start_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].subject",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].subject_id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].supplier_id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].thumb",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].top_hours",
+            "type": "array"
+          },
+          {
+            "path": "$.data[].top_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].turnover_days",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].wallet_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].warehouses_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.endRow",
+            "type": "integer"
+          },
+          {
+            "path": "$.startRow",
+            "type": "integer"
+          },
+          {
+            "path": "$.total",
+            "type": "integer"
+          }
+        ],
+        "notes": [
+          "This is an external marketplace analytics snapshot, not an authoritative own-cabinet inventory."
+        ]
+      },
+      "wb_sku_full": {
+        "canonical_tool": "wb_sku",
+        "parameters_note": {
+          "report": "full"
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.access_edit_sales_data",
+            "type": "boolean"
+          },
+          {
+            "path": "$.adv_stats",
+            "type": "object"
+          },
+          {
+            "path": "$.adv_stats.has_direct",
+            "type": "integer"
+          },
+          {
+            "path": "$.adv_stats.has_external_seo",
+            "type": "integer"
+          },
+          {
+            "path": "$.adv_stats.influence",
+            "type": "string"
+          },
+          {
+            "path": "$.adv_stats.platforms",
+            "type": "array"
+          },
+          {
+            "path": "$.adv_stats.platforms[]",
+            "type": "string"
+          },
+          {
+            "path": "$.adv_stats.post_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.balance",
+            "type": "integer"
+          },
+          {
+            "path": "$.brand",
+            "type": "string"
+          },
+          {
+            "path": "$.color",
+            "type": "object"
+          },
+          {
+            "path": "$.color.all_colors",
+            "type": "array"
+          },
+          {
+            "path": "$.color.all_colors[]",
+            "type": "object"
+          },
+          {
+            "path": "$.color.all_colors[].color",
+            "type": "string"
+          },
+          {
+            "path": "$.color.all_colors[].id",
+            "type": "integer"
+          },
+          {
+            "path": "$.color.all_colors[].photo",
+            "type": "string"
+          },
+          {
+            "path": "$.color.color",
+            "type": "string"
+          },
+          {
+            "path": "$.color.colors",
+            "type": "object"
+          },
+          {
+            "path": "$.color.colors.balance",
+            "type": "null"
+          },
+          {
+            "path": "$.color.colors.revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.comments",
+            "type": "integer"
+          },
+          {
+            "path": "$.country",
+            "type": "string"
+          },
+          {
+            "path": "$.discount",
+            "type": "integer"
+          },
+          {
+            "path": "$.first_date",
+            "type": "string"
+          },
+          {
+            "path": "$.full_name",
+            "type": "string"
+          },
+          {
+            "path": "$.gender",
+            "type": "string"
+          },
+          {
+            "path": "$.id",
+            "type": "integer"
+          },
+          {
+            "path": "$.is_new",
+            "type": "integer"
+          },
+          {
+            "path": "$.link",
+            "type": "string"
+          },
+          {
+            "path": "$.name",
+            "type": "string"
+          },
+          {
+            "path": "$.note",
+            "type": "null"
+          },
+          {
+            "path": "$.orders",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats",
+            "type": "object"
+          },
+          {
+            "path": "$.period_stats.cardratingval",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.days_in_stock",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.id",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.lost_profit",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.lost_profit_percent",
+            "type": "null"
+          },
+          {
+            "path": "$.period_stats.purchase",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.purchase_after_return",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.rating",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.revenue_avg",
+            "type": "number"
+          },
+          {
+            "path": "$.period_stats.revenue_avg_with_stock",
+            "type": "null"
+          },
+          {
+            "path": "$.period_stats.revenue_estimated",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.revenue_estimated_before_spp",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.revenue_potential",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.revenue_prev",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales_avg",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales_avg_with_stock",
+            "type": "null"
+          },
+          {
+            "path": "$.period_stats.sales_estimated",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales_heatmap",
+            "type": "array"
+          },
+          {
+            "path": "$.period_stats.sales_prev",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales_top_percent",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.spp_avg",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.subject_id",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.top_hours",
+            "type": "array"
+          },
+          {
+            "path": "$.period_stats.top_sells",
+            "type": "integer"
+          },
+          {
+            "path": "$.photo",
+            "type": "object"
+          },
+          {
+            "path": "$.photo.count",
+            "type": "integer"
+          },
+          {
+            "path": "$.photo.is_changed",
+            "type": "boolean"
+          },
+          {
+            "path": "$.photo.list",
+            "type": "array"
+          },
+          {
+            "path": "$.photo.list[]",
+            "type": "object"
+          },
+          {
+            "path": "$.photo.list[].f",
+            "type": "string"
+          },
+          {
+            "path": "$.photo.list[].t",
+            "type": "string"
+          },
+          {
+            "path": "$.price",
+            "type": "object"
+          },
+          {
+            "path": "$.price.final_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.price.price",
+            "type": "integer"
+          },
+          {
+            "path": "$.price.wallet_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.product_id",
+            "type": "integer"
+          },
+          {
+            "path": "$.rating",
+            "type": "integer"
+          },
+          {
+            "path": "$.rating_mpstats",
+            "type": "integer"
+          },
+          {
+            "path": "$.score",
+            "type": "object"
+          },
+          {
+            "path": "$.score.date",
+            "type": "string"
+          },
+          {
+            "path": "$.score.score",
+            "type": "integer"
+          },
+          {
+            "path": "$.score.scores",
+            "type": "array"
+          },
+          {
+            "path": "$.score.scores[]",
+            "type": "integer"
+          },
+          {
+            "path": "$.seller",
+            "type": "object"
+          },
+          {
+            "path": "$.seller.id",
+            "type": "integer"
+          },
+          {
+            "path": "$.seller.name",
+            "type": "string"
+          },
+          {
+            "path": "$.sizes",
+            "type": "array"
+          },
+          {
+            "path": "$.stock",
+            "type": "object"
+          },
+          {
+            "path": "$.stock.fbo",
+            "type": "integer"
+          },
+          {
+            "path": "$.stock.fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.subject",
+            "type": "object"
+          },
+          {
+            "path": "$.subject.acceptance_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.subject.basic_logistics",
+            "type": "integer"
+          },
+          {
+            "path": "$.subject.commission",
+            "type": "object"
+          },
+          {
+            "path": "$.subject.commission.fbo",
+            "type": "number"
+          },
+          {
+            "path": "$.subject.commission.fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.subject.delivery_by_volume",
+            "type": "integer"
+          },
+          {
+            "path": "$.subject.group",
+            "type": "null"
+          },
+          {
+            "path": "$.subject.id",
+            "type": "integer"
+          },
+          {
+            "path": "$.subject.name",
+            "type": "string"
+          },
+          {
+            "path": "$.subject.purchase",
+            "type": "object"
+          },
+          {
+            "path": "$.subject.purchase.is_purchase",
+            "type": "integer"
+          },
+          {
+            "path": "$.subject.purchase.purchase",
+            "type": "number"
+          },
+          {
+            "path": "$.subject.purchase.purchase_after_return",
+            "type": "number"
+          },
+          {
+            "path": "$.subject.storage_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.updated",
+            "type": "string"
+          }
+        ],
+        "notes": [
+          "Only 'full' report variant is covered; other report variants may have different fields."
+        ]
+      },
+      "ozon_categories_search_seed": {
+        "canonical_tool": "ozon_categories_search",
+        "parameters_note": {
+          "query": "смартфоны",
+          "limit": 1
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "array"
+          },
+          {
+            "path": "$[]",
+            "type": "object"
+          },
+          {
+            "path": "$[].children",
+            "type": "integer"
+          },
+          {
+            "path": "$[].path",
+            "type": "string"
+          },
+          {
+            "path": "$[].revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$[].sales",
+            "type": "integer"
+          }
+        ],
+        "notes": []
+      },
+      "ozon_category_products": {
+        "canonical_tool": "ozon_category",
+        "parameters_note": {
+          "report": "products",
+          "limit": 1
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.data",
+            "type": "array"
+          },
+          {
+            "path": "$.data[]",
+            "type": "object"
+          },
+          {
+            "path": "$.data[].average_if_in_stock",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].balance",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].balance_fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].brand",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].categories_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].category",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].category_position",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].comments",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].comments_for_period",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].days_in_site",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].days_in_stock",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].days_with_sales",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].final_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].final_price_average",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].final_price_max",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].final_price_median",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].final_price_min",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].frozen_stocks",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].frozen_stocks_cost",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].frozen_stocks_percent",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].graph",
+            "type": "array"
+          },
+          {
+            "path": "$.data[].graph[]",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].groups",
+            "type": "array"
+          },
+          {
+            "path": "$.data[].hasvideo",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].is_fbs",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].lost_profit",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].lost_profit_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].name",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].name_length",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].niche",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].niche_id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].ozon_card_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].percent_from_revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].picscount",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].rating",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].revenue_average",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].revenue_potential",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].sales",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sales_per_comments",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].sales_per_day_average",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].seller",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].seller_id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].sku_first_date",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].start_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].turnover_days",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].turnover_once",
+            "type": "number"
+          },
+          {
+            "path": "$.data[].warehouses_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.endRow",
+            "type": "integer"
+          },
+          {
+            "path": "$.startRow",
+            "type": "integer"
+          },
+          {
+            "path": "$.total",
+            "type": "integer"
+          }
+        ],
+        "notes": [
+          "This is an external marketplace analytics snapshot, not an authoritative own-cabinet inventory."
+        ]
+      },
+      "ozon_sku_full": {
+        "canonical_tool": "ozon_sku",
+        "parameters_note": {
+          "report": "full"
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.adv_stats",
+            "type": "object"
+          },
+          {
+            "path": "$.adv_stats.has_direct",
+            "type": "boolean"
+          },
+          {
+            "path": "$.adv_stats.has_external_seo",
+            "type": "boolean"
+          },
+          {
+            "path": "$.adv_stats.influence",
+            "type": "string"
+          },
+          {
+            "path": "$.adv_stats.platforms",
+            "type": "array"
+          },
+          {
+            "path": "$.adv_stats.post_count",
+            "type": "integer"
+          },
+          {
+            "path": "$.balance",
+            "type": "integer"
+          },
+          {
+            "path": "$.brand",
+            "type": "string"
+          },
+          {
+            "path": "$.comments",
+            "type": "integer"
+          },
+          {
+            "path": "$.delivery_scheme",
+            "type": "string"
+          },
+          {
+            "path": "$.discount",
+            "type": "integer"
+          },
+          {
+            "path": "$.id",
+            "type": "integer"
+          },
+          {
+            "path": "$.link",
+            "type": "string"
+          },
+          {
+            "path": "$.name",
+            "type": "string"
+          },
+          {
+            "path": "$.niche",
+            "type": "object"
+          },
+          {
+            "path": "$.niche.id",
+            "type": "integer"
+          },
+          {
+            "path": "$.niche.name",
+            "type": "string"
+          },
+          {
+            "path": "$.note",
+            "type": "null"
+          },
+          {
+            "path": "$.period_stats",
+            "type": "object"
+          },
+          {
+            "path": "$.period_stats.lost_profit",
+            "type": "number"
+          },
+          {
+            "path": "$.period_stats.lost_profit_percent",
+            "type": "number"
+          },
+          {
+            "path": "$.period_stats.revenue",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.revenue_avg",
+            "type": "number"
+          },
+          {
+            "path": "$.period_stats.revenue_avg_with_stock",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.revenue_potential",
+            "type": "number"
+          },
+          {
+            "path": "$.period_stats.revenue_prev",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales_avg",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales_avg_with_stock",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sales_prev",
+            "type": "integer"
+          },
+          {
+            "path": "$.period_stats.sku_first_date",
+            "type": "string"
+          },
+          {
+            "path": "$.photo",
+            "type": "object"
+          },
+          {
+            "path": "$.photo.count",
+            "type": "integer"
+          },
+          {
+            "path": "$.photo.list",
+            "type": "array"
+          },
+          {
+            "path": "$.photo.list[]",
+            "type": "object"
+          },
+          {
+            "path": "$.photo.list[].f",
+            "type": "string"
+          },
+          {
+            "path": "$.photo.list[].m",
+            "type": "string"
+          },
+          {
+            "path": "$.photo.list[].t",
+            "type": "string"
+          },
+          {
+            "path": "$.price",
+            "type": "object"
+          },
+          {
+            "path": "$.price.final_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.price.ozon_card_price",
+            "type": "integer"
+          },
+          {
+            "path": "$.price.price",
+            "type": "integer"
+          },
+          {
+            "path": "$.rating",
+            "type": "integer"
+          },
+          {
+            "path": "$.seller",
+            "type": "object"
+          },
+          {
+            "path": "$.seller.id",
+            "type": "integer"
+          },
+          {
+            "path": "$.seller.is_best_seller",
+            "type": "integer"
+          },
+          {
+            "path": "$.seller.name",
+            "type": "string"
+          },
+          {
+            "path": "$.sku_first_date",
+            "type": "string"
+          },
+          {
+            "path": "$.updated",
+            "type": "string"
+          }
+        ],
+        "notes": [
+          "Only 'full' report variant is covered; other report variants may have different fields."
+        ]
+      },
+      "repricer_tokens": {
+        "canonical_tool": "repricer_tokens",
+        "parameters_note": {},
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.data",
+            "type": "array"
+          },
+          {
+            "path": "$.data[]",
+            "type": "object"
+          },
+          {
+            "path": "$.data[].active_until",
+            "type": "string"
+          },
+          {
+            "path": "$.data[].api_token_expired",
+            "type": "boolean"
+          },
+          {
+            "path": "$.data[].api_token_expires_soon",
+            "type": "boolean"
+          },
+          {
+            "path": "$.data[].api_token_validation_status",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].cards_total",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].id",
+            "type": "integer"
+          },
+          {
+            "path": "$.data[].is_admin",
+            "type": "boolean"
+          },
+          {
+            "path": "$.data[].is_manager",
+            "type": "boolean"
+          },
+          {
+            "path": "$.data[].name",
+            "type": "string"
+          },
+          {
+            "path": "$.status",
+            "type": "string"
+          }
+        ],
+        "notes": []
+      },
+      "mine_products_list": {
+        "canonical_tool": "mine_products_list",
+        "parameters_note": {
+          "limit": 1
+        },
+        "validation_status": "observed_tool_error",
+        "http_status": 200,
+        "mcp_is_error": true,
+        "content_items": 1,
+        "fields": [],
+        "notes": [
+          "Returned tool-level error using the first discovered MPSTATS token id; reason has not been diagnosed. Do not mark the whole family unavailable."
+        ]
+      },
+      "wbbidder_products": {
+        "canonical_tool": "wbbidder_products",
+        "parameters_note": {
+          "limit": 1
+        },
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.data",
+            "type": "array"
+          },
+          {
+            "path": "$.period",
+            "type": "object"
+          },
+          {
+            "path": "$.period.from",
+            "type": "string"
+          },
+          {
+            "path": "$.period.to",
+            "type": "string"
+          },
+          {
+            "path": "$.report",
+            "type": "string"
+          },
+          {
+            "path": "$.returned",
+            "type": "integer"
+          },
+          {
+            "path": "$.start_row",
+            "type": "integer"
+          },
+          {
+            "path": "$.total",
+            "type": "integer"
+          }
+        ],
+        "notes": [
+          "Top-level pagination envelope confirmed but this sample had no data-row fields; no product-level advertising columns validated."
+        ]
+      },
+      "lk_ozon_fields": {
+        "canonical_tool": "lk_ozon_fields",
+        "parameters_note": {},
+        "validation_status": "observed_success",
+        "http_status": 200,
+        "mcp_is_error": false,
+        "content_items": 1,
+        "fields": [
+          {
+            "path": "$",
+            "type": "object"
+          },
+          {
+            "path": "$.count",
+            "type": "integer"
+          },
+          {
+            "path": "$.fields",
+            "type": "array"
+          },
+          {
+            "path": "$.fields[]",
+            "type": "object"
+          },
+          {
+            "path": "$.fields[].description",
+            "type": "string"
+          },
+          {
+            "path": "$.fields[].filter_ops",
+            "type": "array"
+          },
+          {
+            "path": "$.fields[].filter_ops[]",
+            "type": "string"
+          },
+          {
+            "path": "$.fields[].filterable",
+            "type": "boolean"
+          },
+          {
+            "path": "$.fields[].group",
+            "type": "string"
+          },
+          {
+            "path": "$.fields[].name",
+            "type": "string"
+          },
+          {
+            "path": "$.fields[].sortable",
+            "type": "boolean"
+          },
+          {
+            "path": "$.fields[].type",
+            "type": "string"
+          },
+          {
+            "path": "$.groups",
+            "type": "array"
+          },
+          {
+            "path": "$.groups[]",
+            "type": "string"
+          }
+        ],
+        "notes": []
+      },
+      "lk_wb_products_stocks": {
+        "canonical_tool": "lk_wb_products_stocks",
+        "parameters_note": {
+          "start_row": 0,
+          "end_row": 1
+        },
+        "validation_status": "observed_tool_error",
+        "http_status": 200,
+        "mcp_is_error": true,
+        "content_items": 1,
+        "fields": [],
+        "notes": [
+          "Tool-level error with current configured cabinet scope; data field definitions not observed."
+        ]
+      },
+      "lk_wb_dashboard_business_economics": {
+        "canonical_tool": "lk_wb_dashboard_business_economics",
+        "parameters_note": {},
+        "validation_status": "observed_tool_error",
+        "http_status": 200,
+        "mcp_is_error": true,
+        "content_items": 1,
+        "fields": [],
+        "notes": [
+          "Tool-level error with current configured cabinet scope; data field definitions not observed."
+        ]
+      }
+    },
+    "total_probes": 13,
+    "successful_probes": 10,
+    "tool_error_probes": 3,
+    "unique_canonical_tools": 13
   }
 }
