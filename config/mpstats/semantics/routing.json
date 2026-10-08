@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "purpose": "Source-selection rules for the agent when MPSTATS overlaps internal MSP data and direct marketplace sources.",
+  "precedence_rules": [
+    {
+      "intent": "identify internal product/card relationship",
+      "preferred": [
+        "msp_data.v_product_catalog"
+      ],
+      "fallback": [
+        "MPSTATS external/LK lookup only as discovery"
+      ],
+      "rule": "Internal product_catalog is canonical. Never infer internal_article from MPSTATS labels."
+    },
+    {
+      "intent": "determine or exclude company self-purchases",
+      "preferred": [
+        "msp_data.v_self_purchase"
+      ],
+      "fallback": [
+        "MPSTATS self_redemption filters only as provider-side analytical aid"
+      ],
+      "rule": "Internal self_purchase registry is canonical for company-defined self-purchase corrections."
+    },
+    {
+      "intent": "explain company-maintained historical price actions",
+      "preferred": [
+        "msp_data.v_price_history"
+      ],
+      "fallback": [
+        "mine_products_history",
+        "repricer_history"
+      ],
+      "rule": "Internal price journal is canonical for recorded company price-change history; MPSTATS histories are cross-checks/observed provider histories."
+    },
+    {
+      "intent": "current operational own-account order/stock/price state",
+      "preferred": [
+        "verified direct marketplace API/MCP"
+      ],
+      "fallback": [
+        "MPSTATS lk_* or mine_products_*"
+      ],
+      "rule": "Prefer direct official/operational source when available because MPSTATS freshness/cache semantics are not yet fully benchmarked."
+    },
+    {
+      "intent": "own WB/Ozon economics, funnel, trends, aggregated reports",
+      "preferred": [
+        "MPSTATS lk_wb_*",
+        "MPSTATS lk_ozon_*"
+      ],
+      "fallback": [
+        "direct marketplace reports"
+      ],
+      "rule": "MPSTATS is optimized for analytical read models; always state period and cabinet scope."
+    },
+    {
+      "intent": "competitor, category, niche, brand, seller, external market research",
+      "preferred": [
+        "MPSTATS wb_* / ozon_* / ym_* external analytics"
+      ],
+      "fallback": [
+        "public marketplace pages"
+      ],
+      "rule": "MPSTATS is primary analytical source for external-market questions."
+    },
+    {
+      "intent": "live WB search ranking",
+      "preferred": [
+        "MPSTATS wb_check_rates"
+      ],
+      "fallback": [],
+      "rule": "Snapshot only; do not claim historical trend from one call."
+    },
+    {
+      "intent": "WB advertising analytics",
+      "preferred": [
+        "MPSTATS wbbidder_*"
+      ],
+      "fallback": [
+        "direct WB ads API if connected"
+      ],
+      "rule": "Read-only analysis. Do not infer permission to change ads."
+    },
+    {
+      "intent": "MPSTATS repricer configuration/history",
+      "preferred": [
+        "MPSTATS repricer_*",
+        "MPSTATS mine_products_*"
+      ],
+      "fallback": [],
+      "rule": "Read-only unless a separately verified write capability is later introduced."
+    },
+    {
+      "intent": "image editing/generation",
+      "preferred": [
+        "MPSTATS pe_* typed tools"
+      ],
+      "fallback": [],
+      "rule": "Only on explicit creative user intent; never invoke from analytics automatically."
+    }
+  ],
+  "conflict_resolution": [
+    "When two sources disagree, do not silently merge values. Report source, timestamp/period and likely freshness difference.",
+    "For internal identity and self-purchase classification, internal MSP data wins unless the user explicitly corrects it.",
+    "For execution proof (price changed, stock zeroed, ad paused), require direct post-action evidence; analytical data alone is insufficient.",
+    "For dated MPSTATS external analytics, never substitute today's date when the tool says data are available only through yesterday."
+  ]
+}
