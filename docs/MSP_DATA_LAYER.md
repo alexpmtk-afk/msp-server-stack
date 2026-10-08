@@ -52,9 +52,11 @@ headers are "мп", "магазин", "Артикул МП", etc.
 Marketplace codes are wb/oz; store codes are laser/novok/ultra.
 The column "магазин" gives the actual marketplace store/cabinet directly,
 not a legal entity; do NOT derive or override it through the old ЮЛ mapping.
-Always match source marketplace + store + numeric marketplace_sku against
-product_listing. A mismatch or missing SKU/date/quantity is a rejected
-row, not an invitation to guess.
+Completed rows must match source marketplace + store + numeric marketplace_sku
+against product_listing and require date/quantity. When purchase date is missing,
+the row is a planned self-purchase, not a broken completed purchase: optional
+SKU/quantity remain SQL NULL, and it is stored in self_purchase_plan.
+Blank values must not be guessed.
 
 The SQLite legal_entity column remains for backwards compatibility,
 but is not supplied by the current source. New-format imports use an
@@ -64,6 +66,43 @@ and no "магазин" retain an explicit legacy-only mapping.
 Owner-approved upstream source corrections on 2026-10-08 changed
 12 historical entries (rows 68-75 and 80-83) to store novok.
 Canonical semantics are in config/msp-data/semantics/catalog.yaml and self_purchase.yaml.
+
+## Planned self-purchases and incremental completion (owner-approved 2026-10-08)
+
+Current export rows without purchase date are planned purchases; 9 such rows
+(42-46, 51-53, 84) existed at the time of approval. They are persisted in
+self_purchase_plan (v_self_purchase_plan for current plans), with NULL for
+missing purchase date, quantity or numeric SKU. Plans are not included in
+v_self_purchase, self_purchase_quantity, or any completed-sales adjustment.
+An absent purchase date is not a rejected row or a sync error; it must not
+make the self_purchase sync status partial.
+
+Every new/changed source snapshot is scanned fully, including older rows.
+When a planned row acquires a valid date, SKU and positive quantity and
+matches product_listing, ingestion inserts/upserts the completed self_purchase
+and removes its current plan placeholder in the same transaction. A completed
+row with missing mandatory fields remains rejected and auditable. Any changed
+fields in an existing plan are updated; unchanged business rows are not
+rewritten. Old completed purchases are not deleted when absent from source;
+old plans missing from current source are marked is_current=0 and excluded
+from the live plan view. Historic sync_error entries are retained as an
+audit trail: use the latest sync_run and current plan view for live health.
+
+The source has no immutable row/event ID. For plans, source_row (CSV/Sheet
+line number) is a provisional identity; reordering or inserting rows can
+change linkage. For duplicate completed SKU/date events, source_ordinal
+remains provisional as documented below. Planned and completed counts are
+separate, and sync_run.planned records the number of planned rows seen.
+
+Queries:
+
+```sql
+SELECT source_row,marketplace,store,marketplace_sku,internal_article,quantity,purchase_date
+FROM v_self_purchase_plan ORDER BY source_row;
+SELECT count(*) AS planned_count FROM v_self_purchase_plan;
+SELECT source,status,source_rows,planned,rejected FROM sync_run
+WHERE source='self_purchase' ORDER BY run_id DESC LIMIT 1;
+```
 
 ## Accounting and limitations
 
