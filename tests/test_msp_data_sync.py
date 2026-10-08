@@ -252,6 +252,110 @@ class SyncTests(unittest.TestCase):
         self.assertEqual((result["planned_inserted"],result["skipped_missing_sku"],result["rejected"]),(1,0,0))
         self.assertEqual(self.con.execute("select marketplace_sku from v_self_purchase_plan").fetchone()[0],"1535826937")
 
+    def test_completed_date_removed_returns_to_plan_and_keeps_old_revision(self):
+        self.seed_listing()
+        header=self.self_purchase_header()
+        row=["wb","laser","1535826937","INT","Товар","2","02.10.2026","","",""]
+        first=m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((first['inserted'],first['reconciled']),(1,0))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase_source_link").fetchone()[0],1)
+        row[6]=""
+        second=m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((second['planned'],second['reconciled'],second['rejected']),(1,1,0))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0],0)
+        self.assertEqual(self.con.execute("select count(*) from v_self_purchase_plan").fetchone()[0],1)
+        old=self.con.execute("select purchase_date,quantity,change_reason,source_row from self_purchase_revision").fetchone()
+        self.assertEqual(tuple(old),("2026-10-02",2,"completed_to_planned",2))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase_source_link").fetchone()[0],0)
+        same=m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((same['reconciled'],same['planned_unchanged']),(0,1))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase_revision").fetchone()[0],1)
+
+    def test_completed_date_rescheduled_archives_previous_date_and_no_duplicates(self):
+        self.seed_listing()
+        header=self.self_purchase_header()
+        row=["wb","laser","1535826937","INT","Товар","2","02.10.2026","","",""]
+        m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        row[6]="07.10.2026"
+        move=m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((move['inserted'],move['reconciled'],move['rejected']),(1,1,0))
+        self.assertEqual([tuple(x) for x in self.con.execute("select purchase_date,quantity from self_purchase")],[("2026-10-07",2)])
+        self.assertEqual(self.con.execute("select purchase_date from self_purchase_revision").fetchone()[0],"2026-10-02")
+        repeat=m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((repeat['inserted'],repeat['unchanged'],repeat['reconciled']),(0,1,0))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase_revision").fetchone()[0],1)
+
+    def test_duplicated_sku_only_reconciles_changed_source_event(self):
+        self.seed_listing()
+        header=self.self_purchase_header()
+        row1=["wb","laser","1535826937","INT","Товар","1","02.10.2026","","",""]
+        row2=["wb","laser","1535826937","INT","Товар","1","04.10.2026","","",""]
+        m.selfbuy(self.con,[header,row1,row2],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        row1[6]=""
+        changed=m.selfbuy(self.con,[header,row1,row2],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((changed['reconciled'],changed['planned'],changed['unchanged'],changed['rejected']),(1,1,1,0))
+        self.assertEqual([x[0] for x in self.con.execute("select purchase_date from self_purchase")],["2026-10-04"])
+        self.assertEqual([x[0] for x in self.con.execute("select purchase_date from self_purchase_revision")],["2026-10-02"])
+
+    def test_source_row_disappearance_does_not_delete_completed_history(self):
+        self.seed_listing()
+        header=self.self_purchase_header()
+        row=["wb","laser","1535826937","INT","Товар","1","02.10.2026","","",""]
+        m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        res=m.selfbuy(self.con,[header],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual(res['reconciled'],0)
+        self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0],1)
+        self.assertEqual(self.con.execute("select count(*) from self_purchase_revision").fetchone()[0],0)
+
+    def test_reordered_row_with_different_listing_does_not_delete_prior_completed(self):
+        self.seed_listing()
+        header=self.self_purchase_header()
+        row=["wb","laser","1535826937","INT","Товар","1","02.10.2026","","",""]
+        m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        another=["wb","laser","111111111","OTHER","Other","","","","",""]
+        res=m.selfbuy(self.con,[header,another],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((res['planned'],res['reconciled'],res['rejected']),(1,0,0))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0],1)
+
+    def test_legacy_completed_without_source_binding_is_not_purged_automatically(self):
+        self.seed_listing()
+        header=self.self_purchase_header()
+        row=["wb","laser","1535826937","INT","Товар","1","02.10.2026","","",""]
+        m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.execute('delete from self_purchase_source_link')
+        self.con.commit()
+        row[6]=""
+        res=m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((res['planned'],res['reconciled'],res['rejected']),(1,0,0))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0],1)
+        self.assertEqual(self.con.execute("select count(*) from v_self_purchase_plan").fetchone()[0],1)
+
+    def test_manual_prior_completed_retirement_preserves_full_record(self):
+        self.seed_listing()
+        header=self.self_purchase_header()
+        row=["wb","laser","1535826937","INT","Товар","2","02.10.2026","","",""]
+        m.selfbuy(self.con,[header,row],m.begin_run(self.con,"self_purchase"),self.cfg)
+        run=m.begin_run(self.con,"self_purchase")
+        old=("wb","laser","1535826937","2026-10-02",1)
+        self.assertEqual(m.retire_self_purchase(self.con,old,run,2,"legacy_owner_confirmed"),1)
+        self.con.commit()
+        x=self.con.execute("select marketplace,store,marketplace_sku,purchase_date,quantity,change_reason from self_purchase_revision").fetchone()
+        self.assertEqual(tuple(x),(*old[:4],2,"legacy_owner_confirmed"))
+        self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0],0)
+
     def test_sku_must_be_digits_only(self):
         with self.assertRaises(ValueError):
             m.sku("WB-123")
