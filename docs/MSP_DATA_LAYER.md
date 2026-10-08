@@ -19,6 +19,48 @@ Timer: 08:00 Europe/Moscow, Persistent=true. Do not delete/recreate SQLite every
 Before schema upgrades, create a SQLite backup with the SQLite backup API in the designated backups directory.
 Legacy self-purchase keys are migrated by adding occurrence ordinal 1 without deleting existing purchases.
 
+## Automatic daily synchronization and Hermes Telegram alerts (2026-10-08)
+
+The systemd oneshot `msp-data-sync.service` calls `apps/msp_data_sync/run_with_alerts.py`,
+which executes the same four-source `sync.py --source all` logic and then sends
+status-change notifications to the existing Hermes Telegram bot using **outgoing**
+Telegram Bot API `sendMessage`. It never calls `getUpdates`, creates bots, alters
+the Hermes Gateway token/configuration or restarts Hermes services.
+
+Destination is the owner-confirmed `АП_Лазер` forum topic `Удалённый сервер`,
+Telegram `chat_id=-1002485321031` and `message_thread_id=758`.
+The destination and token are stored **only** in the protected server file
+`/opt/mcp/secrets/msp-data-alerts.env`, chmod 0640 root:hermes.
+No credential value is committed to public GitHub, included in telemetry, or
+copied to the GitHub Actions issue report.
+
+The bot token is obtained from the existing Hermes `/home/hermes/.hermes/.env`
+by an owner-triggered, one-time protected deployment; no new token is created.
+An absent/malformed protected notification configuration is an operational
+failure: the service must not quietly claim that alerts are enabled.
+
+A real source-level `partial` triggers a warning with rejected-row count, exact
+source row numbers and validation reasons. The table `sync_run_issue`
+records each *run's* exact row-level rejections, including when the same
+long-term historical `sync_error` entry is deduplicated. A source-level
+`failed` triggers a full-failure notification. The global `msp_alert_delivery.sqlite3`
+file tracks delivery state by source and a stable error fingerprint; repeated
+identical failures are silent. A newly changed problem generates one new
+warning. Once a notified source becomes healthy, send **one** recovery notice.
+Clean first/unchanged snapshots, intended plans, blank-SKU skips and known
+technical-row skips never trigger alerts. Failed Telegram delivery does not
+mark the alert as sent, so the next run can retry. The original sync exit code
+remains nonzero for `partial` and `failed`; notifications never disguise
+business errors.
+
+Daily schedule is in `systemd/msp-data-sync.timer`: 08:00 Europe/Moscow,
+`Persistent=true`. To recover or redeploy: restore `msp-server-stack`,
+copy systemd service/timer, re-create the protected notification env
+from the separately protected existing bot token, enable the timer, and verify
+the group-topic route and exact four-source synchronization. Do not put runtime
+SQLite or credentials in Git. Do not use artificial error injections in
+live Google Sheets; alert handling is tested with mocked sendMessage.
+
 ## Agent queries
 
 `v_product_catalog`: reference lookup by marketplace/store/marketplace_sku.
