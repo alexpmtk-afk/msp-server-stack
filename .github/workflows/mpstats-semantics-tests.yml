@@ -1,0 +1,25 @@
+name: MPSTATS semantic tests
+
+on:
+  push:
+    paths:
+      - "config/mpstats/**"
+      - "docs/MPSTATS_TOOLS_2026-10-07.md"
+      - "tests/test_mpstats_semantics.py"
+  pull_request:
+    paths:
+      - "config/mpstats/**"
+      - "docs/MPSTATS_TOOLS_2026-10-07.md"
+      - "tests/test_mpstats_semantics.py"
+
+permissions:
+  contents: read
+
+jobs:
+  semantic-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate MPSTATS semantic coverage
+        run: python3 -m unittest tests.test_mpstats_semantics -v
