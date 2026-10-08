@@ -110,6 +110,23 @@ def store_for(c,cfg,market,legal,s):
     if len(x)==1:return x[0]
     raise ValueError(f'cannot derive store for {legal!r}/{s}')
 
+def retire_self_purchase(c,key,run,source_row,reason):
+    """Move one formerly completed event to revision history, never losing its old date."""
+    fields='marketplace,store,legal_entity,marketplace_sku,internal_article,product_name,quantity,purchase_date,review_date,review_url,review_draft,row_hash,created_at,updated_at,source_ordinal'
+    saved=c.execute(
+        f'insert into self_purchase_revision({fields},archived_at,change_reason,source_row,sync_run_id) '
+        f'select {fields},?,?,?,? from self_purchase '
+        'where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',
+        (now(),reason,source_row,run,*key))
+    if not saved.rowcount:
+        return 0
+    removed=c.execute(
+        'delete from self_purchase where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',
+        key).rowcount
+    if removed != 1:
+        raise ValueError('self_purchase retirement failed: expected exactly one row')
+    return removed
+
 def selfbuy(c,rows,run,cfg):
     # Current CSV: explicit store in "магазин". Old CSV: legacy "ЮЛ".
     m=cols(rows[0],{'marketplace':['мп'],'sku':['артикул мп'],'ia':['артикул наш'],'name':['название товара'],'q':['кол-во выкупов'],'pd':['дата выкупа'],'rd':['дата отзыва'],'url':['ссылка на отзыв'],'draft':['черновик отзывов']})
@@ -119,8 +136,8 @@ def selfbuy(c,rows,run,cfg):
     if store_col is None and legal_col is None:
         raise ValueError('missing column магазин (or legacy ЮЛ)')
     n={'source_rows':0,'inserted':0,'updated':0,'unchanged':0,'rejected':0,
-       'planned':0,'planned_inserted':0,'planned_updated':0,'planned_unchanged':0,'promoted':0,'skipped_missing_sku':0}
-    stamp=now(); seen={}; active_plan_rows=set()
+       'planned':0,'planned_inserted':0,'planned_updated':0,'planned_unchanged':0,'promoted':0,'skipped_missing_sku':0,'reconciled':0}
+    stamp=now(); seen={}; active_plan_rows=set(); active_completed_keys=set(); obsolete_candidates={}
     for no,r in enumerate(rows[1:],2):
         if not any(txt(x) for x in r):continue
         n['source_rows']+=1
@@ -142,6 +159,10 @@ def selfbuy(c,rows,run,cfg):
                 legal=txt(val(r,legal_col))
                 store=store_for(c,cfg,market,legal,raw_s)
             internal=txt(val(r,m['ia'])); name=txt(val(r,m['name']))
+            prior=c.execute('select marketplace,store,marketplace_sku,purchase_date,source_ordinal from self_purchase_source_link where source_row=?',(no,)).fetchone()
+            previous_key=tuple(prior) if prior else None
+            same_listing=bool(previous_key and previous_key[:3]==(market,store,raw_s))
+
             raw_qty=txt(val(r,m['q']))
             # No actual purchase date means a plan, never a completed purchase.
             if purchase_date is None:
@@ -163,6 +184,11 @@ def selfbuy(c,rows,run,cfg):
                 else:
                     n['planned_unchanged']+=1
                 n['planned']+=1; active_plan_rows.add(no)
+                if same_listing:
+                    obsolete_candidates[previous_key]=(no,'completed_to_planned')
+                # Rows moved or reordered across SKU/store boundaries are ambiguous;
+                # never retire those prior events without an immutable source event ID.
+                c.execute('delete from self_purchase_source_link where source_row=?',(no,))
                 continue
             # Completed rows require valid SKU, date and quantity plus catalog FK.
             s=sku(raw_s); amount=qty(raw_qty)
@@ -171,6 +197,9 @@ def selfbuy(c,rows,run,cfg):
             ordinal=seen[base]; key=(*base,ordinal)
             if not c.execute('select 1 from product_listing where marketplace=? and store=? and marketplace_sku=?',(market,store,s)).fetchone():
                 raise ValueError(f'sku not in product_catalog: {key}')
+            active_completed_keys.add(key)
+            if same_listing and previous_key!=key:
+                obsolete_candidates[previous_key]=(no,'purchase_date_or_ordinal_changed')
             x=(market,store,legal,s,internal,name,amount,purchase_date,
                dt(val(r,m['rd'])),txt(val(r,m['url'])),txt(val(r,m['draft'])))
             rh=h(*x)
@@ -186,9 +215,16 @@ def selfbuy(c,rows,run,cfg):
                 n['unchanged']+=1
             if c.execute('delete from self_purchase_plan where source_row=?',(no,)).rowcount:
                 n['promoted']+=1
+            c.execute('insert into self_purchase_source_link(source_row,marketplace,store,marketplace_sku,purchase_date,source_ordinal,linked_at,updated_at) values(?,?,?,?,?,?,?,?) on conflict(source_row) do update set marketplace=excluded.marketplace,store=excluded.store,marketplace_sku=excluded.marketplace_sku,purchase_date=excluded.purchase_date,source_ordinal=excluded.source_ordinal,updated_at=excluded.updated_at',
+                      (no,market,store,s,purchase_date,ordinal,stamp,stamp))
         except Exception as e:
             n['rejected']+=1
             err(c,run,'self_purchase',no,e,r)
+    # Only a previously tracked source row can retire its own completed event.
+    # Another current source row with that exact key protects it from retirement.
+    for old_key,(source_row,reason) in obsolete_candidates.items():
+        if old_key not in active_completed_keys:
+            n['reconciled']+=retire_self_purchase(c,old_key,run,source_row,reason)
     # An incomplete source row removed, completed or made invalid is not a CURRENT plan.
     # Retain old plan data for audit, but exclude it from the active-plans view.
     if active_plan_rows:
@@ -220,8 +256,10 @@ def sync(c,cfg,source):
                        not any(any(txt(cell) for cell in row[:18]) for row in rows))
         if (not rows or not rows[0]) and not empty_archive:
             raise ValueError('empty or invalid CSV')
-        needs_policy_recheck=(source=='self_purchase' and
-            c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone())
+        needs_policy_recheck=(source=='self_purchase' and (
+            c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone()
+            or (c.execute('select count(*) from self_purchase_source_link').fetchone()[0]==0
+                and c.execute('select count(*) from self_purchase').fetchone()[0]>0)))
         if st and st['content_sha256']==sha and last_source_clean(c,source,run) and not needs_policy_recheck:
             plans=c.execute('select count(*) from v_self_purchase_plan').fetchone()[0] if source=='self_purchase' else 0
             skipped=(c.execute('select skipped_missing_sku from sync_run where source=? and run_id<? order by run_id desc limit 1',(source,run)).fetchone()[0] if source=='self_purchase' else 0)
