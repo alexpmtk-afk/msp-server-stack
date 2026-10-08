@@ -1,0 +1,2100 @@
+{
+  "version": 1,
+  "generated_from": "live MPSTATS MCP tools/list 2026-10-07",
+  "live_server": {
+    "name": "mpstats-mcp",
+    "version": "3.3.1",
+    "protocol_version": "2025-06-18"
+  },
+  "tool_count": 108,
+  "tools": {
+    "account_limits": {
+      "family": "account",
+      "business_description": "Returns remaining MPSTATS API quota for the current token (GET user/report_api_limit). Use to verify subscription limits before bulk calls.",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "mpstats_account_metadata",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Use before planned bulk retrieval to avoid exhausting MPSTATS quota."
+      ]
+    },
+    "account_bonus": {
+      "family": "account",
+      "business_description": "Бонусы за подключение MPSTATS MCP (акция): промокод на скидку 25% на подписку MPSTATS, персональный промокод на бесплатный билет на MPSTATS Expo (пока не разобраны) и ссылка на набор скиллов для работы с MCP, которые помогают селлеру (если она есть в ответе...",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "mpstats_account_metadata",
+      "access_mode": "read_only",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Promotional/account-benefit output, not a business-data source; may contain personal promo codes, so do not log or publish its content."
+      ]
+    },
+    "wb_categories_search": {
+      "family": "wb_market_analytics",
+      "business_description": "Найти категории (ниши) Wildberries по ключевому слову. Возвращает пути (path), число подкатегорий и метрики. Передавай path в wb_category / wb_category_stats. Ищи коротким существительным; чтобы увидеть ниши, не попавшие под слово, раскрывай ветку через wb_...",
+      "required_parameters": [
+        "query"
+      ],
+      "accepted_properties": [
+        "limit",
+        "query"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_categories_children": {
+      "family": "wb_market_analytics",
+      "business_description": "Прямые подкатегории ветки Wildberries по её path (из wb_categories_search).",
+      "required_parameters": [
+        "path"
+      ],
+      "accepted_properties": [
+        "limit",
+        "path"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_category": {
+      "family": "wb_market_analytics",
+      "business_description": "WB category products list. path — e.g. 'Электроника/Смартфоны'. Returns {startRow, endRow, total, data}. Pagination: start_row + limit, limit 1..500 per call (upstream window); to fetch more, repeat with start_row += 500 until total. `sort` is a column id (...",
+      "required_parameters": [
+        "path"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "limit",
+        "path",
+        "sort",
+        "sort_dir",
+        "start_row"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_category_stats": {
+      "family": "wb_market_analytics",
+      "business_description": "WB category breakdown. report: subcategories | brands | sellers | trends | by_date | price_segmentation. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передавай сегодняшнюю дату в d2.",
+      "required_parameters": [
+        "path",
+        "report"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "path",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_sku": {
+      "family": "wb_market_analytics",
+      "business_description": "WB SKU-level analytics. report: info, full, sales, by_period, balance_*, sales_*, search_stats, keywords, keywords_hourly, comments, faq, photos_history. report=info/comments/faq не зависят от дат. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сег...",
+      "required_parameters": [
+        "sku",
+        "report"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "report",
+        "sku"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": [
+        "WB sku/nmid should be reconciled to internal marketplace_sku only with marketplace=wb and the correct store context."
+      ]
+    },
+    "wb_card_content": {
+      "family": "wb_market_analytics",
+      "business_description": "WB product card content (description, characteristics, dimensions) from WB CDN, not from MPSTATS analytics. Useful for content audits and copywriting.",
+      "required_parameters": [
+        "sku"
+      ],
+      "accepted_properties": [
+        "sku"
+      ],
+      "source_role": "wildberries_public_card_content_via_mpstats",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "current_wb_cdn_snapshot",
+      "notes": [
+        "Content comes from Wildberries CDN, not MPSTATS analytical history."
+      ]
+    },
+    "wb_brand": {
+      "family": "wb_market_analytics",
+      "business_description": "WB brand products or analytics. report: products | categories | sellers | trends | by_date | price_segmentation | subjects | keywords. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передавай ...",
+      "required_parameters": [
+        "name"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "limit",
+        "name",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_seller": {
+      "family": "wb_market_analytics",
+      "business_description": "WB seller products or analytics by supplier_id. report: products | categories | brands | trends | by_date | price_segmentation | subjects | keywords. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней...",
+      "required_parameters": [
+        "supplier_id"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "limit",
+        "report",
+        "supplier_id"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_subjects_list": {
+      "family": "wb_market_analytics",
+      "business_description": "Search and filter WB subjects (предметы/ниши) with per-subject metrics: revenue, sales, items, sellers, avg/median prices, turnover_in_days, revenue_potential, lost_profit, avg_rating, open_card_count, add_to_cart_percent, cart_to_order_percent, seasonality...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date",
+        "filter_model",
+        "limit",
+        "sort",
+        "sort_dir",
+        "start_row"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_subject": {
+      "family": "wb_market_analytics",
+      "business_description": "WB subject (niche) endpoints. report: products | categories | brands | sellers | trends | by_date | price_segmentation | keywords | similar | geography | warehouses. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d...",
+      "required_parameters": [
+        "subject_id"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "group_by",
+        "limit",
+        "report",
+        "subject_id"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_similar": {
+      "family": "wb_market_analytics",
+      "business_description": "Similar families: identical | identical_wb | similar | in_similar. path_value: SKU or product URL. report: products | categories | brands | sellers | price_segmentation | trends | by_date | keywords | warehouses | compare. Даты ISO YYYY-MM-DD. По умолчанию ...",
+      "required_parameters": [
+        "family",
+        "path_value"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "family",
+        "fbs",
+        "limit",
+        "path_value",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_analytics": {
+      "family": "wb_market_analytics",
+      "business_description": "WB AI analytics. entity: category | subject. report: forecast/daily | forecast/trend | season_effects/annual | season_effects/weekly. period: применим ТОЛЬКО к report=season_effects/annual и season_effects/weekly, допустимые значения — 'month' | 'week' | 'd...",
+      "required_parameters": [
+        "entity",
+        "report",
+        "path_value"
+      ],
+      "accepted_properties": [
+        "entity",
+        "path_value",
+        "period",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_warehouses": {
+      "family": "wb_market_analytics",
+      "business_description": "WB warehouse distribution by brand or seller. kind: brand | seller. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передавай сегодняшнюю дату в d2.",
+      "required_parameters": [
+        "kind",
+        "value"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "kind",
+        "value"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_shelves": {
+      "family": "wb_market_analytics",
+      "business_description": "WB recommendation shelves («Рекомендательные полки», «С этим товаром покупают» и т.п.): in which OTHER products' cards WB shows `sku`, at what shelf position, whether the placement is paid (ads=1) and at what CPM — per day. Use to explain why a competitor s...",
+      "required_parameters": [
+        "sku"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "limit",
+        "report",
+        "sku",
+        "sort",
+        "start_row",
+        "top"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "wb_shelves_project": {
+      "family": "wb_market_analytics",
+      "business_description": "Manage the user's saved recommendation-shelves tracking projects in MPSTATS («Рекомендательные полки → Мои проекты»). CHANGES the user's account. A project makes MPSTATS check the SKU in shelves every hour, unlocks wb_shelves report=graph (daily dynamics) a...",
+      "required_parameters": [
+        "action",
+        "sku"
+      ],
+      "accepted_properties": [
+        "action",
+        "name",
+        "sku"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "mpstats_account_write",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": true,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": [
+        "Changes MPSTATS saved tracking-project state; never call as part of passive analytics."
+      ]
+    },
+    "wb_check_rates": {
+      "family": "wb_market_analytics",
+      "business_description": "Live WB search results for a query in a region (up to 5 pages × 100): where each product ranks right now. Use to compare positions of your SKU and competitors across regions (e.g. FBS vs FBO, delivery time impact). Snapshot at call time, no history — for dy...",
+      "required_parameters": [
+        "query"
+      ],
+      "accepted_properties": [
+        "limit",
+        "query",
+        "region",
+        "skus"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "live_snapshot_at_call_time",
+      "notes": [
+        "No history; repeated calls are required for dynamics."
+      ]
+    },
+    "wb_compare": {
+      "family": "wb_market_analytics",
+      "business_description": "WB period-over-period compare. scope: category | brand | seller | subject. d11/d12 = period 1; d21/d22 = period 2. Даты периодов ISO YYYY-MM-DD; концы периодов (d12, d22) не позже вчера — данные за сегодня недоступны.",
+      "required_parameters": [
+        "scope",
+        "value",
+        "d11",
+        "d12",
+        "d21",
+        "d22"
+      ],
+      "accepted_properties": [
+        "d11",
+        "d12",
+        "d21",
+        "d22",
+        "fbs",
+        "limit",
+        "scope",
+        "value"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "repricer_tokens": {
+      "family": "repricer",
+      "business_description": "List user marketplace tokens; each id is a user_token_id used by repricer_list / mine_products_*. Several tokens may share the same name (duplicate cabinet connections). cards_total is the WB cabinet card count, NOT the number of products in the repricer (a...",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Returned ids are MPSTATS user_token_id values, not marketplace SKU or cabinet ids."
+      ]
+    },
+    "repricer_limits": {
+      "family": "repricer",
+      "business_description": "Account-wide repricer quota. total_repricer_products counts PRODUCTS under repricers across every token/region (verified: equals the sum of the per-token total_repricer_products). It is NOT a repricer count — do not compare it with the length of repricer_li...",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "repricer_list": {
+      "family": "repricer",
+      "business_description": "List repricers (overview). tokens = user_token_id list from repricer_tokens (required; API returns 422 if empty). IMPORTANT: repricers are spread across tokens and some tokens hold 0 — always pass ALL ids from repricer_tokens, never a guessed subset. A shor...",
+      "required_parameters": [
+        "tokens"
+      ],
+      "accepted_properties": [
+        "active_only",
+        "deleted",
+        "search",
+        "tokens"
+      ],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Pass all ids returned by repricer_tokens; do not guess a subset."
+      ]
+    },
+    "repricer_get": {
+      "family": "repricer",
+      "business_description": "Full repricer config: products, competitors, schedule, region, flags. Read-only.",
+      "required_parameters": [
+        "repricer_id"
+      ],
+      "accepted_properties": [
+        "marketplace",
+        "repricer_id"
+      ],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "repricer_history": {
+      "family": "repricer",
+      "business_description": "Price change history for one card in a repricer. Dates ISO YYYY-MM-DD, default last 30 days. Read-only.",
+      "required_parameters": [
+        "repricer_id",
+        "nmid"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "limit",
+        "nmid",
+        "repricer_id"
+      ],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "repricer_products": {
+      "family": "repricer",
+      "business_description": "Cards in a repricer. preview=false → draft list, preview=true → preview/actual list. Read-only.",
+      "required_parameters": [
+        "repricer_id"
+      ],
+      "accepted_properties": [
+        "limit",
+        "preview",
+        "repricer_id"
+      ],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "repricer_competitors": {
+      "family": "repricer",
+      "business_description": "Competitor cards attached to a repricer. Read-only.",
+      "required_parameters": [
+        "repricer_id"
+      ],
+      "accepted_properties": [
+        "repricer_id"
+      ],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "repricer_search_competitors": {
+      "family": "repricer",
+      "business_description": "Search competitor cards by article numbers (nmid). Read-only.",
+      "required_parameters": [
+        "nmids"
+      ],
+      "accepted_properties": [
+        "marketplace",
+        "nmids"
+      ],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "repricer_regions": {
+      "family": "repricer",
+      "business_description": "Available regions for price/stock calculation. Read-only.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "marketplace"
+      ],
+      "source_role": "mpstats_repricer_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "mine_products_list": {
+      "family": "own_products",
+      "business_description": "My products with current prices for a token. Read-only.",
+      "required_parameters": [
+        "user_token_id"
+      ],
+      "accepted_properties": [
+        "limit",
+        "marketplace",
+        "user_token_id"
+      ],
+      "source_role": "connected_marketplace_token_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "mine_products_status": {
+      "family": "own_products",
+      "business_description": "Status of the price-load queue for a token. Read-only.",
+      "required_parameters": [
+        "user_token_id"
+      ],
+      "accepted_properties": [
+        "marketplace",
+        "user_token_id"
+      ],
+      "source_role": "connected_marketplace_token_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "mine_products_history": {
+      "family": "own_products",
+      "business_description": "Price history for one card under a token. Dates ISO YYYY-MM-DD, default last 30 days. Read-only.",
+      "required_parameters": [
+        "user_token_id",
+        "nmid"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "nmid",
+        "user_token_id"
+      ],
+      "source_role": "connected_marketplace_token_read_model",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "wbbidder_cabinets": {
+      "family": "wb_advertising",
+      "business_description": "Рекламные кабинеты Wildberries, подключённые к MPSTATS. Вызови первым, если кабинетов несколько или нужно понять, где есть реклама: id — это значение для параметра tokens в остальных wbbidder_* инструментах. Поля: ads_campaigns_active / ads_campaigns_pause ...",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": [
+        "Returned id values scope other wbbidder_* calls."
+      ]
+    },
+    "wbbidder_overview": {
+      "family": "wb_advertising",
+      "business_description": "Сводка «как дела с рекламой на Wildberries» одним вызовом. Начинай с него любой общий вопрос про СВОЮ рекламу: «сколько потратили на рекламу», «какой ДРР», «стало лучше или хуже», «сколько кампаний ведёт биддер», «упёрлись ли в лимит». Возвращает четыре бло...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "bidder_only",
+        "d1",
+        "d2",
+        "tokens",
+        "zone"
+      ],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": []
+    },
+    "wbbidder_campaigns": {
+      "family": "wb_advertising",
+      "business_description": "Список своих рекламных кампаний Wildberries. Отсюда берётся campaign_id (поле id) для wbbidder_campaign, wbbidder_campaign_stats, wbbidder_events и wbbidder_clusters. В каждой строке два идентификатора: id — внутренний id MPSTATS (он и есть campaign_id), wb...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "bidder_only",
+        "d1",
+        "d2",
+        "limit",
+        "nm_id",
+        "report",
+        "search",
+        "sort",
+        "sort_dir",
+        "start_row",
+        "status",
+        "tokens",
+        "zone"
+      ],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": [
+        "campaign_id is the MPSTATS internal campaign id; do not substitute Wildberries wb_id."
+      ]
+    },
+    "wbbidder_campaign": {
+      "family": "wb_advertising",
+      "business_description": "Полная карточка одной рекламной кампании Wildberries: настройки, бюджет, баланс кабинета и минимальные ставки одним вызовом. Для вопросов «как настроена кампания», «сколько осталось бюджета», «почему кампания не крутится», «какая минимальная ставка», «включ...",
+      "required_parameters": [
+        "campaign_id"
+      ],
+      "accepted_properties": [
+        "campaign_id"
+      ],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": []
+    },
+    "wbbidder_campaign_stats": {
+      "family": "wb_advertising",
+      "business_description": "Статистика одной рекламной кампании Wildberries за период. campaign_id — внутренний `id` кампании из wbbidder_campaigns, НЕ wb_id (ID кампании на Wildberries; он приходит в ответах отдельным полем wb_id и как параметр не подходит). report: - days (по умолча...",
+      "required_parameters": [
+        "campaign_id"
+      ],
+      "accepted_properties": [
+        "campaign_id",
+        "d1",
+        "d2",
+        "nm_id",
+        "query",
+        "report",
+        "zone"
+      ],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": []
+    },
+    "wbbidder_events": {
+      "family": "wb_advertising",
+      "business_description": "Журнал событий рекламной кампании Wildberries — «что делал биддер»: когда и почему менялась ставка, какие кластеры получили ставку или ушли в минус, когда кончились остатки, что менял человек вручную. campaign_id — внутренний `id` кампании из wbbidder_campa...",
+      "required_parameters": [
+        "campaign_id"
+      ],
+      "accepted_properties": [
+        "campaign_id",
+        "category",
+        "d1",
+        "d2",
+        "limit",
+        "manual_only",
+        "start_row"
+      ],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": []
+    },
+    "wbbidder_clusters": {
+      "family": "wb_advertising",
+      "business_description": "Поисковые кластеры (группы запросов), по которым товар показывается в рекламной кампании Wildberries. Для вопросов «по каким запросам уходит бюджет», «какие кластеры не конвертят», «что заминусовано и почему», «как настроено автоминусование». campaign_id — ...",
+      "required_parameters": [
+        "campaign_id",
+        "nm_id"
+      ],
+      "accepted_properties": [
+        "campaign_id",
+        "d1",
+        "d2",
+        "limit",
+        "nm_id",
+        "norm_query",
+        "report",
+        "sort"
+      ],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": []
+    },
+    "wbbidder_products": {
+      "family": "wb_advertising",
+      "business_description": "Реклама Wildberries в разрезе товаров, а не кампаний: один артикул может участвовать в нескольких кампаниях, и здесь его расход сведён вместе. Для вопросов «на какие товары уходит рекламный бюджет», «у какого товара худший ДРР», «окупается ли реклама артику...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "limit",
+        "nm_id",
+        "report",
+        "sort",
+        "sort_dir",
+        "start_row",
+        "tokens"
+      ],
+      "source_role": "own_advertising_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_advertising_report_freshness",
+      "notes": []
+    },
+    "ozon_categories_search": {
+      "family": "ozon_market_analytics",
+      "business_description": "Найти категории (ниши) Ozon по ключевому слову. Возвращает пути (path), число подкатегорий и метрики. Передавай path в ozon_category. Ищи коротким существительным; чтобы увидеть ниши, не попавшие под слово, раскрывай ветку через ozon_categories_children.",
+      "required_parameters": [
+        "query"
+      ],
+      "accepted_properties": [
+        "limit",
+        "query"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ozon_categories_children": {
+      "family": "ozon_market_analytics",
+      "business_description": "Прямые подкатегории ветки Ozon по её path (из ozon_categories_search).",
+      "required_parameters": [
+        "path"
+      ],
+      "accepted_properties": [
+        "limit",
+        "path"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ozon_category": {
+      "family": "ozon_market_analytics",
+      "business_description": "Ozon category. report: products (default) | subcategories | brands | sellers | by_date | price_segmentation | trends | keywords | niches. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передав...",
+      "required_parameters": [
+        "path"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "limit",
+        "path",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ozon_sku": {
+      "family": "ozon_market_analytics",
+      "business_description": "Ozon SKU report. report: sales (default) | by_day | balance | categories | keywords | full | by_period | search_stats | stores | comments. by_day/balance need 'point_date' (YYYY-MM-DD); остальные — диапазон d1/d2. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчер...",
+      "required_parameters": [
+        "sku"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "point_date",
+        "report",
+        "sku"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": [
+        "Ozon sku is marketplace-scoped; never treat it as an internal article."
+      ]
+    },
+    "ozon_brand": {
+      "family": "ozon_market_analytics",
+      "business_description": "Ozon brand. report: products | categories | sellers | by_date | price_segmentation | trends | keywords | niches | geography. newsmode: 7|14|30 for new-products mode. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d...",
+      "required_parameters": [
+        "name"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "limit",
+        "name",
+        "newsmode",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ozon_seller": {
+      "family": "ozon_market_analytics",
+      "business_description": "Ozon seller. seller_id_or_name accepts numeric id or seller name. report values same as ozon_brand. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передавай сегодняшнюю дату в d2.",
+      "required_parameters": [
+        "seller_id_or_name"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "limit",
+        "newsmode",
+        "report",
+        "seller_id_or_name"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ozon_compare": {
+      "family": "ozon_market_analytics",
+      "business_description": "Ozon period-over-period compare. scope: category | brand | seller. d11/d12 = period 1; d21/d22 = period 2. Даты периодов ISO YYYY-MM-DD; концы периодов (d12, d22) не позже вчера — данные за сегодня недоступны.",
+      "required_parameters": [
+        "scope",
+        "value",
+        "d11",
+        "d12",
+        "d21",
+        "d22"
+      ],
+      "accepted_properties": [
+        "d11",
+        "d12",
+        "d21",
+        "d22",
+        "fbs",
+        "limit",
+        "scope",
+        "value"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ym_category": {
+      "family": "ym_market_analytics",
+      "business_description": "Yandex Market category. YM has no rubricator endpoint — use known paths. report: products | subcategories | brands | sellers | by_date | price_segmentation. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − ...",
+      "required_parameters": [
+        "path"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "fbs",
+        "limit",
+        "path",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ym_brand": {
+      "family": "ym_market_analytics",
+      "business_description": "YM brand. report: products | categories | sellers | by_date | price_segmentation. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передавай сегодняшнюю дату в d2.",
+      "required_parameters": [
+        "name"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "limit",
+        "name",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ym_seller": {
+      "family": "ym_market_analytics",
+      "business_description": "YM seller by name. report: products | categories | brands | by_date | price_segmentation. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передавай сегодняшнюю дату в d2.",
+      "required_parameters": [
+        "name"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "limit",
+        "name",
+        "report"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ym_sku": {
+      "family": "ym_market_analytics",
+      "business_description": "YM item sales/stock history by numeric id. Даты ISO YYYY-MM-DD. По умолчанию d2 = вчера (данные за сегодня у MPSTATS ещё не готовы), d1 = d2 − 30 дней. Не передавай сегодняшнюю дату в d2.",
+      "required_parameters": [
+        "item_id"
+      ],
+      "accepted_properties": [
+        "d1",
+        "d2",
+        "item_id"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "ym_compare": {
+      "family": "ym_market_analytics",
+      "business_description": "YM period-over-period compare. scope: category | brand | seller. d11/d12 = period 1; d21/d22 = period 2. Даты периодов ISO YYYY-MM-DD; концы периодов (d12, d22) не позже вчера — данные за сегодня недоступны.",
+      "required_parameters": [
+        "scope",
+        "value",
+        "d11",
+        "d12",
+        "d21",
+        "d22"
+      ],
+      "accepted_properties": [
+        "d11",
+        "d12",
+        "d21",
+        "d22",
+        "fbs",
+        "limit",
+        "scope",
+        "value"
+      ],
+      "source_role": "external_market_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "historical_analytics_normally_through_yesterday",
+      "notes": []
+    },
+    "pe_health": {
+      "family": "photo_editor",
+      "business_description": "Photo editor service health check.",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "creative_compute_service",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "pe_remove_background": {
+      "family": "photo_editor",
+      "business_description": "Remove background. Image input accepts: URL, base64, data:image/...;base64,..., or 'wb:<sku>' / 'wb:<wb-url>'.",
+      "required_parameters": [
+        "image"
+      ],
+      "accepted_properties": [
+        "image",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_upscale": {
+      "family": "photo_editor",
+      "business_description": "Upscale image. Image input accepts: URL, base64, data:image/...;base64,..., or 'wb:<sku>' / 'wb:<wb-url>'.",
+      "required_parameters": [
+        "image"
+      ],
+      "accepted_properties": [
+        "image",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_replace_background": {
+      "family": "photo_editor",
+      "business_description": "Replace product background using a server-side template. Image input accepts: URL, base64, data:image/...;base64,..., or 'wb:<sku>' / 'wb:<wb-url>'. Get template_key from pe_templates_backgrounds. model: model_1..5 | auto. aspect: 1:1 3:4 4:3 2:3 3:2.",
+      "required_parameters": [
+        "image",
+        "template_key"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "image",
+        "model",
+        "template_key",
+        "timeout_s",
+        "user_prompt"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_in_action": {
+      "family": "photo_editor",
+      "business_description": "Place product into a use-case scene from a template. Image input accepts: URL, base64, data:image/...;base64,..., or 'wb:<sku>' / 'wb:<wb-url>'. Get template_key from pe_templates_in_action.",
+      "required_parameters": [
+        "image",
+        "template_key"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "image",
+        "model",
+        "template_key",
+        "timeout_s",
+        "user_prompt"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_recolor": {
+      "family": "photo_editor",
+      "business_description": "Recolor product to a target hex color (#RRGGBB). Image input accepts: URL, base64, data:image/...;base64,..., or 'wb:<sku>' / 'wb:<wb-url>'.",
+      "required_parameters": [
+        "image",
+        "color"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "color",
+        "image",
+        "model",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_freeform": {
+      "family": "photo_editor",
+      "business_description": "Free-form prompt-based edit. Image input accepts: URL, base64, data:image/...;base64,..., or 'wb:<sku>' / 'wb:<wb-url>'. References (max 5) also accept any image format.",
+      "required_parameters": [
+        "image",
+        "prompt"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "image",
+        "model",
+        "prompt",
+        "references",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_photoshoot_test": {
+      "family": "photo_editor",
+      "business_description": "Photoshoot pipeline: one test frame.",
+      "required_parameters": [
+        "image",
+        "prompt"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "image",
+        "model",
+        "prompt",
+        "references",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_photoshoot_generate": {
+      "family": "photo_editor",
+      "business_description": "Photoshoot pipeline: generate N frames from an approved test shot. count 1..6.",
+      "required_parameters": [
+        "approved_image",
+        "prompt",
+        "image_count"
+      ],
+      "accepted_properties": [
+        "approved_image",
+        "aspect_ratio",
+        "image_count",
+        "model",
+        "prompt",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_photoshoot_auto": {
+      "family": "photo_editor",
+      "business_description": "Photoshoot pipeline: test → generate in one call. count 1..6.",
+      "required_parameters": [
+        "image",
+        "prompt",
+        "image_count"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "image",
+        "image_count",
+        "model",
+        "prompt",
+        "references",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_infographics_test": {
+      "family": "photo_editor",
+      "business_description": "Infographics pipeline: one test slide.",
+      "required_parameters": [
+        "image",
+        "prompt"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "image",
+        "model",
+        "prompt",
+        "references",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_infographics_generate": {
+      "family": "photo_editor",
+      "business_description": "Infographics: generate N slides from an approved test. count 1..6. Endpoint returns max(4, count) frames.",
+      "required_parameters": [
+        "approved_image",
+        "prompt",
+        "image_count"
+      ],
+      "accepted_properties": [
+        "approved_image",
+        "aspect_ratio",
+        "image_count",
+        "model",
+        "prompt",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_infographics_auto": {
+      "family": "photo_editor",
+      "business_description": "Infographics: test → generate in one call. count 1..6.",
+      "required_parameters": [
+        "image",
+        "prompt",
+        "image_count"
+      ],
+      "accepted_properties": [
+        "aspect_ratio",
+        "image",
+        "image_count",
+        "model",
+        "prompt",
+        "references",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "external_compute",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Run only for an explicit image-editing/generation task, never as an automatic analytics step; may consume service quota."
+      ]
+    },
+    "pe_templates_backgrounds": {
+      "family": "photo_editor",
+      "business_description": "List server-side background templates, or one template by key.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "key"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "pe_templates_in_action": {
+      "family": "photo_editor",
+      "business_description": "List server-side 'in action' templates, or one template by key.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "key"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "pe_wb_fetch_photos": {
+      "family": "photo_editor",
+      "business_description": "Fetch WB CDN photo URLs for an SKU (or 'wb:<sku>' / WB URL). Returns up to max_count public URLs.",
+      "required_parameters": [
+        "sku_or_url"
+      ],
+      "accepted_properties": [
+        "max_count",
+        "sku_or_url"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": []
+    },
+    "pe_run": {
+      "family": "photo_editor",
+      "business_description": "Submit a raw Photo Editor body to any endpoint and poll until completion. Escape hatch when typed tools don't fit.",
+      "required_parameters": [
+        "endpoint",
+        "body"
+      ],
+      "accepted_properties": [
+        "body",
+        "endpoint",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "creative_escape_hatch",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": true,
+      "freshness": "provider_defined",
+      "notes": [
+        "Raw Photo Editor endpoint escape hatch. Prefer typed pe_* tools; use only when the user explicitly requests the operation and typed tools cannot express it."
+      ]
+    },
+    "pe_poll": {
+      "family": "photo_editor",
+      "business_description": "Poll an existing Photo Editor event_id until completion.",
+      "required_parameters": [
+        "event_id"
+      ],
+      "accepted_properties": [
+        "event_id",
+        "timeout_s"
+      ],
+      "source_role": "creative_compute_service",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_defined",
+      "notes": [
+        "Status polling only; valid after an explicit Photo Editor job."
+      ]
+    },
+    "lk_wb_cabinets": {
+      "family": "wb_cabinet",
+      "business_description": "Выбор WB-кабинета для последующих lk_wb-запросов текущего токена. По умолчанию (без выбора) данные агрегируются по всем кабинетам. action='list' — показать кабинеты (id, name, valid, selected); action='select' c id=<id> — скоупить данные на один кабинет; ac...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "action",
+        "id"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "mixed_scope_state",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": [
+        "action=list is read-only. action=select/reset changes persistent MPSTATS cabinet scope; use only when task scope is explicit and record/restore the selection."
+      ]
+    },
+    "lk_wb_request": {
+      "family": "wb_cabinet",
+      "business_description": "Universal LK WB API caller (read-only). path относительно LK_WB_BASE_URL.",
+      "required_parameters": [
+        "method",
+        "path"
+      ],
+      "accepted_properties": [
+        "body",
+        "method",
+        "path",
+        "query"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only_escape_hatch",
+      "automatic_use_allowed": false,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": [
+        "Universal LK WB read-only caller. Prefer typed lk_wb_* tools; use only for known read-only paths when typed tools are insufficient."
+      ]
+    },
+    "lk_wb_dashboard_business_economics": {
+      "family": "wb_cabinet",
+      "business_description": "Экономика бизнеса. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_order_analytics": {
+      "family": "wb_cabinet",
+      "business_description": "Аналитика по заказам. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_widget": {
+      "family": "wb_cabinet",
+      "business_description": "Виджет сводки. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_sales_funnel": {
+      "family": "wb_cabinet",
+      "business_description": "Воронка продаж. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_table": {
+      "family": "wb_cabinet",
+      "business_description": "Таблица сводки по дням. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_table_aggregated": {
+      "family": "wb_cabinet",
+      "business_description": "Агрегированная таблица сводки. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_chart": {
+      "family": "wb_cabinet",
+      "business_description": "График сводки. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_chart_aggregated": {
+      "family": "wb_cabinet",
+      "business_description": "Агрегированный график сводки. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_expenses": {
+      "family": "wb_cabinet",
+      "business_description": "Детализация расходов. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_dashboard_widget30days": {
+      "family": "wb_cabinet",
+      "business_description": "Виджет за 30 дней (lost_sales, localization_index, stock_count и т.д.). Параметров не требует.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "turnover_days",
+        "urgently_days"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_orders_region_statistics": {
+      "family": "wb_cabinet",
+      "business_description": "География заказов. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_products_stocks": {
+      "family": "wb_cabinet",
+      "business_description": "Раскладка остатков по складам. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True. start_row/end_row пагинация (default 0/50).",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "end_row",
+        "period_type",
+        "self_redemption",
+        "start_row"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_reports_weekly": {
+      "family": "wb_cabinet",
+      "business_description": "Еженедельный отчёт. period_type='30days' (или 7days/90days/year), либо date_from+date_to (YYYY-MM-DD). Опционально self_redemption=True.",
+      "required_parameters": [],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "period_type",
+        "self_redemption"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_reports_compare": {
+      "family": "wb_cabinet",
+      "business_description": "Сравнение двух периодов. Даты в формате ДД.ММ.ГГГГ (как в UI кабинета). start_row/end_row пагинация (default 0/50).",
+      "required_parameters": [
+        "d11",
+        "d12",
+        "d21",
+        "d22"
+      ],
+      "accepted_properties": [
+        "d11",
+        "d12",
+        "d21",
+        "d22",
+        "end_row",
+        "show_all",
+        "size_group",
+        "start_row",
+        "tags"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_products": {
+      "family": "wb_cabinet",
+      "business_description": "Отчёт по товарам (async, polling до готовности). date_from/date_to в YYYY-MM-DD. start_row/end_row пагинация.",
+      "required_parameters": [
+        "date_from",
+        "date_to"
+      ],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "end_row",
+        "start_row"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_sales_tape": {
+      "family": "wb_cabinet",
+      "business_description": "Лента продаж и заказов. date_from/date_to YYYY-MM-DD. start_row/end_row пагинация.",
+      "required_parameters": [
+        "date_from",
+        "date_to"
+      ],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "end_row",
+        "start_row"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_sales_chart": {
+      "family": "wb_cabinet",
+      "business_description": "График заказов по часам. date_from/date_to YYYY-MM-DD.",
+      "required_parameters": [
+        "date_from",
+        "date_to"
+      ],
+      "accepted_properties": [
+        "date_from",
+        "date_to"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_tags_search": {
+      "family": "wb_cabinet",
+      "business_description": "Поиск тегов по подстроке.",
+      "required_parameters": [
+        "search"
+      ],
+      "accepted_properties": [
+        "search"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_tags_count": {
+      "family": "wb_cabinet",
+      "business_description": "Список тегов с количеством SKU.",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_cabinet_notifications": {
+      "family": "wb_cabinet",
+      "business_description": "Уведомления кабинета (товары с нулевой себестоимостью и т.п.).",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_brands_actual": {
+      "family": "wb_cabinet",
+      "business_description": "Словарь актуальных брендов кабинета.",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_brands_actual_count": {
+      "family": "wb_cabinet",
+      "business_description": "Бренды с количеством товаров.",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_reference_all_stores": {
+      "family": "wb_cabinet",
+      "business_description": "Расширенный словарь складов.",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_taxes": {
+      "family": "wb_cabinet",
+      "business_description": "Список налогов и НДС кабинета.",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_pulse_summary": {
+      "family": "wb_cabinet",
+      "business_description": "Pulse: сводная таблица за период (date_from..date_to).",
+      "required_parameters": [
+        "date_from",
+        "date_to"
+      ],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "refresh"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_pulse_products": {
+      "family": "wb_cabinet",
+      "business_description": "Pulse: таблица товаров за период.",
+      "required_parameters": [
+        "date_from",
+        "date_to"
+      ],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "end_row",
+        "refresh",
+        "start_row"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_card_info": {
+      "family": "wb_cabinet",
+      "business_description": "Карточка → основная информация. type — brands | tags | articles. value — название/id сущности.",
+      "required_parameters": [
+        "type",
+        "value"
+      ],
+      "accepted_properties": [
+        "type",
+        "value"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_card_orders": {
+      "family": "wb_cabinet",
+      "business_description": "Карточка → продажи/заказы за период (AgGrid). type — brands | tags | articles. value — название/id сущности.",
+      "required_parameters": [
+        "type",
+        "value",
+        "date_from",
+        "date_to"
+      ],
+      "accepted_properties": [
+        "date_from",
+        "date_to",
+        "end_row",
+        "start_row",
+        "type",
+        "value"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_card_table": {
+      "family": "wb_cabinet",
+      "business_description": "Карточка → таблица/график по дням. type — brands | tags | articles. value — название/id сущности.",
+      "required_parameters": [
+        "type",
+        "value"
+      ],
+      "accepted_properties": [
+        "period_type",
+        "self_redemption",
+        "type",
+        "value"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_card_widget": {
+      "family": "wb_cabinet",
+      "business_description": "Карточка → виджет показателей. type — brands | tags | articles. value — название/id сущности.",
+      "required_parameters": [
+        "type",
+        "value"
+      ],
+      "accepted_properties": [
+        "period_type",
+        "self_redemption",
+        "type",
+        "value"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_wb_card_region": {
+      "family": "wb_cabinet",
+      "business_description": "Карточка → география заказов. type — brands | tags | articles. value — название/id сущности.",
+      "required_parameters": [
+        "type",
+        "value"
+      ],
+      "accepted_properties": [
+        "period_type",
+        "self_redemption",
+        "type",
+        "value"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_ozon_cabinets": {
+      "family": "ozon_cabinet",
+      "business_description": "Список подключённых кабинетов Ozon текущего токена (id, name, status, is_ozon_valid, client_id_seller). Вызови первым, чтобы узнать id/имена кабинетов. У других lk_ozon_* инструментов скоуп задаётся параметром cabinet=<id или имя из этого списка>; без cabin...",
+      "required_parameters": [],
+      "accepted_properties": [],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": [
+        "Use returned cabinet id/name to scope other lk_ozon_* calls."
+      ]
+    },
+    "lk_ozon_fields": {
+      "family": "ozon_cabinet",
+      "business_description": "Каталог полей отчёта lk_ozon_products: 109 колонок (имя, описание, группа, тип, фильтруется/сортируется ли, допустимые операторы). Статика в коде — к API не ходит. Когда применять: когда 4 готовых preset'а lk_ozon_products (economics/stocks/prices/expenses)...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "group",
+        "search"
+      ],
+      "source_role": "mpstats_static_schema_metadata",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "version_bound_static_metadata",
+      "notes": []
+    },
+    "lk_ozon_products": {
+      "family": "ozon_cabinet",
+      "business_description": "Экономика по товарам своего кабинета Ozon: заказы, продажи, остатки, расходы, прибыль, маржа. Поверх POST api/products/report — асинхронного отчёта upstream; инструмент сам ждёт готовности (поллинг), агенту почти всегда прилетает готовый результат за один в...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "cabinet",
+        "date_from",
+        "date_to",
+        "end_row",
+        "fields",
+        "group_by",
+        "include_facets",
+        "preset",
+        "refresh",
+        "search",
+        "sort",
+        "start_row",
+        "status",
+        "where",
+        "widget",
+        "widget_threshold"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_ozon_overview": {
+      "family": "ozon_cabinet",
+      "business_description": "Состояние кабинета Ozon одним вызовом: сколько заработал, куда ушли деньги, есть ли проблемы, растёт или падает. Это ПЕРВЫЙ инструмент на любой вопрос про свой кабинет Ozon целиком ('как дела с моим Ozon', 'сколько заработал', 'что с прибылью за месяц') — в...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "cabinet",
+        "compare_date_from",
+        "compare_date_to",
+        "date_from",
+        "date_to"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_ozon_pulse": {
+      "family": "ozon_cabinet",
+      "business_description": "Воронка продаж товаров своего кабинета Ozon из раздела «Рука на пульсе» (RNP): показы, CTR, переходы в карточку, добавления в корзину, конверсия в заказ — то, чего НЕТ в lk_ozon_products (тот про деньги/остатки/цены по ВСЕМУ каталогу, этот — про воронку у т...",
+      "required_parameters": [],
+      "accepted_properties": [
+        "cabinet",
+        "date_from",
+        "date_to",
+        "end_row",
+        "refresh",
+        "segment",
+        "sort",
+        "start_row"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": []
+    },
+    "lk_ozon_product_daily": {
+      "family": "ozon_cabinet",
+      "business_description": "Динамика воронки продаж ОДНОГО товара по дням (раздел «Рука на пульсе» RNP): как показы/CTR/переходы в карточку/корзина/заказы менялись день за днём за период — детализация к lk_ozon_pulse на уровне одного sku. Когда применять: после lk_ozon_pulse нашёл тов...",
+      "required_parameters": [
+        "sku"
+      ],
+      "accepted_properties": [
+        "cabinet",
+        "date_from",
+        "date_to",
+        "groups",
+        "sku"
+      ],
+      "source_role": "own_cabinet_analytics",
+      "access_mode": "read_only",
+      "automatic_use_allowed": true,
+      "explicit_user_confirmation_required": false,
+      "freshness": "provider_cabinet_report_freshness",
+      "notes": [
+        "Ozon sku is marketplace-scoped; never treat it as an internal article."
+      ]
+    }
+  }
+}

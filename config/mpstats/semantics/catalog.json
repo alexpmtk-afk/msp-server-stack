@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "source_id": "mpstats",
+  "display_name": "MPSTATS MCP",
+  "endpoint_public": "https://mcp.mpstats.io/mcp",
+  "live_server": {
+    "name": "mpstats-mcp",
+    "version": "3.3.1",
+    "protocol_version": "2025-06-18",
+    "discovered_tools": 108,
+    "inventory_date": "2026-10-07"
+  },
+  "purpose": "External marketplace analytics plus connected-cabinet analytical read models, MPSTATS repricer/advertising views and optional creative services. It is not the canonical internal identity registry and is not the default marketplace write executor.",
+  "default_posture": "read_only_analysis",
+  "family_order": [
+    "account",
+    "wb_market_analytics",
+    "ozon_market_analytics",
+    "ym_market_analytics",
+    "wb_cabinet",
+    "ozon_cabinet",
+    "wb_advertising",
+    "repricer",
+    "own_products",
+    "photo_editor"
+  ],
+  "families": {
+    "account": {
+      "meaning": "MPSTATS account metadata and quota.",
+      "default_use": "quota/technical checks only",
+      "canonical_for": [
+        "MPSTATS quota"
+      ],
+      "not_canonical_for": [
+        "marketplace business facts"
+      ]
+    },
+    "wb_market_analytics": {
+      "meaning": "External/public Wildberries market, niche, seller, brand, SKU and search analytics.",
+      "default_use": "primary MPSTATS source for competitor/niche/market research",
+      "canonical_for": [
+        "MPSTATS analytical view of WB external market"
+      ],
+      "not_canonical_for": [
+        "company internal identity",
+        "official current cabinet execution state"
+      ],
+      "freshness": "Most dated reports default through yesterday; wb_check_rates is a live snapshot."
+    },
+    "ozon_market_analytics": {
+      "meaning": "External/public Ozon market, category, seller, brand and SKU analytics.",
+      "default_use": "primary MPSTATS source for Ozon competitor/niche research",
+      "canonical_for": [
+        "MPSTATS analytical view of Ozon external market"
+      ],
+      "not_canonical_for": [
+        "company internal identity",
+        "official current cabinet execution state"
+      ],
+      "freshness": "Most dated reports default through yesterday."
+    },
+    "ym_market_analytics": {
+      "meaning": "External/public Yandex Market category, brand, seller and item analytics.",
+      "default_use": "primary MPSTATS source for YM market research",
+      "canonical_for": [
+        "MPSTATS analytical view of Yandex Market"
+      ],
+      "not_canonical_for": [
+        "company internal identity",
+        "official current cabinet execution state"
+      ],
+      "freshness": "Most dated reports default through yesterday."
+    },
+    "wb_cabinet": {
+      "meaning": "Analytical view of the user's connected Wildberries cabinet(s) through MPSTATS LK tools.",
+      "default_use": "own-business analytics, funnel, reports, stock distribution, card-level analysis",
+      "canonical_for": [
+        "MPSTATS LK analytical reports"
+      ],
+      "not_canonical_for": [
+        "internal product mapping",
+        "internal self-purchase registry",
+        "authoritative execution proof"
+      ],
+      "freshness": "Provider-defined; verify dates/period and cabinet scope."
+    },
+    "ozon_cabinet": {
+      "meaning": "Analytical view of the user's connected Ozon cabinet(s) through MPSTATS.",
+      "default_use": "own Ozon economics, products, funnel and daily dynamics",
+      "canonical_for": [
+        "MPSTATS Ozon analytical reports"
+      ],
+      "not_canonical_for": [
+        "internal product mapping",
+        "authoritative execution proof"
+      ],
+      "freshness": "Provider-defined; verify dates and cabinet scope."
+    },
+    "wb_advertising": {
+      "meaning": "Wildberries advertising and bidder analytics for connected cabinets.",
+      "default_use": "read-only analysis of spend, DRR, campaigns, clusters, events and product-level ad performance",
+      "canonical_for": [
+        "MPSTATS bidder analytical view"
+      ],
+      "not_canonical_for": [
+        "ad execution unless a separately approved write tool exists"
+      ],
+      "freshness": "Provider-defined advertising report freshness."
+    },
+    "repricer": {
+      "meaning": "MPSTATS repricer configuration, products, competitors, regions and price-change history.",
+      "default_use": "read-only repricer diagnostics and history",
+      "canonical_for": [
+        "MPSTATS repricer configuration/read model"
+      ],
+      "not_canonical_for": [
+        "marketplace write execution"
+      ]
+    },
+    "own_products": {
+      "meaning": "Current prices/status/history for products under MPSTATS-connected marketplace tokens.",
+      "default_use": "read-only MPSTATS view of connected own products",
+      "canonical_for": [
+        "MPSTATS connected-token price read model"
+      ],
+      "not_canonical_for": [
+        "company identity",
+        "official marketplace write confirmation"
+      ]
+    },
+    "photo_editor": {
+      "meaning": "MPSTATS creative image-processing and generation service.",
+      "default_use": "only explicit creative tasks",
+      "canonical_for": [],
+      "not_canonical_for": [
+        "business facts",
+        "marketplace state"
+      ],
+      "freshness": "job/output based"
+    }
+  },
+  "identifier_rules": {
+    "internal_listing_key": [
+      "marketplace",
+      "store",
+      "marketplace_sku"
+    ],
+    "marketplace_sku": "Company-wide semantic key for a marketplace card only when marketplace and store context are known.",
+    "wb_sku_nmid": "Treat as WB marketplace_sku candidate only in marketplace=wb context; resolve store via internal product catalog.",
+    "ozon_sku": "Treat as Ozon marketplace-scoped SKU; never as internal_article.",
+    "internal_article": "Never infer from MPSTATS display names or product labels; resolve through internal product_catalog.",
+    "category_path": "MPSTATS marketplace taxonomy path, not an internal company category id.",
+    "mpstats_local_ids": [
+      "user_token_id",
+      "repricer_id",
+      "campaign_id",
+      "cabinet id/name"
+    ],
+    "warning": "MPSTATS-local ids are not interchangeable with marketplace SKU, internal article or direct marketplace cabinet identifiers."
+  },
+  "global_guardrails": [
+    "Read-only analysis is the default.",
+    "Never use wb_shelves_project automatically; it changes MPSTATS account state.",
+    "Do not use Photo Editor tools unless the user explicitly asks for image generation/editing.",
+    "Do not use pe_run by default; prefer typed Photo Editor tools.",
+    "Do not use lk_wb_request while a typed lk_wb_* tool covers the task.",
+    "Before bulk/paginated MPSTATS work, check account_limits and minimize calls.",
+    "External WB/Ozon/YM analytics generally do not include today; default end date is yesterday unless the tool explicitly states live behavior.",
+    "For any operational action decision, separate analysis evidence from execution evidence and verify through the designated executor/direct source."
+  ]
+}

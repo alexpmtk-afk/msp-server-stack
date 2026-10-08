@@ -114,7 +114,7 @@ It:
 7. Perform a real MCP `initialize` + `tools/list` call without exposing the token — **PASS**. Protocol `2025-06-18`, server `mpstats-mcp` `3.3.1`, 108 tools discovered.
 8. Record the post-change state and configuration delta — **PASS**.
 9. Choose one harmless read-only MPSTATS tool from the discovered schema and run it — **PASS** using `account_limits` (`HTTP 200`, `is_error=false`).
-10. Build the semantic catalog — next stage.
+10. Build the semantic catalog — **PASS (v1, 2026-10-08)**. All 108 tools have machine-readable family/routing/access policies; response-field semantics remain the next refinement.
 
 ## Post-install verification — 2026-10-07
 
@@ -134,7 +134,7 @@ The installer created local pre-change backups:
 - `/home/hermes/.codex/config.toml.pre-mpstats.20261007T134519Z.bak`;
 - `/home/hermes/.codex-dashboard/config.toml.pre-mpstats.20261007T134519Z.bak`.
 
-This proves configuration registration and service health. It does **not** yet prove that the remote MPSTATS server accepts the credential or that `tools/list` succeeds.
+This post-install checkpoint proved configuration registration and service health. Subsequent live acceptance also proved credential acceptance, MCP initialization, `tools/list` (108 tools), and a harmless read-only tool call.
 
 ## Restart policy
 
@@ -156,9 +156,11 @@ Technical connection is now **PASS**. Acceptance evidence:
 
 Live tool inventory: [MPSTATS_TOOLS_2026-10-07.md](MPSTATS_TOOLS_2026-10-07.md).
 
-## Semantic-layer follow-up
+## Semantic layer — v1
 
-After acceptance, record for every exposed capability:
+Machine-readable semantics are now stored under `config/mpstats/semantics/` and documented in [MPSTATS_SEMANTIC_LAYER.md](MPSTATS_SEMANTIC_LAYER.md).
+
+Version 1 records for every exposed capability:
 
 - source: MPSTATS;
 - marketplace/domain;
@@ -172,4 +174,4 @@ After acceptance, record for every exposed capability:
 - when another internal source has priority;
 - relationships to internal product/card identifiers.
 
-The semantic layer must describe meaning and source-selection rules, not merely copy MCP tool names.
+The semantic layer describes meaning and source-selection rules, not merely MCP tool names. Current coverage includes all 108 tools. The next refinement is representative live-response shape/field semantics and freshness validation without storing private account values.
