@@ -6,11 +6,15 @@ on:
       - "config/mpstats/**"
       - "docs/MPSTATS_TOOLS_2026-10-07.md"
       - "tests/test_mpstats_semantics.py"
+      - "apps/hermes/mpstats_skill/**"
+      - "scripts/deploy/install-mpstats-skill.sh"
   pull_request:
     paths:
       - "config/mpstats/**"
       - "docs/MPSTATS_TOOLS_2026-10-07.md"
       - "tests/test_mpstats_semantics.py"
+      - "apps/hermes/mpstats_skill/**"
+      - "scripts/deploy/install-mpstats-skill.sh"
 
 permissions:
   contents: read
@@ -23,3 +27,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate MPSTATS semantic coverage
         run: python3 -m unittest tests.test_mpstats_semantics -v
+      - name: Validate skill installer syntax
+        run: bash -n scripts/deploy/install-mpstats-skill.sh
