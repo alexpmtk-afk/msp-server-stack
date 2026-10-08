@@ -188,3 +188,10 @@ The MPSTATS semantic layer is now installed as a Hermes custom skill:
 Deployment from canonical `msp-server-stack` commit `64e0d20c4e48c269a5545acb4956e3106dab5714` passed semantic validation and installed-file contract checks. Gateway and Dashboard remained active; no restart was required.
 
 The skill instructs the agent to apply internal source precedence, identifier rules, freshness caveats and side-effect policies before using the 108 MPSTATS tools. The next acceptance level is behavioral: observe a real new agent task and verify that it applies these rules correctly.
+
+
+## Behavioral acceptance — 2026-10-08
+
+Hermes skill discovery reports the local `mpstats` skill as enabled. A fixed one-shot acceptance with `--skills mpstats` then passed all four core semantic checks: internal self-purchase routing, internal price-history routing, MPSTATS external-WB analytics routing, and confirmation requirement for the stateful `wb_shelves_project` tool.
+
+The MPSTATS foundation can therefore be treated as **installed + live-accepted + semantically deployed + behaviorally accepted**. Further work is enrichment of response/metric semantics, not basic connectivity or agent awareness.
