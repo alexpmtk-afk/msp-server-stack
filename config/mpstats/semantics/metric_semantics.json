@@ -34,6 +34,13 @@
         "Do not call it net profit.",
         "Do not treat it as marketplace payout.",
         "Do not merge with direct cabinet revenue without reconciliation."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].revenue",
+        "wb_category.data[].revenue",
+        "wb_sku.full.period_stats.revenue",
+        "ozon_category.products.data[].revenue",
+        "ozon_sku.full.period_stats.revenue"
       ]
     },
     "sales": {
@@ -51,6 +58,13 @@
       "safe_use": "Relative comparison inside the same external analytical report.",
       "unsafe_use": [
         "Do not assume customer orders, shipped units, or paid/redemption-complete units until verified."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].sales",
+        "wb_category.data[].sales",
+        "wb_sku.full.period_stats.sales",
+        "ozon_category.products.data[].sales",
+        "ozon_sku.full.period_stats.sales"
       ]
     },
     "views": {
@@ -199,6 +213,11 @@
       "safe_use": "Relative price-position analysis after confirming report currency/context.",
       "unsafe_use": [
         "Do not treat as buyer final price or own seller price."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].avg_price_final",
+        "wb_category.data[].final_price_average",
+        "ozon_category.products.data[].final_price_average"
       ]
     },
     "median_price": {
@@ -215,6 +234,11 @@
       "safe_use": "Distribution-resistant market price comparison.",
       "unsafe_use": [
         "Do not assume seller-discount/final-payment semantics."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].median_price_final",
+        "wb_category.data[].final_price_median",
+        "ozon_category.products.data[].final_price_median"
       ]
     },
     "turnover_in_days": {
@@ -230,6 +254,11 @@
       "safe_use": "Use as MPSTATS turnover-days indicator for niche comparison.",
       "unsafe_use": [
         "Do not substitute for internal days-of-stock without formula reconciliation."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].turnover_in_days",
+        "wb_category.data[].turnover_days",
+        "ozon_category.products.data[].turnover_days"
       ]
     },
     "revenue_potential": {
@@ -246,6 +275,11 @@
       "safe_use": "Ranking/relative opportunity analysis only until formula and unit are validated.",
       "unsafe_use": [
         "Do not present as forecasted guaranteed revenue."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].revenue_potential",
+        "wb_category.data[].revenue_potential",
+        "ozon_category.products.data[].revenue_potential"
       ]
     },
     "lost_profit": {
@@ -262,6 +296,11 @@
       "safe_use": "Use only as MPSTATS provider metric with caveat.",
       "unsafe_use": [
         "Do not book/account it as actual financial loss."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].lost_profit",
+        "wb_category.data[].lost_profit",
+        "ozon_category.products.data[].lost_profit"
       ]
     },
     "avg_rating": {
@@ -308,6 +347,9 @@
       "safe_use": "Relative funnel comparison, preserving raw provider scale.",
       "unsafe_use": [
         "Do not automatically divide/multiply by 100."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].add_to_cart_percent"
       ]
     },
     "cart_to_order_percent": {
@@ -324,6 +366,9 @@
       "safe_use": "Relative funnel comparison, preserving raw provider scale.",
       "unsafe_use": [
         "Do not automatically divide/multiply by 100."
+      ],
+      "observed_paths": [
+        "wb_subjects_list.data[].cart_to_order_percent"
       ]
     },
     "seasonality": {
@@ -352,5 +397,156 @@
     "Observe wbbidder_products product-level advertising fields.",
     "Use lk_ozon_fields static metadata to map Ozon own-cabinet field definitions.",
     "Treat WB LK 403 responses as access-state evidence, not metric definitions."
+  ],
+  "live_field_evidence": {
+    "audit_date": "2026-10-08",
+    "source": "MPSTATS batch2 read-only shape audit, issue #146",
+    "evidence_type": "path_and_type_only",
+    "no_values_logged": true,
+    "unit_warning": "JSON number/integer type does not establish unit, tax basis, currency, formula, or whether fields represent orders versus fulfilled sales.",
+    "observed_profiles": {
+      "wb_subjects_list": [
+        "$.data[].revenue",
+        "$.data[].sales",
+        "$.data[].purchase",
+        "$.data[].purchase_after_return",
+        "$.data[].revenue_estimated",
+        "$.data[].sales_estimated",
+        "$.data[].revenue_potential",
+        "$.data[].lost_profit",
+        "$.data[].avg_price_final",
+        "$.data[].median_price_final",
+        "$.data[].add_to_cart_percent",
+        "$.data[].cart_to_order_percent",
+        "$.data[].turnover_in_days"
+      ],
+      "wb_category": [
+        "$.data[].revenue",
+        "$.data[].sales",
+        "$.data[].basic_price",
+        "$.data[].client_price",
+        "$.data[].final_price",
+        "$.data[].wallet_price",
+        "$.data[].spp_avg",
+        "$.data[].revenue_estimated_before_spp",
+        "$.data[].balance",
+        "$.data[].balance_fbs",
+        "$.data[].purchase_after_return"
+      ],
+      "wb_sku_full": [
+        "$.period_stats.revenue",
+        "$.period_stats.sales",
+        "$.period_stats.purchase",
+        "$.period_stats.purchase_after_return",
+        "$.period_stats.revenue_estimated_before_spp",
+        "$.period_stats.spp_avg",
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.wallet_price",
+        "$.stock.fbo",
+        "$.stock.fbs",
+        "$.updated"
+      ],
+      "ozon_category_products": [
+        "$.data[].revenue",
+        "$.data[].sales",
+        "$.data[].final_price",
+        "$.data[].ozon_card_price",
+        "$.data[].balance",
+        "$.data[].balance_fbs",
+        "$.data[].lost_profit",
+        "$.data[].turnover_days"
+      ],
+      "ozon_sku_full": [
+        "$.period_stats.revenue",
+        "$.period_stats.sales",
+        "$.period_stats.revenue_prev",
+        "$.period_stats.sales_prev",
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.ozon_card_price",
+        "$.balance",
+        "$.updated"
+      ]
+    },
+    "semantic_separations": [
+      "purchase and purchase_after_return in MPSTATS reports are provider metrics; they do NOT identify company self-purchases. The internal v_self_purchase remains canonical.",
+      "WB price.price, price.final_price and price.wallet_price are different observed fields, not interchangeable synonyms; the payment/discount conditions remain unverified.",
+      "Ozon price.ozon_card_price is not equivalent by default to price.final_price or internal Ozon selling price.",
+      "Stock/balance in external MPSTATS analytics is not automatically the current available-to-sell balance in the seller cabinet.",
+      "revenue_estimated, revenue_estimated_before_spp and revenue are distinct metrics; never sum/substitute without a validated formula.",
+      "A representative report=full response is not evidence for sales/by_day/balance report variants."
+    ]
+  },
+  "price_field_semantics": {
+    "wb": {
+      "observed_in": "wb_sku(report=full)",
+      "fields": [
+        "price",
+        "final_price",
+        "wallet_price"
+      ],
+      "json_paths": [
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.wallet_price"
+      ],
+      "evidence": "live_shape_only",
+      "unit": "currency_unverified",
+      "selection_rule": "Choose only after validating consumer/seller/discount and wallet assumptions; do not silently treat one as the universal buyer price."
+    },
+    "ozon": {
+      "observed_in": "ozon_sku(report=full)",
+      "fields": [
+        "price",
+        "final_price",
+        "ozon_card_price"
+      ],
+      "json_paths": [
+        "$.price.price",
+        "$.price.final_price",
+        "$.price.ozon_card_price"
+      ],
+      "evidence": "live_shape_only",
+      "unit": "currency_unverified",
+      "selection_rule": "Do not silently equate Ozon card price with final price or canonical own seller price."
+    },
+    "cross_marketplace": {
+      "warning": "Never compare WB wallet_price against Ozon ozon_card_price as if definitions are identical without reconciliation.",
+      "direct_source_precedence": "For actual own-account current price, verified direct marketplace API is preferred."
+    }
+  },
+  "stock_semantics": {
+    "external_wb_observed": [
+      "wb_category.data[].balance",
+      "wb_category.data[].balance_fbs",
+      "wb_sku.full.stock.fbo",
+      "wb_sku.full.stock.fbs"
+    ],
+    "external_ozon_observed": [
+      "ozon_category.products.data[].balance",
+      "ozon_category.products.data[].balance_fbs",
+      "ozon_sku.full.balance"
+    ],
+    "freshness": "unverified_for_current_sellable_stock",
+    "rule": "MPSTATS external analytics balance is an observed analytical metric; no zeroing/restock/execution decision may be based on it alone."
+  },
+  "purchase_metric_warning": {
+    "fields": [
+      "purchase",
+      "purchase_after_return"
+    ],
+    "evidence": "present in WB subject/category/SKU response shapes",
+    "meaning": "provider-defined business metric; name alone insufficient to assert calculation or numeric scale",
+    "explicitly_not": "internal company self-purchase classification",
+    "canonical_self_purchase_source": "msp_data.v_self_purchase",
+    "unit": "unverified"
+  },
+  "validation_gaps": [
+    "WB/Ozon product report types observed but currency and exact price/discount formulas are not yet verified.",
+    "MPSTATS WB/Ozon external balance fields are not verified as real-time own-cabinet stock.",
+    "The sample wbbidder_products returned the pagination wrapper but no item fields; advertising per-product metrics remain unverified.",
+    "mine_products_list, lk_wb_products_stocks and lk_wb_dashboard_business_economics returned MCP tool-level errors; no response fields were established.",
+    "Static lk_ozon_fields returned schema wrapper; extract controlled field definitions separately if needed."
   ]
 }
