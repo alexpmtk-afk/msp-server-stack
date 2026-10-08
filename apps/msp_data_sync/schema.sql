@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS self_purchase_plan (
  first_seen_at TEXT NOT NULL,
  updated_at TEXT NOT NULL,
  is_current INTEGER NOT NULL DEFAULT 1 CHECK(is_current IN (0,1)),
- last_seen_run INTEGER NOT NULL
+ last_change_run INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ix_self_purchase_plan_store_sku ON self_purchase_plan(marketplace,store,marketplace_sku);
 CREATE VIEW IF NOT EXISTS v_self_purchase_plan AS
