@@ -5,19 +5,26 @@ Do not fetch source working spreadsheets. Product catalog contains reference fie
 All four sources run in dependency order: products, self purchases, current price journal, archive price journal.
 Business data stays outside Git in `/opt/mcp/data/msp/msp_data.sqlite3`.
 
-## Preparation and installation
+## Preparation and recovery — supported Hermes USER systemd
 
-1. Run tests, syntax and secret checks on a dedicated branch. Open a PR, wait for passing CI and merge.
-2. Deploy the merged canonical main to `/opt/mcp/projects/msp-server-stack`.
-3. As administrator run `bash scripts/deploy/install-msp-data-sync.sh /opt/mcp/projects/msp-server-stack`.
-4. Run first sync with `python3 apps/msp_data_sync/sync.py --config config/msp-data/sync.json --source all`.
-5. Run `--verify-only`. Check all four sources, errors, dates, origin segments and integrity.
-6. Repeat sync. No product, self-purchase or price-event growth should occur for unchanged source data.
-7. Check `systemctl is-enabled msp-data-sync.timer`, `systemctl is-active msp-data-sync.timer`, `systemctl list-timers msp-data-sync.timer` and `systemctl show msp-data-sync.service -p Result -p ExecMainStatus`.
+1. Review code, shell syntax, tests and secret scan in a PR; merge into canonical `main`.
+2. Deploy the reviewed canonical commit at `/opt/mcp/projects/msp-server-stack`. Preserve existing SQLite, Hermes Gateway and credentials.
+3. Verify `/opt/mcp/data/msp` and `/opt/mcp/backups/msp` already exist and are writable by `hermes`. Any first-time directory/ownership bootstrap requires separate owner authorization.
+4. Run the installer **as `hermes`, never as root**. Read-only preflight:
+   `bash scripts/deploy/install-msp-data-sync.sh --check /opt/mcp/projects/msp-server-stack`
+   Authorized installation/recovery:
+   `bash scripts/deploy/install-msp-data-sync.sh /opt/mcp/projects/msp-server-stack`
+   When starting from an administrator account, enter the authorized `hermes` user session with access to its user-systemd bus; never replace this with a root/system service.
+5. Confirm `systemctl --user is-enabled msp-data-sync.timer`, `systemctl --user is-active msp-data-sync.timer`, `systemctl --user list-timers msp-data-sync.timer`; inspect `systemctl --user show msp-data-sync.service -p Result -p ExecMainStatus` and bounded logs using `journalctl --user -u msp-data-sync.service`.
+6. Independently verify a four-source sync from the latest `sync_run` records, database integrity and alert-state metadata. An enabled timer alone does not prove a successful scheduled run.
 
-Timer: 08:00 Europe/Moscow, Persistent=true. Do not delete/recreate SQLite every day.
-Before schema upgrades, create a SQLite backup with the SQLite backup API in the designated backups directory.
-Legacy self-purchase keys are migrated by adding occurrence ordinal 1 without deleting existing purchases.
+The installer fails closed for root/sudo, noncanonical paths, absent protected env, missing directories, differing existing user units or an active system-level timer. It never overwrites divergent units, changes credentials, restarts Hermes or deletes SQLite. Installing/enabling the timer may catch up a missed run immediately (`Persistent=true`).
+
+Schedule: 08:00 Europe/Moscow, `Persistent=true`. Never rebuild SQLite daily. Before schema changes, take a SQLite backup with the SQLite backup API in the designated backup directory. Legacy self-purchase keys were migrated by adding occurrence ordinal 1.
+
+### Retired system-level installer
+
+The old `systemd/msp-data-sync.service`, `systemd/msp-data-sync.timer` and `/opt/mcp/secrets/msp-data-alerts.env` references represent a **retired root/system systemd design** and are kept for historical review only. Do not install, enable or deploy those units. The supported recovery is the Hermes user installer above. A future system-level alternative would require a separate design review and acceptance.
 
 ## Automatic daily synchronization and Hermes Telegram alerts (2026-10-08)
 
@@ -61,11 +68,7 @@ The systemd user bus is accessible with
 `DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus`.
 Hermes already has lingering enabled so the user timer can run after reboot.
 The daily schedule remains 08:00 Europe/Moscow, `Persistent=true`.
-The root-level `systemd/msp-data-sync.*` files remain a reproducibility
-alternative only; do not install their root service without a separate
-administrator-approved root deployment. To recover or redeploy: restore `msp-server-stack`,
-copy user systemd service/timer, make sure existing Hermes .env still contains TELEGRAM_BOT_TOKEN, enable the timer, and verify
-the group-topic route and exact four-source synchronization. Do not put runtime
+The root-level units are historical and unsupported. Recover from canonical main with the Hermes user installer above; verify the route and all four sources. Stop for owner-assisted recovery if the existing protected Hermes env is missing or improperly permissioned. Do not put runtime
 SQLite or credentials in Git. Do not use artificial error injections in
 live Google Sheets; alert handling is tested with mocked sendMessage.
 

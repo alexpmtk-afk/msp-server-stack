@@ -26,5 +26,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile sync
         run: python3 -m py_compile apps/msp_data_sync/sync.py
+      - name: Syntax-check supported recovery installer
+        run: bash -n scripts/deploy/install-msp-data-sync.sh
+      - name: Installer must reject non-Hermes execution
+        run: |
+          if bash scripts/deploy/install-msp-data-sync.sh --check /opt/mcp/projects/msp-server-stack > /tmp/msp-installer-test.log 2>&1; then
+            echo 'FAIL: installer accepted an unauthorized user' >&2
+            exit 1
+          fi
+          grep -q 'STOP: run as hermes' /tmp/msp-installer-test.log
       - name: Unit tests
         run: python3 -m unittest discover -s tests -p 'test_msp*sync.py' -v
