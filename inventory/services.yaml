@@ -43,6 +43,7 @@ remote_interaction:
       - mpstats-skill-discovery-audit
       - hermes-cli-capability-audit
       - mpstats-agent-acceptance
+      - mpstats-runtime-integrity-audit
   workflow:
     - discover-target
     - read-only-diagnostics
@@ -157,6 +158,13 @@ components:
     observed_tool_error_count: 5
     behavioral_acceptance: pass
     behavioral_acceptance_date: "2026-10-08"
+    latest_runtime_audit: docs/MPSTATS_REMOTE_FULL_AUDIT_2026-10-08.md
+    latest_runtime_audit_issue: 154
+    latest_runtime_audit_result: pass
+    latest_runtime_audit_errors: 0
+    latest_runtime_audit_warnings: 0
+    latest_runtime_audit_temp_entries: 0
+    latest_runtime_audit_target_commit: 503262060d7d818a6e2ed6fd5dead5dd41aab157
     next_semantic_stage: expand-real-business-analysis-and-validate-metric-units
     secrets: external
 
