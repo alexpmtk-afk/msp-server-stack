@@ -65,7 +65,7 @@ The repository intentionally contains no production credentials.
 
 Operational partial stack.
 
-As of 2026-10-08, Hermes/Codex, Telegram management, Telegram signal archiving, private browser access through Tailscale/nginx, the self-hosted REMOTE bridge, the read-only QRsite marketplace integration, the MSP local data layer, and the official MPSTATS MCP integration are working. MPSTATS live acceptance discovered 108 tools; semantic routing/safety coverage is recorded for all 108, and a reproducible Hermes MPSTATS skill is prepared so those semantics can be loaded by the REMOTE agent.
+As of 2026-10-08, Hermes/Codex, Telegram management, Telegram signal archiving, private browser access through Tailscale/nginx, the self-hosted REMOTE bridge, the read-only QRsite marketplace integration, the MSP local data layer, and the official MPSTATS MCP integration are working. MPSTATS live acceptance discovered 108 tools; semantic routing/safety coverage is recorded for all 108, and the canonical MPSTATS skill is deployed under the REMOTE Hermes skills tree so the agent can load those semantics.
 
 Automatic execution of Marketplace signals remains intentionally separate from analytical integrations and is not enabled merely because MPSTATS is connected.
 

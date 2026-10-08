@@ -171,3 +171,21 @@ Target on REMOTE:
 ```
 
 The deployed skill is self-contained: it receives copies of the semantic JSON files, live tool inventory and this semantic-layer document under its `references/` directory. No secret values are copied into the skill.
+
+### Deployment acceptance — 2026-10-08
+
+Deployment to REMOTE completed with `PASS`.
+
+- target: `/home/hermes/.hermes/skills/productivity/mpstats/`;
+- owner: `hermes:hermes`;
+- `SKILL.md`: mode `0644`;
+- all semantic references installed with mode `0644`;
+- deployed canonical commit: `64e0d20c4e48c269a5545acb4956e3106dab5714`;
+- semantic JSON validation: `PASS`;
+- installed skill contract validation: `PASS`;
+- Hermes Gateway remained `active`;
+- Hermes Dashboard remained `active`.
+
+The location and structure match the already working custom QRsite skill convention: `/home/hermes/.hermes/skills/productivity/<skill>/SKILL.md`.
+
+This proves that the semantic contract is physically installed in the standard Hermes skill tree. A future live agent task should still be used as behavioral acceptance: verify that the agent actually chooses MPSTATS and source precedence correctly in a real query, not merely that the files exist.
