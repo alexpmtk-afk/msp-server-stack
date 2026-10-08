@@ -10,7 +10,7 @@ EnvironmentFile=/home/hermes/.hermes/.env
 Environment=MSP_SIGNAL_TEST_MODE=1
 Environment=MSP_ALERT_CHAT_ID=-1002485321031
 Environment=MSP_ALERT_THREAD_ID=758
-ExecStart=/usr/bin/python3 /opt/mcp/projects/msp-server-stack/apps/msp_signal_notify/notify.py --interval 5
+ExecStart=/usr/bin/python3 /opt/mcp/projects/msp-server-stack/apps/msp_signal_notify/notify.py --interval 60
 Restart=always
 RestartSec=10
 UMask=0077
