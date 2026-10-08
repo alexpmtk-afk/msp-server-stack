@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "dataset": "price_journal_archive",
   "purpose": "Historical price changes for agent queries",
   "source": {
@@ -114,13 +114,15 @@
   "uniqueness": "event_key unique; same-day repeated source rows kept as separate occurrences",
   "relations": "LEFT JOIN product_listing by marketplace/store/marketplace_sku; unmatched historical events remain stored and logged",
   "normalization": "trim text; lowercase marketplace/store; aliases from config; strict ASCII digits SKU; comma decimal to exact decimal TEXT; date to ISO",
-  "updates": "upsert changed event key; no deletes on absence; full source hash skips clean identical snapshots",
+  "updates": "Normal sync: upsert changed event key, no auto-deletes on absence, skip clean unchanged snapshot. One-time 2026-10-08 archive reset explicitly authorized, implemented via guarded admin migration outside routine importer.",
   "limitations": [
     "No immutable event ID exists. Same-date repeated-event reordering/removal can make ordinal identity ambiguous; preserve source order.",
     "Moving an event between sheets retains both origins; do not silently deduplicate.",
     "Currency not supplied; do not invent it.",
     "Invalid rows retained with complete raw CSV row in sync_error.",
-    "Current formula sentinel row is logged as technical, not imported as price event."
+    "Current formula sentinel row is logged as technical, not imported as price event.",
+    "Archive sheet was intentionally cleared on 2026-10-08; source currently has no business data in A:R; residual W/Y/Z technical cells have no event meaning.",
+    "Historically imported 6472 archive price events were explicitly purged after SQLite backup; historical sync metadata/errors may remain for audit and are not live archive contents."
   ],
   "excluded_columns": [
     "СВЕРКА цены",
@@ -137,5 +139,17 @@
     "распродажа",
     "unnamed/control/count columns"
   ],
-  "warning": "Артикул наш is a label; authoritative internal_article/product_name come from catalog after matching. Positional column mapping forbidden."
+  "warning": "Артикул наш is a label; authoritative internal_article/product_name come from catalog after matching. Positional column mapping forbidden.",
+  "source_state": {
+    "as_of": "2026-10-08",
+    "business_columns": "A:R",
+    "operator_action": "Owner cleared archive sheet, requested deletion of previously imported archive segment from REMOTE",
+    "currently_empty": true,
+    "legacy_technical_cells": "Residual nonbusiness cells only in W/Y/Z; ignore for price events",
+    "behavior_when_empty": "Treat headerless/zero-business-row archive source as successful empty snapshot, not source failure; no new price events",
+    "future_business_rows": "When valid archive header and rows reappear, resume normal incremental imports",
+    "deletion_policy": "One-time owner-authorized archive-segment data reset after verified backup and source-empty check; NEVER delete historical business rows from regular empty-source synchronization",
+    "current_source_separation": "Existing price_journal_current segment is independent and must remain unchanged",
+    "audit": "Old sync_run and sync_error are audit history, not active archive business events"
+  }
 }

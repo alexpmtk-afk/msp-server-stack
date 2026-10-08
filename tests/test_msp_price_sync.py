@@ -1,4 +1,5 @@
 import csv
+import io
 import importlib.util
 import json
 import tempfile
@@ -83,5 +84,49 @@ class PriceSyncTests(unittest.TestCase):
         for value in ['1.5','0','-2','NaN']:
             with self.assertRaises(ValueError):m.qty(value)
         self.assertEqual(m.qty('2,0'),2)
+
+
+    def test_cleared_archive_with_orphan_technical_columns_is_success(self):
+        import io
+        rows=[['']*26 for _ in range(3)]
+        rows[1][22]='распродажа'
+        rows[2][24]='Артикул мп'
+        rows[2][25]='1049'
+        buf=io.StringIO()
+        csv.writer(buf).writerows(rows)
+        with patch.object(m,'fetch',return_value=(200,buf.getvalue().encode(),None,None)):
+            first=m.sync(self.c,self.cfg,'price_journal_archive')
+            second=m.sync(self.c,self.cfg,'price_journal_archive')
+        self.assertEqual((first['status'],first['source_rows'],first['rejected']),('success',0,0))
+        self.assertEqual(second['status'],'unchanged_snapshot')
+        self.assertEqual(self.c.execute("select count(*) from price_event where source_segment='archive'").fetchone()[0],0)
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0],0)
+
+    def test_archived_rows_can_be_added_after_intentional_empty_snapshot(self):
+        with patch.object(m,'fetch',return_value=(200,b'',None,None)):
+            empty=m.sync(self.c,self.cfg,'price_journal_archive')
+        self.assertEqual(empty['status'],'success')
+        buf=io.StringIO()
+        csv.writer(buf).writerows([self.header,self.row])
+        with patch.object(m,'fetch',return_value=(200,buf.getvalue().encode(),None,None)):
+            inserted=m.sync(self.c,self.cfg,'price_journal_archive')
+            unchanged=m.sync(self.c,self.cfg,'price_journal_archive')
+        self.assertEqual((inserted['inserted'],inserted['status']),(1,'success'))
+        self.assertEqual(unchanged['status'],'unchanged_snapshot')
+        self.assertEqual(self.c.execute("select count(*) from price_event where source_segment='archive'").fetchone()[0],1)
+
+    def test_empty_archive_snapshot_never_deletes_existing_price_history(self):
+        self.ingest([self.header,self.row],source='price_journal_archive')
+        self.ingest([self.header,self.row],source='price_journal_current')
+        with patch.object(m,'fetch',return_value=(200,b'',None,None)):
+            result=m.sync(self.c,self.cfg,'price_journal_archive')
+        self.assertEqual((result['status'],result['source_rows']),('success',0))
+        segments=self.c.execute("select source_segment,count(*) from price_event group by source_segment order by source_segment").fetchall()
+        self.assertEqual([tuple(x) for x in segments],[('archive',1),('current',1)])
+
+    def test_cleared_current_journal_is_still_invalid(self):
+        with patch.object(m,'fetch',return_value=(200,b'',None,None)):
+            with self.assertRaises(ValueError):
+                m.sync(self.c,self.cfg,'price_journal_current')
 
 if __name__=='__main__':unittest.main()

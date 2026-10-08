@@ -1,4 +1,4 @@
-version: 4
+version: 5
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -80,6 +80,22 @@ source_contracts:
 
     current_correction: "2026-10-08: source rows 68-75 and 80-83 corrected to novok by owner approval."
     legacy_rule: "Only older CSVs with ЮЛ but without магазин use the old ЮЛ→store lookup."
+  price_journal_archive:
+    source: "_05_экпорт: бд для МСП / журнал цен (архив)"
+    state_as_of: "2026-10-08"
+    business_columns: "A:R"
+    business_rows: 0
+    technical_remnants: "260 source rows contain W/Y/Z technical-only values, not price events"
+    current_archive_price_events: 0
+    one_time_owner_authorized_reset: >
+      После резервной копии SQLite удалить только ранее импортированные события
+      сегмента price_event.source_segment='archive'. Не удалять current.
+    normal_refresh_policy: >
+      Пустой архив — успешный пустой снимок. Ничего не выдумывать и не загружать
+      служебные W/Y/Z. Если пользователь позже добавит строки с заголовком,
+      обычная синхронизация снова импортирует архив. Обычная синхронизация
+      НИКОГДА не удаляет события при очистке исходника автоматически.
+    audit_policy: "Исторические ошибки/запуски сохраняются как аудит, не как живой архив"
 operational_metrics_policy: >
   Себестоимость, литраж, остатки, текущая цена, ожидание производства и другие изменяемые
   показатели не являются частью product_catalog. Если они понадобятся агенту, для них нужно

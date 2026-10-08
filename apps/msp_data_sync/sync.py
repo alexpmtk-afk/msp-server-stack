@@ -213,7 +213,13 @@ def sync(c,cfg,source):
         if st and st['content_sha256']==sha and not cfg.get('retry_rejected', True):
             c.execute('update sync_state set etag=?,last_modified=?,last_success_at=? where source=?',(etag,lm,now(),source));c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=? where run_id=?',(now(),'unchanged_snapshot',status,st['source_rows'] or 0,run));c.commit();return {'source':source,'status':'unchanged_snapshot',**n}
         rows=list(csv.reader(io.StringIO(body.decode('utf-8-sig'))))
-        if not rows or not rows[0]: raise ValueError('empty or invalid CSV')
+        # An intentionally cleared archive may have no header or business rows.
+        # Google can still export orphan technical cells in W:Z (outside A:R).
+        # Only this source is allowed to be empty; never infer deletion from it.
+        empty_archive=(source=='price_journal_archive' and
+                       not any(any(txt(cell) for cell in row[:18]) for row in rows))
+        if (not rows or not rows[0]) and not empty_archive:
+            raise ValueError('empty or invalid CSV')
         needs_policy_recheck=(source=='self_purchase' and
             c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone())
         if st and st['content_sha256']==sha and last_source_clean(c,source,run) and not needs_policy_recheck:
@@ -225,7 +231,10 @@ def sync(c,cfg,source):
             c.commit()
             return {'source':source,'status':'unchanged_snapshot',**dict(n,source_rows=st['source_rows'],unchanged=unchanged,planned=plans,skipped_missing_sku=skipped)}
         c.execute('begin')
-        n=product(c,rows,run) if source=='product_catalog' else selfbuy(c,rows,run,cfg) if source=='self_purchase' else prices(c,rows,run,source,cfg)
+        n=(dict(n) if empty_archive else
+           product(c,rows,run) if source=='product_catalog' else
+           selfbuy(c,rows,run,cfg) if source=='self_purchase' else
+           prices(c,rows,run,source,cfg))
         c.execute('insert into sync_state values(?,?,?,?,?,?) on conflict(source) do update set etag=excluded.etag,last_modified=excluded.last_modified,content_sha256=excluded.content_sha256,last_success_at=excluded.last_success_at,source_rows=excluded.source_rows',(source,etag,lm,sha,now(),n['source_rows']));c.commit()
         c.execute('update sync_run set finished_at=?,status=?,http_status=?,source_rows=?,inserted=?,updated=?,unchanged=?,rejected=?,planned=?,skipped_missing_sku=? where run_id=?',(now(),'partial' if n['rejected'] else 'success',status,n['source_rows'],n['inserted'],n['updated'],n['unchanged'],n['rejected'],n.get('planned',0),n.get('skipped_missing_sku',0),run));c.commit();return {'source':source,'status':'partial' if n['rejected'] else 'success',**n}
     except Exception as e:
