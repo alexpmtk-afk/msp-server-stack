@@ -1,4 +1,4 @@
-version: 3
+version: 4
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -47,13 +47,22 @@ source_contracts:
     store_validation: "Product listing match using marketplace+store+marketplace_sku."
     legal_entity_column: "Not present; deprecated field in SQLite, never infer a legal entity from a store."
     mismatch_rule: "Reject and log a source store/SKU inconsistency; do not silently reassign the store."
-    missing_data_rule: "Missing date means planned, not an error; absent SKU/quantity are SQL NULL; never invent dates, quantity or SKU."
+    missing_data_rule: "Missing Артикул МП (blank SKU) always skips the entire row without sync_error. If SKU is present but date missing, planned. Quantity may be NULL only for planned."
+    missing_sku_policy:
+      source_column: "Артикул МП"
+      check: "trimmed cell empty"
+      action: "skip entire source row for self_purchase catalog"
+      applies_to: [planned, completed]
+      do_not: "infer SKU from internal article or product names; do not auto-fill source"
+      log: "skipped_missing_sku count, not rejected or sync_error"
+      existing_null_plan: "mark is_current=0; preserve audit history but exclude from live view"
+      later_filled_sku: "reprocess changed source row normally"
     lifecycle:
       planned:
-        condition: "purchase_date missing in source"
+        condition: "numeric Артикул МП present, but purchase_date missing in source"
         storage: "self_purchase_plan"
         view: "v_self_purchase_plan"
-        nullable_fields: [marketplace_sku, quantity, purchase_date, review_date, review_url, review_draft]
+        nullable_fields: [quantity, purchase_date, review_date, review_url, review_draft]
         analytics_policy: "exclude from actual sales/self-purchase quantity"
         expected_partial: false
       completed:

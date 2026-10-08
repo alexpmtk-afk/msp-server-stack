@@ -54,9 +54,10 @@ The column "магазин" gives the actual marketplace store/cabinet directly,
 not a legal entity; do NOT derive or override it through the old ЮЛ mapping.
 Completed rows must match source marketplace + store + numeric marketplace_sku
 against product_listing and require date/quantity. When purchase date is missing,
-the row is a planned self-purchase, not a broken completed purchase: optional
-SKU/quantity remain SQL NULL, and it is stored in self_purchase_plan.
-Blank values must not be guessed.
+the row is a planned self-purchase only if "Артикул МП" is a nonempty numeric SKU.
+Quantity can remain SQL NULL until completed; missing date is normal and stored in
+self_purchase_plan. A blank "Артикул МП" field skips the entire row without error
+or an inferred SKU, regardless of date and quantity. Blank values must not be guessed.
 
 The SQLite legal_entity column remains for backwards compatibility,
 but is not supplied by the current source. New-format imports use an
@@ -69,13 +70,19 @@ Canonical semantics are in config/msp-data/semantics/catalog.yaml and self_purch
 
 ## Planned self-purchases and incremental completion (owner-approved 2026-10-08)
 
-Current export rows without purchase date are planned purchases; 9 such rows
-(42-46, 51-53, 84) existed at the time of approval. They are persisted in
-self_purchase_plan (v_self_purchase_plan for current plans), with NULL for
-missing purchase date, quantity or numeric SKU. Plans are not included in
+Current export rows without purchase date and WITH a numeric marketplace SKU are
+planned purchases: 8 rows (42-46, 51-53) exist at the time of approval.
+They are persisted in self_purchase_plan (v_self_purchase_plan for current plans),
+with NULL for missing purchase date or quantity. Row 84 has no "Артикул МП"
+and is deliberately SKIPPED, not imported as planned or completed. Plans are not included in
 v_self_purchase, self_purchase_quantity, or any completed-sales adjustment.
 An absent purchase date is not a rejected row or a sync error; it must not
-make the self_purchase sync status partial.
+make the self_purchase sync status partial. A blank "Артикул МП" is also not
+a source error in this catalog; it is reported as skipped_missing_sku.
+If a previously loaded planned row loses its SKU, mark that plan inactive
+and keep prior content only in the internal audit table, never in the active
+v_self_purchase_plan view. If the SKU is later filled, a new source refresh
+can import it normally. Validate only this dataset, not prices or product catalog.
 
 Every new/changed source snapshot is scanned fully, including older rows.
 When a planned row acquires a valid date, SKU and positive quantity and
@@ -100,13 +107,13 @@ Queries:
 SELECT source_row,marketplace,store,marketplace_sku,internal_article,quantity,purchase_date
 FROM v_self_purchase_plan ORDER BY source_row;
 SELECT count(*) AS planned_count FROM v_self_purchase_plan;
-SELECT source,status,source_rows,planned,rejected FROM sync_run
+SELECT source,status,source_rows,planned,skipped_missing_sku,rejected FROM sync_run
 WHERE source='self_purchase' ORDER BY run_id DESC LIMIT 1;
 ```
 
 ## Accounting and limitations
 
-Each nonempty source row contributes to source_rows and to inserted/updated/unchanged/rejected.
+Each nonempty source row contributes to source_rows; self_purchase also counts planned and skipped_missing_sku independently of inserted/updated/unchanged/rejected.
 Invalid rows retain original values and source row in sync_error. The formula sentinel row is explicitly logged as technical and rejected from business history.
 Identical source problems are stored once in sync_error; later runs still report rejected counts in sync_run but do not append duplicate copies of the same error.
 Valid rows commit even when another row fails; partial runs exit nonzero and are retried. Source-level failures do not prevent other sources from being attempted.
