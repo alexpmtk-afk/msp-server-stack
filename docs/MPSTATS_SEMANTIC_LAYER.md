@@ -189,3 +189,25 @@ Deployment to REMOTE completed with `PASS`.
 The location and structure match the already working custom QRsite skill convention: `/home/hermes/.hermes/skills/productivity/<skill>/SKILL.md`.
 
 This proves that the semantic contract is physically installed in the standard Hermes skill tree. A future live agent task should still be used as behavioral acceptance: verify that the agent actually chooses MPSTATS and source precedence correctly in a real query, not merely that the files exist.
+
+
+## Behavioral acceptance — 2026-10-08
+
+The deployed skill was verified in the live Hermes skill registry:
+
+- `hermes skills list` reports `mpstats` as a local enabled productivity skill;
+- the skill remains at `/home/hermes/.hermes/skills/productivity/mpstats/SKILL.md`;
+- no gateway restart was needed.
+
+A controlled one-shot Hermes model turn then preloaded `--skills mpstats`, explicitly prohibited all tool/MCP/network/shell calls, and tested four routing/safety decisions. The workflow returned only boolean acceptance checks; the model response itself was not persisted.
+
+Results:
+
+- company self-purchase canonical source → `v_self_purchase`: **PASS**;
+- company price-action history canonical source → `v_price_history`: **PASS**;
+- external Wildberries niche/competitor analytics → MPSTATS: **PASS**;
+- `wb_shelves_project` must require confirmation, not automatic execution: **PASS**.
+
+Overall behavioral acceptance: **PASS**.
+
+This closes the core semantic-foundation loop: the MPSTATS MCP is installed, its tools are inventoried, semantic routing/safety rules exist, those rules are deployed as a Hermes skill, Hermes recognizes the skill, and a fresh model turn applies the key rules correctly without external tool use.
