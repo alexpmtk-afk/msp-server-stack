@@ -116,7 +116,7 @@ operational_metrics_policy: >
   создавать отдельные каталоги/метрики с собственной семантикой и правилами обновления.
 notification_policy:
   transport: "Existing Hermes Telegram Bot API token, outgoing sendMessage only; do not start another polling consumer"
-  destination: "Protected Hermes user environment file /home/hermes/.config/msp-data/alerts.env (0600), no credentials in Git"
+  destination: "Existing Hermes 0600 environment under /home/hermes/.hermes/.env supplies TELEGRAM_BOT_TOKEN; no token duplication. Target chat/thread are nonsecret user-unit Environment values."
   target_chat: "АП_Лазер"
   target_topic: "Удалённый сервер"
   on_partial: "Warn, include source, rejected count, current sync_run_issue row numbers and reasons"
