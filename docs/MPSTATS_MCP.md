@@ -206,3 +206,10 @@ Live MPSTATS skill was safely updated from the previously accepted commit to `f1
 Official provider knowledge is indexed in [MPSTATS_OFFICIAL_KNOWLEDGE.md](MPSTATS_OFFICIAL_KNOWLEDGE.md) and included in the deployed Hermes MPSTATS skill at commit `503262060d7d818a6e2ed6fd5dead5dd41aab157`.
 
 First actual business read: private bridge issue [#150](https://github.com/alexpmtk-afk/msp-server-bridge/issues/150) succeeded with `wb_sku(report=full)` for WB SKU `218395039`. The result verified external product/price/sales/stock fields and exposed potential differences between FBO/FBS and estimated orders vs Insight-style purchase fields. The fact that a SKU can be queried does not mean it belongs to MSP; compare it with the canonical internal catalog before treating it as an own SKU.
+
+
+## Full REMOTE integrity audit — 2026-10-08
+
+Sanitized read-only verification: [MPSTATS_REMOTE_FULL_AUDIT_2026-10-08.md](MPSTATS_REMOTE_FULL_AUDIT_2026-10-08.md), private bridge issue [#154](https://github.com/alexpmtk-afk/msp-server-bridge/issues/154).
+
+Result: **PASS, 0 errors, 0 warnings**. Both Codex configs, preserved `hermes-tools`, protected secret file mode/owner, all pinned skill files SHA-256, Hermes CLI/Codex CLI discovery, and both active services validated. Two legitimate local config backups (one per profile), zero stale MPSTATS temporary directories. No REMOTE changes were necessary. Historical GitHub deployment workflows are documented as potential deactivation candidates, but no cleanup/deletion was performed.
