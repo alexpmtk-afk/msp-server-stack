@@ -62,6 +62,10 @@ def cols(header,need):
 def val(r,i): return r[i] if i<len(r) else ''
 def err(c,run,source,row,e,raw):
     message=str(e)[:1000]; raw_json=json.dumps(raw,ensure_ascii=False)[:10000]
+    # Exact issues must be available on EVERY partial/failed run. The long-term
+    # sync_error ledger intentionally deduplicates identical historical errors.
+    c.execute('insert into sync_run_issue(run_id,source,source_row,error,created_at) values(?,?,?,?,?)',
+              (run,source,row,message,now()))
     exists=c.execute(
         'select 1 from sync_error where source=? and ifnull(source_row,-1)=ifnull(?,-1) and error=? and raw_json=? limit 1',
         (source,row,message,raw_json)
