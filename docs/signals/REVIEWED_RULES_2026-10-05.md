@@ -12,15 +12,18 @@ Interpretation:
 - dates are promised production inbound dates;
 - the article in parentheses is the marketplace SKU, not the internal article.
 
-Decision per item:
+Decision per item (user clarification 2026-10-09):
 
-1. take the current calendar date;
-2. add N coverage days to get the boundary date;
-3. compare with the nearest applicable inbound date;
-4. inbound on or before the boundary -> do not raise price;
-5. inbound after the boundary -> raise price.
+1. resolve the exact marketplace SKU (article in parentheses) and the _N coverage-days value;
+2. if _N is absent or cannot be interpreted -> insufficient data, do not invent a price decision;
+3. if _N is present but **no production/inbound date appears for that product** -> **recommend raising the price**. Business interpretation: the product has not been ordered for production, so there is no known next arrival; do not describe this as merely "insufficient data";
+4. if a date is printed but invalid, stale or ambiguous -> insufficient data pending clarification; an unusable printed date is not proof of no production order;
+5. if a valid inbound date exists, compare the nearest applicable date with the boundary of current calendar date + N coverage days;
+6. inbound on or before the boundary -> do not raise price; inbound after the boundary -> recommend raising price.
 
-The current day is included in N. Example: 05.10 with N=3 covers 05, 06 and 07 October; inbound on 08.10 is acceptable, 09.10 or later requires a price increase.
+The current day is included in N. Example: 05.10 with N=3 covers 05, 06 and 07 October; inbound on 08.10 is acceptable, 09.10 or later requires a price increase. A product with 6 coverage days and a blank production-date field must be marked "recommend raising the price — no production order / no planned arrival date".
+
+This is a **business interpretation of the missing date in this particular signal**, not a generic assertion that every missing date in every source means no production order. Preserve the original SKU and exact coverage days in the report.
 
 Execution is not enabled. The future action tool and the actual price-change amount are still undefined.
 
