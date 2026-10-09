@@ -78,10 +78,12 @@ def parse_date(raw: str, today: date):
 
 
 def price_advice(text: str, today: date) -> list[str]:
-    """Require explicit SKU, _N coverage days and inbound date on the same row.
+    """Require explicit SKU and _N coverage days on the same item row.
 
-    No inference of missing quantities or dates. A signal may contain items on
-    multiple lines; uncertain items must be flagged rather than invented.
+    Business rule: when coverage days exist but no production/inbound date is
+    present, the product is treated as not ordered for production and a price
+    increase is recommended. Malformed or outdated dates are not missing dates:
+    preserve uncertainty rather than inferring a production status.
     """
     results, seen = [], set()
     for line in text.splitlines():
@@ -95,10 +97,21 @@ def price_advice(text: str, today: date) -> list[str]:
             if market_sku in seen:
                 continue
             seen.add(market_sku)
-            if not days or not arrivals:
-                results.append(f"SKU {market_sku}: недостаточно данных для решения (нужны _N дней и дата поступления).")
+            if not days:
+                results.append(f"SKU {market_sku}: недостаточно данных для решения (не указаны дни остатка _N).")
                 continue
             coverage = int(days.group(1))
+            if not candidates:
+                results.append(
+                    f"SKU {market_sku}: РЕКОМЕНДУЕТСЯ поднять цену; запас {coverage} дн.; "
+                    "дата поступления с производства отсутствует "
+                    "(по правилу товар не заказан на производство).")
+                continue
+            if not arrivals:
+                results.append(
+                    f"SKU {market_sku}: недостаточно данных для решения "
+                    "(дата поступления указана, но некорректна или уже прошла).")
+                continue
             limit = today + timedelta(days=coverage)
             arrival = min(arrivals)
             choice = "НЕ поднимать цену" if arrival <= limit else "РЕКОМЕНДУЕТСЯ поднять цену"
