@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "policy_revision": "draft-operator-v1",
+  "capabilities": {
+    "github.public_read": {
+      "provider": "github",
+      "target": [
+        "alexpmtk-afk/msp-server-stack"
+      ],
+      "probe": "github_public",
+      "ttl": 300,
+      "enabled": true
+    },
+    "github.authenticated_read": {
+      "provider": "github",
+      "target": [
+        "alexpmtk-afk/msp-server-stack"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "github.write": {
+      "provider": "github",
+      "target": [
+        "alexpmtk-afk/msp-server-stack"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "github.pr": {
+      "provider": "github",
+      "target": [
+        "alexpmtk-afk/msp-server-stack"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "github.ci_read": {
+      "provider": "github",
+      "target": [
+        "alexpmtk-afk/msp-server-stack"
+      ],
+      "probe": "github_ci",
+      "ttl": 300,
+      "enabled": true
+    },
+    "github.merge": {
+      "provider": "github",
+      "target": [
+        "alexpmtk-afk/msp-server-stack"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "google.public_sheet": {
+      "provider": "google",
+      "target": [
+        "registered-workbooks"
+      ],
+      "probe": "google_public",
+      "ttl": 300,
+      "enabled": true
+    },
+    "google.private_sheet": {
+      "provider": "google",
+      "target": [
+        "registered-workbooks"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "google.write": {
+      "provider": "google",
+      "target": [
+        "registered-workbooks"
+      ],
+      "probe": "disabled",
+      "ttl": 300,
+      "enabled": false
+    },
+    "remote.user_filesystem": {
+      "provider": "remote",
+      "target": [
+        "/opt/mcp/projects/msp-server-stack",
+        "/opt/mcp/data/msp",
+        "/opt/mcp/backups/msp"
+      ],
+      "probe": "filesystem",
+      "ttl": 300,
+      "enabled": true
+    },
+    "remote.deploy": {
+      "provider": "remote",
+      "target": [
+        "msp-data-catalog"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "remote.systemd_admin": {
+      "provider": "remote",
+      "target": [
+        "msp-data-catalog"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "remote.backup": {
+      "provider": "remote",
+      "target": [
+        "msp-data-catalog"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "remote.restore": {
+      "provider": "remote",
+      "target": [
+        "msp-data-catalog"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "hermes.task_dispatch": {
+      "provider": "tasks",
+      "target": [
+        "default-owner-telegram"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "hermes.durable_tasks": {
+      "provider": "tasks",
+      "target": [
+        "default-owner-telegram"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    },
+    "hermes.multipart_collection": {
+      "provider": "tasks",
+      "target": [
+        "default-owner-telegram"
+      ],
+      "probe": "broker",
+      "ttl": 300,
+      "enabled": true
+    }
+  }
+}
