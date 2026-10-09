@@ -88,7 +88,7 @@ def main():
    ran=worker.run_once()
    if config.get('telegram_delivery',False):
     from .production import deliver_once,telegram_sender
-    deliver_once(j,q,telegram_sender)
+    deliver_once(j,q,telegram_sender,min_created_at=config.get('telegram_delivery_cutover_at'))
    if a.once:break
    if not ran:wake.wait(min(5,max(.05,config.get('poll',1))))
  finally:j.close();os.close(lock_fd)
