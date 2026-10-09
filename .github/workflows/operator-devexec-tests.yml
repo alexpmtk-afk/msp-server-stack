@@ -32,11 +32,11 @@ jobs:
           export HERMES_DISABLE_LAZY_INSTALLS=1
           python - <<'PY'
           import sys,unittest
-          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary")
+          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests")
           suite=unittest.defaultTestLoader.loadTestsFromNames(names)
           n=suite.countTestCases()
           print("DISCOVERED_TESTS="+str(n),flush=True)
-          if n!=28:raise SystemExit("EXPECTED_28_TESTS")
+          if n!=31:raise SystemExit("EXPECTED_31_TESTS")
           outcome=unittest.TextTestRunner(verbosity=2).run(suite)
           if not outcome.wasSuccessful():sys.exit(1)
           print("OPERATOR_DEVEXEC_TESTS=PASS")
