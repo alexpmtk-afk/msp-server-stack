@@ -55,14 +55,37 @@ class PassiveNotifierTests(unittest.TestCase):
         self.assertIsNone(m.identify("Нужно опубликовать отзыв"))
         self.assertIsNone(m.identify("Карточки в бане!"))
 
-    def test_price_advice_inclusive_rule_and_missing_data(self):
+    def test_price_advice_inclusive_rule_and_missing_production_date(self):
         rows = "Товар (123456789) _3 поступление 11.10.2026\nТовар (987654321) _3 поступление 12.10.2026\nТовар (112233445) _5 неизвестно"
         advice = m.price_advice(rows, self.clock)
         self.assertEqual(len(advice), 3)
         self.assertIn("НЕ поднимать", advice[0])
         self.assertIn("РЕКОМЕНДУЕТСЯ поднять", advice[1])
-        self.assertIn("недостаточно данных", advice[2])
+        self.assertIn("РЕКОМЕНДУЕТСЯ поднять", advice[2])
+        self.assertIn("не заказан на производство", advice[2])
         self.assertIn("граница 11.10.2026", advice[0])
+
+    def test_missing_production_date_and_six_days_means_raise_price(self):
+        rows = "Изделие (123456789) _6   \nДругое изделие (987654321) _6"
+        advice = m.price_advice(rows, date(2026, 10, 9))
+        self.assertEqual(len(advice), 2)
+        for item in advice:
+            self.assertIn("РЕКОМЕНДУЕТСЯ поднять цену", item)
+            self.assertIn("запас 6 дн.", item)
+            self.assertIn("дата поступления с производства отсутствует", item)
+        report = m.format_report("SIG-002", "Поднять цену", rows, 77, date(2026, 10, 9))
+        self.assertIn("не заказан на производство", report)
+        self.assertIn("ИМИТАЦИЯ", report)
+
+    def test_invalid_or_stale_date_is_not_treated_as_missing(self):
+        rows = ("Товар (123456789) _6 32.10.2026\n"
+                "Товар (987654321) _6 01.10.2026\n"
+                "Товар (112233445) дата не указана")
+        advice = m.price_advice(rows, date(2026, 10, 9))
+        self.assertEqual(len(advice), 3)
+        for item in advice:
+            self.assertIn("недостаточно данных", item)
+            self.assertNotIn("РЕКОМЕНДУЕТСЯ поднять", item)
 
     def test_first_start_skips_old_history_and_sends_new_only(self):
         self.insert(10, "Превышен расход по РК: старый сигнал")
