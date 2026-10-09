@@ -113,6 +113,21 @@ components:
     automatic_execution: false
     runtime_observations_in_git: false
 
+  - id: msp-signals-hermes-skill
+    kind: agent-skill
+    status: ready-for-deployment
+    purpose: manual analysis of six reviewed Marketplace signals
+    source: apps/hermes/msp_signals_skill/SKILL.md
+    installer: scripts/deploy/install-msp-signals-skill.sh
+    runtime_target: /home/hermes/.hermes/skills/productivity/msp-signals
+    canonical_rules: docs/signals/REVIEWED_RULES_2026-10-05.md
+    passive_notifier: apps/msp_signal_notify/notify.py
+    polling_interval_seconds: 60
+    sig002_missing_production_date: recommend_price_increase
+    actual_marketplace_actions: disabled
+    notification_transport: existing_hermes_telegram_bot
+    secrets: none
+
   - id: qrsite-integration
     kind: external-integration
     status: partial
