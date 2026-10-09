@@ -1,0 +1,33 @@
+name: HOME MPSTATS PowerShell installer syntax
+
+on:
+  push:
+    paths:
+      - "scripts/home/install_mpstats_codex.ps1"
+  pull_request:
+    paths:
+      - "scripts/home/install_mpstats_codex.ps1"
+
+permissions:
+  contents: read
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PowerShell parser without running installer
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'scripts/home/install_mpstats_codex.ps1').Path,
+            [ref]$tokens, [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host "PowerShell parser PASS"
