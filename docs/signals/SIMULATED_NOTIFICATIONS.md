@@ -37,13 +37,21 @@ cause a repeated message on retry (Bot API has no sendMessage idempotency key).
 
 ## Price advisory
 
-For `SIG-002`, read the market SKU from parentheses, the stock-coverage
-days from `_N`, and the incoming delivery date in the same source row.
-The decision boundary is `today (Europe/Moscow) + N days`:
+For `SIG-002`, read the market SKU from parentheses and the stock-coverage
+days from `_N`. If the same source row has a valid production/inbound date,
+compare it to `today (Europe/Moscow) + N days`:
 
 * next incoming shipment **on or before** boundary: do not raise price;
 * shipment **after** boundary: recommend raising price;
-* ambiguous, missing, or expired dates: request verification, do not invent.
+* **no production/inbound date anywhere in this item's row, but `_N` is known**:
+  **recommend raising price** — the business meaning of the empty date field
+  in this specific signal is "not ordered for production"; arrival is unknown;
+* a date is printed but malformed, expired or ambiguous, or `_N` is absent:
+  request verification; do not conflate an invalid date with an empty date.
+
+Clarification approved 2026-10-09. Example: product `(123456789) _6` and no
+production date → recommend raising price, explaining the absent production
+order. This is advice only, never an actual price update.
 
 The notifier does not select a new price or contact any marketplace API.
 
