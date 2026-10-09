@@ -27,6 +27,33 @@ class ProductionTests(unittest.TestCase):
   def unknown(*args):calls.append(args);raise OSError('unknown delivery')
   self.assertTrue(deliver_once(j,q,unknown));self.assertFalse(deliver_once(j,q,unknown));self.assertEqual(len(calls),1)
   self.assertEqual(q.status(tid)['state'],'DONE');self.assertEqual(j.db.execute('select status from outbox where task=?',(tid,)).fetchone()[0],'DELIVERY_UNKNOWN')
+ def test_telegram_cutover_delivers_only_new_done_task(self):
+  j=Journal(self.root);self.addCleanup(j.close)
+  from apps.operator_layer.queue import TaskQueue
+  q=TaskQueue(j,allowed_scope=SCOPE)
+  def admitted(name,created_at):
+   tid=j.create(SCOPE[2],name,PLAN)
+   q.submit(dict(task_id=tid,request_id=name,profile=SCOPE[0],owner=SCOPE[1],origin_chat=SCOPE[2],session_key=SCOPE[3],origin_platform='telegram'))
+   with j.db:
+    q._transition(tid,'DONE')
+    j.db.execute('insert into outbox(task,origin,body) values (?,?,?)',(tid,SCOPE[2],'{}'))
+    j.db.execute('update outbox set created_at=? where task=?',(created_at,tid))
+   return tid
+  old=admitted('old_done',100)
+  calls=[]
+  def sender(origin,text):
+   calls.append((origin,text))
+   return {'platform':'telegram','chat_id':SCOPE[2],'message_id':'cutover-test'}
+  self.assertFalse(deliver_once(j,q,sender,min_created_at=200))
+  self.assertEqual(len(calls),0)
+  new=admitted('new_done',300)
+  self.assertTrue(deliver_once(j,q,sender,min_created_at=200))
+  self.assertEqual(len(calls),1)
+  states=dict(j.db.execute('select task,status from outbox').fetchall())
+  self.assertEqual(states[old],'PENDING')
+  self.assertEqual(states[new],'DELIVERED')
+  self.assertFalse(deliver_once(j,q,sender,min_created_at=200))
+  with self.assertRaises(ValueError):deliver_once(j,q,sender,min_created_at=-1)
 class NativeTests(unittest.IsolatedAsyncioTestCase):
  async def test_exact_auth_ordinary_passthrough_and_predebounce_consume(self):
   import importlib.util,sys
