@@ -115,7 +115,7 @@ components:
 
   - id: msp-signals-hermes-skill
     kind: agent-skill
-    status: ready-for-deployment
+    status: deployed-behavior-accepted
     purpose: manual analysis of six reviewed Marketplace signals
     source: apps/hermes/msp_signals_skill/SKILL.md
     installer: scripts/deploy/install-msp-signals-skill.sh
@@ -125,6 +125,11 @@ components:
     polling_interval_seconds: 60
     sig002_missing_production_date: recommend_price_increase
     actual_marketplace_actions: disabled
+    installed_canonical_commit: 7b077c496fba1af839e5119e9201446861f99638
+    model_acceptance: pass
+    model_acceptance_issue: 210
+    manual_skill_discovery: pass
+    acceptance_report: docs/signals/HERMES_SKILL_ACCEPTANCE_2026-10-09.md
     notification_transport: existing_hermes_telegram_bot
     secrets: none
 
