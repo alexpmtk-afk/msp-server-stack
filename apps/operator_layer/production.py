@@ -41,11 +41,15 @@ def reply_text(r):
  if s=='CANCELLED':return 'Сборка отменена. Выполнение не запущено.'
  return 'Состояние сборки: '+str(s or r.get('reason','ERROR'))
 
-def deliver_once(j,q,sender):
- # Historic report outbox has no admitted queue row: never deliver it accidentally.
+def deliver_once(j,q,sender,*,min_created_at=None):
+ # An explicit cutover fence prevents pre-activation DONE results from being sent.
+ # Historic report outbox without a queue row is still excluded by the join.
+ if min_created_at is not None:
+  import math
+  if isinstance(min_created_at,bool) or not isinstance(min_created_at,(int,float)) or not math.isfinite(min_created_at) or min_created_at<0:raise ValueError('invalid_telegram_delivery_cutover')
  db=j.db;db.execute('BEGIN IMMEDIATE')
  try:
-  row=db.execute("SELECT o.task,o.origin,o.body FROM outbox o JOIN task_queue q ON q.task=o.task WHERE o.status='PENDING' AND o.delivered=0 AND q.state='DONE' AND q.scope=? ORDER BY o.created_at LIMIT 1",(q._scope_json(),)).fetchone()
+  row=db.execute("SELECT o.task,o.origin,o.body FROM outbox o JOIN task_queue q ON q.task=o.task WHERE o.status='PENDING' AND o.delivered=0 AND q.state='DONE' AND q.scope=? AND (? IS NULL OR o.created_at>=?) ORDER BY o.created_at LIMIT 1",(q._scope_json(),min_created_at,min_created_at)).fetchone()
   if row:db.execute("UPDATE outbox SET status='DELIVERY_UNKNOWN' WHERE task=?",(row[0],))
   db.commit()
  except BaseException:db.rollback();raise
