@@ -1,5 +1,7 @@
 # AGENTS.md
 
+When handling **MSP Marketplace Telegram signals** or the SIG-002 price-advice case, agents must use the canonical `docs/signals/REVIEWED_RULES_2026-10-05.md` and the Hermes manual Skill `apps/hermes/msp_signals_skill/SKILL.md`; passive background processing uses `apps/msp_signal_notify/notify.py`. In particular, SKU + `_N` days with **no** production/inbound date in the signal means **recommend raising price** (not «cannot determine»). The skill is instructions only; no marketplace write actions are authorized. Do not change Hermes Gateway or the MSP daily timer when deploying this skill.
+
 Instructions for chats, coding agents and automated assistants working with this repository.
 
 ## Before working with REMOTE
