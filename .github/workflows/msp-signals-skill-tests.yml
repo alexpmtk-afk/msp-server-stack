@@ -1,0 +1,31 @@
+name: MSP signals skill and notifier contract
+on:
+  push:
+    paths:
+      - 'apps/hermes/msp_signals_skill/**'
+      - 'apps/msp_signal_notify/**'
+      - 'docs/signals/**'
+      - 'scripts/deploy/install-msp-signals-skill.sh'
+      - 'tests/test_msp_signals_skill.py'
+      - 'tests/test_msp_signal_notify.py'
+  pull_request:
+    paths:
+      - 'apps/hermes/msp_signals_skill/**'
+      - 'apps/msp_signal_notify/**'
+      - 'docs/signals/**'
+      - 'scripts/deploy/install-msp-signals-skill.sh'
+      - 'tests/test_msp_signals_skill.py'
+      - 'tests/test_msp_signal_notify.py'
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate skill installer syntax
+        run: bash -n scripts/deploy/install-msp-signals-skill.sh
+      - name: Validate skill and signal business rules without any network calls
+        run: |
+          python3 -m unittest discover -s tests -p 'test_msp_signals_skill.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_signal_notify.py' -v
