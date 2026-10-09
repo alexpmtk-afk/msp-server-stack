@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "capability",
+    "state",
+    "provider",
+    "target",
+    "reason_code",
+    "checked_at",
+    "expires_at",
+    "evidence_id",
+    "policy_revision",
+    "tool_visible",
+    "authenticated",
+    "authorized",
+    "acceptance_verified"
+  ],
+  "properties": {
+    "state": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN",
+        "DISABLED"
+      ]
+    },
+    "tool_visible": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "authenticated": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "authorized": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "acceptance_verified": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "components": {
+    "msp-data-catalog": {
+      "repository": "alexpmtk-afk/msp-server-stack",
+      "database": "/opt/mcp/data/msp/msp_data.sqlite3",
+      "service": "msp-data-sync.service",
+      "timer": "msp-data-sync.timer",
+      "release_root": "/opt/mcp/releases/msp-data-catalog",
+      "service_user": "msp-sync",
+      "calendar": "*-*-* 08:00:00 Europe/Moscow",
+      "persistent": true
+    }
+  }
+}

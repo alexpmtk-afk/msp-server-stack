@@ -1,0 +1,43 @@
+name: Hermes Operator Development Executor Tests
+on:
+  pull_request:
+    paths:
+      - 'apps/operator_layer/**'
+      - 'tests/operator/**'
+      - '.github/workflows/operator-devexec-tests.yml'
+  push:
+    branches:
+      - 'feat/hermes-operator-layer-import-20261009'
+    paths:
+      - 'apps/operator_layer/**'
+      - 'tests/operator/**'
+      - '.github/workflows/operator-devexec-tests.yml'
+permissions:
+  contents: read
+jobs:
+  operator-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run isolated boundary tests without pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$PWD/tests/operator:$PWD"
+          export PYTHONDONTWRITEBYTECODE=1
+          export HERMES_DISABLE_LAZY_INSTALLS=1
+          python - <<'PY'
+          import sys,unittest
+          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests")
+          suite=unittest.defaultTestLoader.loadTestsFromNames(names)
+          n=suite.countTestCases()
+          print("DISCOVERED_TESTS="+str(n),flush=True)
+          if n!=31:raise SystemExit("EXPECTED_31_TESTS")
+          outcome=unittest.TextTestRunner(verbosity=2).run(suite)
+          if not outcome.wasSuccessful():sys.exit(1)
+          print("OPERATOR_DEVEXEC_TESTS=PASS")
+          PY

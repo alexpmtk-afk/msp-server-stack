@@ -1,0 +1,17 @@
+[Unit]
+Description=Hermes scoped durable task worker (no Telegram ingress)
+After=network-online.target
+[Service]
+Type=simple
+WorkingDirectory=/home/hermes/projects/hermes-operator-layer
+ExecStart=/home/hermes/.hermes/tools/python-3.14.7+20260901-linux-x64/bin/python3 -I /home/hermes/projects/hermes-operator-layer/scripts/operator/worker_entry.py --config /home/hermes/.hermes/operator-tasks/worker-config.json
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillMode=control-group
+Environment=HOME=/home/hermes HERMES_HOME=/home/hermes/.hermes PATH=/usr/bin:/bin
+UnsetEnvironment=PYTHONHOME PYTHONPATH LD_PRELOAD LD_LIBRARY_PATH HERMES_YOLO_MODE
+UMask=0077
+NoNewPrivileges=yes
+[Install]
+WantedBy=default.target
