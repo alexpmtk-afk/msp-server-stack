@@ -35,6 +35,10 @@ messages produce no notification. A Telegram send failure is retried, not
 marked delivered; a timeout occurring after a successful Telegram delivery may
 cause a repeated message on retry (Bot API has no sendMessage idempotency key).
 
+## Hermes manual analysis skill
+
+For manual queries to Hermes, the canonical agent-facing skill is `apps/hermes/msp_signals_skill/SKILL.md`, deployed through `scripts/deploy/install-msp-signals-skill.sh` into `/home/hermes/.hermes/skills/productivity/msp-signals/`. The skill bundles the six reviewed rules as local references. Automatic notifier code and Hermes manual skill must agree; a GitHub documentation update alone does not make an agent session load the rule. Validate skill discovery and actual model behavior after installation. Manual reprocessing must not send duplicate Telegram topic notifications unless explicitly requested.
+
 ## Price advisory
 
 For `SIG-002`, read the market SKU from parentheses and the stock-coverage
