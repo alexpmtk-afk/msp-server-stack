@@ -50,6 +50,25 @@ class SavedPlanningRecoveryTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,'multipart_parts_changed'):
    inspect(self.config,self.tid,self.rid,self.sha)
   self.assertEqual(self.j.db.execute("SELECT COUNT(*) FROM task_executions WHERE task=?",(self.tid,)).fetchone()[0],1)
+ def test_refuses_other_queued_task_without_changing_either(self):
+  other=self.j.create(SCOPE[2],'other task',PLAN[:1])
+  self.q.submit(dict(task_id=other,request_id='other-queued',profile=SCOPE[0],owner=SCOPE[1],origin_chat=SCOPE[2],session_key=SCOPE[3],origin_platform='telegram'))
+  with self.assertRaisesRegex(ValueError,'other_queue_work_in_progress'):
+   inspect(self.config,self.tid,self.rid,self.sha)
+  with self.assertRaisesRegex(ValueError,'other_queue_work_in_progress'):
+   apply(self.config,self.tid,self.rid,self.sha)
+  self.assertEqual(self.q.status(other)['state'],'QUEUED')
+  self.assertEqual(self.q.status(self.tid)['state'],'BLOCKED')
+  self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_executions WHERE task=?',(self.tid,)).fetchone()[0],1)
+ def test_refuses_open_multipart_collection_without_closing_it(self):
+  new=self.collector.receive(SCOPE,'another-open',None,'/task begin')
+  self.assertEqual(new['status'],'COLLECTING')
+  with self.assertRaisesRegex(ValueError,'multipart_ingress_in_progress'):
+   inspect(self.config,self.tid,self.rid,self.sha)
+  with self.assertRaisesRegex(ValueError,'multipart_ingress_in_progress'):
+   apply(self.config,self.tid,self.rid,self.sha)
+  self.assertEqual(self.collector.status(new['multipart_task_id'])['status'],'COLLECTING')
+  self.assertEqual(self.q.status(self.tid)['state'],'BLOCKED')
  def test_worker_flock_denies_apply(self):
   fd=os.open(self.root/'worker-service.lock',os.O_RDWR)
   try:
