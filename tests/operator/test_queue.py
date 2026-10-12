@@ -60,6 +60,45 @@ class QueueTests(unittest.TestCase):
   self.q.enqueue_multipart(c);self.q.enqueue_multipart(c)
   self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_queue').fetchone()[0],1)
   self.assertEqual(c.status(a['multipart_task_id'])['status'],'DISPATCHED')
+ def test_worker_recovers_completed_ingress_without_second_message(self):
+  c=Collector(self.j);result=c.receive(SCOPE,'recovery-final',None,'TASK 1/1 END'+chr(10)+'ALPHA')
+  mid=result['multipart_task_id'];self.assertEqual(result['status'],'COMPLETE')
+  self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_queue').fetchone()[0],0)
+  self.assertTrue(self.q.enqueue_multipart(c))
+  self.assertEqual(c.status(mid)['status'],'DISPATCHED')
+  self.assertTrue(self.q.enqueue_multipart(c))
+  self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_queue').fetchone()[0],1)
+  self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0],2)
+ def test_worker_resolves_both_dispatch_crash_windows(self):
+  for name,already_submitted in (('before-queue',False),('after-queue',True)):
+   with self.subTest(name=name):
+    c=Collector(self.j);m=c.receive(SCOPE,name,None,'TASK 1/1 END'+chr(10)+name)
+    mid=m['multipart_task_id'];c.assemble(mid);req=c.prepare_dispatch(mid)
+    if already_submitted:
+     self.q.submit({k:req[k] for k in ('task_id','request_id','profile','owner','origin_chat','session_key')}|{'origin_platform':'telegram'})
+    self.assertTrue(self.q.enqueue_multipart(c))
+    self.assertEqual(c.status(mid)['status'],'DISPATCHED')
+    self.assertTrue(self.q.enqueue_multipart(c))
+    self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_queue WHERE task=?',(req['task_id'],)).fetchone()[0],1)
+ def test_corrupt_assembled_input_does_not_stop_other_dispatch(self):
+  c=Collector(self.j);m=c.receive(SCOPE,'corrupt',None,'TASK 1/1 END'+chr(10)+'ORIGINAL')
+  mid=m['multipart_task_id'];c.assemble(mid);tid=c.status(mid)['durable_task_id']
+  with self.j.db:self.j.db.execute("UPDATE multipart_parts SET text='TAMPERED' WHERE task=?",(mid,))
+  self.assertTrue(self.q.enqueue_multipart(c))
+  self.assertEqual(c.status(mid)['status'],'ERROR')
+  self.assertEqual(self.j.get(tid)['status'],'BLOCKED')
+  self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_queue WHERE task=?',(tid,)).fetchone()[0],0)
+  self.assertEqual(c.pending(),[])
+ def test_locked_origin_defers_dispatch_until_worker_recovery(self):
+  import os,hashlib
+  c=Collector(self.j);m=c.receive(SCOPE,'locked',None,'TASK 1/1 END'+chr(10)+'WAIT')
+  lock=self.q._lock('origin-'+hashlib.sha256(self.q._scope_json().encode()).hexdigest()+'.lock')
+  self.assertIsNotNone(lock)
+  try:self.assertFalse(self.q.enqueue_multipart(c))
+  finally:os.close(lock)
+  self.assertEqual(c.status(m['multipart_task_id'])['status'],'COMPLETE')
+  self.assertTrue(self.q.enqueue_multipart(c))
+  self.assertEqual(c.status(m['multipart_task_id'])['status'],'DISPATCHED')
  def test_scope_and_flags_rejected(self):
   with self.assertRaises(ValueError):self.q.submit(self.spec|{'root_command':'whoami'})
   with self.assertRaises(ValueError):self.q.submit(self.spec|{'owner':'other'})
