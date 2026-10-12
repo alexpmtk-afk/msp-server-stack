@@ -47,8 +47,13 @@ class Journal:
    if d['status']=='DONE':self.db.execute('INSERT OR IGNORE INTO outbox(task,origin,body) VALUES (?,?,?)',(d['task_id'],d['origin_chat'],json.dumps({'status':'PASS','completed_blocks':d['completed_blocks']})))
  def task_document(self,origin,goal,plan,task_id=None):
   if not isinstance(plan,list) or not plan:raise ValueError('plan_required')
+  required={'goal','acceptance','allowed_mutations','expected_output','dependencies','rollback','readback'}
   for i,b in enumerate(plan):
-   if set(b)!={'goal','acceptance','allowed_mutations','expected_output','dependencies','rollback','readback'} or not b['acceptance'] or any(not isinstance(n,int) or n<0 or n>=i for n in b['dependencies']):raise ValueError('invalid_block')
+   if not isinstance(b,dict) or set(b)!=required:raise ValueError('invalid_block')
+   if any(not isinstance(b[k],str) or not b[k].strip() for k in ('goal','expected_output','rollback','readback')):raise ValueError('invalid_block')
+   if not isinstance(b['acceptance'],list) or not b['acceptance'] or any(not isinstance(k,str) or not k.strip() for k in b['acceptance']):raise ValueError('invalid_block')
+   if not isinstance(b['allowed_mutations'],list) or any(not isinstance(k,str) or not k.strip() for k in b['allowed_mutations']):raise ValueError('invalid_block')
+   if not isinstance(b['dependencies'],list) or any(type(n) is not int or n<0 or n>=i for n in b['dependencies']):raise ValueError('invalid_block')
   bounded([origin,goal,plan]);tid=task_id or str(uuid.uuid4());now=stamp()
   d=dict(task_id=tid,origin_chat=origin,goal=goal,created_at=now,status='READY',plan=plan,current_block=0,completed_blocks=[],pending_blocks=list(range(len(plan))),current_branch=None,last_commit=None,tests_status='UNKNOWN',owner_action_required=None,last_checkpoint=None,last_error=None,production_state={},next_action='resume block 0',updated_at=now,lease=None)
   return d
