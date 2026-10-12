@@ -1,5 +1,13 @@
 # Hermes Operator Layer — master report
 
+## Scoped update — 2026-10-12 (do not treat historical block table as current for this scenario)
+
+**Hermes durable multipart → saved-plan restoration → read-only execution → Telegram delivery** is **PASS for the specific live control task**, according to the Hermes agent's 15:38 MSK report forwarded by the owner. Candidate `5542c719e304bbc4f3fe770ae64733cb0db9044c`, staged tests **143/143 PASS** plus isolated plugin PASS; existing Gateway PID `1095621`, Worker PID `1096379`; preserved original planning receipt, task `e00d1337-0412-59f0-a8c3-3a4a074af0ea` **DONE**, Telegram message `1098`, `DELIVERED`. See [release gate/current status](RELEASE_GATE_20261012.md) and [Issue #40](https://github.com/alexpmtk-afk/msp-server-stack/issues/40). This is agent-reported production evidence, not an independent second post-deploy inspection.
+
+**Scope of acceptance:** Only the control task's read-only durable execution and Telegram delivery. The unaccepted Development Executor production code-writing grant, independent forced-mutation crash replay, the rest of the older agent capability/broker blocks, and merge of Draft PR #32 remain separate. Do not infer all Operator/master-report blocks PASS from this one E2E case.
+
+## Historical design/implementation tracking (older snapshot; not updated per-block)
+
 Base SHA: 2dc79bd43343fdf37d88dab22e9fff7acca66c5d. Overall PARTIAL. No production brokers installed.
 
 | Block | Status | Tests / evidence | Deployed / remaining gap |
