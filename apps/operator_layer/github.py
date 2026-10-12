@@ -13,6 +13,14 @@ def validate_files(files):
     for p,v in files.items():
         if not isinstance(p,str) or not p or p.startswith('/') or '\\' in p or any(x in ('','..','.git','.') for x in p.split('/')) or len(p)>400:raise ValueError('invalid_path')
         if p.startswith('.github/workflows/'):raise ValueError('workflow_write_disabled')
+        segments=p.split('/')
+        forbidden_parts={'.ssh','.hermes','.codex','secrets','credentials'}
+        forbidden_files={'auth.json','token.json','credentials.json','id_rsa','id_ed25519'}
+        if any(part in forbidden_parts or part=='.env' or part.startswith('.env.')
+               or part in forbidden_files
+               or part.endswith(('.pem','.key','.p12','.pfx','.sqlite','.sqlite3','.db','.dump','.bak'))
+               for part in segments):
+            raise ValueError('sensitive_path_denied')
         if v is not None and (not isinstance(v,str) or len(v.encode())>500000):raise ValueError('invalid_content')
     return files
 
