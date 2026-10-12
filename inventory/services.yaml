@@ -223,6 +223,28 @@ components:
     unified_view: v_price_history
     secrets: none
 
+  - id: msp-product-cost
+    kind: application-data
+    status: first-import-accepted; daily-sync-not-activated
+    source: apps/msp_product_costs/sync.py
+    data_location: /opt/mcp/data/msp/msp_data.sqlite3
+    canonical_module_commit: 5c66211caaeea48384629d6f2ab77073be34ad46
+    import_transport: existing-google-csv-export-no-oauth
+    first_import_date_utc: "2026-10-12T08:22:41Z"
+    first_import_current_rows: 957
+    first_import_sources: 5
+    first_import_issues: 89
+    backup_file: /opt/mcp/backups/msp/msp_data_before_product_cost_20261012T082235Z.sqlite3
+    first_import_evidence: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/38223166837
+    existing_four_source_tables_unchanged: true
+    integrity_check: pass
+    deployment_state: imported-by-runner-workspace; module-not-installed-on-remote
+    proposed_schedule: "08:15 Europe/Moscow after existing 08:00 user timer"
+    schedule_enabled: false
+    unit_sources: [systemd/user/msp-product-cost.service, systemd/user/msp-product-cost.timer]
+    semantics: config/msp-data/semantics/product_cost.yaml
+    business_data_in_git: false
+
 external_dependencies:
   - id: ai-model-provider
     credentials: external

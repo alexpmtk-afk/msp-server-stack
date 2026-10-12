@@ -3,9 +3,9 @@ catalog: product_cost
 purpose: >
   Отдельный изменяемый каталог себестоимости товаров пяти согласованных источников.
   Не добавлять себестоимость в product_catalog: тот является только справочником связей.
-status: staged_not_deployed
+status: initial_import_accepted_on_remote; automatic_sync_not_enabled
 sensitivity: commercial_cost_data
-read_access: protected_server_google_oauth_authorized_user_or_service_account
+read_access: direct_csv_http_200_verified_from_remote; original_source_accessible_by_link
 source_scope:
   ultra:
     spreadsheet_env: MSP_COST_MAIN_SHEET_ID
@@ -80,7 +80,7 @@ storage:
   current_view: v_product_cost_current
   listing_view: v_product_cost_listing_matches
 update_rules:
-  reading: Google Sheets API readonly; owner-authorized stored OAuth user or optional narrowly shared service account; no publicly shared source required
+  reading: Existing MSP unauthenticated Google CSV export (verified 2026-10-12) with optional protected OAuth mode, no credential required for current live access
   headers: validated_exactly
   valid_cost: strictly_positive_decimal; commas_and_nonbreaking_spaces_supported
   blank_or_formula_error: reject_current_read_keep_last_confirmed_cost
@@ -93,6 +93,6 @@ update_rules:
   no_business_data_in_public_repository: true
 limitations:
   - No per-row cost effective date in the five selected sources; revision timestamps represent observation time only.
-  - Public Google Drive metadata did not verify broad visibility; live REMOTE connectivity requires separate credential provisioning.
+  - Five live CSV sources are currently accessible via URL without authentication; cost information is commercially sensitive and source sharing must be reviewed separately.
   - Source formula errors are real and block those particular cost updates, not all other valid rows.
   - Linkage to marketplace listings may be one-to-many or ambiguous across productions; no arbitrary cost selection.
