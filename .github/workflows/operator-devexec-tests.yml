@@ -43,3 +43,22 @@ jobs:
           if not outcome.wasSuccessful():sys.exit(1)
           print("OPERATOR_DEVEXEC_TESTS=PASS")
           PY
+      - name: Verify Telegram plugin from pinned checkout in isolated interpreter
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONDONTWRITEBYTECODE=1 python -I - <<'PY'
+          import pathlib,sys,unittest
+          checkout=pathlib.Path.cwd().resolve()
+          # -I ignores any inherited PYTHONPATH and installed user packages.
+          sys.path[:0]=[str(checkout/'tests/operator'),str(checkout)]
+          from apps.operator_layer import multipart,queue,production
+          for module in (multipart,queue,production):
+              if not pathlib.Path(module.__file__).resolve().is_relative_to(checkout):
+                  raise SystemExit('STALE_PRODUCTION_MODULE_IMPORT:'+module.__name__)
+          suite=unittest.defaultTestLoader.loadTestsFromName('test_natural_plugin_rewire.HotRewireTests')
+          if suite.countTestCases()!=1:raise SystemExit('PLUGIN_TEST_NOT_FOUND')
+          verdict=unittest.TextTestRunner(verbosity=2).run(suite)
+          if not verdict.wasSuccessful():raise SystemExit('STAGED_PLUGIN_TEST_FAILED')
+          print('STAGED_PLUGIN_ISOLATION=PASS')
+          PY
