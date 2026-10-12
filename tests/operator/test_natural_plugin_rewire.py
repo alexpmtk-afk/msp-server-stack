@@ -19,10 +19,16 @@ class HotRewireTests(unittest.IsolatedAsyncioTestCase):
   ext.TypeHandler=TypeHandler
   ext.ApplicationHandlerStop=HandlerStop
   with tempfile.TemporaryDirectory() as tmp,patch.dict(sys.modules,{"telegram":stub,"telegram.ext":ext}):
-   path=Path("deploy/hermes_plugins/durable_tasks/__init__.py")
+   # Resolve the staged checkout by this test file, never by the shell CWD.
+   checkout=Path(__file__).resolve().parents[2]
+   path=checkout/"deploy/hermes_plugins/durable_tasks/__init__.py"
    spec=importlib.util.spec_from_file_location("durable_plugin_test_natural",path)
    plugin=importlib.util.module_from_spec(spec)
    spec.loader.exec_module(plugin)
+   # Production plugin intentionally uses a fixed live CODE_ROOT. Override
+   # only in this unit-test module so an isolated pre-deploy staging run cannot
+   # silently load the installed production checkout.
+   plugin.CODE_ROOT=str(checkout)
    class Native:
     def __init__(self):self.handlers={}
     def add_handler(self,handler,group):self.handlers.setdefault(group,[]).append(handler)
@@ -40,6 +46,12 @@ class HotRewireTests(unittest.IsolatedAsyncioTestCase):
    from apps.operator_layer import queue as queue_module,production as production_module
    old_queue_class=queue_module.TaskQueue
    plugin.wire(native,Adapter(),config)
+   from apps.operator_layer import multipart as multipart_module,multipart_ingress as ingress_module,tasks as tasks_module
+   # A green test is meaningless if any dependency originated from the live
+   # REMOTE operator checkout instead of the pinned test staging directory.
+   for loaded in (queue_module,production_module,multipart_module,ingress_module,tasks_module):
+    self.assertTrue(Path(loaded.__file__).resolve().is_relative_to(checkout),
+                    f"stale_live_module_import:{loaded.__name__}")
    self.assertIs(production_module.TaskQueue,queue_module.TaskQueue)
    self.assertIsNot(production_module.TaskQueue,old_queue_class)
    self.assertEqual(len(native.handlers[-96]),1)
