@@ -34,7 +34,7 @@ jobs:
           import sys,unittest
           # All portable operator unit and recovery suites. Tests requiring a
           # live Hermes checkout or python-telegram-bot are integration-only.
-          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests","test_receipt_boundary.ReceiptTests","test_natural_multipart.NaturalMultipartTests","test_multipart.MultipartTests","test_multipart.DispatchTests","test_multipart.ProcessTests","test_multipart.PauseAndRaceTests","test_natural_plugin_rewire.HotRewireTests","test_queue","test_tasks","test_hermes_executor","test_worker_lifecycle","test_backup","test_github","test_preflight","test_remote","test_release","test_runner")
+          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests","test_receipt_boundary.ReceiptTests","test_natural_multipart.NaturalMultipartTests","test_multipart.MultipartTests","test_multipart.DispatchTests","test_multipart.ProcessTests","test_multipart.PauseAndRaceTests","test_natural_plugin_rewire.HotRewireTests","test_queue","test_tasks","test_hermes_executor","test_worker_lifecycle","test_backup","test_github","test_preflight","test_remote","test_release","test_runner","test_saved_plan_recovery")
           suite=unittest.defaultTestLoader.loadTestsFromNames(names)
           n=suite.countTestCases()
           print("DISCOVERED_TESTS="+str(n),flush=True)
