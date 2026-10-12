@@ -189,15 +189,37 @@ def mark_fetch_failure(con, source, observed_at, error_class):
                     "VALUES(?,?,'failed',0,?)", (source, observed_at, error_class))
     return dict(source=source, status="failed", error_class=error_class)
 
+def google_auth_mode(metadata):
+    """Allow exactly trusted Google OAuth user or service account credential types."""
+    if not isinstance(metadata, dict):
+        raise ValueError("invalid Google credential envelope")
+    mode = metadata.get("type")
+    if mode not in ("authorized_user", "service_account"):
+        raise ValueError("unsupported Google credential type")
+    return mode
+
+
 def _google_session():
-    from google.oauth2 import service_account
+    from google.oauth2 import credentials as user_credentials, service_account
     from google.auth.transport.requests import AuthorizedSession
-    loc = Path(os.environ["MSP_COST_GOOGLE_SERVICE_ACCOUNT_FILE"])
+    env_name = ("MSP_COST_GOOGLE_CREDENTIALS_FILE"
+                if "MSP_COST_GOOGLE_CREDENTIALS_FILE" in os.environ
+                else "MSP_COST_GOOGLE_SERVICE_ACCOUNT_FILE")
+    loc = Path(os.environ[env_name])
+    if loc.is_symlink():
+        raise RuntimeError("Google credential path must not be a symlink")
     meta = loc.stat()
-    if meta.st_uid != os.getuid() or stat.S_IMODE(meta.st_mode) != 0o600:
-        raise RuntimeError("protected Google credential owner/mode must be current user/0600")
-    creds = service_account.Credentials.from_service_account_file(
-        str(loc), scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
+    if meta.st_uid != os.getuid() or stat.S_IMODE(meta.st_mode) != 0o600 or not loc.is_file():
+        raise RuntimeError("protected Google credential must be regular user-owned 0600 file")
+    # Select only known Google credential types, not generic untrusted credential
+    # loaders that can accept external-account URLs.
+    with loc.open(encoding="utf-8") as stream:
+        mode = google_auth_mode(json.load(stream))
+    scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    if mode == "authorized_user":
+        creds = user_credentials.Credentials.from_authorized_user_file(str(loc), scopes=scope)
+    else:
+        creds = service_account.Credentials.from_service_account_file(str(loc), scopes=scope)
     return AuthorizedSession(creds)
 
 def _get_values(session, sheet_id, sheet, range_cols):
