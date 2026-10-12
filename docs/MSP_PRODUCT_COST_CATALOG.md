@@ -1,6 +1,25 @@
 # MSP product cost catalog — five selected production sources
 
-**State: implementation staged in GitHub, not activated on REMOTE.** No existing MSP data catalog or user service is replaced.
+**State as of 2026-10-12: first cost-data import ACCEPTED on REMOTE, daily scheduling NOT activated.** Existing four-source MSP data sync and Hermes are unchanged. The importer ran from a pinned canonical GitHub checkout in the self-hosted runner workspace, not from a deployed module in `/opt/mcp/projects/msp-server-stack`; deployment to the protected project path is a separate prerequisite before enabling a daily user timer.
+
+## Accepted first import — 2026-10-12, 08:22 UTC
+
+- Preflight run: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/38222771252
+- Owner-authorized one-time backed-up first import: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/38223166837
+- Pinned canonical importer: `5c66211caaeea48384629d6f2ab77073be34ad46`
+- Protected DB: `/opt/mcp/data/msp/msp_data.sqlite3`
+- Independently verified backup (0600): `/opt/mcp/backups/msp/msp_data_before_product_cost_20261012T082235Z.sqlite3`
+- Imported cost-current records: **957**, across **5** source/variant keys.
+- Per-source imported: `ultra=148`, `zavoz=223`, `more=52`, `laser_old=277`, `laser_new=257`.
+- Per-source rejected with run-level issue details: `ultra=12` (8 invalid costs and 4 duplicate-article rows), `zavoz=53` (invalid/blank cost), `more=16`, `laser_old=8`, `laser_new=0`. **Total rejected 89**. Four source sync runs are `partial` for these accepted source-quality issues; Laser new is `success`.
+- Cost revision events: 0 on the initial snapshot (expected). Future changes append revisions.
+- SQLite `integrity_check=ok`, `foreign_key_check=0`.
+- Existing `product_listing`, `self_purchase`, `self_purchase_plan`, `price_event` and `sync_run` table row counts were independently confirmed **unchanged**.
+- No cost timer/oneshot installed, no daily update enabled and no Telegram cost notifications configured.
+
+These 957 entries are **cost-source records, not 957 distinct marketplace products**: Laser Master old/new represent two separate cost variants for many of the same internal articles.
+
+
 
 ## Input contract
 
@@ -41,11 +60,7 @@ The old cost fields are A/B/C (and optional D), and the Laser new
 cost fields are E/F/AL. It does not scrape the separate formulas,
 helper columns or source working-sheet files.
 
-**Important access prerequisite:** the CSV path succeeds only if Google
-already allows unauthenticated export of the two original workbooks. The
-existing `_05_экпорт` is accessible by link; this is NOT proof that the
-two original cost workbooks can be accessed without login. In particular,
-do not make confidential cost sheets public to bypass permission checks.
+**Access verified on REMOTE 2026-10-12:** all five cost tabs and the existing control tab returned HTTP 200 with correct CSV headers via unauthenticated Google export. Evidence: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/38222133876 . No new account, OAuth or credential was used for the accepted first import. These sensitive original workbooks currently permit CSV access by their links; access policy deserves a separate owner review, and must never be broadened by the sync process.
 
 Before any production import, run the read-only `--preflight` on REMOTE
 using this transport and check **all five** source statuses. A login page,
@@ -80,13 +95,13 @@ MSP_COST_LASER_SHEET_ID=<second private Google spreadsheet id>
 MSP_COST_GOOGLE_CREDENTIALS_FILE=/home/hermes/.config/msp/google-cost-reader.json
 ```
 
-For compatibility only, the old `MSP_COST_GOOGLE_SERVICE_ACCOUNT_FILE` key is recognized if the new key is absent. The loader accepts **only** `authorized_user` or `service_account` credentials; no external-account or arbitrary configuration URLs are accepted. Neither choice has been provisioned, and live Google access from REMOTE has not yet been verified.
+For compatibility only, the old `MSP_COST_GOOGLE_SERVICE_ACCOUNT_FILE` key is recognized if the new key is absent. The loader accepts **only** `authorized_user` or `service_account` credentials; no external-account or arbitrary configuration URLs are accepted. Neither OAuth choice has been provisioned, because **CSV already works from REMOTE**. OAuth remains optional if access to source workbooks is later restricted.
 
 Install `apps/msp_product_costs/requirements.txt` into a dedicated `hermes` virtual environment, not system Python. This is **not** part of the existing four-source `msp-data-sync.service`.
 
-Read-only source preflight: run `python3 apps/msp_product_costs/sync.py --preflight` in the dedicated authenticated Hermes environment. It fetches only the reviewed columns, validates all five headers and counts issues; **it does not open or modify SQLite**. Partial status from known broken formulas is expected but must be reviewed, not silently ignored.
+Read-only source preflight: run `MSP_COST_TRANSPORT=csv python3 apps/msp_product_costs/sync.py --preflight` with the protected two source IDs in the Hermes environment. It fetches only the reviewed columns, validates all five headers and counts issues; **it does not open or modify SQLite**. Partial status from known broken formulas is expected but must be reviewed, not silently ignored.
 
-After protected access is independently verified: take an online SQLite backup; execute the bounded read-only source precheck, and only then approve a first import. Examine all five per-source statuses, duplicate/formula issue counts, integrity/FK checks, cost revision behavior, and unchanged Hermes/Telegram/four-source timer. Never overwrite the existing SQLite or run a root-level installer. Normal cost-sync warnings should be handled by a dedicated runbook; no notification is currently wired.
+The first owner-authorized import followed the read-only precheck and verified online backup. For subsequent imports, verify source availability, database health and non-overlapping writes first; do not delete historical data. Examine all five per-source statuses, duplicate/formula issue counts, integrity/FK checks, cost revision behavior, and unchanged Hermes/Telegram/four-source timer. Never overwrite the existing SQLite or run a root-level installer. Normal cost-sync warnings should be handled by a dedicated runbook; no notification is currently wired.
 
 Proposed recurrence after first accepted import: the staged, **disabled** dedicated Hermes-user files `systemd/user/msp-product-cost.service` and `systemd/user/msp-product-cost.timer`. The timer proposes 08:15 Europe/Moscow, after the existing four-source 08:00 schedule. The service expects the dedicated authenticated Hermes venv and protected 0600 env file. **Neither unit is installed or enabled on REMOTE.** Confirm first import and the business cadence before enabling a persistent timer; enabling it may immediately run a missed synchronization.
 
