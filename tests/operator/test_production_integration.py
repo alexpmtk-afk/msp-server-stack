@@ -16,7 +16,7 @@ class ProductionTests(unittest.TestCase):
   self.assertEqual(j.db.execute('select count(*) from task_queue').fetchone()[0],0)
   self.assertEqual(j.db.execute('select count(*) from task_executions').fetchone()[0],0)
  def test_duplicate_metric_counts_only_repeated_verified_terminal_receipts(self):
-  start=receive(self.config,'metric-fixture',None,'TASK 1/1 END\\nread only fixture')
+  start=receive(self.config,'metric-fixture',None,'TASK 1/1 END\nread only fixture')
   tid=start['durable_task_id']
   j=Journal(self.root);self.addCleanup(j.close)
   entries=[(-1,'plan'),(0,'checkpoint'),(0,'checkpoint'),(0,'complete'),(1,'complete')]
