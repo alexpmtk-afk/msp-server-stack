@@ -43,7 +43,9 @@ MSP_COST_GOOGLE_SERVICE_ACCOUNT_FILE=/home/hermes/.config/msp/product-cost-reade
 
 Install `apps/msp_product_costs/requirements.txt` into a dedicated `hermes` virtual environment, not system Python. This is **not** part of the existing four-source `msp-data-sync.service`.
 
-After protected access is independently verified: take an online SQLite backup; execute a bounded read-only source precheck, and only then approve a first import. Examine all five per-source statuses, duplicate/formula issue counts, integrity/FK checks, cost revision behavior, and unchanged Hermes/Telegram/four-source timer. Never overwrite the existing SQLite or run a root-level installer. Normal cost-sync warnings should be handled by a dedicated runbook; no notification is currently wired.
+Read-only source preflight: run `python3 apps/msp_product_costs/sync.py --preflight` in the dedicated authenticated Hermes environment. It fetches only the reviewed columns, validates all five headers and counts issues; **it does not open or modify SQLite**. Partial status from known broken formulas is expected but must be reviewed, not silently ignored.
+
+After protected access is independently verified: take an online SQLite backup; execute the bounded read-only source precheck, and only then approve a first import. Examine all five per-source statuses, duplicate/formula issue counts, integrity/FK checks, cost revision behavior, and unchanged Hermes/Telegram/four-source timer. Never overwrite the existing SQLite or run a root-level installer. Normal cost-sync warnings should be handled by a dedicated runbook; no notification is currently wired.
 
 Proposed recurrence after first accepted import: a **separate Hermes user** oneshot+timer following the 08:00 MSK existing catalog sync, e.g. 08:15 Europe/Moscow. This is a proposal, **not installed or enabled**. A timer alone does not establish successful imports.
 
