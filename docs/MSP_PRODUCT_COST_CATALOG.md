@@ -1,6 +1,22 @@
 # MSP product cost catalog — five selected production sources
 
-**State as of 2026-10-12: initial data already loaded. Daily import proposed at 07:45 MSK via a separate Hermes-user timer; see live REMOTE acceptance before claiming it is active.** Existing four-source sync stays at 08:00 Europe/Moscow. The importer ran from a pinned canonical GitHub checkout in the self-hosted runner workspace, not from a deployed module in `/opt/mcp/projects/msp-server-stack`; deployment to the protected project path is a separate prerequisite before enabling a daily user timer.
+**State as of 2026-10-12: LIVE on REMOTE.** Five-source product-cost importer is installed at `/home/hermes/.local/share/msp-product-cost/sync.py`, user timer enabled and active at **07:45 Europe/Moscow**, existing four-source user timer unchanged at **08:00 Europe/Moscow**.
+
+## Daily install acceptance — 2026-10-12, 08:49 UTC
+
+- Live acceptance GitHub Actions run: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/38225985379
+- Canonical deployed commit: `b41889a316e51915dec7b5c933a3fd0aced489a4`; script SHA-256 `88bbf5b9dae540ea0bba9f276ec76382ee2a12c83803d9db3c6547b9615af1a5`
+- Runtime path: `/home/hermes/.local/share/msp-product-cost/sync.py` owned by `hermes`; protected env file in `/home/hermes/.config/msp/product-costs.env` mode 0600
+- Verified 0600 online backup before installing/updating source-status schema: `/opt/mcp/backups/msp/msp_data_before_cost_daily_0745_20261012T084955Z.sqlite3`
+- Manually executed isolated user oneshot `msp-product-cost.service`: **PASS**.
+- Source-status view: **1046** rows, comprising 957 `available`, 10 `no_data`, 75 `invalid_value`, 4 `duplicate_article`.
+- Existing valid cost snapshot: **957**. Current cost NULL for all 89 bad-source rows; last confirmed cost in a different column when available.
+- Verified unchanged five old tables: `product_listing`, `self_purchase`, `self_purchase_plan`, `price_event`, `sync_run`.
+- SQLite integrity: **PASS**.
+- New Hermes-user `msp-product-cost.timer`: **enabled, active** at 07:45 MSK; `Persistent=false` avoids running a missed slot during first activation.
+- Next elapsed slot confirmed by REMOTE: **Tue 2026-10-13 04:45:00 UTC**, equivalent to **07:45 Moscow**.
+- Existing Hermes-user `msp-data-sync.timer`: still **enabled, active**, at **08:00 Moscow**.
+- The first future scheduled job **has not yet executed** as of this acceptance. The only new cost run was an explicit deployment smoke test.
 
 ## Accepted first import — 2026-10-12, 08:22 UTC
 
@@ -147,7 +163,7 @@ Read-only source preflight: run `MSP_COST_TRANSPORT=csv python3 apps/msp_product
 
 The first owner-authorized import followed the read-only precheck and verified online backup. For subsequent imports, verify source availability, database health and non-overlapping writes first; do not delete historical data. Examine all five per-source statuses, duplicate/formula issue counts, integrity/FK checks, cost revision behavior, and unchanged Hermes/Telegram/four-source timer. Never overwrite the existing SQLite or run a root-level installer. Normal cost-sync warnings should be handled by a dedicated runbook; no notification is currently wired.
 
-Legacy 08:15 schedule proposal is superseded by the owner's final **07:45 Moscow** choice. Verify actual enabled state from the REMOTE audit; documentation is not evidence of service activation.
+The old 08:15 proposal was superseded by **07:45 MSK** and the user timer was confirmed active by the REMOTE acceptance above. A first naturally scheduled 07:45 run is still pending and should be verified after 2026-10-13.
 
 ## Offline verification
 
