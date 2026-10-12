@@ -81,9 +81,33 @@ CREATE TABLE IF NOT EXISTS task_queue_events(seq INTEGER PRIMARY KEY, task TEXT,
      # An absent same-scope queue receipt allows retry of submission, not model.
      else:collector.confirm_not_dispatched(mid,{'request_id':'multipart:'+mid,'task_id':item['durable_task_id'],'accepted':False})
     if collector.status(mid)['status']=='DISPATCHED':continue
-    req=collector.prepare_dispatch(mid)
-    self.submit({k:req[k] for k in SPEC if k in req}|{'origin_platform':'telegram'})
-    collector.confirm_dispatch(mid,self.read_submission(req['request_id']))
+    try:
+     req=collector.prepare_dispatch(mid)
+     self.submit({k:req[k] for k in SPEC if k in req}|{'origin_platform':'telegram'})
+     collector.confirm_dispatch(mid,self.read_submission(req['request_id']))
+    except (ValueError,TypeError,KeyError) as exc:
+     # Isolate a malformed assembled input instead of terminating the worker.
+     # Never discard a submission already visible in the authoritative queue.
+     saved=self.read_submission('multipart:'+mid)
+     if saved:
+      collector.confirm_dispatch(mid,saved)
+      continue
+     try:
+      collector.confirm_not_dispatched(mid,{'request_id':'multipart:'+mid,'task_id':item['durable_task_id'],'accepted':False})
+      self.db.execute('BEGIN IMMEDIATE')
+      try:
+       damaged=collector._get(mid)
+       if damaged['status']=='ASSEMBLED':
+        damaged['status']='ERROR'
+        damaged['last_error']='dispatch_integrity_invalid'
+        collector._put(damaged)
+       self.db.commit()
+      except BaseException:self.db.rollback();raise
+     except (ValueError,TypeError,KeyError):
+      # Incomplete or corrupt receipts stay pending for explicit investigation,
+      # never an unverified retry of an external side effect.
+      print('MULTIPART_DISPATCH_NEEDS_REVIEW:'+type(exc).__name__,flush=True)
+     continue
    return True
   finally:os.close(origin_fd)
  def _lock(self,name):
