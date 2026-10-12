@@ -4,9 +4,9 @@ Storage errors fail closed, including manual collection's ordinary messages.
 """
 class Ingress:
  def __init__(self,collector):self.collector=collector
- def receive(self,scope,message_id,update_id,text,received_at=None):
+ def receive(self,scope,message_id,update_id,text,received_at=None,*,natural_controls_enabled=False):
   try:
-   reply=self.collector.receive(scope,message_id,update_id,text,received_at=received_at)
+   reply=self.collector.receive(scope,message_id,update_id,text,received_at=received_at,natural_controls_enabled=natural_controls_enabled)
    if reply.get('status')=='COMPLETE':reply=self.collector.assemble(reply['multipart_task_id'])
    return reply
   except (OSError,ValueError,RuntimeError) as exc:
