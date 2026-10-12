@@ -9,6 +9,15 @@ class ReceiptTests(unittest.TestCase):
  def test_legacy_updates_explicit_metadata_not_checkpoint(self):
   r=normalize_receipt(LEGACY);self.assertEqual(r['schema_version'],1);self.assertEqual(r['updates'],{})
   self.assertEqual(r['evidence']['planning_metadata'],LEGACY['updates']);self.assertEqual(LEGACY['updates']['plan_approval'],'Pending')
+ def test_plan_list_evidence_is_non_authoritative(self):
+  raw={'schema_version':1,'kind':'plan','plan':copy.deepcopy(PLAN),'evidence':['planning note']}
+  r=normalize_receipt(raw)
+  self.assertEqual(r['evidence'],{'unverified_planning_notes':['planning note']})
+  self.assertEqual(raw['evidence'],['planning note'])
+  self.assertEqual(r['updates'],{})
+ def test_complete_list_evidence_still_rejected(self):
+  with self.assertRaisesRegex(ValueError,'response_field_type'):
+   normalize_receipt({'schema_version':1,'kind':'complete','evidence':['verified']})
  def test_unknown_field_rejected(self):
   with self.assertRaises(ValueError):normalize_receipt(LEGACY|{'surprise':1})
   with self.assertRaises(ValueError):normalize_receipt(LEGACY|{'updates':{'unexpected':1}})
