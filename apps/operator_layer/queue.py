@@ -62,20 +62,30 @@ CREATE TABLE IF NOT EXISTS task_queue_events(seq INTEGER PRIMARY KEY, task TEXT,
   if (o['profile'],o['owner'],o['origin_chat'],o['session_key'])!=self.scope:raise ValueError('readback_scope_mismatch')
   return {'request_id':request_id,'task_id':r[0],'accepted':True}
  def enqueue_multipart(self,collector):
-  collector.recover()
-  for item in collector.pending():
-   mid=item['multipart_task_id'];d=collector._get(mid)
-   if (d['profile'],d['owner'],d['origin_chat'],d['routing_session_key'])!=self.scope:continue
-   if item['dispatch_state']=='UNKNOWN':
-    receipt=self.read_submission('multipart:'+mid)
-    if receipt:collector.confirm_dispatch(mid,receipt)
-    # Absence alone doesn't authorize retry of an external provider. This in-process
-    # queue shares the exact target database, so it is authoritative here.
-    else:collector.confirm_not_dispatched(mid,{'request_id':'multipart:'+mid,'task_id':item['durable_task_id'],'accepted':False})
-   if collector.status(mid)['status']=='DISPATCHED':continue
-   req=collector.prepare_dispatch(mid)
-   self.submit({k:req[k] for k in SPEC if k in req}|{'origin_platform':'telegram'})
-   collector.confirm_dispatch(mid,self.read_submission(req['request_id']))
+  # Gateway and Worker may both recover ingress after a crash. Serialize the
+  # entire readback/prepare/submit/ack sequence with the existing origin fence.
+  # A busy lock means defer; Worker polls and will retry without a new message.
+  origin_name='origin-'+hashlib.sha256(self._scope_json().encode()).hexdigest()+'.lock'
+  origin_fd=self._lock(origin_name)
+  if origin_fd is None:return False
+  try:
+   from .multipart import scope_key
+   collector.recover(scope_key(self.scope))
+   for item in collector.pending():
+    mid=item['multipart_task_id'];d=collector._get(mid)
+    if (d['profile'],d['owner'],d['origin_chat'],d['routing_session_key'])!=self.scope:continue
+    if item['dispatch_state']=='UNKNOWN':
+     receipt=self.read_submission('multipart:'+mid)
+     if receipt:collector.confirm_dispatch(mid,receipt)
+     # This queue and collector share an authoritative SQLite transaction log.
+     # An absent same-scope queue receipt allows retry of submission, not model.
+     else:collector.confirm_not_dispatched(mid,{'request_id':'multipart:'+mid,'task_id':item['durable_task_id'],'accepted':False})
+    if collector.status(mid)['status']=='DISPATCHED':continue
+    req=collector.prepare_dispatch(mid)
+    self.submit({k:req[k] for k in SPEC if k in req}|{'origin_platform':'telegram'})
+    collector.confirm_dispatch(mid,self.read_submission(req['request_id']))
+   return True
+  finally:os.close(origin_fd)
  def _lock(self,name):
   fd=os.open(self.j.root/name,os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
   try:fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
