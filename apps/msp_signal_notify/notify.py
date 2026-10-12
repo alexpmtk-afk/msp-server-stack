@@ -43,9 +43,13 @@ SIMULATIONS = {
     "SIG-022": "Рекламная кампания поставлена на паузу (имитация).",
     "SIG-032": "Характеристики товаров обновлены (имитация).",
 }
-SKU = re.compile(r"\((\d{5,15})\)")
+# Marketplace article may be "(123456789)" or "(Арт. 123456789)".
+# A Telegram product block can wrap over multiple physical text lines.
+SKU = re.compile(r"\(\s*(?:арт(?:икул)?\.?\s*[:№#]?\s*)?(\d{5,15})\s*\)", re.IGNORECASE)
 COVER = re.compile(r"_(\d{1,3})(?!\d)")
-DATE = re.compile(r"(?<!\d)(?:\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}(?:\.\d{4})?)(?!\d)")
+# Consume complete DD.MM.YY/DD.MM.YYYY tokens; never read "26.10" out of "26.10.26".
+DATE = re.compile(r"(?<![\d.])(?:\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}(?:\.\d{4}|\.\d{2})?)(?![\d.])")
+ITEM_START = re.compile(r"(?i)(?<!\w)товар\s*(?:№\s*)?\d+\s*[:.)-]")
 MSK = ZoneInfo("Europe/Moscow")
 
 
@@ -70,28 +74,47 @@ def parse_date(raw: str, today: date):
             value = date.fromisoformat(raw)
         else:
             bits = [int(x) for x in raw.split(".")]
-            value = date(bits[2] if len(bits) == 3 else today.year, bits[1], bits[0])
+            year = (2000 + bits[2] if len(bits) == 3 and bits[2] < 100
+                    else bits[2] if len(bits) == 3 else today.year)
+            value = date(year, bits[1], bits[0])
         # A past date may be stale or a year-ambiguous planned arrival.
         return value if value >= today else None
     except (ValueError, TypeError):
         return None
 
 
-def price_advice(text: str, today: date) -> list[str]:
-    """Require explicit SKU and _N coverage days on the same item row.
+def price_records(text: str) -> list[str]:
+    """Keep multi-line Telegram product blocks separate.
 
-    Business rule: when coverage days exist but no production/inbound date is
-    present, the product is treated as not ordered for production and a price
-    increase is recommended. Malformed or outdated dates are not missing dates:
-    preserve uncertainty rather than inferring a production status.
+    Real signal example:
+      Товар 1: Название_6_
+      (Арт. 123456789) → нужно повысить?
+      Товар 2: Название_9_26.10.26 (Арт. 987654321) → нужно повысить?
+    If numbered markers are absent, retain the old one-item-per-line behavior.
+    """
+    starts = list(ITEM_START.finditer(text))
+    if starts:
+        return [
+            " ".join(text[m.start():starts[i + 1].start() if i + 1 < len(starts)
+                          else len(text)].split())
+            for i, m in enumerate(starts)
+        ]
+    return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def price_advice(text: str, today: date) -> list[str]:
+    """Per-SKU advice from real Telegram product blocks, with no cross-item dates.
+
+    No production/inbound date with known _N coverage means recommend raising
+    price (business rule). A malformed/expired printed date remains UNKNOWN.
     """
     results, seen = [], set()
-    for line in text.splitlines():
-        ids = SKU.findall(line)
+    for record in price_records(text):
+        ids = SKU.findall(record)
         if not ids:
             continue
-        days = COVER.search(line)
-        candidates = [parse_date(x, today) for x in DATE.findall(line)]
+        days = COVER.search(record)
+        candidates = [parse_date(x, today) for x in DATE.findall(record)]
         arrivals = [d for d in candidates if d is not None]
         for market_sku in ids:
             if market_sku in seen:
