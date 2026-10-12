@@ -37,7 +37,11 @@ class HotRewireTests(unittest.IsolatedAsyncioTestCase):
    old_ingress.__module__=plugin.__name__
    native.handlers[-96]=[TypeHandler(stub.Update,old_ingress)]
    self.assertIn("wire_status_v4",plugin.wire.__qualname__)
+   from apps.operator_layer import queue as queue_module,production as production_module
+   old_queue_class=queue_module.TaskQueue
    plugin.wire(native,Adapter(),config)
+   self.assertIs(production_module.TaskQueue,queue_module.TaskQueue)
+   self.assertIsNot(production_module.TaskQueue,old_queue_class)
    self.assertEqual(len(native.handlers[-96]),1)
    self.assertNotEqual(native.handlers[-96][0].callback,old_ingress)
    callback=native.handlers[-96][0].callback
