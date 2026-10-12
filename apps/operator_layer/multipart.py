@@ -171,9 +171,21 @@ CREATE TABLE IF NOT EXISTS multipart_dispatch(task TEXT PRIMARY KEY, durable TEX
   if digest(text)!=ref['assembled_hash']:raise ValueError('input_hash_mismatch')
   return text
  def pending(self):return [dict(multipart_task_id=r[0],durable_task_id=r[1],dispatch_state=r[2]) for r in self.db.execute("SELECT * FROM multipart_dispatch WHERE state!='ACKNOWLEDGED'")]
- def recover(self):
-  ids=[r[0] for r in self.db.execute("SELECT id FROM multipart WHERE state='COMPLETE'")]
-  for mid in ids:self.assemble(mid)
+ def recover(self,scope=None):
+  # A crashed ingress may leave COMPLETE without assembly. Recover it without
+  # requiring another Telegram update. A bad collection must not stop others.
+  ids=[r[0] for r in self.db.execute("SELECT id FROM multipart WHERE state='COMPLETE'"+(" AND scope=?" if scope is not None else ""),((scope,) if scope is not None else ()))]
+  for mid in ids:
+   try:self.assemble(mid)
+   except (ValueError,TypeError,KeyError) as exc:
+    self.db.execute('BEGIN IMMEDIATE')
+    try:
+     d=self._get(mid)
+     if d['status']=='COMPLETE':
+      d['status']='ERROR';d['last_error']='assembly_recovery_invalid'
+      self._put(d)
+     self.db.commit()
+    except BaseException:self.db.rollback();raise
   return self.pending()
  def expire(self,mid):
   with self.db:
