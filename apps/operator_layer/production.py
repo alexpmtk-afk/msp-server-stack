@@ -12,7 +12,7 @@ def receive(config,message_id,update_id,text):
   q=TaskQueue(j,allowed_scope=tuple(config['scope']));c=Collector(j)
   if text.strip().lower()=='/task status':
    return linked_status(j,c,q,tuple(config['scope']))
-  r=Ingress(c).receive(tuple(config['scope']),str(message_id),update_id,text)
+  r=Ingress(c).receive(tuple(config['scope']),str(message_id),update_id,text,natural_controls_enabled=config.get('natural_multipart_enabled') is True)
   if r.get('status')=='ASSEMBLED':
    q.enqueue_multipart(c);r=c.status(r['multipart_task_id'])
   return r
