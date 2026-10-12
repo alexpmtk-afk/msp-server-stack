@@ -63,6 +63,33 @@ class AtomicTests(unittest.TestCase):
    with q.claim('two') as newer:
     with self.assertRaises(ValueError):c.fence()
 
+
+ def test_repeated_checkpoints_stop_at_bound_without_losing_receipts(self):
+  from apps.operator_layer.queue import Worker,MAX_CHECKPOINTS_PER_BLOCK
+  class AlwaysCheckpoint:
+   calls=0
+   def execute(self,context,source,rid,budget):
+    self.calls+=1
+    return {'kind':'checkpoint','updates':{'next_action':'pending verified work'}}
+   def interrupt(self):pass
+  with tempfile.TemporaryDirectory() as tmp:
+   j=Journal(Path(tmp)/'private');self.addCleanup(j.close)
+   q=TaskQueue(j,allowed_scope=SCOPE)
+   tid=j.create(SCOPE[2],'bounded checkpoints',PLAN[:1])
+   q.submit(dict(task_id=tid,request_id='checkpoint-limit',profile=SCOPE[0],owner=SCOPE[1],origin_chat=SCOPE[2],session_key=SCOPE[3],origin_platform='telegram'))
+   ex=AlwaysCheckpoint();w=Worker(q,ex,lambda *a:True,worker_id='bounded')
+   for index in range(MAX_CHECKPOINTS_PER_BLOCK):
+    self.assertTrue(w.run_once())
+    self.assertEqual(ex.calls,index+1)
+   self.assertEqual(q.status(tid)['state'],'BLOCKED')
+   self.assertEqual(j.get(tid)['last_error'],'checkpoint_limit_reached')
+   self.assertEqual(j.get(tid)['current_block'],0)
+   self.assertEqual(j.db.execute("SELECT COUNT(*) FROM task_executions WHERE task=? AND state='VERIFIED'",(tid,)).fetchone()[0],MAX_CHECKPOINTS_PER_BLOCK)
+   new_worker=Worker(q,ex,lambda *a:True,worker_id='after-restart')
+   for _ in range(2):self.assertFalse(new_worker.run_once())
+   self.assertEqual(ex.calls,MAX_CHECKPOINTS_PER_BLOCK)
+   self.assertEqual(j.db.execute("SELECT COUNT(*) FROM task_executions WHERE task=?",(tid,)).fetchone()[0],MAX_CHECKPOINTS_PER_BLOCK)
+   self.assertEqual(j.db.execute("SELECT COUNT(*) FROM outbox WHERE task=?",(tid,)).fetchone()[0],0)
  def test_soft_checkpoint_requeues_same_task_new_execution(self):
   from apps.operator_layer.queue import Worker
   from apps.operator_layer.tasks import Budget
