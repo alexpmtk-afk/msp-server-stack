@@ -36,6 +36,26 @@ class SignalSkillContractTests(unittest.TestCase):
         self.assertIn('РЕКОМЕНДУЕТСЯ поднять цену', a[0])
         self.assertIn('не заказан на производство', a[0])
 
+    def test_multiline_real_telegram_format_skill_matches_notifier(self):
+        signal = (
+            '🔥 Поднять цену\n'
+            '📦 Товар 1: Гамаши от телевизора_6_\n'
+            '(Арт. 2791038373) → нужно повысить?\n'
+            '📦 Товар 2: Шапка для купания\n'
+            'кошек_9_26.10.26 (Арт. 985847424) → нужно повысить?'
+        )
+        result = price_advice(signal, date(2026, 10, 12))
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all('РЕКОМЕНДУЕТСЯ поднять цену' in x for x in result))
+        self.assertIn('SKU 2791038373', result[0])
+        self.assertIn('SKU 985847424', result[1])
+        self.assertIn('26.10.2026', result[1])
+        skill=SKILL.read_text(encoding='utf-8')
+        self.assertIn('(Арт. 2791038373)',skill)
+        self.assertIn('Товар 2:',skill)
+        self.assertIn('_9_26.10.26',skill)
+        rule=RULES.read_text(encoding='utf-8')
+        self.assertIn('DD.MM.YY', rule)
     def test_valid_and_invalid_dates_keep_original_semantics(self):
         text = 'товар (123456789) _3 12.10.2026\nтовар (987654321) _3 11.10.2026\nтовар (112233445) _3 32.10.2026'
         out=price_advice(text,date(2026,10,8))
