@@ -10,7 +10,9 @@ Interpretation:
 
 - the number after the underscore is days of stock coverage, not units;
 - dates are promised production inbound dates;
-- the article in parentheses is the marketplace SKU, not the internal article.
+- the article in parentheses is the marketplace SKU, not the internal article; accept `(123456789)`, `(Арт. 123456789)`, `(Артикул: 123456789)`;
+- multiple Telegram `Товар N:` items may wrap over several text lines. Group lines by product marker before linking `_N`, inbound date and SKU;
+- dates can be `DD.MM.YYYY`, `DD.MM.YY` (e.g., `26.10.26` is 2026-10-26), or ISO; `_6_` means six days and **no** production date, `_9_26.10.26` means nine days and arrival 2026-10-26.
 
 Decision per item (user clarification 2026-10-09):
 
