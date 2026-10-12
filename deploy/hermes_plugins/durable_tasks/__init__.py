@@ -9,10 +9,18 @@ def wire_status_v4(native,adapter=None,config=None):
  if config is None:config=json.loads(CONFIG.read_text())
  sys.path.insert(0,CODE_ROOT)
  import importlib
- from apps.operator_layer import multipart,multipart_ingress,production
+ from apps.operator_layer import multipart,multipart_ingress,queue,production
+ # Gateway is long-lived: a production module reload by itself would still
+ # bind the previously cached TaskQueue class after a source update.
+ # Rebind the complete ingress dependency chain at handler installation.
+ # This only runs when the handler is actually wired; it is NOT a live
+ # hot-rewire path for an already attached Telegram callback.
  importlib.reload(multipart)
+ importlib.reload(queue)
  importlib.reload(multipart_ingress)
  importlib.reload(production)
+ if production.TaskQueue is not queue.TaskQueue:
+  raise RuntimeError('gateway_queue_binding_stale')
  receive,reply_text=production.receive,production.reply_text
  from apps.operator_layer.tasks import Journal
  from telegram import Update
