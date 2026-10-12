@@ -1,0 +1,70 @@
+import unittest
+from apps.operator_layer.github import GitHubBroker, validate_branch, validate_files, merge_gate
+
+SHA='a'*40
+POLICY={'repository':'alexpmtk-afk/msp-server-stack','required_checks':{'unit':15368,'gitleaks':15368},'owner_login':'alexpmtk-afk'}
+class GitHubTests(unittest.TestCase):
+    def test_ref_guard(self):
+        validate_branch('hermes/task-1/change')
+        for b in ['main','hermes/../main','hermes/a.lock','hermes/a;whoami']:
+            with self.assertRaises(ValueError):validate_branch(b)
+    def test_path_guard(self):
+        for p in ['../etc/passwd','.github/workflows/a.yml','a/.git/config','/etc/passwd']:
+            with self.assertRaises(ValueError):validate_files({p:'x'})
+    def test_public_repo_secret_and_database_artifact_paths_denied(self):
+        blocked=[
+            '.env.production',
+            'deploy/.env.local',
+            'config/prod/secrets/access.json',
+            'keys/id_ed25519',
+            'config/live_token.key',
+            'data/runtime.sqlite3',
+            'backups/task.db',
+            'config/auth.json',
+            'config/credentials.json',
+            'dump/state.dump',
+        ]
+        for path in blocked:
+            with self.subTest(path=path):
+                with self.assertRaises(ValueError):validate_files({path:'not a real secret'})
+        validate_files({'apps/msp_data_sync/sync.py':'print("ok")'})
+        validate_files({'config/sync.example.json':'{"token_env":"SERVICE_TOKEN"}'})
+    def test_gate_ordinary_pass(self):
+        merge_gate(POLICY,{'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'},SHA,['apps/msp_data_sync/sync.py'],self.checks(),[])
+    def checks(self):return [{'name':k,'head_sha':SHA,'status':'completed','conclusion':'success','app':{'id':15368}} for k in POLICY['required_checks']]
+    def test_missing_checks_denied(self):
+        with self.assertRaises(ValueError):merge_gate(POLICY,{'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'},SHA,['README.md'],[],[])
+    def test_stale_and_spoofed_denied(self):
+        for checks in [[{**x,'head_sha':'b'*40} for x in self.checks()],[{**x,'app':{'id':1}} for x in self.checks()],[{**x,'conclusion':'skipped'} for x in self.checks()]]:
+            with self.assertRaises(ValueError):merge_gate(POLICY,{'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'},SHA,['README.md'],checks,[])
+    def test_protected_needs_current_owner_approval(self):
+        pr={'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'}
+        with self.assertRaises(ValueError):merge_gate(POLICY,pr,SHA,['AGENTS.md'],self.checks(),[])
+        merge_gate(POLICY,pr,SHA,['AGENTS.md'],self.checks(),[{'user':{'login':'alexpmtk-afk'},'state':'APPROVED','commit_id':SHA}])
+    def test_security_sensitive_plugin_and_deploy_paths_need_owner_approval(self):
+        pr={'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'}
+        sensitive=[
+            'deploy/hermes_plugins/durable_tasks/__init__.py',
+            'deploy/hermes_plugins/durable_tasks/plugin.yaml',
+            'deploy/operator/hermes-durable-worker.service',
+            'skills/hermes-operator/SKILL.md',
+            'apps/hermes/msp_signals_skill/SKILL.md',
+            'docs/operator/RELEASE_GATE_20261012.md',
+            'tests/operator/test_github.py',
+            'inventory/services.yaml',
+        ]
+        for path in sensitive:
+            with self.subTest(path=path):
+                with self.assertRaisesRegex(ValueError,'owner_approval_required'):
+                    merge_gate(POLICY,pr,SHA,[path],self.checks(),[])
+                with self.assertRaisesRegex(ValueError,'owner_approval_required'):
+                    merge_gate(POLICY,pr,SHA,[path],self.checks(),[{'user':{'login':'alexpmtk-afk'},'state':'APPROVED','commit_id':'b'*40}])
+                merge_gate(POLICY,pr,SHA,[path],self.checks(),[{'user':{'login':'alexpmtk-afk'},'state':'APPROVED','commit_id':SHA}])
+    def test_unprotected_regular_application_file_does_not_require_owner_review(self):
+        pr={'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'}
+        merge_gate(POLICY,pr,SHA,['apps/msp_data_sync/sync.py'],self.checks(),[])
+    def test_wrong_repo_and_unknown_fields_rejected_before_network(self):
+        b=GitHubBroker(POLICY,None)
+        with self.assertRaises(ValueError):b.execute('create_branch',{'branch':'hermes/test/x','base_sha':SHA,'shell':'id'})
+        with self.assertRaises(ValueError):b.execute('delete_repository',{})
+if __name__=='__main__':unittest.main()

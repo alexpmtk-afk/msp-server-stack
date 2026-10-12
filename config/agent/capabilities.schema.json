@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_revision",
+    "capabilities"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "policy_revision": {
+      "type": "string"
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "provider",
+          "target",
+          "probe",
+          "ttl",
+          "enabled"
+        ],
+        "properties": {
+          "provider": {
+            "enum": [
+              "github",
+              "remote",
+              "google",
+              "tasks"
+            ]
+          },
+          "target": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "probe": {
+            "enum": [
+              "github_public",
+              "github_ci",
+              "google_public",
+              "filesystem",
+              "broker",
+              "disabled"
+            ]
+          },
+          "ttl": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3600
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "components"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "msp-data-catalog"
+      ],
+      "properties": {
+        "msp-data-catalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "repository",
+            "database",
+            "service",
+            "timer",
+            "release_root",
+            "service_user",
+            "calendar",
+            "persistent"
+          ],
+          "properties": {
+            "repository": {
+              "const": "alexpmtk-afk/msp-server-stack"
+            },
+            "database": {
+              "const": "/opt/mcp/data/msp/msp_data.sqlite3"
+            },
+            "service": {
+              "const": "msp-data-sync.service"
+            },
+            "timer": {
+              "const": "msp-data-sync.timer"
+            },
+            "release_root": {
+              "const": "/opt/mcp/releases/msp-data-catalog"
+            },
+            "service_user": {
+              "const": "msp-sync"
+            },
+            "calendar": {
+              "const": "*-*-* 08:00:00 Europe/Moscow"
+            },
+            "persistent": {
+              "const": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

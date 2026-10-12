@@ -1,0 +1,74 @@
+name: Hermes Operator Development Executor Tests
+on:
+  pull_request:
+    paths:
+      - 'apps/operator_layer/**'
+      - 'deploy/hermes_plugins/durable_tasks/**'
+      - 'scripts/operator/**'
+      - 'config/agent/**'
+      - 'skills/hermes-operator/**'
+      - 'docs/operator/**'
+      - 'tests/operator/**'
+      - '.github/workflows/operator-devexec-tests.yml'
+  push:
+    branches:
+      - 'feat/hermes-operator-layer-import-20261009'
+    paths:
+      - 'apps/operator_layer/**'
+      - 'deploy/hermes_plugins/durable_tasks/**'
+      - 'scripts/operator/**'
+      - 'config/agent/**'
+      - 'skills/hermes-operator/**'
+      - 'docs/operator/**'
+      - 'tests/operator/**'
+      - '.github/workflows/operator-devexec-tests.yml'
+permissions:
+  contents: read
+jobs:
+  operator-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run isolated boundary tests without pytest
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$PWD/tests/operator:$PWD"
+          export PYTHONDONTWRITEBYTECODE=1
+          export HERMES_DISABLE_LAZY_INSTALLS=1
+          python - <<'PY'
+          import sys,unittest
+          # All portable operator unit and recovery suites. Tests requiring a
+          # live Hermes checkout or python-telegram-bot are integration-only.
+          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests","test_receipt_boundary.ReceiptTests","test_natural_multipart.NaturalMultipartTests","test_multipart.MultipartTests","test_multipart.DispatchTests","test_multipart.ProcessTests","test_multipart.PauseAndRaceTests","test_natural_plugin_rewire.HotRewireTests","test_queue","test_tasks","test_hermes_executor","test_worker_lifecycle","test_backup","test_github","test_preflight","test_remote","test_release","test_runner","test_saved_plan_recovery")
+          suite=unittest.defaultTestLoader.loadTestsFromNames(names)
+          n=suite.countTestCases()
+          print("DISCOVERED_TESTS="+str(n),flush=True)
+          if n<95:raise SystemExit("TOO_FEW_OPERATOR_TESTS")
+          outcome=unittest.TextTestRunner(verbosity=2).run(suite)
+          if not outcome.wasSuccessful():sys.exit(1)
+          print("OPERATOR_DEVEXEC_TESTS=PASS")
+          PY
+      - name: Verify Telegram plugin from pinned checkout in isolated interpreter
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONDONTWRITEBYTECODE=1 python -I - <<'PY'
+          import pathlib,sys,unittest
+          checkout=pathlib.Path.cwd().resolve()
+          # -I ignores any inherited PYTHONPATH and installed user packages.
+          sys.path[:0]=[str(checkout/'tests/operator'),str(checkout)]
+          from apps.operator_layer import multipart,queue,production
+          for module in (multipart,queue,production):
+              if not pathlib.Path(module.__file__).resolve().is_relative_to(checkout):
+                  raise SystemExit('STALE_PRODUCTION_MODULE_IMPORT:'+module.__name__)
+          suite=unittest.defaultTestLoader.loadTestsFromName('test_natural_plugin_rewire.HotRewireTests')
+          if suite.countTestCases()!=1:raise SystemExit('PLUGIN_TEST_NOT_FOUND')
+          verdict=unittest.TextTestRunner(verbosity=2).run(suite)
+          if not verdict.wasSuccessful():raise SystemExit('STAGED_PLUGIN_TEST_FAILED')
+          print('STAGED_PLUGIN_ISOLATION=PASS')
+          PY

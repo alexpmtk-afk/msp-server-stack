@@ -1,0 +1,4 @@
+name: durable_tasks
+version: 1.0.0
+description: Scoped persistent multipart ingress before Telegram debounce; no execution in Gateway.
+author: Local reviewed deployment
