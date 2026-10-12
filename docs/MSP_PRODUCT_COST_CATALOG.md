@@ -1,6 +1,6 @@
 # MSP product cost catalog — five selected production sources
 
-**State as of 2026-10-12: first cost-data import ACCEPTED on REMOTE, daily scheduling NOT activated.** Existing four-source MSP data sync and Hermes are unchanged. The importer ran from a pinned canonical GitHub checkout in the self-hosted runner workspace, not from a deployed module in `/opt/mcp/projects/msp-server-stack`; deployment to the protected project path is a separate prerequisite before enabling a daily user timer.
+**State as of 2026-10-12: initial data already loaded. Daily import proposed at 07:45 MSK via a separate Hermes-user timer; see live REMOTE acceptance before claiming it is active.** Existing four-source sync stays at 08:00 Europe/Moscow. The importer ran from a pinned canonical GitHub checkout in the self-hosted runner workspace, not from a deployed module in `/opt/mcp/projects/msp-server-stack`; deployment to the protected project path is a separate prerequisite before enabling a daily user timer.
 
 ## Accepted first import — 2026-10-12, 08:22 UTC
 
@@ -38,6 +38,50 @@ The first three and the two Laser Master sheets belong to **two different** owne
 **Laser Master has two independent cost variants**; 'new, without profit' is the source chosen for current economic-cost analysis, while 'old, with profit' is retained for backwards comparison. Never blend them or silently fall back from one to the other. Other manufacturers' C columns do not explicitly establish whether profit is included; do not make that claim.
 
 2026-10-12 read-only sampling of the populated source columns: 160 Ultra rows (152 valid cost), 276 Zavoz (223 valid), 68 MORE (52 valid), 285 Laser old (277 valid), 257 Laser new (257 valid). Two duplicate internal articles were observed in Ultra24. This is source health at inspection time, not live server import validation.
+
+## Source quality status — numeric values and missing data
+
+For every **present internal article row** from each of five feeds, keep a current
+`product_cost_source_status` record, queryable through `v_product_cost_source_status`.
+The `cost_status` is one of:
+
+| cost_status | Display text | Current cost |
+|---|---|---|
+| available | Есть данные | Exact decimal value |
+| no_data | Нет данных | SQL NULL |
+| invalid_value | Ошибка источника | SQL NULL |
+| duplicate_article | Повтор артикула | SQL NULL |
+
+A bad or blank cost does **not** turn into 0 and is **not** silently taken from
+another cost variant. The source status view exposes `last_confirmed_cost_decimal`
+in a **different field** if an earlier valid observation exists, with timestamp.
+An agent must not treat that historical number as a verified current cost.
+Fixing a Google Sheet later automatically changes the status to `available`
+on the next successful import. Current status rows from a previous snapshot
+that have since disappeared from a successfully fetched sheet are retired;
+the separate run-issue history remains.
+
+For scheduler health, routine source gaps are visible as source-quality
+`partial` records without producing a failing exit code. Missing/unauthorized
+CSV, wrong headers, corrupt DB and unexpected transport errors still fail the
+job; **never suppress a real operational failure**.
+
+## Daily schedule and deployment
+
+- Cost timer: `systemd/user/msp-product-cost.timer` at **07:45 Europe/Moscow**
+- Existing four-source timer: **08:00 Europe/Moscow**, unchanged
+- Cost oneshot: `systemd/user/msp-product-cost.service`, bounded by 540 seconds
+- Runtime script: `/home/hermes/.local/share/msp-product-cost/sync.py`
+  installed from an exact canonical GitHub commit with SHA verification
+- Protected environment file: `/home/hermes/.config/msp/product-costs.env`
+  (mode `0600`, owner `hermes`), specifies the direct CSV transport and both sheet IDs
+- Python: `/usr/bin/python3`; CSV mode needs no OAuth client and no extra Python packages
+- Timer `Persistent=false` avoids an unintended immediate missed-run catch-up
+  on first activation; a day when REMOTE is down will not be backfilled automatically
+- No modifications to `msp-data-sync.timer`, Hermes Gateway or source Google Sheets
+
+Installation/activation is a separate protected operation and must be verified by
+`systemctl --user` and a post-run SQLite integrity/row-status audit.
 
 ## Storage
 
@@ -103,7 +147,7 @@ Read-only source preflight: run `MSP_COST_TRANSPORT=csv python3 apps/msp_product
 
 The first owner-authorized import followed the read-only precheck and verified online backup. For subsequent imports, verify source availability, database health and non-overlapping writes first; do not delete historical data. Examine all five per-source statuses, duplicate/formula issue counts, integrity/FK checks, cost revision behavior, and unchanged Hermes/Telegram/four-source timer. Never overwrite the existing SQLite or run a root-level installer. Normal cost-sync warnings should be handled by a dedicated runbook; no notification is currently wired.
 
-Proposed recurrence after first accepted import: the staged, **disabled** dedicated Hermes-user files `systemd/user/msp-product-cost.service` and `systemd/user/msp-product-cost.timer`. The timer proposes 08:15 Europe/Moscow, after the existing four-source 08:00 schedule. The service expects the dedicated authenticated Hermes venv and protected 0600 env file. **Neither unit is installed or enabled on REMOTE.** Confirm first import and the business cadence before enabling a persistent timer; enabling it may immediately run a missed synchronization.
+Legacy 08:15 schedule proposal is superseded by the owner's final **07:45 Moscow** choice. Verify actual enabled state from the REMOTE audit; documentation is not evidence of service activation.
 
 ## Offline verification
 
