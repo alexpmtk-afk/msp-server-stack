@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - 'apps/operator_layer/**'
+      - 'deploy/hermes_plugins/durable_tasks/**'
+      - 'scripts/operator/**'
+      - 'config/agent/**'
+      - 'skills/hermes-operator/**'
+      - 'docs/operator/**'
       - 'tests/operator/**'
       - '.github/workflows/operator-devexec-tests.yml'
   push:
@@ -10,6 +15,11 @@ on:
       - 'feat/hermes-operator-layer-import-20261009'
     paths:
       - 'apps/operator_layer/**'
+      - 'deploy/hermes_plugins/durable_tasks/**'
+      - 'scripts/operator/**'
+      - 'config/agent/**'
+      - 'skills/hermes-operator/**'
+      - 'docs/operator/**'
       - 'tests/operator/**'
       - '.github/workflows/operator-devexec-tests.yml'
 permissions:
