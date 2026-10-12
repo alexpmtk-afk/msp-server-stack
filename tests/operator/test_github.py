@@ -11,6 +11,24 @@ class GitHubTests(unittest.TestCase):
     def test_path_guard(self):
         for p in ['../etc/passwd','.github/workflows/a.yml','a/.git/config','/etc/passwd']:
             with self.assertRaises(ValueError):validate_files({p:'x'})
+    def test_public_repo_secret_and_database_artifact_paths_denied(self):
+        blocked=[
+            '.env.production',
+            'deploy/.env.local',
+            'config/prod/secrets/access.json',
+            'keys/id_ed25519',
+            'config/live_token.key',
+            'data/runtime.sqlite3',
+            'backups/task.db',
+            'config/auth.json',
+            'config/credentials.json',
+            'dump/state.dump',
+        ]
+        for path in blocked:
+            with self.subTest(path=path):
+                with self.assertRaises(ValueError):validate_files({path:'not a real secret'})
+        validate_files({'apps/msp_data_sync/sync.py':'print("ok")'})
+        validate_files({'config/sync.example.json':'{"token_env":"SERVICE_TOKEN"}'})
     def test_gate_ordinary_pass(self):
         merge_gate(POLICY,{'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'},SHA,['apps/msp_data_sync/sync.py'],self.checks(),[])
     def checks(self):return [{'name':k,'head_sha':SHA,'status':'completed','conclusion':'success','app':{'id':15368}} for k in POLICY['required_checks']]
