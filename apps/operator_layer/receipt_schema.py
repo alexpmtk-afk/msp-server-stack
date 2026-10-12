@@ -21,6 +21,10 @@ def normalize_receipt(raw):
  if type(version) is not int or version not in (0,1):raise ValueError('unsupported_schema_version')
  if raw.get('kind') not in ('plan','checkpoint','complete','blocked'):raise ValueError('unknown_response_kind')
  r=copy.deepcopy(raw);r['schema_version']=1
+ # Hermes may wrap a planning block list in exactly {"blocks": [...]}. Unwrap
+ # only this known envelope; block validation and acceptance remain unchanged.
+ if r['kind']=='plan' and isinstance(r.get('plan'),dict) and set(r['plan'])=={'blocks'}:
+  r['plan']=r['plan']['blocks']
  updates=r.get('updates',{});evidence=r.get('evidence',{})
  # Planning notes from a model are not execution proof. Preserve legacy
  # list-shaped notes as non-authoritative metadata, only for plan receipts.
