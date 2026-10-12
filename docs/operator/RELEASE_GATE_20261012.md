@@ -8,9 +8,9 @@ This is a frozen handoff for the owner's authorized scoped update of the existin
 
 Canonical draft PR: https://github.com/alexpmtk-afk/msp-server-stack/pull/32
 
-Pinned source revision: `d41d3bdcbd5546eea1f5a61e569ff266bfd35e58`.
+Pinned source revision: `23613f9fe90eb0f9ecf83657072ea3d66225f0d1` (code candidate; subsequent documentation commits do not change the release binaries).
 
-The portable test suite at code commit `f12fcf7eb78bb2a7a4019e78a874181f916e3fe6` passed **139/139**; GitHub Actions workflow run `38237472746`. Secret Scan `38237472801` PASS. Newer HEAD only adds documentation.
+The enlarged portable test suite at code commit `23613f9fe90eb0f9ecf83657072ea3d66225f0d1` passed **141/141**; GitHub Actions workflow run `38242304071`. Secret Scan run `38242304054` PASS. Tests refuse saved-plan recovery when unrelated queue tasks or an open Telegram collection are present.
 
 All digests below are **Git blob SHA-1**, not SHA256 of file bytes:
 
@@ -22,7 +22,7 @@ All digests below are **Git blob SHA-1**, not SHA256 of file bytes:
 | `apps/operator_layer/hermes_executor.py` | `b5192a431d0820a27073bcf9a727542a34a48841` | `125eb824d3031c7a418a40db9ad5dbed31b319f8` |
 | `apps/operator_layer/receipt_schema.py` | `b47df48b7ebb69a6b5c66028cd53b1af7e70afca` | `7215986426d1e17f207a1690adc4827b5161745c` |
 | `apps/operator_layer/production.py` | `37772af6e9e4e03d336a5cef041f7c27b6e9b235` | `f32b221e289fc06baf74e3a54178fc154464daa4` |
-| `apps/operator_layer/saved_plan_recovery.py` | ABSENT | `df002314db6e25e5a436998540d9abe5d9539c67` |
+| `apps/operator_layer/saved_plan_recovery.py` | ABSENT | `b5a46c99dfd1f5d50f936f4b118f6aca798b8fc5` |
 | `deploy/hermes_plugins/durable_tasks/__init__.py` | `e23fdd87418458895cff6f66f32ad8fce6bcf24a` | `094046d0546a66b7ad657160c0e878ebd1ce3340` |
 
 The installed plugin `/home/hermes/.hermes/plugins/durable_tasks/__init__.py` must be updated with the **same exact new plugin blob**. The unchanged `scripts/operator/worker_entry.py` is the actual systemd user unit entry script and imports `apps.operator_layer.worker_service.main`. Do not provision a new Worker.
@@ -35,10 +35,12 @@ The original task's saved immutable planning receipt was independently accepted 
 
 ## Authorized rollout boundary (not executed)
 
+A one-task offline reconcile must fail closed when **any other** queue task is active or an incomplete multipart collection exists: the underlying claim path normally invokes shared queue recovery and must not mutate unrelated state. These guards were added in the pinned candidate and verified with tests. Treat owner ingress quiescence as an external rollout prerequisite; a preflight by itself is not a mutex against messages arriving later.
+
 1. Repeat narrow source and queue/service preflight. Abort on any active/unknown task, changed source blobs, config/scope drift, open collection or modified original receipt.
 2. Stage only the above exact pinned source blobs. Create a restricted 0700 per-release rollback directory under the existing operator activation backup area; back up exact existing source/plugin/config and use **SQLite online backup** for current journal and runtime databases. Verify backup integrity and preserve timestamps/provenance.
 3. Use **only the existing user systemd unit** to stop Worker. Confirm it stopped and its exclusive lifetime flock is available. Do not stop unrelated services.
-4. Install only these eight source files and the installed Telegram plugin, atomically; check digests. Run the full portable suite in isolated fixtures. On failure, restore only touched files and restart the old Worker; never overwrite a newer live journal with a stale snapshot.
+4. Install only these eight source files and the installed Telegram plugin, atomically; check digests. Run the full **141-test** portable suite in isolated fixtures. On failure, restore only touched files and restart the old Worker; never overwrite a newer live journal with a stale snapshot.
 5. A Gateway hot reload alone is insufficient: previous hot reload trials did not replace the callback. Use a separately bounded, owner-approved **single-service Gateway restart**, followed by independent new PID, control socket, native attached handler and source-version readback.
 6. Restart the same Worker user unit from its existing `worker_entry.py`. Independently confirm it imports pinned current source and that the original task is **still BLOCKED**, with exactly one planning execution. Commit changed source files to REMOTE branch only after acceptance; preserve unrelated worktrees.
 7. **Separately**, after a new stable baseline and explicit stop of Worker, perform `saved_plan_recovery`'s default read-only preflight and, when gates hold, lock-fenced offline `--apply`. It verifies exact task/request/receipt SHA256 and input parts, confirms the original planning execution as VERIFIED, and leaves 0 execution blocks completed and the task WAITING_NEXT_TURN. It must not invoke model, mutate production data outside Task Journal, or deliver Telegram itself.
