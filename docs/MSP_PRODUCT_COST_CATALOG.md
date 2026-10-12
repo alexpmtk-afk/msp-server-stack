@@ -47,7 +47,7 @@ Read-only source preflight: run `python3 apps/msp_product_costs/sync.py --prefli
 
 After protected access is independently verified: take an online SQLite backup; execute the bounded read-only source precheck, and only then approve a first import. Examine all five per-source statuses, duplicate/formula issue counts, integrity/FK checks, cost revision behavior, and unchanged Hermes/Telegram/four-source timer. Never overwrite the existing SQLite or run a root-level installer. Normal cost-sync warnings should be handled by a dedicated runbook; no notification is currently wired.
 
-Proposed recurrence after first accepted import: a **separate Hermes user** oneshot+timer following the 08:00 MSK existing catalog sync, e.g. 08:15 Europe/Moscow. This is a proposal, **not installed or enabled**. A timer alone does not establish successful imports.
+Proposed recurrence after first accepted import: the staged, **disabled** dedicated Hermes-user files `systemd/user/msp-product-cost.service` and `systemd/user/msp-product-cost.timer`. The timer proposes 08:15 Europe/Moscow, after the existing four-source 08:00 schedule. The service expects the dedicated authenticated Hermes venv and protected 0600 env file. **Neither unit is installed or enabled on REMOTE.** Confirm first import and the business cadence before enabling a persistent timer; enabling it may immediately run a missed synchronization.
 
 ## Offline verification
 
