@@ -77,7 +77,7 @@ def utcnow():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def key(article):
-    return re.sub(r"\s+", "", str(article).strip()).casefold()
+    return str(article).strip().casefold()
 
 def decimal_cost(raw):
     s = str(raw if raw is not None else "").replace("\u00a0", "").replace("\u202f", "").replace(" ", "").strip().replace(",", ".")
