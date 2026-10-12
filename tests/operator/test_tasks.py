@@ -34,6 +34,20 @@ class TasksTests(unittest.TestCase):
   with self.j.turn(self.id,'one'):
    with self.assertRaises(ValueError):
     with Journal(self.path).turn(self.id,'two'):pass
+ def test_rejects_malformed_plan_field_types(self):
+  # Fail closed on malformed model-generated plan blocks before journal mutation.
+  wrong=[
+   {'goal':[]},{'goal':' '},{'expected_output':None},{'readback':42},{'rollback':[]},
+   {'acceptance':'verified'},{'acceptance':[]},{'acceptance':[True]},
+   {'allowed_mutations':'sandbox_marker'},{'allowed_mutations':[2]},
+   {'dependencies':'0'},{'dependencies':[False]},{'dependencies':[0]},
+  ]
+  for fields in wrong:
+   with self.subTest(fields=fields),self.assertRaisesRegex(ValueError,'invalid_block'):
+    self.j.task_document('telegram:fixture','invalid',[PLAN[0]|fields])
+  with self.assertRaisesRegex(ValueError,'invalid_block'):
+   self.j.task_document('telegram:fixture','invalid',[['not a dict']])
+  self.assertEqual(self.j.task_document('telegram:fixture','valid',[PLAN[0]])['plan'],[PLAN[0]])
  def test_acceptance_and_budget(self):
   with self.j.turn(self.id,'one') as t:
    with self.assertRaises(ValueError):t.complete({'verified':False})
