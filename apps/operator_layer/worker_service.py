@@ -73,6 +73,8 @@ def main():
  from .hermes_executor import HermesExecutor
  if a.test_fixture and not config.get('test_only',False):raise ValueError('fixture_requires_test_only_config')
  q=TaskQueue(j,allowed_scope=tuple(config['scope']))
+ from .multipart import Collector
+ collector=Collector(j)
  ex=FixtureExecutor() if a.test_fixture else HermesExecutor(j.root,profile=config['scope'][0],sandbox_enabled=config.get('sandbox_enabled',False),devexec_readonly_enabled=config.get('devexec_readonly_enabled',False),devexec_write_enabled=config.get('devexec_write_enabled',False))
  worker=Worker(q,ex,acceptance if a.test_fixture else ex.verify,worker_id='worker-'+str(uuid.uuid4()));stopping=False;wake=threading.Event()
  def stop(*args):
@@ -81,8 +83,11 @@ def main():
  signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
  try:
   while not stopping:
+   # Complete and assembled Telegram inputs can survive an ingress crash before
+   # dispatch confirmation. Resume locally with scoped idempotent queue readback.
+   q.enqueue_multipart(collector)
    q.recover()
-   # Recovery is readback-only: no receipt means BLOCKED, never a new execution.
+   # Execution recovery is readback-only: no receipt means BLOCKED, never a new execution.
    for (tid,) in list(j.db.execute("SELECT task FROM task_queue WHERE state='INTERRUPTED' AND scope=?",(q._scope_json(),))):
     worker.reconcile(tid)
    ran=worker.run_once()
