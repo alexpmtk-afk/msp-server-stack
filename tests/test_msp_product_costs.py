@@ -90,6 +90,27 @@ class ProductCostTests(unittest.TestCase):
         result=self.con.execute("SELECT marketplace,store,marketplace_sku FROM v_product_cost_listing_matches").fetchone()
         self.assertEqual(result,("oz","laser","123456"))
 
+    def test_preflight_does_not_open_or_create_sqlite(self):
+        import contextlib
+        import io
+        import json
+        example = {
+            "ultra": self.rows(article="A1"),
+            "zavoz": self.rows(article="B2"),
+            "more": self.rows(article="C3"),
+            "laser_old": [["Артикулы", "Название товара", "Себестоимость"], ["D4", "X", "19,40"]],
+            "laser_new": [["Артикул", "Наименование", "Себестоимость без прибыли"], ["D4", "X", "9,20"]],
+        }
+        with tempfile.TemporaryDirectory() as d:
+            fixture=Path(d)/"synthetic.json"
+            db=Path(d)/"msp.sqlite3"
+            fixture.write_text(json.dumps(example,ensure_ascii=False),encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()) as buf:
+                code=mod.main(["--preflight","--db",str(db),"--fixture",str(fixture)])
+            self.assertEqual(code,0)
+            self.assertFalse(db.exists())
+            self.assertTrue(all(x["read_only"] for x in json.loads(buf.getvalue())["product_cost_sync"]))
+
     def test_source_header_mismatch_is_fail_closed(self):
         with self.assertRaises(ValueError):
             mod.parse_rows("laser_new",[["Артикул","Название товара","Себестоимость"],["A","B","1"]])
