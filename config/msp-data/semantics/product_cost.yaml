@@ -60,9 +60,11 @@ fields:
   internal_article: {type: text, meaning: Точный исходный внутренний артикул товара}
   article_key: {type: text, meaning: Нормализованный ключ для справочной связи}
   product_name: {type: nullable_text, meaning: Исходное наименование товара}
-  cost_decimal: {type: decimal_text, meaning: >
-    Числовая себестоимость из указанной колонки в исходной единице на товар.
-    Не преобразовывать в float. Валюта и количество единиц не дополняются догадками.}
+  cost_decimal:
+    type: decimal_text
+    meaning: >
+      Числовая себестоимость из указанной колонки в исходной единице на товар.
+      Не преобразовывать в float. Валюта и количество единиц не дополняются догадками.
   specification_url: {type: nullable_text, meaning: Ссылка на расчёт или спецификацию если в исходном листе есть}
   source_sheet: {type: text, meaning: Проверенное название исходного листа}
   source_row: {type: integer, meaning: Строка источника, для диагностики, не бизнес-ключ}
