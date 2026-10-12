@@ -6,6 +6,22 @@ import hashlib,json,re,time,uuid
 from .tasks import stamp
 HEADER=re.compile(r'^TASK\s+(\d+)/(\d+)(?:\s+(END))?(?:\s*[—–-]\s*(.*))?\s*$',re.I)
 CONTROLS={'/task begin','/task end','/task status','/task cancel'}
+# Natural-language control is opt-in; exact standalone phrases only.
+NATURAL_CONTROLS={
+ 'сейчас отправлю задание частями':'/task begin',
+ 'я сейчас отправлю задание несколькими сообщениями':'/task begin',
+ 'я отправлю задание несколькими сообщениями':'/task begin',
+ 'сейчас опишу задачу в нескольких сообщениях':'/task begin',
+ 'начинаю большое задание':'/task begin',
+ 'всё, приступай':'/task end',
+ 'это всё, приступай':'/task end',
+ 'на этом всё, приступай':'/task end',
+ 'задание завершено, приступай':'/task end',
+ 'отмени сбор задания':'/task cancel'
+}
+def natural_control(text):
+ if not isinstance(text,str) or '\n' in text or len(text)>160:return None
+ return NATURAL_CONTROLS.get(text.strip().lower().rstrip(' .!…'))
 OPEN=('COLLECTING','COMPLETE','ASSEMBLED','ERROR')
 MAX_PARTS=128
 MAX_BYTES=256_000
@@ -51,7 +67,7 @@ CREATE TABLE IF NOT EXISTS multipart_dispatch(task TEXT PRIMARY KEY, durable TEX
   now=stamp();mid=str(uuid.uuid4())
   d=dict(multipart_task_id=mid,scope=key,origin_chat=scope[2],routing_session_key=scope[3],owner=scope[1],profile=scope[0],mode=mode,expected_parts=expected,status='COLLECTING',created_at=now,updated_at=now,final_received=False,assembled_hash=None,durable_task_id=None,last_error=None)
   self._put(d);return d
- def receive(self,scope,message_id,update_id,text,received_at=None):
+ def receive(self,scope,message_id,update_id,text,received_at=None,*,natural_controls_enabled=False):
   key=scope_key(scope)
   if not isinstance(message_id,str) or not message_id or len(message_id)>128 or not isinstance(text,str):raise ValueError('invalid_message')
   if update_id is not None and (not isinstance(update_id,int) or isinstance(update_id,bool)):raise ValueError('invalid_update')
@@ -67,6 +83,11 @@ CREATE TABLE IF NOT EXISTS multipart_dispatch(task TEXT PRIMARY KEY, durable TEX
     result=self._reply(d,'duplicate_update' if replay[1]==fp else 'message_replay_conflict')
    else:
     d=self._open(key)
+    if natural_controls_enabled is True:
+     alias=natural_control(text)
+     # Never swallow a natural end/cancel outside a manual collection.
+     if alias=='/task begin' or (d is not None and d['mode']=='manual' and alias in ('/task end','/task cancel')):
+      control=alias
     explicit=h is not None or control.startswith('/task') or re.match(r'^TASK\s+\d+/',first,re.I)
     if not d and not explicit:
      result={'consumed':False}
