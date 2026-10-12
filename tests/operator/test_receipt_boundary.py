@@ -57,7 +57,7 @@ class ReceiptTests(unittest.TestCase):
   from apps.operator_layer.multipart import Collector
   with tempfile.TemporaryDirectory() as tmp:
    j=Journal(Path(tmp)/'private');self.addCleanup(j.close);q=TaskQueue(j,allowed_scope=SCOPE)
-   c=Collector(j);m=c.receive(SCOPE,'list-plan',None,'TASK 1/1 END\\nfixture');c.assemble(m['multipart_task_id']);q.enqueue_multipart(c)
+   c=Collector(j);m=c.receive(SCOPE,'list-plan',None,'TASK 1/1 END'+chr(10)+'fixture');c.assemble(m['multipart_task_id']);q.enqueue_multipart(c)
    tid=c.status(m['multipart_task_id'])['durable_task_id']
    class Ex(FixtureExecutor):
     def execute(self,ctx,source,rid,budget):
