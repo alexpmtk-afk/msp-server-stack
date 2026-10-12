@@ -31,15 +31,22 @@ Prices are held as exact decimal TEXT, with comma decimal and nonbreaking spaces
 
 ## REMOTE authentication and safety barrier
 
-These sheets are presently readable using the connected Google Drive account, **not yet verified as readable by the REMOTE host**. Do not make either workbook public to work around access. Use a new narrowly scoped Google Cloud **service account**, share **only those two workbooks** as Viewer with its identity, and store the JSON credential exclusively on REMOTE under `/home/hermes/.config/msp/product-cost-reader.json` with `hermes` ownership and mode `0600`. Keep its identity/permissions documented privately. No access token, JSON key, source costs, or raw payloads in Git, issue comments, logs or Telegram.
+ChatGPT can read both selected workbooks through a connected Google account; **that connector does not authorize the REMOTE process**. On 2026-10-12, GitHub Runner read-only audits in private `msp-server-bridge` Issues #246 and #247 found no existing Google Sheets/Drive credential or relevant registered MCP available to the `hermes` service. Current four-source MSP sync does not have OAuth: it reads the separate public-by-link CSV export.
 
-Store the following keys in a distinct Hermes-owned mode-0600 environment file (never in the shared Hermes Gateway secrets file):
+**A new Google account is NOT required.** The supported choices for a future protected connector are:
+- **User OAuth (preferred when using the owner's existing Google account):** owner personally consents once to read-only Google Sheets API permissions for the MSP program; save the resulting *authorized-user* refresh credentials in a protected server file. This may require creating an OAuth client application in Google Cloud, but it is not a new Google account. Its scope may cover all spreadsheets accessible to that Google account, so owner approval and token protection are essential.
+- **Google service account (optional):** a dedicated non-human identity with read-only Viewer access granted only to the two source workbooks. This is an optional least-privilege alternative, not a prerequisite.
 
+In either case, do not make source workbooks public and do not copy ChatGPT connector tokens into the server. Store **one owner-authorized credential JSON** as a regular file (never a symlink) with `hermes` ownership, mode 0600 under `/home/hermes/.config/msp/google-cost-reader.json`. Never put an OAuth client secret, access/refresh token, service account key, business cost or raw source sheet into GitHub, issues, Telegram or logs.
+
+The dedicated protected `/home/hermes/.config/msp/product-costs.env` (owner `hermes`, mode 0600) will contain:
 ```text
-MSP_COST_MAIN_SHEET_ID=<private Google spreadsheet id>
-MSP_COST_LASER_SHEET_ID=<private Google spreadsheet id>
-MSP_COST_GOOGLE_SERVICE_ACCOUNT_FILE=/home/hermes/.config/msp/product-cost-reader.json
+MSP_COST_MAIN_SHEET_ID=<first private Google spreadsheet id>
+MSP_COST_LASER_SHEET_ID=<second private Google spreadsheet id>
+MSP_COST_GOOGLE_CREDENTIALS_FILE=/home/hermes/.config/msp/google-cost-reader.json
 ```
+
+For compatibility only, the old `MSP_COST_GOOGLE_SERVICE_ACCOUNT_FILE` key is recognized if the new key is absent. The loader accepts **only** `authorized_user` or `service_account` credentials; no external-account or arbitrary configuration URLs are accepted. Neither choice has been provisioned, and live Google access from REMOTE has not yet been verified.
 
 Install `apps/msp_product_costs/requirements.txt` into a dedicated `hermes` virtual environment, not system Python. This is **not** part of the existing four-source `msp-data-sync.service`.
 
