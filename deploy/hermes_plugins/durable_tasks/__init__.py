@@ -9,7 +9,9 @@ def wire_status_v3(native,adapter=None,config=None):
  if config is None:config=json.loads(CONFIG.read_text())
  sys.path.insert(0,CODE_ROOT)
  import importlib
- from apps.operator_layer import production
+ from apps.operator_layer import multipart,multipart_ingress,production
+ importlib.reload(multipart)
+ importlib.reload(multipart_ingress)
  importlib.reload(production)
  receive,reply_text=production.receive,production.reply_text
  from apps.operator_layer.tasks import Journal
