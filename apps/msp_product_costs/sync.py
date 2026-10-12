@@ -74,6 +74,31 @@ CREATE TABLE IF NOT EXISTS product_cost_run_issue(
  reason TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ix_product_cost_issue_run ON product_cost_run_issue(run_id);
+CREATE TABLE IF NOT EXISTS product_cost_source_status(
+ source TEXT NOT NULL, source_row INTEGER NOT NULL,
+ production TEXT NOT NULL, variant TEXT NOT NULL,
+ article_key TEXT NOT NULL, internal_article TEXT NOT NULL,
+ product_name TEXT, cost_status TEXT NOT NULL
+ CHECK(cost_status IN ('available','no_data','invalid_value','duplicate_article')),
+ checked_at TEXT NOT NULL, last_seen_run INTEGER NOT NULL,
+ PRIMARY KEY(source,source_row)
+);
+CREATE INDEX IF NOT EXISTS ix_product_cost_source_status_article
+ ON product_cost_source_status(production,variant,article_key);
+CREATE VIEW IF NOT EXISTS v_product_cost_source_status AS
+ SELECT s.source,s.source_row,s.production,s.variant,s.internal_article,s.product_name,
+ s.article_key,s.cost_status,
+ CASE s.cost_status WHEN 'available' THEN c.cost_decimal ELSE NULL END AS cost_decimal,
+ CASE s.cost_status WHEN 'available' THEN 'Есть данные'
+ WHEN 'no_data' THEN 'Нет данных'
+ WHEN 'duplicate_article' THEN 'Повтор артикула'
+ ELSE 'Ошибка источника' END AS cost_display_status,
+ c.cost_decimal AS last_confirmed_cost_decimal,
+ c.last_changed_at AS last_confirmed_cost_observed_at,
+ s.checked_at AS source_last_checked_at
+ FROM product_cost_source_status s
+ LEFT JOIN product_cost_current c
+ ON s.production=c.production AND s.variant=c.variant AND s.article_key=c.article_key;
 CREATE VIEW IF NOT EXISTS v_product_cost_current AS
  SELECT production,variant,internal_article,article_key,product_name,
  cost_decimal,specification_url,source_sheet,source_row,
@@ -145,7 +170,42 @@ def parse_rows(source, rows):
         })
     return records, issues
 
-def store_source(con, source, records, issues, observed_at, source_rows):
+def classify_source_rows(source, rows):
+    """Current source snapshot, including every article lacking a usable price.
+
+    Source-status rows are NOT cost observations: invalid/blank prices remain NULL
+    in the agent-facing view. A historical last-good cost is a separate column.
+    """
+    counts = Counter(key(_cell(r, 0)) for r in rows[1:] if str(_cell(r, 0)).strip())
+    snapshot = []
+    for pos, r in enumerate(rows[1:], start=2):
+        article = str(_cell(r, 0)).strip()
+        if not article:
+            continue
+        k = key(article)
+        value = str(_cell(r, 2) or "").strip()
+        if counts[k] > 1:
+            status = "duplicate_article"
+        elif not value:
+            status = "no_data"
+        else:
+            try:
+                decimal_cost(value)
+                status = "available"
+            except ValueError:
+                status = "invalid_value"
+        snapshot.append({
+            "source": source, "source_row": pos,
+            "production": "laser" if source.startswith("laser_") else source,
+            "variant": SPECS[source][2],
+            "article_key": k, "internal_article": article,
+            "product_name": str(_cell(r, 1)).strip() or None,
+            "cost_status": status,
+        })
+    return snapshot
+
+
+def store_source(con, source, records, issues, observed_at, source_rows, status_rows=None):
     con.executescript(SCHEMA)
     with con:
         cur = con.execute("INSERT INTO product_cost_run(source,observed_at,status,source_rows) VALUES(?,?,'running',?)",
@@ -184,6 +244,25 @@ def store_source(con, source, records, issues, observed_at, source_rows):
                 con.execute("UPDATE product_cost_current SET last_seen_run=? "
                             "WHERE production=? AND variant=? AND article_key=?", (run_id,*identity))
                 unchanged += 1
+        if status_rows is not None:
+            for item in status_rows:
+                if item["source"] != source:
+                    raise ValueError("cost-source status rows have unexpected source")
+                con.execute(
+                    "INSERT INTO product_cost_source_status("
+                    "source,source_row,production,variant,article_key,internal_article,"
+                    "product_name,cost_status,checked_at,last_seen_run) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?) "
+                    "ON CONFLICT(source,source_row) DO UPDATE SET "
+                    "production=excluded.production,variant=excluded.variant,"
+                    "article_key=excluded.article_key,internal_article=excluded.internal_article,"
+                    "product_name=excluded.product_name,cost_status=excluded.cost_status,"
+                    "checked_at=excluded.checked_at,last_seen_run=excluded.last_seen_run",
+                    (item["source"],item["source_row"],item["production"],item["variant"],
+                     item["article_key"],item["internal_article"],item["product_name"],
+                     item["cost_status"],observed_at,run_id))
+            con.execute("DELETE FROM product_cost_source_status "
+                        "WHERE source=? AND last_seen_run<>?",(source,run_id))
         for pos,reason in issues:
             con.execute("INSERT INTO product_cost_run_issue(run_id,source,source_row,reason) VALUES(?,?,?,?)",
                         (run_id,source,pos,reason))
@@ -324,10 +403,12 @@ def main(argv=None):
                 if len(rows)<2:
                     raise ValueError("empty source or missing header/data")
                 records, issues = parse_rows(source,rows)
+                statuses = classify_source_rows(source,rows)
                 if a.preflight:
                     results.append(dict(source=source,status="partial" if issues else "success",accepted=len(records),rejected=len(issues),read_only=True))
                 else:
-                    results.append(store_source(con,source,records,issues,when,len(rows)-1))
+                    results.append(store_source(con,source,records,issues,when,len(rows)-1,
+                                                status_rows=statuses))
             except Exception as e:
                 # Exceptions are deliberately NOT printed: URL/credential data might occur in a transport error.
                 if a.preflight:
@@ -335,7 +416,9 @@ def main(argv=None):
                 else:
                     results.append(mark_fetch_failure(con,source,when,type(e).__name__))
         print(json.dumps({"product_cost_sync":results},ensure_ascii=False))
-        return 1 if any(x["status"]!="success" for x in results) else 0
+        # Known source gaps are represented by explicit nonnumeric statuses,
+        # not by a failing daily systemd unit. Fetch/parsing failures still fail.
+        return 1 if any(x["status"]=="failed" for x in results) else 0
     finally:
         if con is not None:
             con.close()
