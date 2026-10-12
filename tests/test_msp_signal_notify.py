@@ -77,6 +77,53 @@ class PassiveNotifierTests(unittest.TestCase):
         self.assertIn("не заказан на производство", report)
         self.assertIn("ИМИТАЦИЯ", report)
 
+    def test_real_signal_multiline_articles_and_short_year(self):
+        # Faithful structure of the reported 12.10.2026 live Telegram signal.
+        # Products are wrapped and each article is written as "(Арт. N)".
+        message = (
+            "Сигналы МП\n🔥 Поднять цену\n_04_работа с платным хранением\n"
+            "📦 Товар 1: Гамаши от телевизора_6_\n"
+            "(Арт. 2791038373) → нужно повысить?\n"
+            "📦 Товар 2: Шапка для купания\n"
+            "кошек_9_26.10.26 (Арт. 985847424) → нужно\n"
+            "повысить?\n@Alinashest97"
+        )
+        self.assertEqual(m.identify(message)[0], "SIG-002")
+        self.assertEqual(len(m.price_records(message)), 2)
+        advice = m.price_advice(message, date(2026, 10, 12))
+        self.assertEqual(len(advice), 2, advice)
+        self.assertIn("SKU 2791038373: РЕКОМЕНДУЕТСЯ поднять цену", advice[0])
+        self.assertIn("запас 6 дн.", advice[0])
+        self.assertIn("не заказан на производство", advice[0])
+        self.assertIn("SKU 985847424: РЕКОМЕНДУЕТСЯ поднять цену", advice[1])
+        self.assertIn("запас 9 дн.", advice[1])
+        self.assertIn("поступление 26.10.2026", advice[1])
+        self.assertIn("граница 21.10.2026", advice[1])
+        report = m.format_report("SIG-002", "Поднять цену", message, 2666, date(2026, 10, 12))
+        self.assertIn("SKU 2791038373", report)
+        self.assertIn("SKU 985847424", report)
+        self.assertNotIn("Не удалось однозначно разобрать", report)
+
+    def test_labeled_article_single_line_and_short_year_on_boundary(self):
+        advice = m.price_advice(
+            "Товар 1: Название_3_15.10.26 (арт. 123456789)\n"
+            "Товар 2: Название_3_16.10.26 (АРТИКУЛ: 987654321)",
+            date(2026, 10, 12),
+        )
+        self.assertEqual(len(advice), 2)
+        self.assertIn("НЕ поднимать", advice[0])
+        self.assertIn("РЕКОМЕНДУЕТСЯ поднять", advice[1])
+        self.assertEqual(m.parse_date("26.10.26", date(2026, 10, 12)), date(2026, 10, 26))
+        self.assertEqual(m.parse_date("35.10.26", date(2026, 10, 12)), None)
+
+    def test_one_items_date_cannot_apply_to_another_wrapped_item(self):
+        text = ("Товар 1: Без даты_6_\n(Арт. 123456789)\n"
+                "Товар 2: С датой_6_15.10.26\n(Арт. 987654321)")
+        advice = m.price_advice(text, date(2026, 10, 12))
+        self.assertEqual(len(advice), 2)
+        self.assertIn("РЕКОМЕНДУЕТСЯ поднять", advice[0])
+        self.assertIn("НЕ поднимать", advice[1])
+
     def test_invalid_or_stale_date_is_not_treated_as_missing(self):
         rows = ("Товар (123456789) _6 32.10.2026\n"
                 "Товар (987654321) _6 01.10.2026\n"
