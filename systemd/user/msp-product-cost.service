@@ -1,15 +1,13 @@
 [Unit]
-Description=MSP production product cost synchronization (five protected Google Sheet sources)
+Description=MSP product costs (five Google CSV sources, isolated Hermes USER job)
 Wants=network-online.target
-After=network-online.target msp-data-sync.service
+After=network-online.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=/opt/mcp/projects/msp-server-stack
+WorkingDirectory=/home/hermes/.local/share/msp-product-cost
 EnvironmentFile=/home/hermes/.config/msp/product-costs.env
-ExecStart=/home/hermes/.venvs/msp-product-cost/bin/python /opt/mcp/projects/msp-server-stack/apps/msp_product_costs/sync.py --db /opt/mcp/data/msp/msp_data.sqlite3
-TimeoutStartSec=900
+ExecStart=/usr/bin/python3 /home/hermes/.local/share/msp-product-cost/sync.py --db /opt/mcp/data/msp/msp_data.sqlite3
+TimeoutStartSec=540
 UMask=0077
 NoNewPrivileges=true
-ProtectSystem=strict
-ReadWritePaths=/opt/mcp/data/msp

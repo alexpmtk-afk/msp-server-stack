@@ -3,7 +3,7 @@ catalog: product_cost
 purpose: >
   Отдельный изменяемый каталог себестоимости товаров пяти согласованных источников.
   Не добавлять себестоимость в product_catalog: тот является только справочником связей.
-status: initial_import_accepted_on_remote; automatic_sync_not_enabled
+status: initial_import_accepted_on_remote; daily_sync_0745_pending_deployment
 sensitivity: commercial_cost_data
 read_access: direct_csv_http_200_verified_from_remote; original_source_accessible_by_link
 source_scope:
@@ -79,11 +79,22 @@ storage:
   issues: product_cost_run_issue
   current_view: v_product_cost_current
   listing_view: v_product_cost_listing_matches
+  source_status_table: product_cost_source_status
+  source_status_view: v_product_cost_source_status
 update_rules:
   reading: Existing MSP unauthenticated Google CSV export (verified 2026-10-12) with optional protected OAuth mode, no credential required for current live access
   headers: validated_exactly
   valid_cost: strictly_positive_decimal; commas_and_nonbreaking_spaces_supported
-  blank_or_formula_error: reject_current_read_keep_last_confirmed_cost
+  blank_or_formula_error: do_not_store_zero; set_explicit_current_source_status; retain_last_confirmed_cost_separately
+  current_source_status:
+    available: корректная себестоимость
+    no_data: Нет данных
+    invalid_value: Ошибка источника
+    duplicate_article: Повтор артикула
+  numeric_current_column: NULL_unless_available
+  last_confirmed_column: separate_from_current_cost
+  expected_source_gaps: logged_as_source_quality_not_fatal_scheduler_failure
+  scheduler_failure: only_transport_or_header_or_db_error
   duplicate_internal_article_in_one_source: reject_all_conflicting_rows; do_not_pick_one
   missing_source_record: preserve_previous_value; last_seen_run remains older
   changed_cost: append_revision_then_update_current

@@ -84,6 +84,74 @@ class ProductCostTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             mod.transform_csv("ultra",b"x" * 20_000_001)
 
+    def test_missing_cost_has_explicit_null_not_zero_or_error(self):
+        rows=self.rows(article="MISS-01",price="")
+        records,issues=mod.parse_rows("ultra",rows)
+        self.assertEqual((len(records),len(issues)),(0,1))
+        statuses=mod.classify_source_rows("ultra",rows)
+        self.assertEqual(statuses[0]["cost_status"],"no_data")
+        mod.store_source(self.con,"ultra",records,issues,"2026-10-12T12:00:00Z",1,
+                         status_rows=statuses)
+        status=self.con.execute(
+            "SELECT cost_status,cost_decimal,cost_display_status,last_confirmed_cost_decimal "
+            "FROM v_product_cost_source_status").fetchone()
+        self.assertEqual(status,("no_data",None,"Нет данных",None))
+
+    def test_last_confirmed_cost_kept_separate_from_current_invalid(self):
+        good=self.rows(article="TEST-01",price="115")
+        records,issues=mod.parse_rows("more",good)
+        mod.store_source(self.con,"more",records,issues,"2026-10-12T12:00:00Z",1,
+                         status_rows=mod.classify_source_rows("more",good))
+        broken=self.rows(article="TEST-01",price="#REF!")
+        records,issues=mod.parse_rows("more",broken)
+        mod.store_source(self.con,"more",records,issues,"2026-10-13T12:00:00Z",1,
+                         status_rows=mod.classify_source_rows("more",broken))
+        row=self.con.execute(
+            "SELECT cost_status,cost_decimal,last_confirmed_cost_decimal "
+            "FROM v_product_cost_source_status").fetchone()
+        self.assertEqual(row,("invalid_value",None,"115"))
+        self.assertEqual(self.con.execute("SELECT cost_decimal FROM product_cost_current").fetchone()[0],"115")
+
+    def test_duplicate_articles_report_both_rows_without_invented_price(self):
+        rows=self.rows(article="DUP-01",price="100")
+        rows.append(["dup-01","Another","150"])
+        rec,issues=mod.parse_rows("zavoz",rows)
+        statuses=mod.classify_source_rows("zavoz",rows)
+        self.assertEqual((len(rec),len(issues)),(0,2))
+        self.assertEqual([s["cost_status"] for s in statuses],["duplicate_article"]*2)
+        mod.store_source(self.con,"zavoz",rec,issues,"2026-10-12T12:00:00Z",2,status_rows=statuses)
+        self.assertEqual(
+            self.con.execute("SELECT count(*) FROM v_product_cost_source_status "
+                             "WHERE cost_decimal IS NULL").fetchone()[0],2)
+
+    def test_repaired_price_becomes_available_and_updates_revision(self):
+        bad=self.rows(article="A-01",price="")
+        rec,issues=mod.parse_rows("ultra",bad)
+        mod.store_source(self.con,"ultra",rec,issues,"2026-10-12T12:00:00Z",1,
+                         status_rows=mod.classify_source_rows("ultra",bad))
+        repaired=self.rows(article="A-01",price="17,20")
+        rec,issues=mod.parse_rows("ultra",repaired)
+        mod.store_source(self.con,"ultra",rec,issues,"2026-10-13T12:00:00Z",1,
+                         status_rows=mod.classify_source_rows("ultra",repaired))
+        row=self.con.execute(
+            "SELECT cost_status,cost_decimal,last_confirmed_cost_decimal "
+            "FROM v_product_cost_source_status").fetchone()
+        self.assertEqual(row,("available","17.20","17.20"))
+        self.assertEqual(self.con.execute("SELECT count(*) FROM product_cost_current").fetchone()[0],1)
+
+    def test_source_missing_row_never_shows_as_current(self):
+        first=self.rows(article="A-01",price="")
+        rec,issues=mod.parse_rows("ultra",first)
+        mod.store_source(self.con,"ultra",rec,issues,"2026-10-12T12:00:00Z",1,
+                         status_rows=mod.classify_source_rows("ultra",first))
+        second=self.rows(article="A-02",price="9")
+        rec,issues=mod.parse_rows("ultra",second)
+        mod.store_source(self.con,"ultra",rec,issues,"2026-10-13T12:00:00Z",1,
+                         status_rows=mod.classify_source_rows("ultra",second))
+        current=self.con.execute("SELECT internal_article,cost_status "
+                                 "FROM v_product_cost_source_status").fetchall()
+        self.assertEqual(current,[("A-02","available")])
+
     def test_google_auth_accepts_only_two_explicit_credential_types(self):
         self.assertEqual(mod.google_auth_mode({"type": "authorized_user"}), "authorized_user")
         self.assertEqual(mod.google_auth_mode({"type": "service_account"}), "service_account")
