@@ -15,6 +15,15 @@ class ReceiptTests(unittest.TestCase):
   self.assertEqual(r['evidence'],{'unverified_planning_notes':['planning note']})
   self.assertEqual(raw['evidence'],['planning note'])
   self.assertEqual(r['updates'],{})
+ def test_plan_blocks_envelope_is_unwrapped_only_when_exact(self):
+  raw={'schema_version':1,'kind':'plan','plan':{'blocks':copy.deepcopy(PLAN[:1])},'evidence':['unverified note']}
+  r=normalize_receipt(raw)
+  self.assertEqual(r['plan'],PLAN[:1])
+  self.assertEqual(r['evidence'],{'unverified_planning_notes':['unverified note']})
+  self.assertEqual(raw['plan'],{'blocks':PLAN[:1]})
+  for bad in ({'blocks':[]},{'blocks':None},{'blocks':{'a':1}},{'blocks':PLAN[:1],'extra':'ignored'},{'steps':PLAN[:1]}):
+   with self.subTest(bad=bad),self.assertRaisesRegex(ValueError,'plan_required'):
+    normalize_receipt({'schema_version':1,'kind':'plan','plan':bad})
  def test_complete_list_evidence_still_rejected(self):
   with self.assertRaisesRegex(ValueError,'response_field_type'):
    normalize_receipt({'schema_version':1,'kind':'complete','evidence':['verified']})
@@ -85,6 +94,23 @@ class ReceiptTests(unittest.TestCase):
      self.records[rid]={'schema_version':1,'kind':'plan','plan':copy.deepcopy(PLAN[:1]),'evidence':['unverified note']}
      raise TimeoutError('after saved receipt')
    ex=Ex();worker=Worker(q,ex,lambda *a:True,worker_id='list-proof')
+   worker.run_once();self.assertTrue(worker.reconcile(tid))
+   self.assertEqual(len(ex.calls),1)
+   self.assertEqual(j.db.execute('SELECT COUNT(*) FROM task_executions WHERE task=?',(tid,)).fetchone()[0],1)
+   self.assertEqual(q.status(tid)['state'],'WAITING_NEXT_TURN')
+   self.assertEqual(j.get(tid)['plan'],PLAN[:1])
+ def test_saved_blocks_object_plan_recovers_without_second_model_call(self):
+  from apps.operator_layer.multipart import Collector
+  with tempfile.TemporaryDirectory() as tmp:
+   j=Journal(Path(tmp)/'private');self.addCleanup(j.close);q=TaskQueue(j,allowed_scope=SCOPE)
+   c=Collector(j);m=c.receive(SCOPE,'blocks-envelope',None,'TASK 1/1 END'+chr(10)+'fixture');c.assemble(m['multipart_task_id']);q.enqueue_multipart(c)
+   tid=c.status(m['multipart_task_id'])['durable_task_id']
+   class Ex(FixtureExecutor):
+    def execute(self,ctx,source,rid,budget):
+     self.calls.append((ctx,rid))
+     self.records[rid]={'schema_version':1,'kind':'plan','plan':{'blocks':copy.deepcopy(PLAN[:1])},'evidence':['unverified']}
+     raise TimeoutError('after saved receipt')
+   ex=Ex();worker=Worker(q,ex,lambda *a:True,worker_id='blocks-envelope')
    worker.run_once();self.assertTrue(worker.reconcile(tid))
    self.assertEqual(len(ex.calls),1)
    self.assertEqual(j.db.execute('SELECT COUNT(*) FROM task_executions WHERE task=?',(tid,)).fetchone()[0],1)
