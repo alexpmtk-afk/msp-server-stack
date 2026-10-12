@@ -128,7 +128,7 @@ def parse_rows(source, rows):
             "internal_article": article,
             "product_name": str(_cell(r, 1)).strip() or None,
             "cost_decimal": cost,
-            "specification_url": str(_cell(r, 3)).strip() or None if source != "laser_new" else None,
+            "specification_url": (str(_cell(r, 3)).strip() if str(_cell(r, 3)).strip().startswith(("https://", "http://")) else None) if source != "laser_new" else None,
             "source_sheet": SPECS[source][1], "source_row": pos,
         })
     return records, issues
@@ -224,14 +224,17 @@ def fetch_sheet(session, source):
 
 def main(argv=None):
     ap=argparse.ArgumentParser()
-    ap.add_argument("--db",required=True)
+    ap.add_argument("--db",help="Existing protected MSP SQLite database path")
     ap.add_argument("--fixture", help="Offline JSON map of source to cell rows; no Google auth")
+    ap.add_argument("--preflight",action="store_true",help="Read-only fetch and source validation, no SQLite opened")
     a=ap.parse_args(argv)
+    if not a.preflight and not a.db:
+        ap.error("--db is required unless --preflight")
     when=utcnow()
     rows_by_source = json.loads(Path(a.fixture).read_text(encoding="utf-8")) if a.fixture else None
     # Import lazily so offline tests need no Google dependencies.
     session = None if rows_by_source is not None else _google_session()
-    con=sqlite3.connect(a.db,timeout=30)
+    con=None if a.preflight else sqlite3.connect(a.db,timeout=30)
     try:
         results=[]
         for source in SPECS:
@@ -240,14 +243,21 @@ def main(argv=None):
                 if len(rows)<2:
                     raise ValueError("empty source or missing header/data")
                 records, issues = parse_rows(source,rows)
-                results.append(store_source(con,source,records,issues,when,len(rows)-1))
+                if a.preflight:
+                    results.append(dict(source=source,status="partial" if issues else "success",accepted=len(records),rejected=len(issues),read_only=True))
+                else:
+                    results.append(store_source(con,source,records,issues,when,len(rows)-1))
             except Exception as e:
                 # Exceptions are deliberately NOT printed: URL/credential data might occur in a transport error.
-                results.append(mark_fetch_failure(con,source,when,type(e).__name__))
+                if a.preflight:
+                    results.append(dict(source=source,status="failed",error_class=type(e).__name__,read_only=True))
+                else:
+                    results.append(mark_fetch_failure(con,source,when,type(e).__name__))
         print(json.dumps({"product_cost_sync":results},ensure_ascii=False))
         return 1 if any(x["status"]!="success" for x in results) else 0
     finally:
-        con.close()
+        if con is not None:
+            con.close()
         if session is not None:
             session.close()
 
