@@ -4,7 +4,7 @@ from pathlib import Path
 log=logging.getLogger('durable_tasks')
 CODE_ROOT='/home/hermes/projects/hermes-operator-layer'
 CONFIG=Path('/home/hermes/.hermes/operator-tasks/worker-config.json')
-def wire_status_v3(native,adapter=None,config=None):
+def wire_status_v4(native,adapter=None,config=None):
  if adapter is None:raise RuntimeError('telegram_adapter_required')
  if config is None:config=json.loads(CONFIG.read_text())
  sys.path.insert(0,CODE_ROOT)
@@ -49,5 +49,5 @@ def wire_status_v3(native,adapter=None,config=None):
    for k,v in [('native_attached_pid',str(os.getpid())),('native_attached_at',str(time.time())),('scope',json.dumps(scope))]:j.db.execute('INSERT OR REPLACE INTO integration_metadata VALUES (?,?)',(k,v))
  finally:j.close()
  log.info('Multipart native ingress attached pid=%s private_chat=%s',os.getpid(),chat)
-wire=wire_status_v3
-def register(ctx):ctx.register_telegram_handler(wire_status_v3)
+wire=wire_status_v4
+def register(ctx):ctx.register_telegram_handler(wire_status_v4)
