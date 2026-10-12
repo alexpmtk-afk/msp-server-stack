@@ -1,0 +1,2 @@
+# Separate authenticated Google Sheets reader; install only in an approved Hermes venv.
+google-auth[requests]>=2.35,<3

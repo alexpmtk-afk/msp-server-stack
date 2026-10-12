@@ -1,4 +1,4 @@
-version: 9
+version: 10
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -148,10 +148,18 @@ datasets:
   - price_journal_current
   - price_journal_archive
   - v_price_history
+staged_catalogs:
+  product_cost:
+    status: github_implementation_only; not_deployed; Google_reader_not_authorized_on_REMOTE
+    description: Пятый каталог себестоимости пяти согласованных источников с защищённым доступом и отдельной историей.
+    semantics: product_cost.yaml
+    storage: product_cost_current; product_cost_revision; product_cost_run; product_cost_run_issue
+    deployment_dependency: authorized_readonly_service_account_with_both_workbooks
 semantics_files:
   - product_catalog.yaml
   - self_purchase.yaml
   - price_journal_current.yaml
   - price_journal_archive.yaml
   - price_history.yaml
+  - product_cost.yaml
 constraints: ASCII_numeric_SKU; no_operational_metrics_in_product_catalog; no_automatic_history_deletion

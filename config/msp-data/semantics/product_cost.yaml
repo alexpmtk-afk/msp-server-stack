@@ -1,0 +1,98 @@
+version: 1
+catalog: product_cost
+purpose: >
+  Отдельный изменяемый каталог себестоимости товаров пяти согласованных источников.
+  Не добавлять себестоимость в product_catalog: тот является только справочником связей.
+status: staged_not_deployed
+sensitivity: commercial_cost_data
+read_access: protected_server_service_account_only
+source_scope:
+  ultra:
+    spreadsheet_env: MSP_COST_MAIN_SHEET_ID
+    sheet: Ultra24
+    gid: 523610665
+    fields: {internal_article: A, product_name: B, cost_decimal: C, specification_url: D}
+    variant: production
+  zavoz:
+    spreadsheet_env: MSP_COST_MAIN_SHEET_ID
+    sheet: Zavoz24
+    gid: 1599109239
+    fields: {internal_article: A, product_name: B, cost_decimal: C, specification_url: D}
+    variant: production
+  more:
+    spreadsheet_env: MSP_COST_MAIN_SHEET_ID
+    sheet: MORE
+    gid: 1359789938
+    fields: {internal_article: A, product_name: B, cost_decimal: C, specification_url: D}
+    variant: production
+  laser_old:
+    spreadsheet_env: MSP_COST_LASER_SHEET_ID
+    sheet: Лазер-Мастер
+    gid: 1275505714
+    fields: {internal_article: A, product_name: B, cost_decimal: C, specification_url: D}
+    variant: with_profit_legacy
+  laser_new:
+    spreadsheet_env: MSP_COST_LASER_SHEET_ID
+    sheet: Себес без прибыли
+    gid: 1005435771
+    fields: {internal_article: E, product_name: F, cost_decimal: AL}
+    variant: without_profit_current
+authoritative_variant_policy:
+  laser: >
+    Для расчёта новой фактической себестоимости Лазер-Мастер использовать
+    without_profit_current из AL. with_profit_legacy в C — самостоятельный
+    старый показатель с прибылью; никогда не заменять одним другой автоматически.
+  other_productions: >
+    Источники Ultra24, Zavoz24, MORE хранят исходный показатель Себестоимость.
+    Не утверждать, что прибыль включена или исключена, если это не следует из источника.
+identity:
+  business_key: [production, variant, article_key]
+  article_key: >
+    trim+casefold внутреннего артикула; сохранять исходный артикул. Между
+    разными производствами одинаковый артикул не означает один источник цены.
+  marketplace_link: >
+    Связь с product_listing через internal_article_normalized (внутренний артикул).
+    Одна внутренняя позиция может иметь много SKU. Не придумывать магазин,
+    маркетплейс или принадлежность производства по одному названию товара.
+fields:
+  production: {type: text, meaning: Источник/производство товара}
+  variant: {type: text, meaning: Тип расчёта себестоимости, особенно для Лазер-Мастер}
+  internal_article: {type: text, meaning: Точный исходный внутренний артикул товара}
+  article_key: {type: text, meaning: Нормализованный ключ для справочной связи}
+  product_name: {type: nullable_text, meaning: Исходное наименование товара}
+  cost_decimal:
+    type: decimal_text
+    meaning: >
+      Числовая себестоимость из указанной колонки в исходной единице на товар.
+      Не преобразовывать в float. Валюта и количество единиц не дополняются догадками.
+  specification_url: {type: nullable_text, meaning: Ссылка на расчёт или спецификацию если в исходном листе есть}
+  source_sheet: {type: text, meaning: Проверенное название исходного листа}
+  source_row: {type: integer, meaning: Строка источника, для диагностики, не бизнес-ключ}
+  first_observed_at: {type: iso_utc_text, meaning: Время первого наблюдения сервером}
+  last_changed_at: {type: iso_utc_text, meaning: Время наблюдения последней перемены; не юридическая дата ввода стоимости}
+  last_seen_run: {type: integer, meaning: Идентификатор последней синхронизации с данной записью}
+storage:
+  database_path: /opt/mcp/data/msp/msp_data.sqlite3
+  current_table: product_cost_current
+  revision_table: product_cost_revision
+  sync_log: product_cost_run
+  issues: product_cost_run_issue
+  current_view: v_product_cost_current
+  listing_view: v_product_cost_listing_matches
+update_rules:
+  reading: Google Sheets API readonly; only service account with viewer access to both original spreadsheets
+  headers: validated_exactly
+  valid_cost: strictly_positive_decimal; commas_and_nonbreaking_spaces_supported
+  blank_or_formula_error: reject_current_read_keep_last_confirmed_cost
+  duplicate_internal_article_in_one_source: reject_all_conflicting_rows; do_not_pick_one
+  missing_source_record: preserve_previous_value; last_seen_run remains older
+  changed_cost: append_revision_then_update_current
+  same_cost: never_append_revision
+  source_failure: log_failed; preserve_all_previous_values
+  no_cross_source_merge: true
+  no_business_data_in_public_repository: true
+limitations:
+  - No per-row cost effective date in the five selected sources; revision timestamps represent observation time only.
+  - Public Google Drive metadata did not verify broad visibility; live REMOTE connectivity requires separate credential provisioning.
+  - Source formula errors are real and block those particular cost updates, not all other valid rows.
+  - Linkage to marketplace listings may be one-to-many or ambiguous across productions; no arbitrary cost selection.
