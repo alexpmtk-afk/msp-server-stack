@@ -1,4 +1,4 @@
-version: 11
+version: 12
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -150,7 +150,7 @@ datasets:
   - v_price_history
 additional_catalogs:
   product_cost:
-    status: first_import_complete_2026_10_12; not_scheduled
+    status: daily_0745_moscow_enabled_2026_10_12
     description: Пятый отдельный каталог себестоимости пяти источников; 957 корректных записей, 89 проблемных исходных строк.
     semantics: product_cost.yaml
     storage: product_cost_current; product_cost_revision; product_cost_run; product_cost_run_issue
@@ -158,7 +158,10 @@ additional_catalogs:
     last_imported_records: 957
     source_issues: 89
     transport: google_csv_export_without_auth_verified
-    daily_sync: not_installed
+    daily_sync: hermes_user_systemd_active_enabled_0745_moscow
+    last_accepted_source_status_total: 1046
+    accepted_current_cost_values: 957
+    expected_daily_cost_schedule: 07:45 Europe/Moscow
 semantics_files:
   - product_catalog.yaml
   - self_purchase.yaml
