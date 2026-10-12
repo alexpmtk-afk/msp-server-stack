@@ -138,6 +138,36 @@ class QueueTests(unittest.TestCase):
  def test_scope_and_flags_rejected(self):
   with self.assertRaises(ValueError):self.q.submit(self.spec|{'root_command':'whoami'})
   with self.assertRaises(ValueError):self.q.submit(self.spec|{'owner':'other'})
+ def test_crash_recovery_never_trusts_advanced_block_without_receipt(self):
+  import json
+  self.submit()
+  with self.j.db:
+   d=self.j.get(self.tid)
+   d.update(current_block=1,completed_blocks=[0],pending_blocks=[1,2])
+   self.j.db.execute('UPDATE tasks SET body=? WHERE id=?',(json.dumps(d),self.tid))
+   self.j.db.execute("INSERT INTO task_executions(request,task,block,state,result,context,started) VALUES (?,?,0,'UNKNOWN',NULL,'{}',0)",('unverified-progress',self.tid))
+   self.q._transition(self.tid,'RUNNING')
+  self.q.recover()
+  self.assertEqual(self.q.status(self.tid)['state'],'INTERRUPTED')
+  self.assertEqual(self.j.db.execute("SELECT state,reconciliation FROM task_executions WHERE request='unverified-progress'").fetchone(),('UNKNOWN','RECONCILIATION_REQUIRED'))
+  self.assertFalse(self.worker().run_once())
+  self.assertEqual(self.executor.calls,[])
+  self.assertFalse(self.worker().reconcile(self.tid))
+  self.assertEqual(self.q.status(self.tid)['state'],'BLOCKED')
+  self.assertEqual(self.j.db.execute("SELECT COUNT(*) FROM task_executions WHERE task=?",(self.tid,)).fetchone()[0],1)
+ def test_crash_recovery_cannot_treat_planned_flag_as_proof(self):
+  import json
+  self.submit()
+  with self.j.db:
+   d=self.j.get(self.tid)
+   d.update(requires_decomposition=False,current_block=0)
+   self.j.db.execute('UPDATE tasks SET body=? WHERE id=?',(json.dumps(d),self.tid))
+   self.j.db.execute("INSERT INTO task_executions(request,task,block,state,result,context,started) VALUES (?,?,-1,'UNKNOWN',NULL,'{}',0)",('unverified-plan',self.tid))
+   self.q._transition(self.tid,'RUNNING')
+  self.q.recover()
+  self.assertEqual(self.q.status(self.tid)['state'],'INTERRUPTED')
+  self.assertEqual(self.j.db.execute("SELECT state,reconciliation FROM task_executions WHERE request='unverified-plan'").fetchone(),('UNKNOWN','RECONCILIATION_REQUIRED'))
+  self.assertEqual(self.executor.calls,[])
  def test_lease_recovery_without_execution(self):
   self.submit()
   with self.q.claim('dead') as claim:self.assertIsNotNone(claim)
