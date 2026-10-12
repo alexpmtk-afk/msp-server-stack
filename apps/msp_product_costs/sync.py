@@ -234,8 +234,16 @@ def main(argv=None):
     rows_by_source = json.loads(Path(a.fixture).read_text(encoding="utf-8")) if a.fixture else None
     # Import lazily so offline tests need no Google dependencies.
     session = None if rows_by_source is not None else _google_session()
-    con=None if a.preflight else sqlite3.connect(a.db,timeout=30)
+    if not a.preflight and not Path(a.db).is_file():
+        raise RuntimeError("existing protected MSP SQLite database not found; refusing to create a replacement")
+    con = None if a.preflight else sqlite3.connect("file:" + str(Path(a.db).resolve()) + "?mode=rw", uri=True, timeout=30)
     try:
+        if con is not None:
+            if con.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                raise RuntimeError("existing MSP SQLite integrity check failed")
+            for table in ("product_listing", "sync_run"):
+                if con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone() is None:
+                    raise RuntimeError("expected existing MSP table missing: " + table)
         results=[]
         for source in SPECS:
             try:
