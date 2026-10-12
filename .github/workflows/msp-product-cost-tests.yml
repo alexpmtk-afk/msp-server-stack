@@ -1,0 +1,23 @@
+name: MSP product cost catalog tests
+on:
+  push:
+    paths:
+      - "apps/msp_product_costs/**"
+      - "tests/test_msp_product_costs.py"
+      - ".github/workflows/msp-product-cost-tests.yml"
+  pull_request:
+    paths:
+      - "apps/msp_product_costs/**"
+      - "tests/test_msp_product_costs.py"
+      - ".github/workflows/msp-product-cost-tests.yml"
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile cost importer
+        run: python3 -m py_compile apps/msp_product_costs/sync.py
+      - name: Cost source and SQLite unit tests (offline only)
+        run: python3 -m unittest discover -s tests -p 'test_msp_product_costs.py' -v
