@@ -1,6 +1,19 @@
-# Hermes Operator release gate — 2026-10-12
+# Hermes Operator — release gate and verified rollout record, 2026-10-12
 
-**STATUS: NOT DEPLOYED / RUNTIME UPDATE BLOCKED.**
+## Current status — scoped production activation complete (Hermes agent report, 15:38 MSK)
+
+**DEPLOYED / ORIGINAL CONTROL TASK DELIVERED.** This summary records the detailed post-deployment report from the live Hermes agent, relayed by the owner; it is **not** an independent post-deploy inspection by the GitHub connector.
+
+- Pinned staged source: `5542c719e304bbc4f3fe770ae64733cb0db9044c`. All **nine** operator files and the installed `durable_tasks` plugin matched the manifest; initial omission of `multipart.py` was repaired **before** installation.
+- REMOTE fresh checkout: **143/143 PASS**, plus separate staged Telegram plugin isolation **PASS**. CI [run 38248229145](https://github.com/alexpmtk-afk/msp-server-stack/actions/runs/38248229145) and secret scan [38248229227](https://github.com/alexpmtk-afk/msp-server-stack/actions/runs/38248229227) PASS.
+- Restricted backups of files, configuration, and **three** SQLite databases created and verified. Owner restarted only the existing system Gateway service; subsequent active Gateway/plugin PID **1095621**, Worker active PID **1096379**. No additional services, no DevExec write enablement.
+- Original control task `e00d1337-0412-59f0-a8c3-3a4a074af0ea`: preserved original saved planning receipt/hash, **one** planning attempt, **one** verified answer block, final status `DONE`.
+- Telegram API acknowledgement **message 1098**, outbox **DELIVERED**. No duplicate executions/deliveries reported. Other services unaffected.
+- Owner-facing completion evidence and handoff: [closed Issue #40](https://github.com/alexpmtk-afk/msp-server-stack/issues/40). PR #32 is **still a DRAFT, not merged into main**. Merge/branch reconciliation and any production code-writing grant acceptance are separate review tasks, not implied by this successful read-only answer.
+
+## Historical pre-deployment instructions and acceptance gates (completed, for rollback/audit)
+
+**HISTORICAL STATUS: NOT DEPLOYED / RUNTIME UPDATE BLOCKED (prior to 15:38 MSK on 2026-10-12).** These steps describe the original planned release sequence. Do not follow them as a request to reinstall or restart already-running services.
 
 This is a frozen handoff for the owner's authorized scoped update of the existing Hermes Gateway and the existing `hermes-durable-worker.service`. The chat-accessible GitHub bridge has a read-only whitelist and does **not** provide an approved end-to-end service deployment operation. An attempted new executable deployment workflow was denied by the connected tool security gate; it was **not created or executed**. Do not work around that denial using unrelated service commands or broadened permissions.
 
