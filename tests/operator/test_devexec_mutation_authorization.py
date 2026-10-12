@@ -9,7 +9,7 @@ import unittest
 import uuid
 from pathlib import Path
 
-from apps.operator_layer.devexec_approval import GrantStore, block_hash
+from apps.operator_layer.devexec_approval import GrantStore, block_hash, relative
 from apps.operator_layer.devexec_mutation import DevexecMutation,check_arguments
 from apps.operator_layer.tasks import Journal
 from apps.operator_layer.hermes_executor import HermesExecutor
@@ -109,6 +109,16 @@ class ApprovalTests(unittest.TestCase):
         for op in ('dev.git_push','dev.run_shell','dev.read_file'):
             with self.assertRaises(ValueError):check_arguments(op,{},[self.path])
 
+    def test_sensitive_write_path_variants_denied(self):
+        for path in (
+            '.env.production','nested/.env.local','secrets/token.txt',
+            'nested/id_ed25519','operator/private.pem','data/task.sqlite',
+            'data/task.sqlite3','backups/journal.db','config/auth.json',
+            'config/token.json','config/credentials.json','dump/backup.bak',
+        ):
+            with self.subTest(path=path):
+                with self.assertRaises(ValueError):relative(path)
+        self.assertEqual(relative('tests/test_safe.py'),'tests/test_safe.py')
     def test_disabled_by_default(self):
         j=Journal(self.work)
         try:self.assertFalse(HermesExecutor(j.root,profile='default').devexec_write_enabled)
