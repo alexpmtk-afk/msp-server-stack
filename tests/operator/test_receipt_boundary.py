@@ -26,6 +26,18 @@ class ReceiptTests(unittest.TestCase):
   self.assertEqual(raw['updates']['production_state'],'unverified description')
   with self.assertRaisesRegex(ValueError,'checkpoint_update_type'):
    normalize_receipt(raw|{'updates':{'production_state':['unsafe']}})
+ def test_top_level_verification_remains_strict_and_consistent(self):
+  raw={'schema_version':1,'kind':'complete','verified':True,'evidence':{'answer':'summary'}}
+  canonical=normalize_receipt(raw)
+  self.assertEqual(canonical['evidence'],{'answer':'summary','verified':True})
+  self.assertNotIn('verified',canonical)
+  self.assertEqual(raw['verified'],True)
+  with self.assertRaisesRegex(ValueError,'verifier_conflict'):
+   normalize_receipt(raw|{'evidence':{'verified':False}})
+  with self.assertRaisesRegex(ValueError,'invalid_verifier_field'):
+   normalize_receipt(raw|{'verified':'true'})
+  with self.assertRaisesRegex(ValueError,'invalid_verifier_field'):
+   normalize_receipt(raw|{'kind':'plan'})
  def test_unknown_field_rejected(self):
   with self.assertRaises(ValueError):normalize_receipt(LEGACY|{'surprise':1})
   with self.assertRaises(ValueError):normalize_receipt(LEGACY|{'updates':{'unexpected':1}})
