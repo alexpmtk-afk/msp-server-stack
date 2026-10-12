@@ -32,11 +32,11 @@ jobs:
           export HERMES_DISABLE_LAZY_INSTALLS=1
           python - <<'PY'
           import sys,unittest
-          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests","test_receipt_boundary.ReceiptTests","test_natural_multipart.NaturalMultipartTests","test_multipart.MultipartTests","test_multipart.DispatchTests")
+          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests","test_receipt_boundary.ReceiptTests","test_natural_multipart.NaturalMultipartTests","test_multipart.MultipartTests","test_multipart.DispatchTests","test_natural_plugin_rewire.HotRewireTests")
           suite=unittest.defaultTestLoader.loadTestsFromNames(names)
           n=suite.countTestCases()
           print("DISCOVERED_TESTS="+str(n),flush=True)
-          if n<55:raise SystemExit("TOO_FEW_BOUNDARY_TESTS")
+          if n<67:raise SystemExit("TOO_FEW_BOUNDARY_TESTS")
           outcome=unittest.TextTestRunner(verbosity=2).run(suite)
           if not outcome.wasSuccessful():sys.exit(1)
           print("OPERATOR_DEVEXEC_TESTS=PASS")
