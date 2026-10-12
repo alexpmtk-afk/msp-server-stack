@@ -10,7 +10,7 @@ def parse_outcome(text):
  s=text.strip()
  if s.startswith('```') and s.endswith('```'):s='\n'.join(s.splitlines()[1:-1])
  r=json.loads(s)
- if not isinstance(r,dict) or set(r)-{'schema_version','kind','plan','evidence','updates','thread_id'} or r.get('kind') not in {'plan','checkpoint','complete','blocked'}:raise ValueError('invalid_runtime_outcome')
+ if not isinstance(r,dict) or set(r)-{'schema_version','kind','plan','evidence','updates','thread_id','verified'} or r.get('kind') not in {'plan','checkpoint','complete','blocked'}:raise ValueError('invalid_runtime_outcome')
  bounded(r);return r
 
 def _run(root,context,source,rid,profile,sandbox_enabled,channel,devexec_readonly_enabled=False,devexec_write_enabled=False):
@@ -147,7 +147,14 @@ class HermesExecutor:
      if action.verified_result() is None:return False
     except (ValueError,OSError):return False
    else:return False
-  return outcome.get('kind') in ('checkpoint','blocked') or (outcome.get('kind')=='complete' and all(outcome.get('evidence',{}).get(k) is True for k in context['block']['acceptance']))
+  if outcome.get('kind') in ('checkpoint','blocked'):return True
+  if outcome.get('kind')!='complete':return False
+  evidence=outcome.get('evidence')
+  if not isinstance(evidence,dict) or not all(evidence.get(k) is True for k in context['block']['acceptance']):return False
+  # A read-only result is not delivered as DONE on a bare verified=True claim.
+  # For effectful operations independent tool/backend readback is checked above.
+  if not mutations and (not isinstance(evidence.get('answer'),str) or not evidence['answer'].strip()):return False
+  return True
  def interrupt(self):
   if self.process is not None and self.process.is_alive():self.process.terminate()
  def execute(self,context,source,request_id,budget):
