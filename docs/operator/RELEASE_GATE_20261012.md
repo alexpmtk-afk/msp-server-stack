@@ -8,9 +8,9 @@ This is a frozen handoff for the owner's authorized scoped update of the existin
 
 Canonical draft PR: https://github.com/alexpmtk-afk/msp-server-stack/pull/32
 
-Pinned source revision: `6bff5db9fd36c76e5367818dd4cf07aeb927ebae` (last code candidate; any later documentation-only commits do not change release binaries).
+Pinned source revision: `5542c719e304bbc4f3fe770ae64733cb0db9044c` (runtime source matches `6bff5db`, but this pin includes the corrected staged plugin test and isolated CI acceptance). Later documentation-only commits do not change release binaries.
 
-The enlarged portable test suite at code commit `6bff5db9fd36c76e5367818dd4cf07aeb927ebae` passed **143/143**; GitHub Actions workflow run `38244155592`. Secret Scan run `38244155623` PASS. Tests reject saved-plan recovery while unrelated tasks/collections are active and prohibit silently verifying UNKNOWN execution from progress counters or decomposition flags.
+The full portable test suite at code commit `5542c719e304bbc4f3fe770ae64733cb0db9044c` passed **143/143**, plus a separately invoked isolated-interpreter Telegram plugin test (`STAGED_PLUGIN_ISOLATION=PASS`); GitHub Actions run `38248229145`. Secret Scan run `38248229227` PASS. Tests reject saved-plan recovery during unrelated active work and prohibit silently verifying UNKNOWN execution from progress counters or decomposition flags. **142/143 on an actual REMOTE staging copy is not accepted** until a fresh isolated staging re-run passes and all imported module origins are from staging.
 
 All digests below are **Git blob SHA-1**, not SHA256 of file bytes:
 
