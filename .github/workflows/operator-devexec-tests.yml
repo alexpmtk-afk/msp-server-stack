@@ -32,11 +32,13 @@ jobs:
           export HERMES_DISABLE_LAZY_INSTALLS=1
           python - <<'PY'
           import sys,unittest
-          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests","test_receipt_boundary.ReceiptTests","test_natural_multipart.NaturalMultipartTests","test_multipart.MultipartTests","test_multipart.DispatchTests","test_natural_plugin_rewire.HotRewireTests")
+          # All portable operator unit and recovery suites. Tests requiring a
+          # live Hermes checkout or python-telegram-bot are integration-only.
+          names=("test_devexec_mutation_authorization","test_devexec_readonly_bridge","test_devexec_stageB_queue_gate","test_operation_boundary","test_production_integration.ProductionTests","test_receipt_boundary.ReceiptTests","test_natural_multipart.NaturalMultipartTests","test_multipart.MultipartTests","test_multipart.DispatchTests","test_multipart.ProcessTests","test_multipart.PauseAndRaceTests","test_natural_plugin_rewire.HotRewireTests","test_queue","test_tasks","test_hermes_executor","test_worker_lifecycle","test_backup","test_github","test_preflight","test_remote","test_release","test_runner")
           suite=unittest.defaultTestLoader.loadTestsFromNames(names)
           n=suite.countTestCases()
           print("DISCOVERED_TESTS="+str(n),flush=True)
-          if n<67:raise SystemExit("TOO_FEW_BOUNDARY_TESTS")
+          if n<95:raise SystemExit("TOO_FEW_OPERATOR_TESTS")
           outcome=unittest.TextTestRunner(verbosity=2).run(suite)
           if not outcome.wasSuccessful():sys.exit(1)
           print("OPERATOR_DEVEXEC_TESTS=PASS")
