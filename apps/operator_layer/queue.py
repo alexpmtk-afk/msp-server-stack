@@ -243,7 +243,7 @@ class Worker:
      self.q.db.execute('UPDATE outbox SET body=? WHERE task=?',(json.dumps({'task_id':claim.task_id,'status':'DONE','result':outcome}),claim.task_id))
     elif kind=='checkpoint':
      accepted=self.q.db.execute("SELECT COUNT(*) FROM task_executions WHERE task=? AND block=? AND state='VERIFIED' AND json_extract(result,'$.kind')='checkpoint'",(claim.task_id,context['current_block'] if not context.get('requires_decomposition') else -1)).fetchone()[0]
-     if accepted>=MAX_CHECKPOINTS_PER_BLOCK-1:
+     if accepted>=MAX_CHECKPOINTS_PER_BLOCK:
       self.q._transition(claim.task_id,'BLOCKED',last_error='checkpoint_limit_reached',next_action='review saved checkpoints; explicit continuation required')
      else:self.q._transition(claim.task_id,'WAITING_NEXT_TURN')
     else:self.q._transition(claim.task_id,'WAITING_NEXT_TURN')
