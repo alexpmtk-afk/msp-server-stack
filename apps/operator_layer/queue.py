@@ -126,12 +126,14 @@ CREATE TABLE IF NOT EXISTS task_queue_events(seq INTEGER PRIMARY KEY, task TEXT,
    try:
     self.db.execute('BEGIN IMMEDIATE')
     d=self.j.get(tid);r=self.db.execute("SELECT block FROM task_executions WHERE task=? AND state='UNKNOWN' ORDER BY started DESC LIMIT 1",(tid,)).fetchone()
-    if d['status']=='DONE':state='DONE'
-    elif r and (d['current_block']>r[0] or (d.get('requires_decomposition') is False and r[0]==-1)):
-     self.db.execute("UPDATE task_executions SET state='VERIFIED' WHERE task=? AND state='UNKNOWN'",(tid,));state='WAITING_NEXT_TURN'
-    elif r:
+    # A task's current block or DONE flag is NOT independent evidence that an
+    # UNKNOWN provider execution completed. Never promote it to VERIFIED based
+    # on progress counters; the saved receipt must pass explicit readback and
+    # independent verification under Worker.reconcile().
+    if r:
      state='INTERRUPTED'
      self.db.execute("UPDATE task_executions SET reconciliation='RECONCILIATION_REQUIRED' WHERE task=? AND state='UNKNOWN'",(tid,))
+    elif d['status']=='DONE':state='DONE'
     else:state='QUEUED'
     self._transition(tid,state,last_error='worker_lost' if state=='INTERRUPTED' else None)
     self.db.execute('UPDATE task_queue SET worker=NULL,token=NULL,lease_expires=NULL WHERE task=?',(tid,));self.db.commit()
