@@ -39,6 +39,8 @@ def _run(root,context,source,rid,profile,sandbox_enabled,channel,devexec_readonl
   db=SessionDB(path)
   agent=AIAgent(model=model['default'],provider=runtime.get('provider'),requested_provider=runtime.get('requested_provider'),api_key=runtime.get('api_key'),base_url=runtime.get('base_url'),api_mode='codex_responses',enabled_toolsets=(['operator-sandbox'] if action else [])+(['operator-devexec-ro'] if readonly else [])+(['operator-devexec-write'] if approved else []),quiet_mode=True,skip_context_files=True,skip_memory=True,skip_background_review=True,load_soul_identity=False,session_id='operator-'+context['task_id']+'-'+rid,session_db=db,platform='operator',ephemeral_system_prompt=PROTOCOL)
   prompt=json.dumps({'continuation':context,'source_task_data':source},ensure_ascii=False)
+  if context.get('completed_block_results'):
+   prompt+='\nUse completed_block_results as the verified prior-block history. Build on their actual answers and outcomes rather than claiming they were never provided. For a final read-only block, return a consolidated user-facing answer in evidence.answer. Do not re-run previously verified actions.'
   if readonly:prompt+='\nDevelopment workspace tools are strictly read-only. Do not claim any mutation or test execution.'
   if approved:prompt+='\nOnly the single owner-approved Development Executor operation may be called. If receipt is unknown return checkpoint; never retry a mutation blindly.'
   if action:prompt+='\nCall operator_sandbox_marker exactly once for this step. Do not substitute narrative for the tool. Return JSON kind complete with evidence verified=true only after successful tool readback; if budget refused return kind checkpoint.'
