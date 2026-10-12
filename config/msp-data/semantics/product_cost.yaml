@@ -3,7 +3,7 @@ catalog: product_cost
 purpose: >
   Отдельный изменяемый каталог себестоимости товаров пяти согласованных источников.
   Не добавлять себестоимость в product_catalog: тот является только справочником связей.
-status: initial_import_accepted_on_remote; daily_sync_0745_pending_deployment
+status: daily_0745_moscow_enabled_accepted_on_remote_2026_10_12
 sensitivity: commercial_cost_data
 read_access: direct_csv_http_200_verified_from_remote; original_source_accessible_by_link
 source_scope:
