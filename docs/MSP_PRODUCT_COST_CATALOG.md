@@ -29,6 +29,40 @@ Business key is `production + variant + normalized internal article`, not market
 
 Prices are held as exact decimal TEXT, with comma decimal and nonbreaking spaces normalized. Cost formulas such as `#REF!`, blank, zero, and duplicate keys are not promoted as new costs; the last known valid value is preserved and a source issue recorded. Product records absent from new snapshots are not deleted. A changed cost produces an auditable revision. No effective-from date is supplied by source; `observed_at` is an ingestion timestamp only.
 
+## Existing MSP CSV transport — preferred precheck
+
+The first four production data catalogs use unauthenticated
+`https://docs.google.com/spreadsheets/d/<id>/export?format=csv&gid=<gid>`.
+The new cost importer now supports exactly the same HTTP/CSV path, with
+`MSP_COST_TRANSPORT=csv` in its **protected environment file**.
+
+For each of the five owner-selected tabs it uses the reviewed `gid`.
+The old cost fields are A/B/C (and optional D), and the Laser new
+cost fields are E/F/AL. It does not scrape the separate formulas,
+helper columns or source working-sheet files.
+
+**Important access prerequisite:** the CSV path succeeds only if Google
+already allows unauthenticated export of the two original workbooks. The
+existing `_05_экпорт` is accessible by link; this is NOT proof that the
+two original cost workbooks can be accessed without login. In particular,
+do not make confidential cost sheets public to bypass permission checks.
+
+Before any production import, run the read-only `--preflight` on REMOTE
+using this transport and check **all five** source statuses. A login page,
+HTML response, HTTP 403, wrong column headers or source formula issues
+cannot be treated as successful data. Failed reads never replace
+last-valid costs and do not modify existing catalog entries. If private
+workbooks deny CSV export, use protected OAuth access or a separately
+reviewed restricted export; no new Google account is inherently required.
+
+```text
+MSP_COST_TRANSPORT=csv
+MSP_COST_MAIN_SHEET_ID=<main private workbook id>
+MSP_COST_LASER_SHEET_ID=<Laser Master workbook id>
+```
+
+In CSV mode, `MSP_COST_GOOGLE_CREDENTIALS_FILE` is not needed.
+
 ## REMOTE authentication and safety barrier
 
 ChatGPT can read both selected workbooks through a connected Google account; **that connector does not authorize the REMOTE process**. On 2026-10-12, GitHub Runner read-only audits in private `msp-server-bridge` Issues #246 and #247 found no existing Google Sheets/Drive credential or relevant registered MCP available to the `hermes` service. Current four-source MSP sync does not have OAuth: it reads the separate public-by-link CSV export.

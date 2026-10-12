@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """MSP five-source cost catalog. No existing catalog/table is changed or deleted.
 
-Google Sheets are read via a dedicated read-only service account. Credentials,
-spreadsheet IDs and cost data must remain outside public Git.
+Supports the same unauthenticated CSV export as the four existing MSP sources,
+when authorized by the actual Google Sheets sharing configuration. OAuth remains
+an alternative. Credentials, sheet IDs and business costs never enter public Git.
 """
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 from collections import Counter
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
@@ -18,6 +21,7 @@ import sqlite3
 import stat
 import sys
 from urllib.parse import quote
+import urllib.request
 
 SPECS = {
     "ultra": ("MSP_COST_MAIN_SHEET_ID", "Ultra24", "production", "A:D"),
@@ -26,6 +30,14 @@ SPECS = {
     "laser_old": ("MSP_COST_LASER_SHEET_ID", "Лазер-Мастер", "with_profit_legacy", "A:D"),
     "laser_new": ("MSP_COST_LASER_SHEET_ID", "Себес без прибыли", "without_profit_current", "E:F|AL:AL"),
 }
+CSV_SOURCE_GIDS = {
+    "ultra": "523610665",
+    "zavoz": "1599109239",
+    "more": "1359789938",
+    "laser_old": "1275505714",
+    "laser_new": "1005435771",
+}
+
 SOURCE_HEADERS = {
     "ultra": ("Артикул", "Название товара", "Себестоимость"),
     "zavoz": ("Артикул", "Название товара", "Себестоимость"),
@@ -244,6 +256,40 @@ def fetch_sheet(session, source):
              _cell(articles[i] if i<len(articles) else [],1),
              _cell(costs[i] if i<len(costs) else [],0)] for i in range(length)]
 
+def transform_csv(source, csv_bytes):
+    """Parse existing-style CSV; do not emit or persist source payload."""
+    if len(csv_bytes) > 20_000_000:
+        raise ValueError("CSV exceeds 20MB safety limit")
+    decoded = csv_bytes.decode("utf-8-sig")
+    if "<html" in decoded[:300].lower() or "<!doctype html" in decoded[:300].lower():
+        raise ValueError("Google returned HTML/login instead of CSV")
+    rows = list(csv.reader(io.StringIO(decoded, newline="")))
+    if source == "laser_new":
+        # The source carries product article at E, name at F, cost at AL (38th).
+        # Use absolute row positions; never align after dropping empty cells.
+        return [[_cell(r, 4), _cell(r, 5), _cell(r, 37)] for r in rows]
+    return [[_cell(r, i) for i in range(4)] for r in rows]
+
+
+def fetch_sheet_csv(source):
+    """Unauthenticated legacy CSV export: succeeds only when Google already permits it."""
+    if source not in SPECS:
+        raise ValueError("unknown cost source")
+    env_name = SPECS[source][0]
+    sheet_id = os.environ[env_name].strip()
+    if not re.fullmatch(r"[A-Za-z0-9_-]{20,120}", sheet_id):
+        raise ValueError("invalid configured spreadsheet ID")
+    gid = CSV_SOURCE_GIDS[source]
+    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+    req = urllib.request.Request(url, headers={"User-Agent": "msp-data-sync/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as response:
+        content_type = response.headers.get("Content-Type", "").lower()
+        if "csv" not in content_type and "application/octet-stream" not in content_type:
+            raise ValueError("Google did not return a CSV response")
+        body = response.read(20_000_001)
+    return transform_csv(source, body)
+
+
 def main(argv=None):
     ap=argparse.ArgumentParser()
     ap.add_argument("--db",help="Existing protected MSP SQLite database path")
@@ -252,10 +298,13 @@ def main(argv=None):
     a=ap.parse_args(argv)
     if not a.preflight and not a.db:
         ap.error("--db is required unless --preflight")
+    transport = os.environ.get("MSP_COST_TRANSPORT", "oauth").strip().lower()
+    if transport not in ("oauth", "csv"):
+        ap.error("MSP_COST_TRANSPORT must be oauth or csv")
     when=utcnow()
     rows_by_source = json.loads(Path(a.fixture).read_text(encoding="utf-8")) if a.fixture else None
     # Import lazily so offline tests need no Google dependencies.
-    session = None if rows_by_source is not None else _google_session()
+    session = _google_session() if rows_by_source is None and transport=="oauth" else None
     if not a.preflight and not Path(a.db).is_file():
         raise RuntimeError("existing protected MSP SQLite database not found; refusing to create a replacement")
     con = None if a.preflight else sqlite3.connect("file:" + str(Path(a.db).resolve()) + "?mode=rw", uri=True, timeout=30)
@@ -269,7 +318,9 @@ def main(argv=None):
         results=[]
         for source in SPECS:
             try:
-                rows = rows_by_source[source] if rows_by_source is not None else fetch_sheet(session,source)
+                rows = (rows_by_source[source] if rows_by_source is not None else
+                        fetch_sheet_csv(source) if transport=="csv" else
+                        fetch_sheet(session,source))
                 if len(rows)<2:
                     raise ValueError("empty source or missing header/data")
                 records, issues = parse_rows(source,rows)

@@ -22,6 +22,68 @@ class ProductCostTests(unittest.TestCase):
         return [["Артикул", "Название товара", "Себестоимость", "Ссылка на спецификацию"],
                 [article, "Тест товар", price, "https://example.org/specific"]]
 
+    def test_csv_mode_five_sources_without_google_auth_or_sqlite(self):
+        import contextlib
+        import csv
+        import io
+        import json
+        import os
+        from unittest.mock import patch
+
+        def csvdata(source):
+            buf = io.StringIO(newline="")
+            writer = csv.writer(buf)
+            if source == "laser_new":
+                head = [""] * 38
+                head[4], head[5], head[37] = ("Артикул", "Наименование", "Себестоимость без прибыли")
+                row = [""] * 38
+                row[4], row[5], row[37] = ("ТРН-1", "Лазер товар", "150,20")
+                writer.writerows([head, row])
+            else:
+                headers = ("Артикулы" if source == "laser_old" else "Артикул",
+                           "Название товара", "Себестоимость", "Ссылка на спецификацию")
+                writer.writerows([headers, ["A-1", "Товар", "100,40", ""]])
+            return buf.getvalue().encode("utf-8")
+
+        gids = {gid: name for name, gid in mod.CSV_SOURCE_GIDS.items()}
+        calls = []
+        class FakeResponse:
+            headers = {"Content-Type":"text/csv; charset=utf-8"}
+            def __init__(self, raw):
+                self.raw = raw
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self, limit):
+                return self.raw[:limit]
+        def fake_open(request, timeout):
+            from urllib.parse import parse_qs, urlsplit
+            gid = parse_qs(urlsplit(request.full_url).query)["gid"][0]
+            source = gids[gid]
+            calls.append(source)
+            return FakeResponse(csvdata(source))
+
+        with tempfile.TemporaryDirectory() as d:
+            db = Path(d)/"should-not-be-created.sqlite3"
+            with patch.dict(os.environ,{
+                "MSP_COST_TRANSPORT":"csv",
+                "MSP_COST_MAIN_SHEET_ID":"abcDEFGHIJKLMNOP1234567",
+                "MSP_COST_LASER_SHEET_ID":"abcDEFGHIJKLMNOP1234567"
+            }),patch.object(mod.urllib.request,"urlopen",fake_open):
+                with contextlib.redirect_stdout(io.StringIO()) as capture:
+                    rc = mod.main(["--preflight","--db",str(db)])
+            self.assertEqual(rc,0)
+            self.assertFalse(db.exists())
+            self.assertEqual(len(calls),5)
+            self.assertTrue(all(x["read_only"] for x in json.loads(capture.getvalue())["product_cost_sync"]))
+
+    def test_csv_mode_rejects_login_html_and_overlarge_content(self):
+        with self.assertRaises(ValueError):
+            mod.transform_csv("ultra",b"<!doctype html><html>Login</html>")
+        with self.assertRaises(ValueError):
+            mod.transform_csv("ultra",b"x" * 20_000_001)
+
     def test_google_auth_accepts_only_two_explicit_credential_types(self):
         self.assertEqual(mod.google_auth_mode({"type": "authorized_user"}), "authorized_user")
         self.assertEqual(mod.google_auth_mode({"type": "service_account"}), "service_account")
