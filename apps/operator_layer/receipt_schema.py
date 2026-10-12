@@ -18,6 +18,11 @@ def normalize_receipt(raw):
  if r['kind']=='plan' and isinstance(evidence,list):
   evidence={'unverified_planning_notes':evidence}
  if not isinstance(updates,dict) or not isinstance(evidence,dict):raise ValueError('response_field_type')
+ # A textual production-state comment is not authoritative state. Keep it
+ # as explicitly unverified evidence, never write it to journal state.
+ if r['kind']=='complete' and isinstance(updates.get('production_state'),str):
+  evidence['unverified_production_state_note']=updates['production_state']
+  updates={k:v for k,v in updates.items() if k!='production_state'}
  annotations={k:v for k,v in updates.items() if k in ANNOTATIONS}
  if annotations:
   if version!=0 or r['kind']!='plan':raise ValueError('planning_annotation_not_allowed')
