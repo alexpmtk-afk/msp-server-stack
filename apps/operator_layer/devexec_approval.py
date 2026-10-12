@@ -45,7 +45,16 @@ def relative(path):
     if not isinstance(path, str) or not path or len(path) > 512 or '\\' in path or '\x00' in path:
         raise ValueError('INVALID_PATH')
     chunks = path.split('/')
-    if path.startswith('/') or any(p in ('', '.', '..', '.git', '.ssh', '.env', 'secrets', 'credentials', '.codex', '.hermes') or p.endswith(('.pem', '.key')) for p in chunks):
+    forbidden_parts = {'.git', '.ssh', 'secrets', 'credentials', '.codex', '.hermes'}
+    forbidden_files = {'auth.json', 'token.json', 'credentials.json', 'id_rsa', 'id_ed25519'}
+    if path.startswith('/') or any(
+        part in ('', '.', '..')
+        or part in forbidden_parts
+        or part == '.env' or part.startswith('.env.')
+        or part in forbidden_files
+        or part.endswith(('.pem', '.key', '.p12', '.pfx', '.sqlite', '.sqlite3', '.db', '.dump', '.bak'))
+        for part in chunks
+    ):
         raise ValueError('INVALID_PATH')
     return path
 
