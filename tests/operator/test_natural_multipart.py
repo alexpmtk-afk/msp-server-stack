@@ -47,8 +47,8 @@ class NaturalMultipartTests(unittest.TestCase):
   self.send('Второй блок',3)
   z=self.send('На этом всё, приступай',4)
   self.assertEqual(z['multipart_task_id'],a['multipart_task_id'])
-  self.c.assemble(z['multipart_task_id'])
-  self.assertEqual(self.c.input_for(z['durable_task_id']),'Первый блок\n\nВторой блок')
+  assembled=self.c.assemble(z['multipart_task_id'])
+  self.assertEqual(self.c.input_for(assembled['durable_task_id']),'Первый блок\n\nВторой блок')
  def test_ambiguous_end_in_larger_text_is_payload(self):
   self.send('Начинаю большое задание',1)
   a=self.send('Фраза «всё, приступай» встречается в документе.',2)
