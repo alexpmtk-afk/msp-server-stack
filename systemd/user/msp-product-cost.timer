@@ -1,0 +1,11 @@
+[Unit]
+Description=MSP product cost sync at 08:15 MSK (staged, DO NOT ENABLE without authorization)
+
+[Timer]
+OnCalendar=*-*-* 08:15:00 Europe/Moscow
+Persistent=true
+RandomizedDelaySec=0
+Unit=msp-product-cost.service
+
+[Install]
+WantedBy=timers.target
