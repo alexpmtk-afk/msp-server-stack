@@ -178,7 +178,18 @@ class Worker:
  def __init__(self,queue,executor,verifier,*,worker_id):self.q=queue;self.executor=executor;self.verifier=verifier;self.worker_id=worker_id
  def _context(self,tid,budget):
   d=self.q.j.get(tid);keys=('task_id','goal','completed_blocks','current_block','current_branch','last_commit','tests_status','owner_action_required','last_checkpoint','production_state','next_action','origin','input_reference','requires_decomposition')
-  return {k:d.get(k) for k in keys}|{'block':d['plan'][d['current_block']],'budget':budget.context()}
+  # Carry forward the accepted RESULTS, not just a count of completed blocks.
+  # Only independently verified execution receipts for this same task qualify.
+  history=[]
+  for index in d['completed_blocks']:
+   row=self.q.db.execute("SELECT result FROM task_executions WHERE task=? AND block=? AND state='VERIFIED' AND result IS NOT NULL ORDER BY started DESC LIMIT 1",(tid,index)).fetchone()
+   if not row:raise ValueError('verified_prior_block_receipt_missing')
+   receipt=json.loads(row[0])
+   if receipt.get('kind')!='complete' or not isinstance(receipt.get('evidence'),dict):raise ValueError('verified_prior_block_receipt_invalid')
+   history.append({'block':index,'evidence':receipt['evidence'],'updates':receipt.get('updates',{})})
+  context={k:d.get(k) for k in keys}|{'block':d['plan'][d['current_block']],'budget':budget.context(),'completed_block_results':history}
+  bounded(context)
+  return context
  def _source(self,tid):
   d=self.q.j.get(tid)
   if not d.get('input_reference'):return None
@@ -236,7 +247,12 @@ class Worker:
  def run_once(self):
   with self.q.claim(self.worker_id) as claim:
    if claim is None:return False
-   budget=Budget();context=self._context(claim.task_id,budget)
+   budget=Budget()
+   try:context=self._context(claim.task_id,budget)
+   except (ValueError,TypeError,KeyError,json.JSONDecodeError):
+    # Fail closed without terminating the worker or silently losing prior data.
+    with self.q.db:self.q._transition(claim.task_id,'BLOCKED',last_error='prior_block_context_unavailable',next_action='verify prior accepted receipts before continuation')
+    return False
    if context['block']['allowed_mutations'] and not ((getattr(self.executor,'sandbox_enabled',False) and context['block']['allowed_mutations']==['sandbox_marker']) or (getattr(self.executor,'devexec_write_enabled',False) and callable(getattr(self.executor,'approval_for',None)) and self.executor.approval_for(context))):
     with self.q.db:self.q._transition(claim.task_id,'BLOCKED',last_error='operation_not_registered')
     return False
