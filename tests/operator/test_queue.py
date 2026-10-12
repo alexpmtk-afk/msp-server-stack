@@ -30,6 +30,42 @@ class QueueTests(unittest.TestCase):
   self.assertEqual(self.q.status(self.tid)['state'],'DONE');self.assertFalse(w.run_once())
   self.assertEqual(self.j.results()[0]['origin_chat'],SCOPE[2])
   self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_queue').fetchone()[0],1)
+ def test_each_following_block_receives_exact_verified_prior_answers(self):
+  self.submit()
+  class AnswerExecutor(FixtureExecutor):
+   def execute(self,context,source,request_id,budget):
+    self.calls.append((context,request_id))
+    index=context['current_block']
+    answer={'kind':'complete','evidence':{'verified':True,'answer':'confirmed-output-'+str(index)},'updates':{'tests_status':'PASS'}}
+    self.records[request_id]=answer
+    return answer
+  ex=AnswerExecutor();w=Worker(self.q,ex,lambda ctx,out:True,worker_id='history-fixture')
+  for _ in range(3):self.assertTrue(w.run_once())
+  self.assertEqual(ex.calls[0][0]['completed_block_results'],[])
+  second=ex.calls[1][0]['completed_block_results']
+  self.assertEqual([x['block'] for x in second],[0])
+  self.assertEqual(second[0]['evidence']['answer'],'confirmed-output-0')
+  third=ex.calls[2][0]['completed_block_results']
+  self.assertEqual([x['block'] for x in third],[0,1])
+  self.assertEqual([x['evidence']['answer'] for x in third],['confirmed-output-0','confirmed-output-1'])
+  self.assertEqual(self.q.status(self.tid)['state'],'DONE')
+ def test_reconciled_prior_result_available_without_second_provider_call(self):
+  self.submit();self.executor.fail=True;w=self.worker()
+  self.assertTrue(w.run_once());self.assertEqual(len(self.executor.calls),1)
+  self.assertTrue(w.reconcile(self.tid))
+  self.assertTrue(w.run_once());self.assertEqual(len(self.executor.calls),2)
+  prior=self.executor.calls[1][0]['completed_block_results']
+  self.assertEqual(len(prior),1);self.assertEqual(prior[0]['evidence'],{'verified':True})
+ def test_missing_verified_prior_receipt_blocks_without_new_model_call(self):
+  self.submit();w=self.worker()
+  self.assertTrue(w.run_once())
+  with self.j.db:self.j.db.execute("UPDATE task_executions SET result=NULL WHERE task=? AND block=0",(self.tid,))
+  self.assertFalse(w.run_once())
+  self.assertEqual(len(self.executor.calls),1)
+  self.assertEqual(self.q.status(self.tid)['state'],'BLOCKED')
+  self.assertEqual(self.j.get(self.tid)['last_error'],'prior_block_context_unavailable')
+  self.assertFalse(w.run_once())
+  self.assertEqual(self.j.db.execute('SELECT COUNT(*) FROM task_executions WHERE task=?',(self.tid,)).fetchone()[0],1)
  def test_second_worker_and_live_expired_lease_fenced(self):
   self.submit()
   with self.q.claim('first') as claim:
