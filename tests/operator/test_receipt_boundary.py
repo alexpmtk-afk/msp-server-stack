@@ -53,6 +53,23 @@ class ReceiptTests(unittest.TestCase):
    self.assertEqual(len(ex.calls),1);self.assertEqual(j.db.execute('select count(*) from task_executions').fetchone()[0],1)
    self.assertEqual(q.status(tid)['state'],'WAITING_NEXT_TURN');self.assertEqual(j.get(tid)['last_checkpoint']['schema_version'],1)
    self.assertEqual(json.loads(j.db.execute('select raw_body from receipt_normalizations').fetchone()[0]),LEGACY)
+ def test_saved_list_plan_recovers_without_second_model_call(self):
+  from apps.operator_layer.multipart import Collector
+  with tempfile.TemporaryDirectory() as tmp:
+   j=Journal(Path(tmp)/'private');self.addCleanup(j.close);q=TaskQueue(j,allowed_scope=SCOPE)
+   c=Collector(j);m=c.receive(SCOPE,'list-plan',None,'TASK 1/1 END\\nfixture');c.assemble(m['multipart_task_id']);q.enqueue_multipart(c)
+   tid=c.status(m['multipart_task_id'])['durable_task_id']
+   class Ex(FixtureExecutor):
+    def execute(self,ctx,source,rid,budget):
+     self.calls.append((ctx,rid))
+     self.records[rid]={'schema_version':1,'kind':'plan','plan':copy.deepcopy(PLAN[:1]),'evidence':['unverified note']}
+     raise TimeoutError('after saved receipt')
+   ex=Ex();worker=Worker(q,ex,lambda *a:True,worker_id='list-proof')
+   worker.run_once();self.assertTrue(worker.reconcile(tid))
+   self.assertEqual(len(ex.calls),1)
+   self.assertEqual(j.db.execute('SELECT COUNT(*) FROM task_executions WHERE task=?',(tid,)).fetchone()[0],1)
+   self.assertEqual(q.status(tid)['state'],'WAITING_NEXT_TURN')
+   self.assertEqual(j.get(tid)['plan'],PLAN[:1])
  def test_linked_status_after_collection_dispatched(self):
   from apps.operator_layer.production import receive
   with tempfile.TemporaryDirectory() as tmp:
