@@ -18,6 +18,14 @@ class ReceiptTests(unittest.TestCase):
  def test_complete_list_evidence_still_rejected(self):
   with self.assertRaisesRegex(ValueError,'response_field_type'):
    normalize_receipt({'schema_version':1,'kind':'complete','evidence':['verified']})
+ def test_complete_textual_production_note_is_not_checkpoint_state(self):
+  raw={'schema_version':1,'kind':'complete','evidence':{'verified':True,'answer':'report'},'updates':{'production_state':'unverified description','tests_status':'NOT_RUN','owner_action_required':None}}
+  normalized=normalize_receipt(raw)
+  self.assertEqual(normalized['updates'],{'tests_status':'NOT_RUN','owner_action_required':None})
+  self.assertEqual(normalized['evidence']['unverified_production_state_note'],'unverified description')
+  self.assertEqual(raw['updates']['production_state'],'unverified description')
+  with self.assertRaisesRegex(ValueError,'checkpoint_update_type'):
+   normalize_receipt(raw|{'updates':{'production_state':['unsafe']}})
  def test_unknown_field_rejected(self):
   with self.assertRaises(ValueError):normalize_receipt(LEGACY|{'surprise':1})
   with self.assertRaises(ValueError):normalize_receipt(LEGACY|{'updates':{'unexpected':1}})
