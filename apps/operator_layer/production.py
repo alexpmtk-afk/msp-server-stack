@@ -28,13 +28,18 @@ def linked_status(j,c,q,scope):
  d=j.get(tid);ex=j.db.execute('SELECT request,state,started,reconciliation FROM task_executions WHERE task=? ORDER BY started DESC LIMIT 1',(tid,)).fetchone()
  o=j.db.execute('SELECT status,delivered,delivery_receipt FROM outbox WHERE task=?',(tid,)).fetchone()
  execution_count=j.db.execute('SELECT COUNT(*) FROM task_executions WHERE task=?',(tid,)).fetchone()[0]
+ # Distinct planned/executed blocks and accepted checkpoints are not duplicates.
+ # Only multiple VERIFIED terminal receipts for the *same* block constitute
+ # positive journal evidence of repeated accepted completion; absence is not
+ # proof that an external operation was never repeated.
+ repeated_accepted=j.db.execute("SELECT COUNT(*) FROM (SELECT block FROM task_executions WHERE task=? AND state='VERIFIED' AND json_extract(result,'$.kind') IN ('plan','complete') GROUP BY block HAVING COUNT(*)>1)",(tid,)).fetchone()[0]
  delivery_count=int(bool(o and o[1] and o[2]))
  try:active=subprocess.run(['systemctl','--user','is-active','hermes-durable-worker.service'],capture_output=True,text=True,timeout=2).stdout.strip()=='active'
  except (OSError,subprocess.TimeoutExpired):active=False
- return result|{'task_status':d['status'],'worker_active':active,'current_execution':ex[0] if ex else None,'execution_count':execution_count,'duplicate_execution':execution_count>1,'delivery_count':delivery_count,'execution_status':ex[1] if ex else None,'reconciliation':ex[3] if ex else None,'last_activity':d['updated_at'],'last_checkpoint':d.get('last_checkpoint'),'outbox_status':o[0] if o else 'NONE','final_result_ready':d['status']=='DONE'}
+ return result|{'task_status':d['status'],'worker_active':active,'current_execution':ex[0] if ex else None,'execution_count':execution_count,'duplicate_execution':bool(repeated_accepted),'duplicate_execution_evidence':'REPEATED_ACCEPTED_COMPLETION' if repeated_accepted else 'NONE_IN_JOURNAL','delivery_count':delivery_count,'execution_status':ex[1] if ex else None,'reconciliation':ex[3] if ex else None,'last_activity':d['updated_at'],'last_checkpoint':d.get('last_checkpoint'),'outbox_status':o[0] if o else 'NONE','final_result_ready':d['status']=='DONE'}
 def reply_text(r):
  if 'task_status' in r:
-  return '\n'.join(['Multipart: '+str(r['multipart_task_id']),'Durable Task: '+str(r['durable_task_id']),'Состояние: '+r['task_status'],'Worker: '+('active' if r['worker_active'] else 'inactive'),'Executions: '+str(r['execution_count']),'Execution: '+str(r['current_execution']),'Execution status: '+str(r['execution_status']),'Последняя активность: '+r['last_activity'],'Outbox: '+r['outbox_status'],'Delivery count: '+str(r['delivery_count']),'Duplicate execution: '+('YES' if r['duplicate_execution'] else 'NO'),'Результат готов: '+('YES' if r['final_result_ready'] else 'NO')])
+  return '\n'.join(['Multipart: '+str(r['multipart_task_id']),'Durable Task: '+str(r['durable_task_id']),'Состояние: '+r['task_status'],'Worker: '+('active' if r['worker_active'] else 'inactive'),'Executions: '+str(r['execution_count']),'Execution: '+str(r['current_execution']),'Execution status: '+str(r['execution_status']),'Последняя активность: '+r['last_activity'],'Outbox: '+r['outbox_status'],'Delivery count: '+str(r['delivery_count']),'Repeated accepted completion: '+('YES' if r['duplicate_execution'] else 'NOT DETECTED (journal only)'),'Результат готов: '+('YES' if r['final_result_ready'] else 'NO')])
  s=r.get('status')
  if s=='COLLECTING':return f"Части сохранены: {len(r.get('received_parts',[]))}/{r.get('expected_parts') or '?'}. Выполнение не запущено."
  if s=='DISPATCHED':return 'Все части собраны. Одна задача поставлена в независимую очередь.'
