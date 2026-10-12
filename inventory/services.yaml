@@ -225,7 +225,7 @@ components:
 
   - id: msp-product-cost
     kind: application-data
-    status: first-import-accepted; daily-sync-not-activated
+    status: daily-cost-sync-enabled-accepted-2026-10-12
     source: apps/msp_product_costs/sync.py
     data_location: /opt/mcp/data/msp/msp_data.sqlite3
     canonical_module_commit: 5c66211caaeea48384629d6f2ab77073be34ad46
@@ -238,9 +238,20 @@ components:
     first_import_evidence: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/38223166837
     existing_four_source_tables_unchanged: true
     integrity_check: pass
-    deployment_state: imported-by-runner-workspace; module-not-installed-on-remote
-    proposed_schedule: "08:15 Europe/Moscow after existing 08:00 user timer"
-    schedule_enabled: false
+    deployment_state: hermes-owned-runtime-at-/home/hermes/.local/share/msp-product-cost/sync.py
+    schedule: "07:45 Europe/Moscow before existing 08:00 user timer"
+    schedule_enabled: true
+    schedule_service: hermes-user/msp-product-cost.timer
+    daily_service: hermes-user/msp-product-cost.service
+    source_status_total: 1046
+    source_status_available: 957
+    source_status_no_data: 10
+    source_status_invalid: 75
+    source_status_duplicate: 4
+    daily_acceptance: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/38225985379
+    next_scheduled_cost_run: "2026-10-13 07:45 Europe/Moscow"
+    new_schedule_persistent: false
+    last_verified_integrity: pass
     unit_sources: [systemd/user/msp-product-cost.service, systemd/user/msp-product-cost.timer]
     semantics: config/msp-data/semantics/product_cost.yaml
     business_data_in_git: false
