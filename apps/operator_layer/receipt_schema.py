@@ -7,6 +7,15 @@ TOP={'schema_version','kind','plan','evidence','updates','thread_id'}
 ANNOTATIONS={'mutations_performed','plan_approval','planning_only','source_instructions_executed','test_result'}
 def normalize_receipt(raw):
  if not isinstance(raw,dict):raise ValueError('response_object_required')
+ # Some models put the same boolean receipt claim at top level. Move it into
+ # evidence without changing its truth value or bypassing independent readback.
+ if 'verified' in raw:
+  if raw.get('kind')!='complete' or type(raw['verified']) is not bool:raise ValueError('invalid_verifier_field')
+  if not isinstance(raw.get('evidence',{}),dict):raise ValueError('response_field_type')
+  if 'verified' in raw['evidence'] and raw['evidence']['verified'] != raw['verified']:raise ValueError('verifier_conflict')
+  raw=copy.deepcopy(raw)
+  v=raw.pop('verified')
+  raw['evidence']={**raw.get('evidence',{}),'verified':v}
  if set(raw)-TOP:raise ValueError('unknown_response_field')
  version=raw.get('schema_version',0)
  if type(version) is not int or version not in (0,1):raise ValueError('unsupported_schema_version')
