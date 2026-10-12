@@ -23,6 +23,28 @@ class GitHubTests(unittest.TestCase):
         pr={'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'}
         with self.assertRaises(ValueError):merge_gate(POLICY,pr,SHA,['AGENTS.md'],self.checks(),[])
         merge_gate(POLICY,pr,SHA,['AGENTS.md'],self.checks(),[{'user':{'login':'alexpmtk-afk'},'state':'APPROVED','commit_id':SHA}])
+    def test_security_sensitive_plugin_and_deploy_paths_need_owner_approval(self):
+        pr={'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'}
+        sensitive=[
+            'deploy/hermes_plugins/durable_tasks/__init__.py',
+            'deploy/hermes_plugins/durable_tasks/plugin.yaml',
+            'deploy/operator/hermes-durable-worker.service',
+            'skills/hermes-operator/SKILL.md',
+            'apps/hermes/msp_signals_skill/SKILL.md',
+            'docs/operator/RELEASE_GATE_20261012.md',
+            'tests/operator/test_github.py',
+            'inventory/services.yaml',
+        ]
+        for path in sensitive:
+            with self.subTest(path=path):
+                with self.assertRaisesRegex(ValueError,'owner_approval_required'):
+                    merge_gate(POLICY,pr,SHA,[path],self.checks(),[])
+                with self.assertRaisesRegex(ValueError,'owner_approval_required'):
+                    merge_gate(POLICY,pr,SHA,[path],self.checks(),[{'user':{'login':'alexpmtk-afk'},'state':'APPROVED','commit_id':'b'*40}])
+                merge_gate(POLICY,pr,SHA,[path],self.checks(),[{'user':{'login':'alexpmtk-afk'},'state':'APPROVED','commit_id':SHA}])
+    def test_unprotected_regular_application_file_does_not_require_owner_review(self):
+        pr={'head':{'sha':SHA},'base':{'ref':'main'},'draft':False,'state':'open'}
+        merge_gate(POLICY,pr,SHA,['apps/msp_data_sync/sync.py'],self.checks(),[])
     def test_wrong_repo_and_unknown_fields_rejected_before_network(self):
         b=GitHubBroker(POLICY,None)
         with self.assertRaises(ValueError):b.execute('create_branch',{'branch':'hermes/test/x','base_sha':SHA,'shell':'id'})
