@@ -13,6 +13,10 @@ def normalize_receipt(raw):
  if raw.get('kind') not in ('plan','checkpoint','complete','blocked'):raise ValueError('unknown_response_kind')
  r=copy.deepcopy(raw);r['schema_version']=1
  updates=r.get('updates',{});evidence=r.get('evidence',{})
+ # Planning notes from a model are not execution proof. Preserve legacy
+ # list-shaped notes as non-authoritative metadata, only for plan receipts.
+ if r['kind']=='plan' and isinstance(evidence,list):
+  evidence={'unverified_planning_notes':evidence}
  if not isinstance(updates,dict) or not isinstance(evidence,dict):raise ValueError('response_field_type')
  annotations={k:v for k,v in updates.items() if k in ANNOTATIONS}
  if annotations:
