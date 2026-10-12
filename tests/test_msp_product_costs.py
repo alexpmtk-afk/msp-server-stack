@@ -22,6 +22,16 @@ class ProductCostTests(unittest.TestCase):
         return [["Артикул", "Название товара", "Себестоимость", "Ссылка на спецификацию"],
                 [article, "Тест товар", price, "https://example.org/specific"]]
 
+    def test_google_auth_accepts_only_two_explicit_credential_types(self):
+        self.assertEqual(mod.google_auth_mode({"type": "authorized_user"}), "authorized_user")
+        self.assertEqual(mod.google_auth_mode({"type": "service_account"}), "service_account")
+        for forbidden in ("external_account", "impersonated_service_account", "", None):
+            with self.subTest(forbidden=forbidden):
+                with self.assertRaises(ValueError):
+                    mod.google_auth_mode({"type": forbidden})
+        with self.assertRaises(ValueError):
+            mod.google_auth_mode(None)
+
     def test_decimal_exact_russian_format_and_bad_sheet_error(self):
         self.assertEqual(mod.decimal_cost("1\u00a0300,50"), "1300.50")
         for x in ("#REF!", "", " - ", "0", "-12", "1,2,3"):
