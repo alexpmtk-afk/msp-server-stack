@@ -34,6 +34,13 @@ def inspect(config,task_id,execution_id,expected_sha):
   origin=task.get('origin') or {}
   if any(origin.get(k)!=v for k,v in zip(('profile','owner','origin_chat','session_key'),scope)):
    raise ValueError('task_scope_mismatch')
+  # Queue.claim(recovery=True) first calls the shared queue's recover().
+  # Never run that writer while an unrelated task or multipart ingress could
+  # be active: one-task recovery must not silently mutate other task states.
+  other_busy=db.execute("SELECT COUNT(*) FROM task_queue WHERE task!=? AND state IN ('QUEUED','LEASED','RUNNING','CHECKPOINTED','WAITING_NEXT_TURN','INTERRUPTED')",(task_id,)).fetchone()[0]
+  if other_busy:raise ValueError('other_queue_work_in_progress')
+  in_progress=db.execute("SELECT COUNT(*) FROM multipart WHERE state IN ('COLLECTING','COMPLETE','ASSEMBLED','ERROR')").fetchone()[0]
+  if in_progress:raise ValueError('multipart_ingress_in_progress')
   qr=db.execute('SELECT state,request FROM task_queue WHERE task=?',(task_id,)).fetchone()
   if not qr or qr!=('BLOCKED','multipart:'+task['input_reference']['multipart_task_id']):
    raise ValueError('queue_state_mismatch')
@@ -99,6 +106,12 @@ def apply(config,task_id,execution_id,expected_sha):
   j=Journal(root)
   try:
    q=TaskQueue(j,allowed_scope=tuple(config['scope']))
+   # Recheck immediately after queue initialization/migration and before the
+   # shared recovery path can acquire a claim. Abort on unexpected new work.
+   with j.db:
+    busy=j.db.execute("SELECT COUNT(*) FROM task_queue WHERE task!=? AND state IN ('QUEUED','LEASED','RUNNING','CHECKPOINTED','WAITING_NEXT_TURN','INTERRUPTED')",(task_id,)).fetchone()[0]
+    parts=j.db.execute("SELECT COUNT(*) FROM multipart WHERE state IN ('COLLECTING','COMPLETE','ASSEMBLED','ERROR')").fetchone()[0]
+    if busy or parts:raise ValueError('concurrent_ingress_or_queue_work')
    worker=Worker(q,SavedOnly(execution_id,raw),SavedOnly(execution_id,raw).verify,worker_id='saved-plan-offline-reconcile')
    if not worker.reconcile(task_id):raise ValueError('saved_plan_reconciliation_failed')
    state=q.status(task_id)['state'];task=j.get(task_id)
