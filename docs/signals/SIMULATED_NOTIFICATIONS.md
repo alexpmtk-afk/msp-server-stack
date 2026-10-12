@@ -41,8 +41,8 @@ For manual queries to Hermes, the canonical agent-facing skill is `apps/hermes/m
 
 ## Price advisory
 
-For `SIG-002`, read the market SKU from parentheses and the stock-coverage
-days from `_N`. If the same source row has a valid production/inbound date,
+For `SIG-002`, read the market SKU from parentheses (plain digits or labeled `(Арт. 123456789)`), stock coverage from `_N`, and full short/long year dates (`DD.MM.YY`, `DD.MM.YYYY`). Group wrapped multiline product sections using `Товар 1:`, `Товар 2:` rather than associating production dates across products. `Товар 1: X_6_\n(Арт. 123456789)` means six days without a date; `Товар 2: Y_9_26.10.26 (Арт. 987654321)` means nine days with 2026-10-26 arrival.
+For every matching SKU produce a separate recommendation. Never fall back to generic "could not parse" if the described real signal has two resolvable product records. If the same source row has a valid production/inbound date,
 compare it to `today (Europe/Moscow) + N days`:
 
 * next incoming shipment **on or before** boundary: do not raise price;
