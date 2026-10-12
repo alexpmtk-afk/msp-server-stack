@@ -5,6 +5,9 @@ import contextlib,fcntl,hashlib,json,os,sqlite3,threading,time,uuid
 from .tasks import Budget,Turn,bounded,stamp
 STATES={'QUEUED','LEASED','RUNNING','CHECKPOINTED','WAITING_NEXT_TURN','BLOCKED','INTERRUPTED','DONE','FAILED','CANCELLED'}
 SPEC={'task_id','request_id','profile','owner','origin_chat','session_key','origin_platform'}
+# Maximum number of independently accepted nonterminal checkpoints per block.
+# Count from durable receipts rather than volatile worker memory.
+MAX_CHECKPOINTS_PER_BLOCK=6
 
 class TaskQueue:
  def __init__(self,journal,*,allowed_scope,_migrating=False):
@@ -238,6 +241,11 @@ class Worker:
     self.q._transition(claim.task_id,'DONE' if done else 'CHECKPOINTED')
     if done:
      self.q.db.execute('UPDATE outbox SET body=? WHERE task=?',(json.dumps({'task_id':claim.task_id,'status':'DONE','result':outcome}),claim.task_id))
+    elif kind=='checkpoint':
+     accepted=self.q.db.execute("SELECT COUNT(*) FROM task_executions WHERE task=? AND block=? AND state='VERIFIED' AND json_extract(result,'$.kind')='checkpoint'",(claim.task_id,context['current_block'] if not context.get('requires_decomposition') else -1)).fetchone()[0]
+     if accepted>=MAX_CHECKPOINTS_PER_BLOCK-1:
+      self.q._transition(claim.task_id,'BLOCKED',last_error='checkpoint_limit_reached',next_action='review saved checkpoints; explicit continuation required')
+     else:self.q._transition(claim.task_id,'WAITING_NEXT_TURN')
     else:self.q._transition(claim.task_id,'WAITING_NEXT_TURN')
    self.q.db.commit();return True
   except BaseException:
@@ -263,6 +271,10 @@ class Worker:
     with self.q.db:self.q._transition(claim.task_id,'BLOCKED',last_error='unknown_execution_readback_required')
     return False
    block=-1 if context.get('requires_decomposition') else context['current_block']
+   accepted_checkpoints=self.q.db.execute("SELECT COUNT(*) FROM task_executions WHERE task=? AND block=? AND state='VERIFIED' AND json_extract(result,'$.kind')='checkpoint'",(claim.task_id,block)).fetchone()[0]
+   if accepted_checkpoints>=MAX_CHECKPOINTS_PER_BLOCK:
+    with self.q.db:self.q._transition(claim.task_id,'BLOCKED',last_error='checkpoint_limit_reached',next_action='review saved checkpoints; explicit continuation required')
+    return False
    count=self.q.db.execute('SELECT COUNT(*) FROM task_executions WHERE task=? AND block=?',(claim.task_id,block)).fetchone()[0]
    rid=hashlib.sha256(f'{claim.task_id}:{block}:{count}'.encode()).hexdigest()
    with self.q.db:
