@@ -1,10 +1,11 @@
 [Unit]
-Description=MSP product cost sync at 08:15 MSK (staged, DO NOT ENABLE without authorization)
+Description=MSP product costs daily 07:45 Europe/Moscow (before existing 08:00 catalogs)
 
 [Timer]
-OnCalendar=*-*-* 08:15:00 Europe/Moscow
-Persistent=true
+OnCalendar=*-*-* 07:45:00 Europe/Moscow
+Persistent=false
 RandomizedDelaySec=0
+AccuracySec=1s
 Unit=msp-product-cost.service
 
 [Install]
