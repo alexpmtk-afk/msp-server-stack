@@ -2,7 +2,7 @@
 import base64,contextlib,fnmatch,json,re,subprocess,time,urllib.request
 from .security import fields,sha,protected_file
 REPO='alexpmtk-afk/msp-server-stack'
-PROTECTED=['.github/**','apps/operator_layer/**','config/agent/**','scripts/agent/**','scripts/deploy/**','scripts/operator/**','systemd/**','AGENTS.md','**/AGENTS.md','**/SKILL.md','.hermes*','**/.hermes*','CLAUDE.md','**/CLAUDE.md','SOUL.md','**/SOUL.md']
+PROTECTED=['.github/**','apps/operator_layer/**','apps/hermes/**','config/agent/**','deploy/**','docs/operator/**','inventory/services.yaml','scripts/agent/**','scripts/deploy/**','scripts/operator/**','skills/**','systemd/**','tests/operator/**','AGENTS.md','**/AGENTS.md','**/SKILL.md','.hermes*','**/.hermes*','CLAUDE.md','**/CLAUDE.md','SOUL.md','**/SOUL.md']
 
 def validate_branch(b):
     if not isinstance(b,str) or not re.fullmatch(r'hermes/[A-Za-z0-9_-]+/[A-Za-z0-9_/-]+',b) or '..' in b or '//' in b or b.endswith('/') or any(x.endswith('.lock') for x in b.split('/')):raise ValueError('invalid_branch')
