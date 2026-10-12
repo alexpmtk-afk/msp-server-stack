@@ -32,8 +32,14 @@ class HotRewireTests(unittest.IsolatedAsyncioTestCase):
     def _should_process_message(self,msg,*,is_command):return True
    config={"root":str(Path(tmp)/"private"),"scope":("default","123","telegram:123","fixture"),"natural_multipart_enabled":True}
    native=Native()
+   # Mimic an old v3 handler wired earlier into the same PTB group.
+   async def old_ingress(update,context):return None
+   old_ingress.__module__=plugin.__name__
+   native.handlers[-96]=[TypeHandler(stub.Update,old_ingress)]
+   self.assertIn("wire_status_v4",plugin.wire.__qualname__)
    plugin.wire(native,Adapter(),config)
-   assert len(native.handlers[-96])==1
+   self.assertEqual(len(native.handlers[-96]),1)
+   self.assertNotEqual(native.handlers[-96][0].callback,old_ingress)
    callback=native.handlers[-96][0].callback
    bot=SimpleNamespace(send_message=AsyncMock())
    context=SimpleNamespace(bot=bot)
