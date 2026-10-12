@@ -4,11 +4,15 @@ on:
     paths:
       - "apps/msp_product_costs/**"
       - "tests/test_msp_product_costs.py"
+      - "systemd/user/msp-product-cost.*"
+      - "config/msp-data/semantics/product_cost.yaml"
       - ".github/workflows/msp-product-cost-tests.yml"
   pull_request:
     paths:
       - "apps/msp_product_costs/**"
       - "tests/test_msp_product_costs.py"
+      - "systemd/user/msp-product-cost.*"
+      - "config/msp-data/semantics/product_cost.yaml"
       - ".github/workflows/msp-product-cost-tests.yml"
 permissions:
   contents: read
