@@ -15,6 +15,24 @@ class ProductionTests(unittest.TestCase):
   j=Journal(self.root);self.addCleanup(j.close)
   self.assertEqual(j.db.execute('select count(*) from task_queue').fetchone()[0],0)
   self.assertEqual(j.db.execute('select count(*) from task_executions').fetchone()[0],0)
+ def test_duplicate_metric_counts_only_repeated_verified_terminal_receipts(self):
+  start=receive(self.config,'metric-fixture',None,'TASK 1/1 END\\nread only fixture')
+  tid=start['durable_task_id']
+  j=Journal(self.root);self.addCleanup(j.close)
+  entries=[(-1,'plan'),(0,'checkpoint'),(0,'checkpoint'),(0,'complete'),(1,'complete')]
+  for index,(block,kind) in enumerate(entries):
+   outcome={'kind':kind,'evidence':{'verified':True,'answer':'fixture'}} if kind=='complete' else {'kind':kind}
+   with j.db:j.db.execute("INSERT INTO task_executions(request,task,block,state,result,context,started) VALUES (?, ?, ?, 'VERIFIED', ?, '{}', ?)",('metric-'+str(index),tid,block,__import__('json').dumps(outcome),index))
+  status=receive(self.config,'metric-status-one',None,'/task status')
+  self.assertEqual(status['execution_count'],5)
+  self.assertFalse(status['duplicate_execution'])
+  self.assertEqual(status['duplicate_execution_evidence'],'NONE_IN_JOURNAL')
+  self.assertIn('NOT DETECTED',__import__('apps.operator_layer.production',fromlist=['reply_text']).reply_text(status))
+  with j.db:j.db.execute("INSERT INTO task_executions(request,task,block,state,result,context,started) VALUES (?, ?, ?, 'VERIFIED', ?, '{}', ?)",('metric-repeated',tid,0,__import__('json').dumps({'kind':'complete','evidence':{'verified':True}}),6))
+  status=receive(self.config,'metric-status-two',None,'/task status')
+  self.assertEqual(status['execution_count'],6)
+  self.assertTrue(status['duplicate_execution'])
+  self.assertEqual(status['duplicate_execution_evidence'],'REPEATED_ACCEPTED_COMPLETION')
  def test_old_outbox_excluded_and_unknown_not_resent(self):
   j=Journal(self.root);self.addCleanup(j.close)
   from apps.operator_layer.queue import TaskQueue
