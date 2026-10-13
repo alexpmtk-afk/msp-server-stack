@@ -4,7 +4,7 @@ Unknown admission never authorizes mutation again, even when target is absent.
 """
 import contextlib,hashlib,json,os,sqlite3,time,uuid
 from pathlib import Path
-from .tasks import stamp
+from .tasks import stamp,assert_not_retired
 class SandboxAction:
  estimated_seconds=5
  def __init__(self,root,context,now=time.time):
@@ -12,13 +12,15 @@ class SandboxAction:
   self.tid=context['task_id'];self.step=context['current_block']
   self.request=hashlib.sha256(f'{self.tid}:{self.step}:sandbox_marker'.encode()).hexdigest()
   if 'sandbox_marker' not in context['block']['allowed_mutations']:raise ValueError('sandbox_action_not_allowed')
+  with contextlib.closing(sqlite3.connect((self.root/'journal.sqlite').absolute().as_uri()+'?mode=ro',uri=True)) as db:
+   assert_not_retired(db,self.tid)
   path=self.root/'sandbox.sqlite'
   fd=os.open(path,os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600);os.close(fd)
   with contextlib.closing(sqlite3.connect(path)) as db:
    db.execute('CREATE TABLE IF NOT EXISTS markers(request TEXT PRIMARY KEY,task TEXT,step INTEGER,value TEXT)');db.commit()
  def checkpoint(self,kind):
   with contextlib.closing(sqlite3.connect(self.root/'journal.sqlite')) as db:
-   db.execute('PRAGMA synchronous=FULL');db.execute('BEGIN IMMEDIATE')
+   db.execute('PRAGMA synchronous=FULL');db.execute('BEGIN IMMEDIATE');assert_not_retired(db,self.tid)
    d=json.loads(db.execute('SELECT body FROM tasks WHERE id=?',(self.tid,)).fetchone()[0])
    d['last_checkpoint']={'id':str(uuid.uuid4()),'kind':kind,'at':stamp()}
    db.execute('UPDATE tasks SET body=? WHERE id=?',(json.dumps(d),self.tid))
@@ -31,17 +33,20 @@ class SandboxAction:
    if r!=(self.tid,self.step,'verified-sandbox-marker'):raise ValueError('target_state_conflict')
    return {'verified':True,'request_id':self.request,'mutation_count':1,'task_id':self.tid,'step':self.step}
  def mutate(self):
-  with contextlib.closing(sqlite3.connect(self.root/'sandbox.sqlite')) as db:
-   db.execute('PRAGMA synchronous=FULL')
-   db.execute('INSERT INTO markers VALUES (?,?,?,?)',(self.request,self.tid,self.step,'verified-sandbox-marker'));db.commit()
+  with contextlib.closing(sqlite3.connect((self.root/'journal.sqlite').absolute().as_uri()+'?mode=rw',uri=True)) as fence:
+   fence.execute('BEGIN IMMEDIATE');assert_not_retired(fence,self.tid)
+   with contextlib.closing(sqlite3.connect(self.root/'sandbox.sqlite')) as db:
+    db.execute('PRAGMA synchronous=FULL')
+    db.execute('INSERT INTO markers VALUES (?,?,?,?)',(self.request,self.tid,self.step,'verified-sandbox-marker'));db.commit()
+   fence.commit()
  def after_readback(self,receipt):
   with contextlib.closing(sqlite3.connect(self.root/'journal.sqlite')) as db:
-   db.execute('PRAGMA synchronous=FULL');db.execute("UPDATE operations SET state='APPLIED',evidence=? WHERE id=?",(json.dumps(receipt),self.request));db.commit()
+   db.execute('PRAGMA synchronous=FULL');db.execute('BEGIN IMMEDIATE');assert_not_retired(db,self.tid);db.execute("UPDATE operations SET state='APPLIED',evidence=? WHERE id=?",(json.dumps(receipt),self.request));db.commit()
   self.checkpoint('sandbox_after_readback')
  def execute(self):
   self.checkpoint('sandbox_before_operation')
   with contextlib.closing(sqlite3.connect(self.root/'journal.sqlite')) as db:
-   db.execute('PRAGMA synchronous=FULL');db.execute('BEGIN IMMEDIATE')
+   db.execute('PRAGMA synchronous=FULL');db.execute('BEGIN IMMEDIATE');assert_not_retired(db,self.tid)
    r=db.execute('SELECT state FROM operations WHERE id=?',(self.request,)).fetchone()
    if r:
     db.rollback();receipt=self.readback()
