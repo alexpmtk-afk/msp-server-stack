@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("msp_signal_notify", ROOT / "apps/msp_signal_notify/notify.py")
@@ -39,6 +40,35 @@ class PassiveNotifierTests(unittest.TestCase):
 
     def run_scan(self, recipient):
         return m.run_once(self.archive, self.state, recipient, self.clock)
+
+    def test_opt_in_two_items_have_own_messages_and_buttons(self):
+        from apps.msp_signal_notify import price_buttons as buttons
+        real_connect = buttons.connect
+        button_path = self.root / "buttons.sqlite3"
+        self.run_scan(lambda msg: 99)
+        message = (
+            "Поднять цену\n"
+            "Товар 1: Гамаши от телевизора_6_\n(Арт. 2791038373)\n"
+            "Товар 2: Шапка для купания кошек_9_26.10.26 (Арт. 985847424)"
+        )
+        self.insert(2666, message)
+        sent = []
+        def sender(text, markup):
+            sent.append((text, markup))
+            return 7000 + len(sent)
+        with patch.dict("os.environ", {"MSP_PRICE_BUTTONS_ENABLED": "1"}):
+            with patch.object(buttons, "connect", lambda: real_connect(button_path)):
+                result = self.run_scan(sender)
+                self.assertEqual(result["sent"], 1)
+                self.assertEqual(len(sent), 2)
+                self.assertIn("Товар: Гамаши от телевизора", sent[0][0])
+                self.assertIn("SKU 2791038373", sent[0][0])
+                self.assertIn("Товар: Шапка для купания кошек", sent[1][0])
+                self.assertIn("SKU 985847424", sent[1][0])
+                for _, keyboard in sent:
+                    self.assertEqual(len(keyboard["inline_keyboard"][0]), 2)
+                self.assertEqual(self.run_scan(sender)["sent"], 0)
+                self.assertEqual(len(sent), 2)
 
     def test_only_six_reviewed_types(self):
         samples = [
