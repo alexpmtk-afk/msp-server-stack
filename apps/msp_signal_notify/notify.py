@@ -246,8 +246,13 @@ def run_once(archive_path=ARCHIVE_PATH, state_path=STATE_PATH, sender=None, toda
                             delivered = bdb.execute("SELECT sent_message_id FROM price_buttons WHERE token=?",
                                                     (token,)).fetchone()[0]
                             continue
+                    original = next((record for record in price_records(content)
+                                     if sku in SKU.findall(record)), "")
+                    name = re.sub(r"(?i)^товар\\s*(?:№\\s*)?\\d+\\s*[:.)-]\\s*", "", original)
+                    name = re.split(r"_\\d{1,3}(?!\\d)", name, maxsplit=1)[0].strip()[:120]
                     text = ("МСП | SIG-002 | Решение по товару\n"
-                            "Исходный сигнал: https://t.me/c/" + CHANNEL_ID[4:] + "/" + str(mid) + "\n"
+                            + ("Товар: " + name + "\n" if name else "")
+                            + "Исходный сигнал: https://t.me/c/" + CHANNEL_ID[4:] + "/" + str(mid) + "\n"
                             + item + "\n"
                             "Кнопки: ваше явное решение; изменение цены не запускается без нажатия.\n"
                             "Очередь Orgobot требует отдельной проверки статуса.")
