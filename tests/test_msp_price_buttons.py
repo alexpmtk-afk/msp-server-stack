@@ -94,15 +94,20 @@ class Sig002ButtonTests(unittest.TestCase):
         self.click(token, answer="n")
         self.assertEqual(FakeOrgobot.calls[1][1], {"decision_id": 555, "answer": "no"})
 
-    def test_other_user_wrong_topic_expired_and_disabled_are_rejected(self):
+    def test_other_user_wrong_topic_expired_and_test_only_no_mcp(self):
         token = self.issue()
         for kwargs in ({"user_id": 888}, {"thread": 25},
                        {"clock": self.t + dt.timedelta(hours=49)}):
             with self.assertRaises(b.DecisionRefused):
                 self.click(token, **kwargs)
         with patch.dict(os.environ, {"MSP_PRICE_LIVE_ENABLED": "0"}):
+            result = self.click(token)
+            self.assertIn("ТЕСТ: принято Да", result)
             with self.assertRaises(b.DecisionRefused):
                 self.click(token)
+        with b.connect(self.path) as db:
+            self.assertEqual(db.execute("SELECT state FROM price_buttons WHERE token=?",
+                                        (token,)).fetchone()[0], "tested")
         self.assertFalse(FakeOrgobot.calls)
 
     def test_status_uses_integer_command_id_and_only_reads_status(self):
