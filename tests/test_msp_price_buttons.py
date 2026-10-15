@@ -1,0 +1,124 @@
+"""Offline SIG-002 Telegram button and Orgobot guard acceptance."""
+import datetime as dt
+import os
+import sqlite3
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+from apps.msp_signal_notify import price_buttons as b
+
+
+class FakeOrgobot:
+    calls = []
+
+    def call(self, name, args):
+        self.calls.append((name, args))
+        if name == "orgobot_price_decisions_list":
+            return {"decisions": [
+                {"id": 555, "article": "2791038373", "status": "waiting",
+                 "responsibles": ["@group_123123123_bot"]}]}
+        if name == "orgobot_price_decide":
+            return {"command_id": 991, "status": "queued"}
+        if name == "orgobot_price_command_status":
+            return {"status": "queued"}
+        raise AssertionError(name)
+
+
+class Sig002ButtonTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "actions.sqlite3"
+        self.t = dt.datetime(2026, 10, 15, tzinfo=dt.timezone.utc)
+        FakeOrgobot.calls = []
+        self.env = patch.dict(os.environ, {
+            "MSP_PRICE_BUTTON_ALLOWED_USER_IDS": "12345",
+            "MSP_PRICE_LIVE_ENABLED": "1",
+            "MSP_ORGOBOT_EXECUTOR_USERNAME": "group_123123123_bot",
+        })
+        self.env.start()
+
+    def tearDown(self):
+        self.env.stop()
+        self.tmp.cleanup()
+
+    def issue(self):
+        with b.connect(self.path) as db:
+            token, duplicate = b.reserve(db, 2666, "2791038373", clock=self.t)
+            self.assertFalse(duplicate)
+            b.bind_sent(db, token, 7444)
+        return token
+
+    def click(self, token, answer="y", user_id=12345, thread=758, clock=None):
+        return b.handle_click("msp2:" + token + ":" + answer,
+                              user_id, -1002485321031, thread, 7444,
+                              client_factory=FakeOrgobot, path=self.path, clock=clock or self.t)
+
+    def test_markup_and_two_buttons(self):
+        token = self.issue()
+        kb = b.markup(token)
+        self.assertEqual(len(kb["inline_keyboard"][0]), 2)
+        self.assertEqual(kb["inline_keyboard"][0][0]["callback_data"], "msp2:" + token + ":y")
+        self.assertEqual(kb["inline_keyboard"][0][1]["callback_data"], "msp2:" + token + ":n")
+        self.assertLess(len(kb["inline_keyboard"][0][0]["callback_data"].encode()), 64)
+
+    def test_yes_invokes_exact_orgobot_tool_and_is_idempotent(self):
+        token = self.issue()
+        text = self.click(token)
+        self.assertIn("991", text)
+        self.assertEqual([c[0] for c in FakeOrgobot.calls],
+                         ["orgobot_price_decisions_list", "orgobot_price_decide"])
+        self.assertEqual(FakeOrgobot.calls[1][1], {"decision_id": 555, "answer": "yes"})
+        with self.assertRaises(b.DecisionRefused):
+            self.click(token)
+        self.assertEqual(len(FakeOrgobot.calls), 2)
+        with b.connect(self.path) as db:
+            self.assertEqual(db.execute("SELECT state FROM price_buttons WHERE token=?", (token,)).fetchone()[0], "queued")
+
+    def test_no_invokes_explicit_decline(self):
+        token = self.issue()
+        self.click(token, answer="n")
+        self.assertEqual(FakeOrgobot.calls[1][1], {"decision_id": 555, "answer": "no"})
+
+    def test_other_user_wrong_topic_expired_and_disabled_are_rejected(self):
+        token = self.issue()
+        for kwargs in ({"user_id": 888}, {"thread": 25},
+                       {"clock": self.t + dt.timedelta(hours=49)}):
+            with self.assertRaises(b.DecisionRefused):
+                self.click(token, **kwargs)
+        with patch.dict(os.environ, {"MSP_PRICE_LIVE_ENABLED": "0"}):
+            with self.assertRaises(b.DecisionRefused):
+                self.click(token)
+        self.assertFalse(FakeOrgobot.calls)
+
+    def test_network_error_never_retries_mutation(self):
+        token = self.issue()
+        class BadMCP(FakeOrgobot):
+            def call(self, name, args):
+                if name == "orgobot_price_decide":
+                    raise TimeoutError("unknown whether accepted")
+                return super().call(name, args)
+        with self.assertRaises(b.DecisionRefused):
+            b.handle_click("msp2:" + token + ":y", 12345, -1002485321031, 758, 7444,
+                           client_factory=BadMCP, path=self.path, clock=self.t)
+        with self.assertRaises(b.DecisionRefused):
+            self.click(token)
+        with b.connect(self.path) as db:
+            self.assertEqual(db.execute("SELECT state FROM price_buttons WHERE token=?", (token,)).fetchone()[0], "needs_review")
+
+    def test_ambiguous_orgobot_rows_block_without_decide(self):
+        token = self.issue()
+        class Ambiguous(FakeOrgobot):
+            def call(self, name, args):
+                response = super().call(name, args)
+                if name == "orgobot_price_decisions_list":
+                    response["decisions"].append(dict(response["decisions"][0], id=556))
+                return response
+        with self.assertRaises(b.DecisionRefused):
+            b.handle_click("msp2:" + token + ":y", 12345, -1002485321031, 758, 7444,
+                           client_factory=Ambiguous, path=self.path, clock=self.t)
+        self.assertEqual([n for n, _ in FakeOrgobot.calls], ["orgobot_price_decisions_list"])
+
+
+if __name__ == "__main__":
+    unittest.main()
