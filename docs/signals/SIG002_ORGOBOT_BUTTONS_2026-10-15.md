@@ -53,3 +53,19 @@ queued/processing не доказывают изменение цены. Даж�
 Остальные пять сигналов не изменяются.
 Нет SKU, нет уникального waiting решения или нет нужных прав — не исполнять.
 На опубликованной ветке код не развёрнут на REMOTE: нужны тесты и guarded deploy.
+
+
+## Подтверждённые контракты QRsite (live read-only 15.10.2026)
+
+- orgobot_price_decisions_list: limit — integer (необязательный), ответ
+  structuredContent.results (массив).
+- Элемент: id (решение), market_article (артикул), orgobot_id (правило),
+  marketplaceid_id, blockid_id, product_name, responsible_telegram, status,
+  percent, channel_id, post_id, created_at.
+- Разрешены только orgobot_id 48 или 52, статус waiting, точно совпадающий
+  market_article и ответственный Hermes Bot; неоднозначность — запрет исполнения.
+- orgobot_price_decide: обязательны decision_id (integer), answer (string yes/no).
+- orgobot_price_command_status: обязательный command_id (integer).
+- Данные таблиц и SKU из живого ответа в GitHub не публиковались.
+- Проверка прав на decide и реальный результат queued/done пока НЕ выполнены.
+- Подтверждение: private bridge issues #338 и #340, оба read-only.
