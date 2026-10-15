@@ -1,0 +1,5 @@
+name: msp-price-buttons
+version: 0.1.0
+description: Scoped SIG-002 Telegram approval callbacks; Orgobot writes gated separately.
+author: Local reviewed deployment
+kind: standalone

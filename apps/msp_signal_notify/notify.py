@@ -14,6 +14,7 @@ import sqlite3
 import sys
 import time
 from datetime import date, datetime, timedelta, timezone
+from contextlib import closing
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -229,7 +230,42 @@ def run_once(archive_path=ARCHIVE_PATH, state_path=STATE_PATH, sender=None, toda
                 stats["duplicate"] += 1
                 continue
             report = format_report(*sig, content, mid, today)
-            delivered = sender(report)
+            if sig[0] == "SIG-002" and os.getenv("MSP_PRICE_BUTTONS_ENABLED") == "1":
+                # One Telegram message per SKU: the pair of buttons is directly
+                # below that product rather than at the end of a multi-item report.
+                from apps.msp_signal_notify.price_buttons import connect as button_db, reserve, bind_sent, markup
+                delivered = None
+                items = price_advice(content, today)
+                for item in items:
+                    match = re.match(r"^SKU (\d{5,15}):", item)
+                    if match is None:
+                        continue
+                    sku = match.group(1)
+                    with closing(button_db()) as bdb:
+                        token, already_sent = reserve(bdb, mid, sku, fingerprint=digest)
+                        if already_sent:
+                            delivered = bdb.execute("SELECT sent_message_id FROM price_buttons WHERE token=?",
+                                                    (token,)).fetchone()[0]
+                            continue
+                    original = next((record for record in price_records(content)
+                                     if sku in SKU.findall(record)), "")
+                    name = re.sub(r"(?i)^товар\s*(?:№\s*)?\d+\s*[:.)-]\s*", "", original)
+                    name = re.split(r"_\d{1,3}(?!\d)", name, maxsplit=1)[0].strip()[:120]
+                    text = ("МСП | SIG-002 | Решение по товару\n"
+                            + ("Товар: " + name + "\n" if name else "")
+                            + "Исходный сигнал: https://t.me/c/" + CHANNEL_ID[4:] + "/" + str(mid) + "\n"
+                            + item + "\n"
+                            "Кнопки: ваше явное решение; изменение цены не запускается без нажатия.\n"
+                            "Очередь Orgobot требует отдельной проверки статуса.")
+                    delivered = sender(text, markup(token))
+                    if not isinstance(delivered, int) or delivered <= 0:
+                        raise RuntimeError("Telegram delivery confirmation missing")
+                    with closing(button_db()) as bdb:
+                        bind_sent(bdb, token, delivered)
+                if delivered is None:
+                    delivered = sender(report)
+            else:
+                delivered = sender(report)
             if not isinstance(delivered, int) or delivered <= 0:
                 raise RuntimeError("Telegram delivery confirmation missing")
             state.execute(
@@ -258,6 +294,9 @@ def main():
     while True:
         try:
             stats = run_once()
+            if os.environ.get("MSP_PRICE_LIVE_ENABLED") == "1":
+                from apps.msp_signal_notify.price_buttons import refresh_commands
+                stats["orgobot_completed"] = refresh_commands(send_telegram)
             print("SIGNAL_SCAN " + " ".join(f"{k}={v}" for k, v in stats.items()), flush=True)
         except Exception as e:
             # Telegram bot credentials and URLs must never appear in logs.
