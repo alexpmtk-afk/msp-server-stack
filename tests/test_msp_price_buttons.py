@@ -17,7 +17,7 @@ class FakeOrgobot:
         if name == "orgobot_price_decisions_list":
             return {"decisions": [
                 {"id": 555, "market_article": "2791038373", "orgobot_id": 48,
-                 "marketplaceid_id": 1, "blockid_id": 3, "status": "waiting",
+                 "marketplaceid_id": 1, "blockid_id": 3, "post_id": 2666, "status": "waiting",
                  "responsible_telegram": "@group_123123123_bot"}]}
         if name == "orgobot_price_decide":
             return {"command_id": 991, "status": "queued"}
@@ -36,6 +36,7 @@ class Sig002ButtonTests(unittest.TestCase):
             "MSP_PRICE_BUTTON_ALLOWED_USER_IDS": "12345",
             "MSP_PRICE_LIVE_ENABLED": "1",
             "MSP_ORGOBOT_EXECUTOR_USERNAME": "group_123123123_bot",
+            "MSP_PRICE_LIVE_DECISION_IDS": "555",
         })
         self.env.start()
 
@@ -75,6 +76,26 @@ class Sig002ButtonTests(unittest.TestCase):
         self.assertEqual(len(FakeOrgobot.calls), 2)
         with b.connect(self.path) as db:
             self.assertEqual(db.execute("SELECT state FROM price_buttons WHERE token=?", (token,)).fetchone()[0], "queued")
+
+    def test_source_post_mismatch_never_invokes_price_decide(self):
+        token = self.issue()
+        class Mismatch(FakeOrgobot):
+            def call(self, name, args):
+                response = super().call(name, args)
+                if name == "orgobot_price_decisions_list":
+                    response["decisions"][0]["post_id"] = 2701
+                return response
+        with self.assertRaises(b.DecisionRefused):
+            b.handle_click("msp2:" + token + ":y", 12345, -1002485321031, 758, 7444,
+                           client_factory=Mismatch, path=self.path, clock=self.t)
+        self.assertEqual([name for name, _ in FakeOrgobot.calls], ["orgobot_price_decisions_list"])
+
+    def test_decision_not_allowlisted_never_mutates(self):
+        token = self.issue()
+        with patch.dict(os.environ, {"MSP_PRICE_LIVE_DECISION_IDS": ""}):
+            with self.assertRaises(b.DecisionRefused):
+                self.click(token)
+        self.assertEqual([name for name, _ in FakeOrgobot.calls], ["orgobot_price_decisions_list"])
 
     def test_rule_outside_48_52_is_never_executed(self):
         token = self.issue()
