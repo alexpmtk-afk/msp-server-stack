@@ -22,6 +22,7 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS price_buttons (
     token TEXT PRIMARY KEY,
     source_message_id INTEGER NOT NULL,
     sku TEXT NOT NULL,
+    fingerprint TEXT NOT NULL,
     sent_message_id INTEGER,
     created_utc TEXT NOT NULL,
     expires_utc TEXT NOT NULL,
@@ -29,7 +30,7 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS price_buttons (
     answer TEXT,
     decision_id TEXT,
     command_id TEXT,
-    UNIQUE(source_message_id, sku)
+    UNIQUE(source_message_id, sku, fingerprint)
 )"""
 
 
@@ -51,21 +52,25 @@ def connect(path=DB_PATH):
     return db
 
 
-def reserve(db, source_id: int, sku: str, clock=None):
+def reserve(db, source_id: int, sku: str, clock=None, fingerprint=''):
     """Issue opaque, non-guessable per-item token; don't reissue delivered buttons."""
     if not re.fullmatch(r"\d{5,15}", sku):
         raise ValueError("invalid SKU")
-    record = db.execute("SELECT token, sent_message_id FROM price_buttons WHERE source_message_id=? AND sku=?",
-                        (source_id, sku)).fetchone()
+    db.execute("UPDATE price_buttons SET state='superseded' WHERE source_message_id=? AND sku=? "
+               "AND fingerprint<>? AND state='waiting'", (source_id, sku, fingerprint))
+    record = db.execute("SELECT token, sent_message_id FROM price_buttons "
+                        "WHERE source_message_id=? AND sku=? AND fingerprint=?",
+                        (source_id, sku, fingerprint)).fetchone()
     if record and record[1] is not None:
         return record[0], True
     if record:
         return record[0], False
     stamp = clock or now_utc()
     token = secrets.token_hex(12)
-    db.execute("INSERT INTO price_buttons(token,source_message_id,sku,created_utc,expires_utc)"
-               " VALUES(?,?,?,?,?)",
-               (token, source_id, sku, stamp.isoformat(), (stamp + dt.timedelta(hours=48)).isoformat()))
+    db.execute("INSERT INTO price_buttons(token,source_message_id,sku,fingerprint,created_utc,expires_utc)"
+               " VALUES(?,?,?,?,?,?)",
+               (token, source_id, sku, fingerprint, stamp.isoformat(),
+                (stamp + dt.timedelta(hours=48)).isoformat()))
     db.commit()
     return token, False
 
