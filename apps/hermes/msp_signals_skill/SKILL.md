@@ -93,3 +93,13 @@ orgobot_price_command_status. Статус queued — НЕ done и НЕ дока
 Процент повышения задаёт существующее правило Orgobot (ID 48 или 52), не агент.
 Пока кнопки не прошли проверку доставки и callback на REMOTE, продолжай
 выдавать обычные тестовые отчёты без кнопок.
+
+
+### Контракт Orgobot на 15.10.2026
+READ-only MCP-проверка подтвердила список решений в structuredContent.results:
+market_article, responsible_telegram, orgobot_id, id, status, blockid_id,
+marketplaceid_id, percent и другие служебные поля. Сопоставление делается
+только для orgobot_id 48/52 и единственного waiting-решения с разрешённым
+ответственным Hermes Bot. Нельзя брать произвольный товар по совпадению
+первых цифр, домысливать аккаунт или подменять decision_id номером SKU.
+decision_id и command_id MCP ожидает именно integer.
