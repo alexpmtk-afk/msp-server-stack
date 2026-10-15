@@ -184,29 +184,41 @@ def _items(data):
 
 
 def select_decision(client, sku, executor):
-    """No guesswork: exact SKU, waiting status, assigned executor and unique decision."""
+    """Use verified QRsite schema; no guesswork, writes only on a unique exact match.
+
+    Live 2026-10-15 input fields: id, orgobot_id, market_article,
+    marketplaceid_id, blockid_id, responsible_telegram, status.
+    Only Orgobot rules 48 and 52 are permitted for this path.
+    """
     rows = _items(client.call("orgobot_price_decisions_list", {"limit": 200}))
     wanted = executor.lower().lstrip("@")
     matches = []
     for row in rows:
         if not isinstance(row, dict):
             continue
-        article = str(row.get("article") or row.get("sku") or row.get("marketplace_sku") or "")
-        owners = row.get("responsibles") or row.get("responsible") or []
-        if isinstance(owners, str):
-            owners = [owners]
-        owners = [str(x.get("username") or x.get("telegram") or "") if isinstance(x, dict)
-                  else str(x) for x in owners]
-        if (article == sku and str(row.get("status")) == "waiting"
+        article = str(row.get("market_article") or "")
+        ruleset = row.get("orgobot_id")
+        if isinstance(ruleset, bool) or not str(ruleset).isdecimal() or int(ruleset) not in (48, 52):
+            continue
+        raw = row.get("responsible_telegram") or []
+        if isinstance(raw, (str, dict)):
+            raw = [raw]
+        if not isinstance(raw, list):
+            continue
+        owners = []
+        for val in raw:
+            if isinstance(val, dict):
+                val = val.get("username") or val.get("telegram") or ""
+            owners.extend(re.split(r"[,;\s]+", str(val)))
+        if (article == str(sku) and str(row.get("status")) == "waiting"
                 and any(x.lower().lstrip("@") == wanted for x in owners)):
             matches.append(row)
     if len(matches) != 1:
-        raise DecisionRefused("Нет единственного ожидающего решения Orgobot для этого SKU и Hermes Bot.")
-    decision_id = matches[0].get("decision_id") or matches[0].get("id")
+        raise DecisionRefused("Нет единственного ожидающего решения Orgobot по товару, правилам 48/52 и ответственному.")
+    decision_id = matches[0].get("id")
     if isinstance(decision_id, bool) or not str(decision_id).isdecimal() or int(decision_id) <= 0:
         raise DecisionRefused("Orgobot не вернул корректный числовой ID решения.")
     return int(decision_id)
-
 
 def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=OrgobotMCP,
                  path=DB_PATH, clock=None):
