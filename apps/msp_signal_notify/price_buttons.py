@@ -226,17 +226,30 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
     match = TOKEN_RE.fullmatch(data or "")
     if not match:
         raise DecisionRefused("Неизвестная кнопка.")
+    if str(chat_id) != "-1002485321031" or str(thread_id) != "758":
+        raise DecisionRefused("Неверная тема Telegram.")
+    token, answer = match.groups()
+    if os.environ.get("MSP_PRICE_LIVE_ENABLED") != "1":
+        # Safe acceptance mode: consume the button exactly once, without
+        # accessing Orgobot, even when no write-scope or owner IDs are set.
+        with closing(connect(path)) as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT sent_message_id,expires_utc,state FROM price_buttons WHERE token=?",
+                             (token,)).fetchone()
+            if not row or row[0] != int(message_id) or row[2] != "waiting":
+                raise DecisionRefused("Тестовая кнопка недействительна или уже нажата.")
+            if (clock or now_utc()) > dt.datetime.fromisoformat(row[1]):
+                raise DecisionRefused("Срок действия кнопки истёк.")
+            db.execute("UPDATE price_buttons SET state='tested',answer=? WHERE token=? AND state='waiting'",
+                       ("yes" if answer == "y" else "no", token))
+            db.commit()
+        return "ТЕСТ: принято " + ("Да" if answer == "y" else "Нет") + ". Команды Orgobot не отправлялись."
     allow = {x.strip() for x in os.environ.get("MSP_PRICE_BUTTON_ALLOWED_USER_IDS", "").split(",") if x.strip()}
     if not allow or str(user_id) not in allow:
         raise DecisionRefused("Нет разрешения на принятие решения.")
-    if str(chat_id) != "-1002485321031" or str(thread_id) != "758":
-        raise DecisionRefused("Неверная тема Telegram.")
-    if os.environ.get("MSP_PRICE_LIVE_ENABLED") != "1":
-        raise DecisionRefused("Кнопки в тестовом режиме. Изменение цен отключено.")
     executor = os.environ.get("MSP_ORGOBOT_EXECUTOR_USERNAME", "").strip()
     if not executor:
         raise DecisionRefused("Не настроен исполнитель Hermes Bot.")
-    token, answer = match.groups()
     with closing(connect(path)) as db:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute("SELECT sku, sent_message_id, expires_utc, state FROM price_buttons WHERE token=?",
