@@ -14,6 +14,7 @@ import sqlite3
 import sys
 import time
 from datetime import date, datetime, timedelta, timezone
+from contextlib import closing
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -240,7 +241,7 @@ def run_once(archive_path=ARCHIVE_PATH, state_path=STATE_PATH, sender=None, toda
                     if match is None:
                         continue
                     sku = match.group(1)
-                    with button_db() as bdb:
+                    with closing(button_db()) as bdb:
                         token, already_sent = reserve(bdb, mid, sku, fingerprint=digest)
                         if already_sent:
                             delivered = bdb.execute("SELECT sent_message_id FROM price_buttons WHERE token=?",
@@ -259,7 +260,7 @@ def run_once(archive_path=ARCHIVE_PATH, state_path=STATE_PATH, sender=None, toda
                     delivered = sender(text, markup(token))
                     if not isinstance(delivered, int) or delivered <= 0:
                         raise RuntimeError("Telegram delivery confirmation missing")
-                    with button_db() as bdb:
+                    with closing(button_db()) as bdb:
                         bind_sent(bdb, token, delivered)
                 if delivered is None:
                     delivered = sender(report)
