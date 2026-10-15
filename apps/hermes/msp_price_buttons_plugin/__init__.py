@@ -9,7 +9,9 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path("/opt/mcp/projects/msp-server-stack")
+# Deployment pins a bundle symlink next to this plugin, so the old shared
+# /opt/mcp/projects/msp-server-stack checkout can remain untouched.
+ROOT = Path(__file__).parent / "bundle"
 
 
 def register(ctx):
@@ -18,8 +20,11 @@ def register(ctx):
 
     def wire(application, adapter):
         from telegram.ext import CallbackQueryHandler
-        if str(ROOT) not in sys.path:
-            sys.path.insert(0, str(ROOT))
+        if not (ROOT / "apps/msp_signal_notify/price_buttons.py").is_file():
+            raise RuntimeError("Pinned SIG-002 bundle is missing")
+        pinned = str(ROOT.resolve())
+        if pinned not in sys.path:
+            sys.path.insert(0, pinned)
         from apps.msp_signal_notify.price_buttons import DecisionRefused, handle_click
 
         async def clicked(update, context):
