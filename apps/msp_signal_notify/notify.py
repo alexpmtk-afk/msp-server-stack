@@ -241,7 +241,7 @@ def run_once(archive_path=ARCHIVE_PATH, state_path=STATE_PATH, sender=None, toda
                         continue
                     sku = match.group(1)
                     with button_db() as bdb:
-                        token, already_sent = reserve(bdb, mid, sku)
+                        token, already_sent = reserve(bdb, mid, sku, fingerprint=digest)
                         if already_sent:
                             delivered = bdb.execute("SELECT sent_message_id FROM price_buttons WHERE token=?",
                                                     (token,)).fetchone()[0]
