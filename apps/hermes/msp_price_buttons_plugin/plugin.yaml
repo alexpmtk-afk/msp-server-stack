@@ -1,4 +1,5 @@
 name: msp-price-buttons
-description: Handle SIG-002 per-item Telegram approval callbacks using the existing Hermes Gateway
 version: 0.1.0
-enabled: false
+description: Scoped SIG-002 Telegram approval callbacks; Orgobot writes gated separately.
+author: Local reviewed deployment
+kind: standalone
