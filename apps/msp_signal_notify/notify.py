@@ -229,7 +229,37 @@ def run_once(archive_path=ARCHIVE_PATH, state_path=STATE_PATH, sender=None, toda
                 stats["duplicate"] += 1
                 continue
             report = format_report(*sig, content, mid, today)
-            delivered = sender(report)
+            if sig[0] == "SIG-002" and os.getenv("MSP_PRICE_BUTTONS_ENABLED") == "1":
+                # One Telegram message per SKU: the pair of buttons is directly
+                # below that product rather than at the end of a multi-item report.
+                from apps.msp_signal_notify.price_buttons import connect as button_db, reserve, bind_sent, markup
+                delivered = None
+                items = price_advice(content, today)
+                for item in items:
+                    match = re.match(r"^SKU (\d{5,15}):", item)
+                    if match is None:
+                        continue
+                    sku = match.group(1)
+                    with button_db() as bdb:
+                        token, already_sent = reserve(bdb, mid, sku)
+                        if already_sent:
+                            delivered = bdb.execute("SELECT sent_message_id FROM price_buttons WHERE token=?",
+                                                    (token,)).fetchone()[0]
+                            continue
+                    text = ("МСП | SIG-002 | Решение по товару\n"
+                            "Исходный сигнал: https://t.me/c/" + CHANNEL_ID[4:] + "/" + str(mid) + "\n"
+                            + item + "\n"
+                            "Кнопки: ваше явное решение; изменение цены не запускается без нажатия.\n"
+                            "Очередь Orgobot требует отдельной проверки статуса.")
+                    delivered = sender(text, markup(token))
+                    if not isinstance(delivered, int) or delivered <= 0:
+                        raise RuntimeError("Telegram delivery confirmation missing")
+                    with button_db() as bdb:
+                        bind_sent(bdb, token, delivered)
+                if delivered is None:
+                    delivered = sender(report)
+            else:
+                delivered = sender(report)
             if not isinstance(delivered, int) or delivered <= 0:
                 raise RuntimeError("Telegram delivery confirmation missing")
             state.execute(
