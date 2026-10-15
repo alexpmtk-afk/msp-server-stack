@@ -261,3 +261,44 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
                        (token,))
             db.commit()
         raise DecisionRefused("Нужна проверка Orgobot; повторный клик заблокирован.") from None
+
+
+def refresh_commands(sender, client_factory=OrgobotMCP, path=DB_PATH):
+    """Poll asynchronous Orgobot command states; never resubmit yes/no."""
+    if os.environ.get("MSP_PRICE_LIVE_ENABLED") != "1":
+        return 0
+    with connect(path) as db:
+        rows = db.execute(
+            "SELECT token,sku,command_id FROM price_buttons "
+            "WHERE state IN ('queued','processing') AND command_id IS NOT NULL"
+        ).fetchall()
+    if not rows:
+        return 0
+    client = client_factory()
+    completed = 0
+    for token, sku, command_id in rows:
+        try:
+            result = client.call("orgobot_price_command_status", {"command_id": command_id})
+            state = result.get("status") if isinstance(result, dict) else None
+            if state not in {"queued", "processing", "done", "failed", "blocked"}:
+                continue
+            if state in {"queued", "processing"}:
+                with connect(path) as db:
+                    db.execute("UPDATE price_buttons SET state=? WHERE token=? AND state IN ('queued','processing')",
+                               (state, token))
+                    db.commit()
+                continue
+            # Send before finalizing so delivery errors allow a later notification retry.
+            sender("МСП | Orgobot\nSKU " + sku + "\nКоманда " + str(command_id)
+                   + "\nСтатус: " + state
+                   + ("\nОбработка завершена; фактическая цена требует проверки в маркетплейсе."
+                      if state == "done" else "\nНеобходимо проверить результат вручную."))
+            with connect(path) as db:
+                db.execute("UPDATE price_buttons SET state=? WHERE token=? AND state IN ('queued','processing')",
+                           (state, token))
+                db.commit()
+            completed += 1
+        except Exception:
+            # Remain queued/processing to retry only READ-ONLY status, not mutation.
+            continue
+    return completed
