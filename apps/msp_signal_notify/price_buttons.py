@@ -6,6 +6,7 @@ receives callbacks (via the companion scoped plugin). No getUpdates/webhook.
 from __future__ import annotations
 
 import datetime as dt
+from contextlib import closing
 import json
 import os
 import re
@@ -224,7 +225,7 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
     if not executor:
         raise DecisionRefused("Не настроен исполнитель Hermes Bot.")
     token, answer = match.groups()
-    with connect(path) as db:
+    with closing(connect(path)) as db:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute("SELECT sku, sent_message_id, expires_utc, state FROM price_buttons WHERE token=?",
                          (token,)).fetchone()
@@ -242,7 +243,7 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
     try:
         client = client_factory()
         decision_id = select_decision(client, sku, executor)
-        with connect(path) as db:
+        with closing(connect(path)) as db:
             db.execute("UPDATE price_buttons SET decision_id=? WHERE token=?", (str(decision_id), token))
             db.commit()
         reply = client.call("orgobot_price_decide", {"decision_id": decision_id,
@@ -250,13 +251,13 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
         command_id = reply.get("command_id") if isinstance(reply, dict) else None
         if not command_id:
             raise DecisionRefused("Не получен command_id; необходима ручная проверка Orgobot.")
-        with connect(path) as db:
+        with closing(connect(path)) as db:
             db.execute("UPDATE price_buttons SET command_id=?,state='queued' WHERE token=?",
                        (str(command_id), token))
             db.commit()
         return "Команда Orgobot создана, ожидает проверки: " + str(command_id)
     except Exception:
-        with connect(path) as db:
+        with closing(connect(path)) as db:
             db.execute("UPDATE price_buttons SET state='needs_review' WHERE token=? AND state='processing'",
                        (token,))
             db.commit()
@@ -267,7 +268,7 @@ def refresh_commands(sender, client_factory=OrgobotMCP, path=DB_PATH):
     """Poll asynchronous Orgobot command states; never resubmit yes/no."""
     if os.environ.get("MSP_PRICE_LIVE_ENABLED") != "1":
         return 0
-    with connect(path) as db:
+    with closing(connect(path)) as db:
         rows = db.execute(
             "SELECT token,sku,command_id FROM price_buttons "
             "WHERE state IN ('queued','processing') AND command_id IS NOT NULL"
@@ -283,7 +284,7 @@ def refresh_commands(sender, client_factory=OrgobotMCP, path=DB_PATH):
             if state not in {"queued", "processing", "done", "failed", "blocked"}:
                 continue
             if state in {"queued", "processing"}:
-                with connect(path) as db:
+                with closing(connect(path)) as db:
                     db.execute("UPDATE price_buttons SET state=? WHERE token=? AND state IN ('queued','processing')",
                                (state, token))
                     db.commit()
@@ -293,7 +294,7 @@ def refresh_commands(sender, client_factory=OrgobotMCP, path=DB_PATH):
                    + "\nСтатус: " + state
                    + ("\nОбработка завершена; фактическая цена требует проверки в маркетплейсе."
                       if state == "done" else "\nНеобходимо проверить результат вручную."))
-            with connect(path) as db:
+            with closing(connect(path)) as db:
                 db.execute("UPDATE price_buttons SET state=? WHERE token=? AND state IN ('queued','processing')",
                            (state, token))
                 db.commit()
