@@ -288,6 +288,9 @@ def main():
     while True:
         try:
             stats = run_once()
+            if os.environ.get("MSP_PRICE_LIVE_ENABLED") == "1":
+                from apps.msp_signal_notify.price_buttons import refresh_commands
+                stats["orgobot_completed"] = refresh_commands(send_telegram)
             print("SIGNAL_SCAN " + " ".join(f"{k}={v}" for k, v in stats.items()), flush=True)
         except Exception as e:
             # Telegram bot credentials and URLs must never appear in logs.
