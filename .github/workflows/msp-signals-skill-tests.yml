@@ -9,6 +9,9 @@ on:
       - 'tests/test_msp_signals_skill.py'
       - 'tests/test_msp_signal_notify.py'
       - 'tests/test_msp_price_buttons.py'
+      - 'tests/test_msp_orgobot_live_trial.py'
+      - 'apps/msp_signal_notify/orgobot_trial.py'
+      - 'apps/hermes/msp_orgobot_trial_plugin/**'
       - 'apps/msp_data_sync/run_with_alerts.py'
   pull_request:
     paths:
@@ -32,4 +35,5 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_signals_skill.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_signal_notify.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_price_buttons.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_orgobot_live_trial.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_data_alerts.py' -v
