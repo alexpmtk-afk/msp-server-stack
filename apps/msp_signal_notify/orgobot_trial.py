@@ -37,7 +37,7 @@ def connect(path=DB):
     conn = sqlite3.connect(p, timeout=15)
     os.chmod(p, 0o600)
     conn.execute("""CREATE TABLE IF NOT EXISTS trials(
-       nonce TEXT PRIMARY KEY, decision_id INTEGER NOT NULL,
+       nonce TEXT PRIMARY KEY, decision_id INTEGER NOT NULL UNIQUE,
        allowed_users TEXT NOT NULL, sent_message_id INTEGER,
        state TEXT NOT NULL, answer TEXT, command_id INTEGER,
        created_utc TEXT NOT NULL, expires_utc TEXT NOT NULL
@@ -53,16 +53,20 @@ def _now():
 def create_card(allowed_user_ids, path=DB, clock=None):
     """Prepare a single card; no QRsite writes. Requires explicit numeric allowlist."""
     users = sorted({int(v) for v in allowed_user_ids if str(v).isdecimal() and int(v) > 0})
-    if not users:
-        raise DecisionRefused("Нет проверенных Telegram-пользователей для реального теста.")
+    if len(users) != 1:
+        raise DecisionRefused("Для реального теста требуется ровно один уполномоченный Telegram-пользователь.")
+    created = clock or _now()
     with closing(connect(path)) as db:
-        existing = db.execute("SELECT nonce,sent_message_id,state FROM trials WHERE decision_id=?",
+        db.execute("BEGIN IMMEDIATE")
+        existing = db.execute("SELECT nonce,sent_message_id,state,expires_utc,allowed_users "
+                              "FROM trials WHERE decision_id=?",
                               (TARGET["id"],)).fetchone()
         if existing:
-            if existing[2] not in ("waiting",):
-                raise DecisionRefused("Реальное решение уже было обработано или заблокировано.")
+            if (existing[2] != "waiting"
+                    or created > dt.datetime.fromisoformat(existing[3])
+                    or json.loads(existing[4]) != users):
+                raise DecisionRefused("Решение уже занято, просрочено или связано с другим пользователем.")
             return existing[0], existing[1]
-        created = clock or _now()
         nonce = secrets.token_hex(16)
         db.execute("INSERT INTO trials(nonce,decision_id,allowed_users,state,created_utc,expires_utc)"
                    " VALUES(?,?,?,?,?,?)",
