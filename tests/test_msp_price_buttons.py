@@ -91,6 +91,28 @@ class Sig002ButtonTests(unittest.TestCase):
                 self.click(token)
         self.assertFalse(FakeOrgobot.calls)
 
+    def test_status_uses_integer_command_id_and_only_reads_status(self):
+        token = self.issue()
+        self.click(token)
+        class Finished(FakeOrgobot):
+            def call(self, name, args):
+                if name == "orgobot_price_command_status":
+                    self.calls.append((name, args))
+                    self.assertions = args
+                    return {"status": "done"}
+                return super().call(name, args)
+        notes = []
+        self.assertEqual(b.refresh_commands(lambda msg: notes.append(msg) or 100,
+                                            client_factory=Finished, path=self.path), 1)
+        self.assertEqual(len(notes), 1)
+        self.assertEqual(FakeOrgobot.calls[-1][0], "orgobot_price_command_status")
+        self.assertEqual(FakeOrgobot.calls[-1][1], {"command_id": 991})
+        self.assertIs(type(FakeOrgobot.calls[-1][1]["command_id"]), int)
+        with b.connect(self.path) as db:
+            self.assertEqual(db.execute("SELECT state FROM price_buttons WHERE token=?",
+                                        (token,)).fetchone()[0], "done")
+        self.assertEqual(b.refresh_commands(lambda msg: 1, client_factory=Finished, path=self.path), 0)
+
     def test_network_error_never_retries_mutation(self):
         token = self.issue()
         class BadMCP(FakeOrgobot):
