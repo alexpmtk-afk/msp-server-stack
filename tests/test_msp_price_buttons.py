@@ -16,8 +16,9 @@ class FakeOrgobot:
         self.calls.append((name, args))
         if name == "orgobot_price_decisions_list":
             return {"decisions": [
-                {"id": 555, "article": "2791038373", "status": "waiting",
-                 "responsibles": ["@group_123123123_bot"]}]}
+                {"id": 555, "market_article": "2791038373", "orgobot_id": 48,
+                 "marketplaceid_id": 1, "blockid_id": 3, "status": "waiting",
+                 "responsible_telegram": "@group_123123123_bot"}]}
         if name == "orgobot_price_decide":
             return {"command_id": 991, "status": "queued"}
         if name == "orgobot_price_command_status":
@@ -74,6 +75,19 @@ class Sig002ButtonTests(unittest.TestCase):
         self.assertEqual(len(FakeOrgobot.calls), 2)
         with b.connect(self.path) as db:
             self.assertEqual(db.execute("SELECT state FROM price_buttons WHERE token=?", (token,)).fetchone()[0], "queued")
+
+    def test_rule_outside_48_52_is_never_executed(self):
+        token = self.issue()
+        class UnsupportedRule(FakeOrgobot):
+            def call(self, name, args):
+                response = super().call(name, args)
+                if name == "orgobot_price_decisions_list":
+                    response["decisions"][0]["orgobot_id"] = 99
+                return response
+        with self.assertRaises(b.DecisionRefused):
+            b.handle_click("msp2:" + token + ":y", 12345, -1002485321031, 758, 7444,
+                           client_factory=UnsupportedRule, path=self.path, clock=self.t)
+        self.assertEqual([name for name, _ in FakeOrgobot.calls], ["orgobot_price_decisions_list"])
 
     def test_no_invokes_explicit_decline(self):
         token = self.issue()
