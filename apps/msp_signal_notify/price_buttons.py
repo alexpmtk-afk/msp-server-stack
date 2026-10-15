@@ -203,9 +203,9 @@ def select_decision(client, sku, executor):
     if len(matches) != 1:
         raise DecisionRefused("Нет единственного ожидающего решения Orgobot для этого SKU и Hermes Bot.")
     decision_id = matches[0].get("decision_id") or matches[0].get("id")
-    if decision_id is None:
-        raise DecisionRefused("Orgobot не вернул ID решения.")
-    return decision_id
+    if isinstance(decision_id, bool) or not str(decision_id).isdecimal() or int(decision_id) <= 0:
+        raise DecisionRefused("Orgobot не вернул корректный числовой ID решения.")
+    return int(decision_id)
 
 
 def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=OrgobotMCP,
@@ -249,8 +249,9 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
         reply = client.call("orgobot_price_decide", {"decision_id": decision_id,
                                                      "answer": "yes" if answer == "y" else "no"})
         command_id = reply.get("command_id") if isinstance(reply, dict) else None
-        if not command_id:
-            raise DecisionRefused("Не получен command_id; необходима ручная проверка Orgobot.")
+        if isinstance(command_id, bool) or not str(command_id).isdecimal() or int(command_id) <= 0:
+            raise DecisionRefused("Не получен числовой command_id; необходима ручная проверка Orgobot.")
+        command_id = int(command_id)
         with closing(connect(path)) as db:
             db.execute("UPDATE price_buttons SET command_id=?,state='queued' WHERE token=?",
                        (str(command_id), token))
@@ -279,7 +280,9 @@ def refresh_commands(sender, client_factory=OrgobotMCP, path=DB_PATH):
     completed = 0
     for token, sku, command_id in rows:
         try:
-            result = client.call("orgobot_price_command_status", {"command_id": command_id})
+            if not str(command_id).isdecimal() or int(command_id) <= 0:
+                continue
+            result = client.call("orgobot_price_command_status", {"command_id": int(command_id)})
             state = result.get("status") if isinstance(result, dict) else None
             if state not in {"queued", "processing", "done", "failed", "blocked"}:
                 continue
