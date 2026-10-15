@@ -1,5 +1,6 @@
 """Offline, synthetic acceptance for single real Orgobot decision #169."""
 import datetime as dt
+from concurrent.futures import ThreadPoolExecutor
 import tempfile
 import unittest
 from pathlib import Path
@@ -93,6 +94,32 @@ class SingleTrialTests(unittest.TestCase):
             self.assertEqual(db.execute("SELECT state FROM trials").fetchone()[0],"needs_review")
         with self.assertRaises(t.DecisionRefused): self.decide()
         self.assertNotIn("orgobot_price_command_status",[name for name,_ in FakeMCP.calls])
+
+    def test_single_approver_only_and_approver_cannot_be_changed(self):
+        with self.assertRaises(t.DecisionRefused):
+            t.create_card([12345, 67890], path=self.db, clock=self.time)
+        with self.assertRaises(t.DecisionRefused):
+            t.create_card([67890], path=self.db, clock=self.time)
+        with t.connect(self.db) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM trials").fetchone()[0], 1)
+
+    def test_expired_card_cannot_be_reissued_as_new(self):
+        with self.assertRaises(t.DecisionRefused):
+            t.create_card([12345], path=self.db,
+                          clock=self.time + dt.timedelta(hours=13))
+        with t.connect(self.db) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM trials").fetchone()[0], 1)
+
+    def test_concurrent_card_creation_is_unique(self):
+        second_db=Path(self.tmp.name)/"concurrent.sqlite3"
+        def issue(_):
+            return t.create_card([12345], path=second_db, clock=self.time)
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            a,b=list(executor.map(issue, range(2)))
+        self.assertEqual(a[0],b[0])
+        self.assertIsNone(a[1])
+        with t.connect(second_db) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM trials").fetchone()[0], 1)
 
     def test_markup_and_no_second_card(self):
         btn=t.markup(self.nonce)
