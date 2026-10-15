@@ -183,13 +183,15 @@ def _items(data):
     raise DecisionRefused("Не удалось разобрать список решений Orgobot.")
 
 
-def select_decision(client, sku, executor):
+def select_decision(client, sku, executor, source_message_id=None):
     """Use verified QRsite schema; no guesswork, writes only on a unique exact match.
 
     Live 2026-10-15 input fields: id, orgobot_id, market_article,
     marketplaceid_id, blockid_id, responsible_telegram, status.
     Only Orgobot rules 48 and 52 are permitted for this path.
     """
+    if source_message_id is None or isinstance(source_message_id, bool) or not str(source_message_id).isdecimal():
+        raise DecisionRefused("Неизвестен номер исходного Telegram-сигнала.")
     rows = _items(client.call("orgobot_price_decisions_list", {"limit": 200}))
     wanted = executor.lower().lstrip("@")
     matches = []
@@ -210,7 +212,9 @@ def select_decision(client, sku, executor):
             if isinstance(val, dict):
                 val = val.get("username") or val.get("telegram") or ""
             owners.extend(re.split(r"[,;\s]+", str(val)))
-        if (article == str(sku) and str(row.get("status")) == "waiting"
+        if (article == str(sku)
+                and str(row.get("post_id")) == str(source_message_id)
+                and str(row.get("status")) == "waiting"
                 and any(x.lower().lstrip("@") == wanted for x in owners)):
             matches.append(row)
     if len(matches) != 1:
@@ -252,11 +256,11 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
         raise DecisionRefused("Не настроен исполнитель Hermes Bot.")
     with closing(connect(path)) as db:
         db.execute("BEGIN IMMEDIATE")
-        row = db.execute("SELECT sku, sent_message_id, expires_utc, state FROM price_buttons WHERE token=?",
+        row = db.execute("SELECT sku, sent_message_id, expires_utc, state, source_message_id FROM price_buttons WHERE token=?",
                          (token,)).fetchone()
         if not row or row[1] != int(message_id):
             raise DecisionRefused("Кнопка не связана с этим сообщением.")
-        sku, _, expiry, status = row
+        sku, _, expiry, status, source_message_id = row
         if status != "waiting":
             raise DecisionRefused("Решение уже обрабатывается или закрыто.")
         if (clock or now_utc()) > dt.datetime.fromisoformat(expiry):
@@ -267,7 +271,10 @@ def handle_click(data, user_id, chat_id, thread_id, message_id, client_factory=O
     # A network failure here may be post-commit: fail closed, human review required.
     try:
         client = client_factory()
-        decision_id = select_decision(client, sku, executor)
+        decision_id = select_decision(client, sku, executor, source_message_id)
+        permitted = {x.strip() for x in os.environ.get("MSP_PRICE_LIVE_DECISION_IDS", "").split(",") if x.strip()}
+        if str(decision_id) not in permitted:
+            raise DecisionRefused("Решение Orgobot не включено в список разрешённых для реального теста.")
         with closing(connect(path)) as db:
             db.execute("UPDATE price_buttons SET decision_id=? WHERE token=?", (str(decision_id), token))
             db.commit()
