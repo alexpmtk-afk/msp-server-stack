@@ -5,9 +5,7 @@ No SKU, product title, review body, URL, customer or PII values are emitted.
 The output is a technical readiness snapshot, NOT a proof of organic sales.
 """
 import argparse
-import datetime
 import json
-import os
 import sqlite3
 from pathlib import Path
 
@@ -27,10 +25,6 @@ REQUIRED_FIELDS = {
 
 def count(con, sql):
     return int(con.execute(sql).fetchone()[0])
-
-
-def optional_count(con, sql):
-    return count(con, sql)
 
 
 def audit(db):
@@ -71,7 +65,9 @@ def audit(db):
               WHERE first_seen_at IS NULL OR trim(first_seen_at)=''"""),
         }
         rec = con.execute("""SELECT count(*), coalesce(sum(quantity),0),
-          count(review_date), count(review_url), min(purchase_date), max(purchase_date)
+          sum(CASE WHEN review_date IS NOT NULL AND trim(review_date)<>'' THEN 1 ELSE 0 END),
+          sum(CASE WHEN review_url IS NOT NULL AND trim(review_url)<>'' THEN 1 ELSE 0 END),
+          min(purchase_date), max(purchase_date)
           FROM self_purchase""").fetchone()
         r["completed"] = {
             "events": int(rec[0]), "units": int(rec[1]),
