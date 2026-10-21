@@ -1,4 +1,4 @@
-version: 5
+version: 6
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -37,15 +37,18 @@ fields:
     deprecated: true
     current_source_provides: false
   marketplace_sku:
-    source: "Артикул МП"
+    source: "market_article"
+    legacy_header_alias: "Артикул МП"
     meaning: Цифровой SKU карточки маркетплейса; соответствует market_article из листа "артикулы".
     validation: ascii_digits_only_required_for_import
     empty_value_policy: skip_entire_row_without_error
   internal_article:
-    source: "Артикул наш"
+    source: "артикул_наш_▼"
+    legacy_header_alias: "Артикул наш"
     meaning: Внутренний артикул товара, не ключ карточки.
   product_name:
-    source: "Название товара"
+    source: "наименование 1С"
+    legacy_header_alias: "Название товара"
     meaning: Наименование в реестре.
   quantity:
     source: "Кол-во выкупов"
@@ -72,7 +75,10 @@ reporting:
   completed_count_query: "SELECT count(*) FROM self_purchase"
   never_sum_planned_quantity_into_sales: true
 source_contract:
-  current_headers: ["мп", "магазин", "Артикул МП", "Артикул наш", "Название товара", "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+  current_headers: ["мп", "магазин", "market_article", "артикул_наш_▼", "наименование 1С", "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+  legacy_headers_accepted: ["Артикул МП", "Артикул наш", "Название товара"]
+  verified_current_headers_date: "2026-10-21"
+  verified_sources: ["самовыкупы (export)", "Реестр выкупов/отзывов (upstream)"]
   header_matching: case_insensitive_and_trimmed
   processing_order: "product_catalog before self_purchase"
   current_store_resolution: "Use explicit source column магазин; no ЮЛ mapping or SKU-only fallback."
@@ -90,6 +96,11 @@ source_contract:
     Только для старых выгрузок, где есть "ЮЛ", но отсутствует "магазин",
     допустимо определять store через существующий mapping ЛМ->laser / НМБ->novok.
     Это не правило для текущего источника и не доказательство тождественности ЮЛ и магазина.
+  current_header_alias_fix_2026_10_21: >
+    Утренний импорт самовыкупов 14–21.10.2026 отклонял экспорт из-за изменения заголовков:
+    Артикул МП -> market_article, Артикул наш -> артикул_наш_▼, Название товара -> наименование 1С.
+    Идентичные новые заголовки подтверждены чтением исходного и экспортного листа 21.10.2026.
+    Совместимость восстанавливается расширением списка разрешённых имён столбцов без переименования таблиц.
   known_correction_2026_10_08: >
     В исходном реестре 12 записей (строки 68-75, 80-83) имели старое значение ЮЛ "ЛМ",
     хотя их WB SKU однозначно принадлежат магазину novok. По подтверждённому решению
