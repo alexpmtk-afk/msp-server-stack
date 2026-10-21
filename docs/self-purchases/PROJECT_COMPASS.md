@@ -86,15 +86,12 @@ REMOTE ориентиры: `/opt/mcp/projects/msp-server-stack/`; SQLite `/opt/m
 7. Не корректировать оригиналы, даже когда их идеи опровергнуты.
 8. При конфликте: действующие явно утверждённые бизнес-правила и безопасность определяют исполнение; оригинал остаётся историческим ориентиром.
 
-## 7. Контроль живой копии на REMOTE (будущий этап)
+## 7. Контроль живой копии на REMOTE (первичная установка принята 2026-10-21)
 
-После авторизованного deploy ожидаются:
-- `/opt/mcp/projects/msp-server-stack/docs/self-purchases/PROJECT_COMPASS.md` — рабочий компас из публичного кода;
-- локальная **приватная** копия источников для Hermes, без публичной публикации и с проверкой SHA;
-- установленный Hermes Skill `msp-self-purchases`, явно требующий чтения компаса и источников.
+По [удалённой приёмке №461](https://github.com/alexpmtk-afk/msp-server-bridge/issues/461) создан отдельный каталог `/home/hermes/.hermes/skills/productivity/msp-self-purchases/` с пятью файлами: SKILL.md, PROJECT_COMPASS.md, DECISIONS_AND_DEVIATIONS.md, INITIAL_VISION_V1_2026-10-21.md, MEETING_TRANSCRIPT_2026-10-21.md (последние четыре в references/). Проверены точные исходные Git commits, SHA-256, права 0600, обнаружение `hermes skills list` и неизменность Gateway/таймеров. **Установка/обнаружение PASS, реальное чтение агентом при конкретном запросе ещё НЕ тестировалось.**
 
-Наличие в GitHub **не означает**, что эти пункты уже приняты. Не утверждать их готовность до проверки через одобренный REMOTE-канал.
+Рабочая копия `/opt/mcp/projects/msp-server-stack` на REMOTE отстаёт от GitHub и содержит посторонние локальные изменения. Её НЕ перезаписывали ради установки Skill. Статус checkout, свежесть Skill references и предстоящие обновления проверять отдельно.
 
 ## 8. Текущее состояние на момент создания
 
-Первоначальные материалы зафиксированы в подготовительных GitHub ветках, внедрение на REMOTE не подтверждено. Компонент анализа/прогноза самовыкупов пока не считать реализованным. Журнал изменений направления — [DECISIONS_AND_DEVIATIONS.md](DECISIONS_AND_DEVIATIONS.md).
+Материалы приняты в main приватного и публичного GitHub. Skill на REMOTE установлен и обнаруживается CLI ([приёмка №461](https://github.com/alexpmtk-afk/msp-server-bridge/issues/461)); поведенческая приёмка Hermes впереди. MSP-SELF-01 начат: агрегированный аудит SQLite [№463](https://github.com/alexpmtk-afk/msp-server-bridge/issues/463) завершён, выявлен многодневный сбой источника self_purchase. Исправление совместимости с переименованными столбцами принято в GitHub PR #49, но НЕ установлено в рабочий runtime; staging [№469](https://github.com/alexpmtk-afk/msp-server-bridge/issues/469) выявил три rejected-строки, поэтому live sync не выполняли. Журнал изменений — [DECISIONS_AND_DEVIATIONS.md](DECISIONS_AND_DEVIATIONS.md).
