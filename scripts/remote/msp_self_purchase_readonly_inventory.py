@@ -65,8 +65,8 @@ def audit(db):
               WHERE first_seen_at IS NULL OR trim(first_seen_at)=''"""),
         }
         rec = con.execute("""SELECT count(*), coalesce(sum(quantity),0),
-          sum(CASE WHEN review_date IS NOT NULL AND trim(review_date)<>'' THEN 1 ELSE 0 END),
-          sum(CASE WHEN review_url IS NOT NULL AND trim(review_url)<>'' THEN 1 ELSE 0 END),
+          coalesce(sum(CASE WHEN review_date IS NOT NULL AND trim(review_date)<>'' THEN 1 ELSE 0 END),0),
+          coalesce(sum(CASE WHEN review_url IS NOT NULL AND trim(review_url)<>'' THEN 1 ELSE 0 END),0),
           min(purchase_date), max(purchase_date)
           FROM self_purchase""").fetchone()
         r["completed"] = {
