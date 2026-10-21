@@ -16,6 +16,10 @@ The goal of this repository is simple: if the remote server is lost, the softwar
 - backup and recovery procedures
 - standard interaction procedure for chats and agents working with the remote server
 
+## МСП Самовыкупы — аналитика и прогноз
+
+Постоянный ориентир разработки: **[docs/self-purchases/PROJECT_COMPASS.md](docs/self-purchases/PROJECT_COMPASS.md)**. Обязателен для ChatGPT/Codex и Hermes при работе над аналитикой самовыкупов, конкурентами, новыми карточками и рейтингами. Дословная стенограмма и замороженная концепция находятся в **приватном** `msp-server-bridge/docs/self-purchases/`; не переносить их в публичный репозиторий. Подготовленный Hermes Skill: `apps/hermes/msp_self_purchases_skill/SKILL.md`. Его наличие здесь не означает установку на REMOTE.
+
 ## Remote server interaction
 
 For any task that requires reading, testing or changing the remote server, start with:
