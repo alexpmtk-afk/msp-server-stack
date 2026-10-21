@@ -145,7 +145,8 @@ def selfbuy(c,rows,run,cfg):
     if store_col is None and legal_col is None:
         raise ValueError('missing column магазин (or legacy ЮЛ)')
     n={'source_rows':0,'inserted':0,'updated':0,'unchanged':0,'rejected':0,
-       'planned':0,'planned_inserted':0,'planned_updated':0,'planned_unchanged':0,'promoted':0,'skipped_missing_sku':0,'reconciled':0}
+       'planned':0,'planned_inserted':0,'planned_updated':0,'planned_unchanged':0,'promoted':0,'skipped_missing_sku':0,'reconciled':0,
+       'uncompleted_markers':0,'unavailable_plan_quantity_markers':0}
     stamp=now(); seen={}; active_plan_rows=set(); active_completed_keys=set(); obsolete_candidates={}
     for no,r in enumerate(rows[1:],2):
         if not any(txt(x) for x in r):continue
@@ -173,12 +174,24 @@ def selfbuy(c,rows,run,cfg):
             same_listing=bool(previous_key and previous_key[:3]==(market,store,raw_s))
 
             raw_qty=txt(val(r,m['q']))
-            # No actual purchase date means a plan, never a completed purchase.
-            if purchase_date is None:
+            raw_review_date=txt(val(r,m['rd']))
+            # The upstream registry uses the explicit status note "нет выкупа!"
+            # in the review-date cell on an item with an expected future buy date.
+            # The existence of a date alone does NOT prove the buy occurred.
+            explicitly_not_purchased=(hdr(raw_review_date).rstrip('!').strip()=='нет выкупа')
+            if purchase_date is None or explicitly_not_purchased:
                 planned_sku=sku(raw_s)
-                planned_qty=qty(raw_qty) if raw_qty else None
-                review_date=dt(val(r,m['rd']))
-                plan=(market,store,planned_sku,internal,name,planned_qty,None,review_date,
+                # Source note "нет в нал" means no quantity is confirmed;
+                # never interpret text as a numeric quantity or invent units.
+                qty_unavailable=(hdr(raw_qty) in ('нет в нал','нет в наличии'))
+                if qty_unavailable:n['unavailable_plan_quantity_markers']+=1
+                if explicitly_not_purchased:n['uncompleted_markers']+=1
+                planned_qty=None if qty_unavailable or not raw_qty else qty(raw_qty)
+                review_date=None if explicitly_not_purchased else dt(raw_review_date)
+                # For an explicit uncompleted marker retain the scheduled date
+                # in the plan (not the completed self_purchase event table).
+                plan=(market,store,planned_sku,internal,name,planned_qty,
+                      purchase_date if explicitly_not_purchased else None,review_date,
                       txt(val(r,m['url'])),txt(val(r,m['draft'])))
                 rh=h(*plan)
                 old=c.execute('select row_hash,is_current from self_purchase_plan where source_row=?',(no,)).fetchone()
