@@ -101,7 +101,7 @@ No currency is invented. Technical Google columns are excluded.
 
 The upstream workbook "Самовыкуп новых товаров" / "Реестр выкупов/отзывов"
 feeds the public export spreadsheet's "самовыкупы" sheet. The current
-headers are "мп", "магазин", "Артикул МП", etc.
+headers are "мп", "магазин", "market_article", "артикул_наш_▼", "наименование 1С", etc.; historical "Артикул МП", "Артикул наш", "Название товара" headers remain accepted by the importer.
 Marketplace codes are wb/oz; store codes are laser/novok/ultra.
 The column "магазин" gives the actual marketplace store/cabinet directly,
 not a legal entity; do NOT derive or override it through the old ЮЛ mapping.
@@ -113,9 +113,7 @@ self_purchase_plan. A blank "Артикул МП" field skips the entire row wit
 or an inferred SKU, regardless of date and quantity. Blank values must not be guessed.
 
 The SQLite legal_entity column remains for backwards compatibility,
-but is not supplied by the current source. New-format imports use an
-empty string in this legacy field to indicate "not supplied" and must not
-claim that legal_entity identifies a company. Old exports containing "ЮЛ"
+but is not supplied by the current source. New-format imports retain the prior legal_entity for an existing completed event when the export lacks the ЮЛ column; newly imported events use an empty string for "not supplied". A missing column is never authorization to erase an old value, and legal_entity must not be inferred from a product label. Old exports containing "ЮЛ"
 and no "магазин" retain an explicit legacy-only mapping.
 Owner-approved upstream source corrections on 2026-10-08 changed
 12 historical entries (rows 68-75 and 80-83) to store novok.
@@ -126,8 +124,7 @@ Canonical semantics are in config/msp-data/semantics/catalog.yaml and self_purch
 Current export rows without purchase date and WITH a numeric marketplace SKU are
 planned purchases: 8 rows (42-46, 51-53) exist at the time of approval.
 They are persisted in self_purchase_plan (v_self_purchase_plan for current plans),
-with NULL for missing purchase date or quantity. Row 84 has no "Артикул МП"
-and is deliberately SKIPPED, not imported as planned or completed. Plans are not included in
+with NULL for missing purchase date or quantity. This was true of an older 2026-10-08 snapshot only. On 2026-10-21 row 84 contains a valid SKU; its outdated store code НМБ was corrected with owner approval to novok, and the exporter read-back confirmed the value. Use current source data, never the historic row-84 assumption. Plans are not included in
 v_self_purchase, self_purchase_quantity, or any completed-sales adjustment.
 An absent purchase date is not a rejected row or a sync error; it must not
 make the self_purchase sync status partial. A blank "Артикул МП" is also not
@@ -259,3 +256,11 @@ Both the upstream sheet `Реестр выкупов/отзывов` and exporte
 The parser now accepts **both** sets of headers; the source spreadsheets must not be renamed merely to accommodate an older importer. Business key remains marketplace + store + numeric marketplace SKU. Preserve explicit store, planned/completed distinction, historical revisions, and idempotency.
 
 **Important:** A merged GitHub fix does not prove that the currently dirty REMOTE canonical checkout uses it. A deployment must be a separately reviewed narrow operation with a guard on the runtime file, a SQLite backup and read-back verification. Do not overwrite unrelated local modifications or restart Hermes Gateway.
+
+## Operational update: 2026-10-21 self-purchase restoration
+
+Current export headers and legacy compatibility were fixed in PR #49. Preservation of prior legacy ЮЛ during new-format updates was fixed in PR #51. Source status markers "нет выкупа!" and "нет в нал" now remain uncompleted plans, not completed events (PR #52). The exact protected Google source correction (B84 НМБ → novok) was owner-approved.
+
+The repair was installed on **actual REMOTE** in [private bridge issue #486](https://github.com/alexpmtk-afk/msp-server-bridge/issues/486), after isolated 92-row staging #475. Live result: 1 558 catalog listings, 80 completed events, 13 plan-table records including archived plans, 5 revisions; 0 rejected; idempotent second run with 0 inserts/updates; original legal_entity and quantities retained. Secure backups of both the SQLite and prior sync.py were saved before replacement; Hermes Gateway, notifier, timer and unrelated dirty checkout files were not changed.
+
+**The next scheduled 08:00 Moscow sync is a separate acceptance gate.** Database counts and today's manual recovery do not substitute for the next actual user-timer execution. For analytics source readiness see [MSP_SELF_01_SOURCE_MATRIX.md](self-purchases/MSP_SELF_01_SOURCE_MATRIX.md).
