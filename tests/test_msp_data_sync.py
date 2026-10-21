@@ -372,5 +372,32 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(self.con.execute("select count(*) from self_purchase").fetchone()[0], 0)
 
 
+    def test_current_export_header_aliases_preserve_sku_and_store(self):
+        self.seed_listing()
+        rows = [
+            ["мп", "магазин", "market_article", "артикул_наш_▼", "наименование 1С",
+             "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"],
+            ["wb", "laser", "1535826937", "INT", "Товар", "2", "21.10.2026", "", "", ""],
+        ]
+        first = m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual((first["inserted"], first["rejected"]), (1, 0))
+        record = self.con.execute(
+            "select marketplace,store,marketplace_sku,quantity,purchase_date from self_purchase"
+        ).fetchone()
+        self.assertEqual(tuple(record), ("wb", "laser", "1535826937", 2, "2026-10-21"))
+        second = m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual((second["unchanged"], second["rejected"]), (1, 0))
+
+    def test_current_export_without_market_article_is_rejected(self):
+        rows = [
+            ["мп", "магазин", "sku missing", "артикул_наш_▼", "наименование 1С",
+             "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"],
+        ]
+        with self.assertRaisesRegex(ValueError, "missing column sku"):
+            m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
+
+
 if __name__ == "__main__":
     unittest.main()
