@@ -251,3 +251,11 @@ Multiple same-card same-date rows use source-order ordinal within the key. An im
 Rows transferred between current/archive retain separate origins; cross-segment identity is not guessed.
 Sync errors contain business data: never commit the database or raw error dumps.
 This layer does not expose a new MCP server; future tools can use documented views and semantics.
+
+## Header drift and self-purchase read safety (2026-10-21)
+
+Both the upstream sheet `Реестр выкупов/отзывов` and exported `самовыкупы` sheet now use the header names `market_article`, `артикул_наш_▼`, `наименование 1С` (confirmed from the first header row via Drive). Previously the importer expected `Артикул МП`, `Артикул наш`, `Название товара`. This explains eight identically classified `ValueError: missing column sku`-family morning failures between 14 and 21 October; raw error contents were not exported.
+
+The parser now accepts **both** sets of headers; the source spreadsheets must not be renamed merely to accommodate an older importer. Business key remains marketplace + store + numeric marketplace SKU. Preserve explicit store, planned/completed distinction, historical revisions, and idempotency.
+
+**Important:** A merged GitHub fix does not prove that the currently dirty REMOTE canonical checkout uses it. A deployment must be a separately reviewed narrow operation with a guard on the runtime file, a SQLite backup and read-back verification. Do not overwrite unrelated local modifications or restart Hermes Gateway.
