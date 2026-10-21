@@ -2,6 +2,10 @@
 
 When handling **MSP Marketplace Telegram signals** or the SIG-002 price-advice case, agents must use the canonical `docs/signals/REVIEWED_RULES_2026-10-05.md` and the Hermes manual Skill `apps/hermes/msp_signals_skill/SKILL.md`; passive background processing uses `apps/msp_signal_notify/notify.py`. In particular, SKU + `_N` days with **no** production/inbound date in the signal means **recommend raising price** (not «cannot determine»). The skill is instructions only; no marketplace write actions are authorized. Do not change Hermes Gateway or the MSP daily timer when deploying this skill.
 
+## МСП Самовыкупы — обязательный компас
+
+При ЛЮБОЙ задаче по истории самовыкупов, запуску новых карточек, рейтингу, анализу конкурентов, рекомендации по SKU или прогнозу для Hermes сначала прочитай `docs/self-purchases/PROJECT_COMPASS.md` и `docs/self-purchases/DECISIONS_AND_DEVIATIONS.md`. Для сверки первоначального замысла авторизованному агенту также необходимо обратиться к **приватным** первоисточникам в `alexpmtk-afk/msp-server-bridge/docs/self-purchases/original/`: стенограмма совещания и первоначальная концепция v1.0. Не предполагай, что открытый GitHub-репозиторий автоматически даёт доступ к приватному архиву. Если доступа нет — явно сообщи об этом. Не переписывай первоисточники, изменения фиксируй в журнале решений. Перед утверждением выполнения на REMOTE отдельно проверь локальную копию и доступ Hermes. Не реализуй автоматизацию искусственных заказов или отзывов.
+
 Instructions for chats, coding agents and automated assistants working with this repository.
 
 ## Before working with REMOTE
