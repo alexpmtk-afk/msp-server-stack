@@ -28,7 +28,7 @@ for f in "$skill" "$compass" "$vision" "$transcript"; do
 done
 
 grep -q '^name: msp-self-purchases$' "$skill" || { echo "STOP: skill identity mismatch" >&2; exit 1; }
-grep -q 'замороженная редакция' "$transcript" || { echo "STOP: transcript marker mismatch" >&2; exit 1; }
+grep -q 'неизменяемая редакция' "$transcript" || { echo "STOP: transcript marker mismatch" >&2; exit 1; }
 grep -q 'замороженная редакция v1.0' "$vision" || { echo "STOP: original vision marker mismatch" >&2; exit 1; }
 if [[ "$mode" == check ]]; then
   echo "MSP_SELF_PURCHASES_SKILL_PREFLIGHT=PASS"
