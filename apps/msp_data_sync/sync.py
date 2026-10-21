@@ -138,7 +138,7 @@ def retire_self_purchase(c,key,run,source_row,reason):
 
 def selfbuy(c,rows,run,cfg):
     # Current CSV: explicit store in "магазин". Old CSV: legacy "ЮЛ".
-    m=cols(rows[0],{'marketplace':['мп'],'sku':['артикул мп'],'ia':['артикул наш'],'name':['название товара'],'q':['кол-во выкупов'],'pd':['дата выкупа'],'rd':['дата отзыва'],'url':['ссылка на отзыв'],'draft':['черновик отзывов']})
+    m=cols(rows[0],{'marketplace':['мп'],'sku':['артикул мп','market_article'],'ia':['артикул наш','артикул_наш_▼'],'name':['название товара','наименование 1с'],'q':['кол-во выкупов'],'pd':['дата выкупа'],'rd':['дата отзыва'],'url':['ссылка на отзыв'],'draft':['черновик отзывов']})
     headers={hdr(v):i for i,v in enumerate(rows[0])}
     store_col=headers.get('магазин')
     legal_col=headers.get('юл')
