@@ -441,5 +441,47 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(tuple(v),("ЛМ","2026-10-04","https://example.invalid/review"))
 
 
+    def test_explicit_no_purchase_marker_never_creates_completed_event(self):
+        self.seed_listing()
+        header=["мп","магазин","market_article","артикул_наш_▼",
+                "наименование 1С","Кол-во выкупов","Дата выкупа",
+                "Дата отзыва","Ссылка на отзыв","Черновик отзывов"]
+        rows=[header,["wb","laser","1535826937","INT","Товар","1",
+                      "23.10.2026","нет выкупа!","",""]]
+        result=m.selfbuy(self.con,rows,m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((result['planned'],result['uncompleted_markers'],result['rejected']),(1,1,0))
+        self.assertEqual(self.con.execute('SELECT count(*) FROM self_purchase').fetchone()[0],0)
+        vals=self.con.execute('SELECT purchase_date,review_date,quantity FROM v_self_purchase_plan').fetchone()
+        self.assertEqual(tuple(vals),('2026-10-23',None,1))
+
+    def test_unavailable_stock_note_is_not_a_quantity(self):
+        self.seed_listing()
+        header=["мп","магазин","market_article","артикул_наш_▼",
+                "наименование 1С","Кол-во выкупов","Дата выкупа",
+                "Дата отзыва","Ссылка на отзыв","Черновик отзывов"]
+        rows=[header,["wb","laser","1535826937","INT","Товар",
+                      "нет в нал","","","",""]]
+        result=m.selfbuy(self.con,rows,m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((result['planned'],result['unavailable_plan_quantity_markers'],result['rejected']),(1,1,0))
+        vals=self.con.execute('SELECT quantity,purchase_date FROM v_self_purchase_plan').fetchone()
+        self.assertEqual(tuple(vals),(None,None))
+        self.assertEqual(self.con.execute('SELECT count(*) FROM self_purchase').fetchone()[0],0)
+
+    def test_invalid_completed_quantity_still_rejected(self):
+        self.seed_listing()
+        header=["мп","магазин","market_article","артикул_наш_▼",
+                "наименование 1С","Кол-во выкупов","Дата выкупа",
+                "Дата отзыва","Ссылка на отзыв","Черновик отзывов"]
+        rows=[header,["wb","laser","1535826937","INT","Товар",
+                      "нет в нал","20.10.2026","","",""]]
+        n=m.selfbuy(self.con,rows,m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual(n['rejected'],1)
+        self.assertEqual(self.con.execute('SELECT count(*) FROM self_purchase').fetchone()[0],0)
+
+
+
 if __name__ == "__main__":
     unittest.main()
