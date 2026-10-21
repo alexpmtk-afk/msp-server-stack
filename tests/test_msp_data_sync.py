@@ -399,5 +399,47 @@ class SyncTests(unittest.TestCase):
             m.selfbuy(self.con, rows, m.begin_run(self.con, "self_purchase"), self.cfg)
 
 
+    def test_current_export_preserves_legacy_legal_entity_without_yul_column(self):
+        self.seed_listing()
+        old_header = ["МП", "ЮЛ", "Артикул МП", "Артикул наш",
+                      "Название товара", "Кол-во выкупов", "Дата выкупа",
+                      "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+        old_row = ["WB", "ЛМ", "1535826937", "INT", "Товар", "1",
+                   "02.10.2026", "", "", ""]
+        first = m.selfbuy(self.con, [old_header, old_row],
+                          m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual((first["inserted"], first["rejected"]), (1, 0))
+        new_header = ["мп", "магазин", "market_article", "артикул_наш_▼",
+                      "наименование 1С", "Кол-во выкупов", "Дата выкупа",
+                      "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+        new_row = ["WB", "laser", "1535826937", "INT", "Товар", "1",
+                   "02.10.2026", "", "", ""]
+        second = m.selfbuy(self.con, [new_header, new_row],
+                           m.begin_run(self.con, "self_purchase"), self.cfg)
+        self.con.commit()
+        self.assertEqual((second["unchanged"], second["updated"], second["rejected"]), (1, 0, 0))
+        record = self.con.execute("SELECT legal_entity FROM self_purchase").fetchone()
+        self.assertEqual(record[0], "ЛМ")
+
+    def test_current_export_preserves_legal_entity_when_review_changes(self):
+        self.seed_listing()
+        legacy = [self.self_purchase_header(),
+                  ["wb","laser","1535826937","INT","Товар","1","02.10.2026","","",""]]
+        m.selfbuy(self.con,legacy,m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.execute("UPDATE self_purchase SET legal_entity='ЛМ'")
+        self.con.commit()
+        current = [["мп","магазин","market_article","артикул_наш_▼",
+                    "наименование 1С","Кол-во выкупов","Дата выкупа",
+                    "Дата отзыва","Ссылка на отзыв","Черновик отзывов"],
+                   ["wb","laser","1535826937","INT","Товар","1","02.10.2026",
+                    "04.10.2026","https://example.invalid/review",""]]
+        result=m.selfbuy(self.con,current,m.begin_run(self.con,"self_purchase"),self.cfg)
+        self.con.commit()
+        self.assertEqual((result["updated"],result["rejected"]),(1,0))
+        v=self.con.execute("SELECT legal_entity,review_date,review_url FROM self_purchase").fetchone()
+        self.assertEqual(tuple(v),("ЛМ","2026-10-04","https://example.invalid/review"))
+
+
 if __name__ == "__main__":
     unittest.main()

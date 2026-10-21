@@ -209,10 +209,15 @@ def selfbuy(c,rows,run,cfg):
             active_completed_keys.add(key)
             if same_listing and previous_key!=key:
                 obsolete_candidates[previous_key]=(no,'purchase_date_or_ordinal_changed')
+            old=c.execute('select row_hash,legal_entity from self_purchase where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',key).fetchone()
+            # Current export has no "ЮЛ" column. Absence is not an instruction to
+            # clear a historical legal-entity value on an existing completed event.
+            # Never infer a legal entity from product title or marketplace SKU.
+            if legal_col is None and old is not None:
+                legal=old['legal_entity']
             x=(market,store,legal,s,internal,name,amount,purchase_date,
                dt(val(r,m['rd'])),txt(val(r,m['url'])),txt(val(r,m['draft'])))
             rh=h(*x)
-            old=c.execute('select row_hash from self_purchase where marketplace=? and store=? and marketplace_sku=? and purchase_date=? and source_ordinal=?',key).fetchone()
             if old is None:
                 c.execute('insert into self_purchase values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(*x,rh,stamp,stamp,ordinal))
                 n['inserted']+=1
