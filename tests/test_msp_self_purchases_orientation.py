@@ -15,6 +15,8 @@ class TestSelfPurchasesOrientation(unittest.TestCase):
         self.assertIn("PROJECT_COMPASS.md", skill)
         self.assertIn("INITIAL_VISION_V1_2026-10-21.md", skill)
         self.assertIn("DECISIONS_AND_DEVIATIONS.md", skill)
+        self.assertIn("MSP_SELF_01_SOURCE_MATRIX.md", skill)
+        self.assertIn("MSP_SELF_01_SOURCE_MATRIX.md", compass)
         self.assertIn("PROJECT_COMPASS.md", agents)
         self.assertIn("SOURCE_NOT_AVAILABLE", skill)
         self.assertIn("FACT", skill)
