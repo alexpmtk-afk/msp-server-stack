@@ -4,12 +4,14 @@ on:
     paths:
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
+      - 'tests/test_msp_self_analytics_retrospective.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
     branches: [main]
     paths:
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
+      - 'tests/test_msp_self_analytics_retrospective.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   workflow_dispatch:
 permissions:
@@ -23,5 +25,6 @@ jobs:
       - name: Test source quality module without network or real marketplace data
         shell: bash
         run: |
-          python3 -m py_compile apps/msp_self_analytics/source_quality.py
+          python3 -m py_compile apps/msp_self_analytics/source_quality.py apps/msp_self_analytics/retrospective.py
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_source_quality.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_analytics_retrospective.py' -v
