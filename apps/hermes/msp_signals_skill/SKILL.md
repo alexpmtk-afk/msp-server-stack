@@ -67,3 +67,39 @@ metadata:
 ## Откуда берётся правило
 
 Канонический справочник: `docs/signals/REVIEWED_RULES_2026-10-05.md` (копия `references/reviewed-rules.md`). Фоновый код: `apps/msp_signal_notify/notify.py`. Версия правила по пустой дате — 09.10.2026. Фоновый исполнитель и этот Skill должны давать **одинаковое решение** для одинаковых SKU, `_N` и дат.
+
+
+## Ручные кнопки SIG-002 / Orgobot (проект 15.10.2026, gated)
+
+Цель: для каждого SKU из сигнала «Поднять цену» фоновый notifier отправляет отдельное
+Telegram-сообщение с парой inline-кнопок «Да — поднять» / «Нет — отклонить».
+Рекомендация агента остаётся только советом. **Никогда не нажимай кнопки за пользователя
+и не вызывай orgobot_price_decide по одному только тексту сигнала.**
+
+Файлы: apps/msp_signal_notify/price_buttons.py (одноразовый state и ограниченный MCP)
+и apps/hermes/msp_price_buttons_plugin/ (обработка callback только через существующий
+Hermes Gateway, без второго getUpdates и нового токена).
+
+Для выпуска требуется отдельно проверить capability register_platform_handler на
+запущенном Hermes; настроить разрешённые numeric Telegram user_id,
+проверить scope Orgobot «Разрешить решения (Да/Нет)»; убедиться, что Hermes Bot
+назначен ответственным и исходному SKU соответствует ровно одно waiting-решение.
+По умолчанию MSP_PRICE_BUTTONS_ENABLED и MSP_PRICE_LIVE_ENABLED выключены.
+
+Нажатие не меняет цену напрямую: Orgobot orgobot_price_decisions_list →
+orgobot_price_decide(decision_id, answer) → command_id → последующий
+orgobot_price_command_status. Статус queued — НЕ done и НЕ доказательство изменения цены.
+При сетевой неоднозначности повторная команда запрещена до ручной проверки.
+Процент повышения задаёт существующее правило Orgobot (ID 48 или 52), не агент.
+Пока кнопки не прошли проверку доставки и callback на REMOTE, продолжай
+выдавать обычные тестовые отчёты без кнопок.
+
+
+### Контракт Orgobot на 15.10.2026
+READ-only MCP-проверка подтвердила список решений в structuredContent.results:
+market_article, responsible_telegram, orgobot_id, id, status, blockid_id,
+marketplaceid_id, percent и другие служебные поля. Сопоставление делается
+только для orgobot_id 48/52 и единственного waiting-решения с разрешённым
+ответственным Hermes Bot. Нельзя брать произвольный товар по совпадению
+первых цифр, домысливать аккаунт или подменять decision_id номером SKU.
+decision_id и command_id MCP ожидает именно integer.

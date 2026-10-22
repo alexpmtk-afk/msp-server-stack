@@ -1,0 +1,5 @@
+name: msp-orgobot-trial
+version: 0.1.0
+description: Scoped one-shot human approval trial for Orgobot decision 169 only.
+author: Local reviewed deployment
+kind: standalone
