@@ -115,11 +115,7 @@ def analyze(review_date: str, before: dict, after: dict, *,
         "review_date": win["review_date"],
         "purchase_date": win["purchase_date"],
         "purchase_units": purchase_units,
-        "one_unit_one_five_star_scenario": {
-            "hypothetical_maximum_count": purchase_units,
-            "is_observed_review_count": False,
-            "is_confirmed_five_star_count": False,
-        },
+        "purchased_units_are_not_verified_ratings": True,
         "review_evidence": {
             "confirmed_distinct_reviews": verified_review_count,
             "confirmed_five_star_reviews": verified_five_star_count,
