@@ -135,3 +135,7 @@ Google workbook «_01_Продажи (новая)» и разработанны�
 ## 12. Первый реальный MPSTATS-пилот 22.10.2026
 
 `account_limits` и два адресных `wb_sku(full)` на независимых окнах до/после завершённого случая прошли на REMOTE. Один кейс дал провайдерскую динамику `sales=1→0` и `revenue=691→0`; причинного вывода нет. Текущий рейтинг нельзя выдавать за исторический; `wb_sku(by_period)` пока не дал JSON и не прошёл приёмку рейтинговой истории. Для Ozon по текущим критериям независимых 7/14-дневных завершённых кейсов не найдено. Подробно в [пилоте](MSP_SELF_MPSTATS_FIRST_PILOT_20261022.md) и приватных отчётах [#512](https://github.com/alexpmtk-afk/msp-server-bridge/issues/512), [#514](https://github.com/alexpmtk-afk/msp-server-bridge/issues/514).
+
+## 13. Установка MPSTATS-first в реальном Hermes — подтверждена 22.10.2026
+
+[Приватный REMOTE протокол №516](https://github.com/alexpmtk-afk/msp-server-bridge/issues/516): `RESULT=PASS`. На VPS в `msp-self-purchases/SKILL.md` и живые `references` добавлено утверждённое правило MPSTATS-first; скопирован отдельный `MSP_SELF_MPSTATS_FIRST_PILOT_20261022.md`. Все действовавшие локальные дополнения сохранены, прежние reference-файлы сохранены в защищённом backup, оригинальные стенограмма и концепция побайтно неизменны, `hermes skills list` PASS, Gateway без перезапуска, SQLite/маркетплейсы не менялись. **Это реальная установка, а не только GitHub merge.**
