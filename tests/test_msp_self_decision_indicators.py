@@ -59,7 +59,7 @@ class DecisionIndicatorTests(unittest.TestCase):
             {"comparability": "VERIFIED_COMPARABLE", "approval_ref": "human-check-1",
              "price": fact(800, "VERIFIED_COMPETITOR_PRICE", observed_on="2026-10-22")},
             {"comparability": "VERIFIED_COMPARABLE", "approval_ref": "human-check-2",
-             "price": fact(1000, "VERIFIED_COMPETITOR_PRICE")},
+             "price": fact(1000, "VERIFIED_COMPETITOR_PRICE", observed_on="2026-10-22")},
         ]
         r = verified_peer_price_index(own, verified)
         self.assertEqual(r["value"], "1")
