@@ -15,7 +15,7 @@ on:
       - 'apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/case_report.py apps/msp_self_analytics/peer_prefilter.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
-    branches: [main]
+    branches: [main, feature/msp-self-batch-descriptive-20261022]
     paths:
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
