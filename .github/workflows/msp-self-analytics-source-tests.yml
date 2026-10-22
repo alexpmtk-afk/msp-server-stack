@@ -11,6 +11,7 @@ on:
       - 'tests/test_msp_self_series_analysis.py'
       - 'tests/test_msp_self_series_report.py'
       - 'tests/test_msp_self_series_report_ru.py'
+      - 'tests/test_msp_self_batch_report.py'
       - 'apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/case_report.py apps/msp_self_analytics/peer_prefilter.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
@@ -36,7 +37,7 @@ jobs:
       - name: Test source quality module without network or real marketplace data
         shell: bash
         run: |
-          python3 -m py_compile apps/msp_self_analytics/source_quality.py apps/msp_self_analytics/retrospective.py apps/msp_self_analytics/review_event.py apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/series_analysis.py apps/msp_self_analytics/series_report.py apps/msp_self_analytics/series_report_ru.py apps/msp_self_analytics/case_report.py
+          python3 -m py_compile apps/msp_self_analytics/source_quality.py apps/msp_self_analytics/retrospective.py apps/msp_self_analytics/review_event.py apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/series_analysis.py apps/msp_self_analytics/series_report.py apps/msp_self_analytics/series_report_ru.py apps/msp_self_analytics/batch_report.py apps/msp_self_analytics/case_report.py
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_source_quality.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_retrospective.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_review_event.py' -v
@@ -45,3 +46,4 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_self_series_analysis.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_series_report.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_series_report_ru.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_batch_report.py' -v
