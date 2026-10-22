@@ -33,6 +33,11 @@ class TestReports(unittest.TestCase):
             self.assertEqual(conn.execute("PRAGMA integrity_check").fetchone()[0],"ok")
             changed=rows();changed[3][1]="6 341 182"
             self.assertEqual(m.save(conn,m.snapshot(changed))["revision"],2)
+    def test_unicode_space_amounts(self):
+        data=rows()
+        data[3][1]="6\u00a0341\u202f181"
+        parsed=m.snapshot(data)
+        self.assertEqual(m.num(parsed["cells"]["B4"]),6341181)
     def test_missing_required(self):
         a=rows();a[13][1]=""
         with self.assertRaisesRegex(ValueError,"B14"):
