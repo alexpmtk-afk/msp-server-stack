@@ -336,8 +336,15 @@ def prices(c,rows,run,source,cfg):
     for no,r in enumerate(rows[1:],2):
         if not any(txt(x) for x in r):continue
         n['source_rows']+=1
-        # Explicit, known marker only. A malformed business row remains a real
-        # rejection; do not infer that other incomplete rows are technical.
+        # Owner-approved 2026-10-22 rule for BOTH price journals:
+        # no event date means no qualifying price event, regardless of other
+        # fields. Silently ignore without sync_error, rejected or alert.
+        # Count it under the existing ignored/technical counter; a nonempty
+        # but malformed date is still a genuine validation error.
+        if not txt(val(r,m['event_date'])):
+            n['skipped_technical']+=1
+            continue
+        # Explicit known formula marker remains separately excluded.
         if (txt(val(r,m['event_date'])).upper()=='СТРОКА ФОРМУЛ НЕ УДАЛЯТЬ'
             and not any(txt(val(r,m[k])) for k in ('marketplace','store','marketplace_sku'))):
             n['skipped_technical']+=1
