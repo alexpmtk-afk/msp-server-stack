@@ -75,7 +75,7 @@ def snapshot(rows):
   if not re.search(r"[+-]?\d+%$",get(row)):raise ValueError("bad percentage B"+str(row))
  return {"date":date,"source":{"id":SHEET_ID,"gid":GID,"range":"A1:B30"},
          "cells":{"B"+str(i):get(i) for i in range(1,31)},
-         "unknown":["laser_30_plan_fact_pct","laser_30_margin_pct"]}
+         "unknown":["laser_30_plan_fact_pct"]}
 
 def save(db,payload):
  body=json.dumps(payload,ensure_ascii=False,sort_keys=True,separators=(",",":"))
@@ -171,7 +171,8 @@ def render(data,dest):
  txt("—",363,style="b",center=543)
  d.rectangle((443,386,638,475),outline="black",width=2)
  txt(money(num(v(29))),423,style="b",center=543)
- txt("—",452,style="b",center=543)
+ laser_margin=round(num(v(29))/num(v(28))*100) if num(v(28)) else None
+ pct(("🔴 " if laser_margin<=0 else "🟡 " if laser_margin<=9 else "🟢 ")+str(laser_margin)+"%" if laser_margin is not None else None,451,543)
  dst=Path(dest);dst.parent.mkdir(parents=True,exist_ok=True);im.save(dst,"PNG")
  return dst
 
