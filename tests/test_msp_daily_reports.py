@@ -51,5 +51,12 @@ class TestReports(unittest.TestCase):
     def test_no_unknown_percent_invented(self):
         a=m.snapshot(rows())
         self.assertIn("laser_30_plan_fact_pct",a["unknown"])
-        self.assertIn("laser_30_margin_pct",a["unknown"])
+        self.assertNotIn("laser_30_margin_pct",a["unknown"])
+    def test_laser_30_day_margin_formula(self):
+        a=m.snapshot(rows())
+        c=a["cells"]
+        margin=round(m.num(c["B29"])/m.num(c["B28"])*100)
+        self.assertEqual(margin,-1)
+        with tempfile.TemporaryDirectory() as d:
+            self.assertTrue(m.render(a,Path(d)/"with_margin.png").is_file())
 if __name__=="__main__":unittest.main()
