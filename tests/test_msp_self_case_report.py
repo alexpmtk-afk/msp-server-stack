@@ -24,13 +24,14 @@ def inputs():
     return pre,post
 
 class TestCaseReport(unittest.TestCase):
-    def test_multiple_purchased_units_are_not_confirmed_reviews(self):
+    def test_repeated_card_plan_is_not_units_per_row(self):
         r=build_case_report(case(),*inputs(),as_of="2026-10-22")
         self.assertEqual(r["status"],"DESCRIPTIVE_ONLY")
         q=r["purchase_quantity_evidence"]
-        self.assertEqual(q["purchase_units"],3)
+        self.assertEqual(q["purchase_units"],1)
+        self.assertEqual(q["planned_total_per_card"],3)
         self.assertIsNone(q["individually_verified_review_count"])
-        self.assertTrue(q["multiple_units_single_date_ambiguous"])
+        self.assertFalse(q["multiple_units_single_date_ambiguous"])
         self.assertIsNone(r["observed_metrics"]["verified_historical_rating"])
         self.assertIsNone(r["observed_metrics"]["historical_review_count"])
         self.assertFalse(r["causal_effect_proven"])
@@ -40,7 +41,7 @@ class TestCaseReport(unittest.TestCase):
         r=build_case_report(case(),*inputs(),as_of="2026-10-22",
                             verified_review_ids=["r1","r1"])
         self.assertEqual(r["purchase_quantity_evidence"]["individually_verified_review_count"],1)
-        self.assertEqual(r["purchase_quantity_evidence"]["unmatched_units"],2)
+        self.assertEqual(r["purchase_quantity_evidence"]["unmatched_units"],0)
 
     def test_missing_review_date_never_falls_back_to_purchase(self):
         r=build_case_report(case(review=None),*inputs(),as_of="2026-10-22")
