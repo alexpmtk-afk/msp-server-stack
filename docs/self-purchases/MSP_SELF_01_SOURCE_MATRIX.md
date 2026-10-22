@@ -49,6 +49,12 @@
 
 Независимая оценка Hermes: [HERMES_INDEPENDENT_REVIEW_RESULTS_20261022.md](HERMES_INDEPENDENT_REVIEW_RESULTS_20261022.md).
 
+## 1B. Проверка собственных данных WB/Ozon 22.10.2026
+
+Новый подтверждённый результат: [MSP_SELF_01B_OWN_SALES_STOCKS_20261022.md](MSP_SELF_01B_OWN_SALES_STOCKS_20261022.md). На VPS в [приватном preflight №510](https://github.com/alexpmtk-afk/msp-server-bridge/issues/510) обнаружено 808 WB и 750 Ozon карточек; установленного WB/Ozon MCP в проверенных местах и учётных данных в runner не нашли. Однако в подключённом Google Sheets «_01_Продажи (новая)» реально прочитаны месячные продажи, заказы и FBO/FBS срезы для **796 WB + 730 OZ карточек**. Все составные ключи этой таблицы сопоставлены с каталогом; 12 WB и 20 OZ карточек пока без соответствующей строки продаж. API-верификация *не* выполнена.
+
+Новое обозначение **`SHEET_READ_VERIFIED`** означает существование и корректное чтение вторичной выгрузки, а не прямую подтверждённую статистику по API. Для одной карточки WB и одной Ozon можно тестировать связность собственных полей; вывод об органических продажах и причинной эффективности пока запрещён.
+
 ## 2. Доступность необходимого контекста
 
 Следующие статусы строго различаются:
@@ -62,10 +68,10 @@
 | Идентичность и наименование своего SKU | `product_listing`, `v_product_catalog` / экспорт МСП | LIVE_CONFIRMED | Проверить сопоставление с ID WB/Ozon |
 | Завершённые и запланированные самовыкупы | `self_purchase`, `v_self_purchase`, `v_self_purchase_plan` | LIVE_CONFIRMED | Оценить полноту истории, дать явный флаг «не органическая продажа» |
 | История бизнес-изменений цен | `price_event` / `v_price_history` | LIVE_CONFIRMED для объёма; контент исторически проверен | Сопоставить с фактической ценой покупателя и региональными скидками |
-| Собственные WB заказы и продажи/возвраты | `marketplaces-mcp-ru`: `wb_stats_orders`, `wb_stats_sales`, `wb_fetch_all` | CODE_PRESENT | Read-only свежая контрольная выборка по конкретному кабинету, периоду, nmId |
-| Собственные WB остатки | `wb_analytics_stocks_wb_warehouses`, `wb_analytics_warehouse_remains` | CODE_PRESENT | Проверить реальные поля и разницу `available`/`in-transit` |
-| Собственные Ozon заказы и фактические отправления | `marketplaces-mcp-ru`: Ozon FBO/FBS postings; semantic `OZON_ORDERS` | CODE_PRESENT | Проверить охват всех кабинетов, связь order/posting/SKU, не путать заказ и продажу |
-| Собственные Ozon остатки | `ozon_stocks_info`, `ozon_turnover_stocks` | CODE_PRESENT | Проверить FBO/FBS, available/reserved, ежедневный исторический ряд |
+| Собственные WB заказы и продажи/возвраты | Вторичный Google-отчёт «_01_Продажи (новая)»; отдельно `marketplaces-mcp-ru`: `wb_stats_orders`, `wb_stats_sales` | **SHEET_READ_VERIFIED** (продажи/заказы); **API_NOT_VERIFIED** (права и runtime) | Соединить с каталогом и затем отдельно проверить WB API, возвраты и статус завершённой продажи |
+| Собственные WB остатки | Google «продажи мп компакт»; `wb_analytics_stocks_wb_warehouses` | **SHEET_READ_VERIFIED** (разовый FBO/FBS срез), **API_NOT_VERIFIED** | Доказать дату/семантику доступности, затем официальную warehouse API выборку |
+| Собственные Ozon заказы и фактические отправления | Google «заказы», «продажи мп компакт»; Ozon FBO/FBS postings / semantic `OZON_ORDERS` | **SHEET_READ_VERIFIED** (месячные заказы/продажи), **API_NOT_VERIFIED** | Не считать заказы завершёнными; проверить posting/returns и корректность offer_id/SKU |
+| Собственные Ozon остатки | Google «продажи мп компакт»; `ozon_stocks_info`, `ozon_turnover_stocks` | **SHEET_READ_VERIFIED** (разовый FBO/FBS срез), **API_NOT_VERIFIED** | Проверить доступный/резерв и дату, затем официальный API и исторический ряд |
 | Собственная Ozon экономика и цена | `ozon_finance_accrual_by_day`, `ozon_prices_get` | CODE_PRESENT | Проверить валюты, затраты, издержки, sku↔offer_id/product_id |
 | Рекламная статистика WB | `core/wb_advertising*.py` и инструменты MPSTATS bidder | CODE_PRESENT + PRIOR_PROBE частичных агрегатов | Подтвердить привязку к SKU, периоды и расходы по каждому кабинету |
 | Рекламная статистика Ozon | `ozon_perf_mcp` / provider API | CODE_PRESENT | Подтвердить рекламные расходы и attribution модели |
@@ -100,6 +106,8 @@
 - ✅ Плановый проход 22.10.2026 около 08:00 МСК: self_purchase и product_catalog `unchanged_snapshot`, rejected=0. Исторический статус price partial до утверждения нового правила не переопределяет политику тихого игнорирования строк без даты.
 
 ### SELF-01B — собственные продажи и остатки
+
+**Частично выполнено:** прочитаны Google продажи/заказы/остатки и сопоставлены с каталогом, разработан read-only QA для CSV с динамическим параметром периода. На REMOTE не выявлен установленный WB/Ozon MCP; отдельная установка/проверка официальных API впереди. См. [аудит](MSP_SELF_01B_OWN_SALES_STOCKS_20261022.md).
 
 Провести `read-only` smoke по одному WB и одному Ozon SKU из существующего каталога (без публикации SKU в открытом GitHub). Для обоих запросить контрольную дату/диапазон и подготовить структурную ведомость: поле, единицы, дата данных, кабинет, ключ соединения, доступность и источник. Не выгружать PII или токены. Проверить возвраты/отмены и признаки реальной доступности.
 
