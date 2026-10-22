@@ -104,6 +104,8 @@ def evaluate_peer_evidence(
     except (TypeError, ValueError) as exc:
         raise ValueError("INVALID_AS_OF_DATE") from exc
     own_id = _identity(own)
+    if own_id is None:
+        raise ValueError("OWN_LISTING_ID_REQUIRED")
     own_fields, own_missing, own_unproven = _field_status(
         own, today, max_evidence_age_days
     )
