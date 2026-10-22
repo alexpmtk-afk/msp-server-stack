@@ -33,18 +33,21 @@ def utc_now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def send_telegram(text):
+def send_telegram(text, reply_markup=None):
     token = os.environ.get("MSP_ALERT_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN", "")
     chat = os.environ["MSP_ALERT_CHAT_ID"]
     thread = os.environ["MSP_ALERT_THREAD_ID"]
     if not token or not chat.startswith("-100") or not thread.isdigit():
         raise ValueError("invalid telegram alert destination (no token printed)")
-    payload = urllib.parse.urlencode({
+    fields = {
         "chat_id": chat,
         "message_thread_id": thread,
         "text": text[:3900],
         "disable_web_page_preview": "true",
-    }).encode()
+    }
+    if reply_markup is not None:
+        fields["reply_markup"] = json.dumps(reply_markup, ensure_ascii=False)
+    payload = urllib.parse.urlencode(fields).encode()
     # NEVER print the exception or request URL: Telegram bot token is in its path.
     request = urllib.request.Request(
         "https://api.telegram.org/bot" + token + "/sendMessage",
