@@ -30,7 +30,7 @@ def build_case_report(
     verified_publication_date: str | None = None,
     checked_competitors: list[dict] | None = None,
 ) -> dict:
-    """Only report a completed purchase with recorded review date and two full windows.
+    """LEGACY single-row technical report, not the card-level series outcome.
 
     event: purchase_date, review_date, quantity and optional review_url_present,
     business_goal. Explicit source_status cannot be silently upgraded.
@@ -92,7 +92,8 @@ def build_case_report(
         confounders.append("CONTROL_GROUP_NOT_VALIDATED")
     return {
         "status": outcome["report_status"],
-        "report_kind": "HISTORICAL_DESCRIPTIVE_REVIEW_DATE",
+        "report_kind": "LEGACY_SINGLE_ROW_TECHNICAL_OBSERVATION_NOT_SERIES",
+        "card_series_outcome_requires": "series_analysis.analyze_series",
         "business_goal": outcome["business_goal"],
         "event_state": life["status"],
         "review_date_from_registry": life["review_date_registry"],
