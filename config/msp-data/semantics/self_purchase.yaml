@@ -1,4 +1,4 @@
-version: 7
+version: 8
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -209,3 +209,27 @@ review_outcome_analytics:
   historical_rating_unavailable: "UNKNOWN; не подменять текущим рейтингом"
   no_causal_attribution_without_control: true
   legacy_purchase_based_mpstats_pilots: "SUPERSEDED_PURCHASE_ANCHOR: подтверждают только доступность источника MPSTATS, не реакцию после отзыва"
+
+historical_unit_and_review_evidence:
+  decision_date: "2026-10-22"
+  field: quantity
+  source_column: "Кол-во выкупов"
+  record_unit: purchased_product_unit
+  multiple_units_in_one_row: "quantity=3 means three purchased units, not one"
+  owner_working_assumption: >
+    В первоначальной бизнес-гипотезе один выкупленный товар может
+    соответствовать одной пятизвездочной оценке. Это гипотеза
+    для аудита, а не доказательство публикации конкретной оценки.
+  verified_review_count: >
+    Отдельно подсчитывать только индивидуально идентифицированные
+    и датированные отзывы, действительно обнаруженные на карточке.
+    Источник должен подтвердить оценку и дату публикации.
+  no_auto_conversion: "quantity must never be copied into published review counts or observed rating"
+  multi_unit_review_dates: >
+    Одной даты отзыва из одной строки недостаточно, чтобы считать
+    все quantity единиц опубликованными оценками в этот день.
+  missing_review_date: "No post-review outcome analysis; quantity still recorded for historical purchase accounting"
+  business_goals: [first_reviews, rating_recovery]
+  source_priority: "registry quantity + review dates; independent marketplace review evidence where available; MPSTATS historical metrics with provenance"
+  analytic_procedure: "docs/self-purchases/PURCHASE_QUANTITY_REVIEW_EVIDENCE_20261022.md"
+  safe_usage: "Historical audit and descriptive analysis only; no automated actions creating misleading reviews or orders"
