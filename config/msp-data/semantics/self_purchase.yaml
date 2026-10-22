@@ -1,4 +1,4 @@
-version: 8
+version: 9
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -52,7 +52,7 @@ fields:
     meaning: Наименование в реестре.
   quantity:
     source: "Кол-во выкупов"
-    meaning: Число единиц выкупа; в planned может быть NULL, в completed обязательно положительное целое.
+    meaning: Общее ПЛАНОВОЕ количество выкупов этой карточки, повторяется в каждой строке; НЕ число единиц в строке, никогда не SUM(quantity).
     validation: positive_integer_when_present
   purchase_date:
     source: "Дата выкупа"
@@ -75,7 +75,7 @@ views:
   completed: v_self_purchase
 reporting:
   planned_count_query: "SELECT count(*) FROM v_self_purchase_plan"
-  completed_count_query: "SELECT count(*) FROM self_purchase"
+  completed_count_query: "SELECT count(*) FROM self_purchase -- exactly one recorded completed purchase per source row"
   never_sum_planned_quantity_into_sales: true
 source_contract:
   current_headers: ["мп", "магазин", "market_article", "артикул_наш_▼", "наименование 1С", "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
@@ -168,7 +168,7 @@ lifecycle:
   resolved_error_policy: "Prior historical sync_error rows stay as audit history; inspect newest sync_run, not lifetime errors"
   current_upstream_examples_2026_10_08: "planned rows 42-46 and 51-53 (8); row 84 skipped for missing Артикул МП"
 revision_reporting:
-  active_query: "SELECT count(*),coalesce(sum(quantity),0) FROM self_purchase"
+  active_query: "SELECT count(*) FROM self_purchase -- actual recorded occurrences; repeating quantity is NOT additive"
   prior_states_query: "SELECT * FROM v_self_purchase_revisions"
   no_double_count_revision: true
   source_row_binding_is_not_immutable_event_id: true
@@ -211,25 +211,22 @@ review_outcome_analytics:
   legacy_purchase_based_mpstats_pilots: "SUPERSEDED_PURCHASE_ANCHOR: подтверждают только доступность источника MPSTATS, не реакцию после отзыва"
 
 historical_unit_and_review_evidence:
-  decision_date: "2026-10-22"
-  field: quantity
-  source_column: "Кол-во выкупов"
-  record_unit: purchased_product_unit
-  multiple_units_in_one_row: "quantity=3 means three purchased units, not one"
-  owner_working_assumption: >
-    В первоначальной бизнес-гипотезе один выкупленный товар может
-    соответствовать одной пятизвездочной оценке. Это гипотеза
-    для аудита, а не доказательство публикации конкретной оценки.
-  verified_review_count: >
-    Отдельно подсчитывать только индивидуально идентифицированные
-    и датированные отзывы, действительно обнаруженные на карточке.
-    Источник должен подтвердить оценку и дату публикации.
-  no_auto_conversion: "quantity must never be copied into published review counts or observed rating"
-  multi_unit_review_dates: >
-    Одной даты отзыва из одной строки недостаточно, чтобы считать
-    все quantity единиц опубликованными оценками в этот день.
-  missing_review_date: "No post-review outcome analysis; quantity still recorded for historical purchase accounting"
-  business_goals: [first_reviews, rating_recovery]
-  source_priority: "registry quantity + review dates; independent marketplace review evidence where available; MPSTATS historical metrics with provenance"
-  analytic_procedure: "docs/self-purchases/PURCHASE_QUANTITY_REVIEW_EVIDENCE_20261022.md"
-  safe_usage: "Historical audit and descriptive analysis only; no automated actions creating misleading reviews or orders"
+  superseded_on: "2026-10-22"
+  corrected_canonical_document: "docs/self-purchases/SERIES_TARGET_PER_ROW_CORRECTION_20261022.md"
+  meaning_of_quantity: "card-level planned TOTAL repeated in each row, not purchased units"
+  actual_completed_purchases: "COUNT(completed source rows) grouped by marketplace/store/SKU"
+  review_rows: "COUNT(completed source rows with review_date), not independent proof of publication"
+  target: "single consistent repeated quantity for one card, never SUM(quantity)"
+  when_targets_conflict: "TARGET_CONFLICT; no arbitrary max/min and no fabricated count"
+  series_primary_start: "earliest review_date for the same marketplace/store/SKU"
+  series_primary_end: "latest review_date for the same marketplace/store/SKU"
+  default_window_days: 30
+  windows: "N days strictly before first review_date and N days strictly after latest review_date; exclude review days and middle series"
+  interim_allowed: "after any subset of recorded review rows, explicitly INTERMEDIATE_SERIES"
+  full_series_gate: "completed row count reaches target, dated review count reaches target, after window completed; publication evidence separate"
+  incomplete_followup: "use shorter equal observed windows explicitly preliminary, or POST_WINDOW_PENDING"
+  no_assumed_rating: "one recorded review_date per row is not independently confirmed 5-star platform rating"
+  actual_review_evidence: "unique independently verified reviews must be separately dated"
+  legacy_quantity_sums: "SUPERSEDED_NON_ADDITIVE_QUANTITY; do not cite as purchase count"
+  code: ["apps/msp_self_analytics/series_analysis.py", "apps/msp_self_analytics/series_report.py"]
+  no_marketplace_actions: true
