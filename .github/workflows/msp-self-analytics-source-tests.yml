@@ -1,0 +1,27 @@
+name: MSP Self Analytics Source Quality Tests
+on:
+  pull_request:
+    paths:
+      - 'apps/msp_self_analytics/**'
+      - 'tests/test_msp_self_analytics_source_quality.py'
+      - '.github/workflows/msp-self-analytics-source-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/msp_self_analytics/**'
+      - 'tests/test_msp_self_analytics_source_quality.py'
+      - '.github/workflows/msp-self-analytics-source-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test source quality module without network or real marketplace data
+        shell: bash
+        run: |
+          python3 -m py_compile apps/msp_self_analytics/source_quality.py
+          python3 -m unittest discover -s tests -p 'test_msp_self_analytics_source_quality.py' -v
