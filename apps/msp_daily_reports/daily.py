@@ -7,8 +7,8 @@ import argparse,csv,hashlib,io,json,os,re,sqlite3,urllib.request
 from datetime import datetime,timezone
 from pathlib import Path
 
-SHEET_ID=os.environ.get("MSP_REPORT_SHEET_ID","1OT2vH3TVv6mtXskon88_eao2GSwcxNYz07YjAiLNs6Q")
-GID=int(os.environ.get("MSP_REPORT_GID","724801369"))
+SHEET_ID=os.environ.get("MSP_REPORT_SHEET_ID","")
+GID=int(os.environ.get("MSP_REPORT_GID","0"))
 DB=os.environ.get("MSP_REPORT_DB","/opt/mcp/data/reports/msp_reports.sqlite3")
 REQUIRED=(1,2,3,4,5,6,8,9,12,13,14,15,16,18,19,25,26,28,29)
 SCHEMA="""
