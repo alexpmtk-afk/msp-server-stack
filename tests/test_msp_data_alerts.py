@@ -37,7 +37,7 @@ class MSPAlertTests(unittest.TestCase):
         c.close()
         return result
 
-    def test_deduplicate_identical_partial_and_recovery_once(self):
+    def test_deduplicate_identical_partial_and_silent_price_recovery(self):
         texts=[]
         def deliver(message):
             texts.append(message)
@@ -47,11 +47,10 @@ class MSPAlertTests(unittest.TestCase):
             m.run_alerts(self.alerts,self.business,[self.failed])
             m.run_alerts(self.alerts,self.business,[self.ok])
             m.run_alerts(self.alerts,self.business,[self.ok])
-        self.assertEqual(len(texts),2)
+        self.assertEqual(len(texts),1)
         self.assertIn("125",texts[0])
         self.assertIn("348",texts[0])
         self.assertIn("ПРЕДУПРЕЖДЕНИЕ",texts[0])
-        self.assertIn("ВОССТАНОВЛЕНО",texts[1])
         self.assertEqual(self.state()[0][1],"ok")
 
     def test_failed_no_per_run_errors_still_alerts(self):
@@ -100,6 +99,33 @@ class MSPAlertTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"secret redacted") as ctx:
                 m.send_telegram("sample")
         self.assertNotIn(env["MSP_ALERT_BOT_TOKEN"],str(ctx.exception))
+
+
+    def test_non_price_recovery_still_sends(self):
+        bad={"source":"self_purchase","status":"partial","source_rows":10,"rejected":1}
+        good={"source":"self_purchase","status":"success","source_rows":10,"rejected":0}
+        with patch.object(m,"send_telegram",return_value=5) as sender:
+            m.run_alerts(self.alerts,self.business,[bad])
+            m.run_alerts(self.alerts,self.business,[good])
+        self.assertEqual(sender.call_count,2)
+        self.assertIn("ВОССТАНОВЛЕНО",sender.call_args[0][0])
+
+    def test_price_error_after_silent_recovery_still_sends_new_alert(self):
+        with patch.object(m,"send_telegram",return_value=5) as sender:
+            m.run_alerts(self.alerts,self.business,[self.failed])
+            m.run_alerts(self.alerts,self.business,[self.ok])
+            m.run_alerts(self.alerts,self.business,[self.failed])
+        self.assertEqual(sender.call_count,2)
+        self.assertEqual(self.state()[0][1],"problem")
+
+    def test_archive_price_recovery_is_silent_too(self):
+        bad={"source":"price_journal_archive","status":"partial","rejected":1}
+        good={"source":"price_journal_archive","status":"success","rejected":0}
+        with patch.object(m,"send_telegram",return_value=5) as sender:
+            m.run_alerts(self.alerts,self.business,[bad])
+            m.run_alerts(self.alerts,self.business,[good])
+        self.assertEqual(sender.call_count,1)
+        self.assertEqual(self.state()[0][1],"ok")
 
 if __name__=="__main__":
     unittest.main()
