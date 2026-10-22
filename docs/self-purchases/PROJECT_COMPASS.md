@@ -139,3 +139,9 @@ Google workbook «_01_Продажи (новая)» и разработанны�
 ## 13. Установка MPSTATS-first в реальном Hermes — подтверждена 22.10.2026
 
 [Приватный REMOTE протокол №516](https://github.com/alexpmtk-afk/msp-server-bridge/issues/516): `RESULT=PASS`. На VPS в `msp-self-purchases/SKILL.md` и живые `references` добавлено утверждённое правило MPSTATS-first; скопирован отдельный `MSP_SELF_MPSTATS_FIRST_PILOT_20261022.md`. Все действовавшие локальные дополнения сохранены, прежние reference-файлы сохранены в защищённом backup, оригинальные стенограмма и концепция побайтно неизменны, `hermes skills list` PASS, Gateway без перезапуска, SQLite/маркетплейсы не менялись. **Это реальная установка, а не только GitHub merge.**
+
+## 14. Расчётный модуль фактически установлен в Hermes (22.10.2026)
+
+После реальной проверки трёх исторических WB-кейсов [№518](https://github.com/alexpmtk-afk/msp-server-bridge/issues/518) создана чистая расчётная функция [retrospective.py](../../apps/msp_self_analytics/retrospective.py): равные окна до/после, скорость оценочных продаж на календарный день и на провайдерский день наличия, проверки отсутствующих значений и сопоставимости конкурентов. Тесты GitHub PR #65 — PASS. **На VPS установлено фактически** в локальный Skill `~/.hermes/skills/productivity/msp-self-purchases/scripts/retrospective.py`, а отчёт — `references/MSP_SELF_WB_THREE_CASE_ANALYSIS_20261022.md`, принятие [приватное #520](https://github.com/alexpmtk-afk/msp-server-bridge/issues/520): 10 тестов PASS, Skill обнаружен, первоначальные материалы и Gateway не изменялись, записи в SQLite или маркетплейсы отсутствуют.
+
+Важно: это действующий расчётный модуль и инструкция, но **ещё не полностью автономный аналитический процесс** с проверенными конкурентами или историческим рейтингом. 8 потенциальных аналогов MPSTATS найдены; их характеристики пока не подтверждены. Нельзя заявлять эффект/прогноз по трём кейсам.
