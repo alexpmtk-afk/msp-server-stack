@@ -18,6 +18,8 @@ on:
   push:
     branches: [main, feature/msp-self-batch-descriptive-20261022]
     paths:
+      - 'tests/test_msp_self_batch_report.py'
+      - 'tests/test_msp_self_peer_evidence.py'
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
