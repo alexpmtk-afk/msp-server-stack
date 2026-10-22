@@ -6,6 +6,7 @@ Do not pass provider-estimated sales as verified organic seller orders.
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
+from datetime import date
 from statistics import median
 
 VARIABLE_COSTS = (
@@ -64,6 +65,14 @@ def organic_sales_per_available_day(organic_sold, available_days):
     if (not isinstance(first, dict) or first != second or
             not first.get("d1") or not first.get("d2")):
         return _unknown("OBSERVATION_INTERVAL_NOT_ALIGNED")
+    try:
+        start = date.fromisoformat(first["d1"])
+        end = date.fromisoformat(first["d2"])
+        allowed_days = (end - start).days + 1
+        if allowed_days <= 0 or days > allowed_days:
+            return _unknown("INVALID_AVAILABILITY_WINDOW")
+    except (ValueError, TypeError):
+        return _unknown("INVALID_AVAILABILITY_WINDOW")
     if days == 0:
         return _unknown("NO_AVAILABLE_DAYS")
     return {
@@ -83,11 +92,21 @@ def verified_peer_price_index(own_price, competitors):
         return _unknown("OWN_PRICE_UNVERIFIED")
     if not isinstance(competitors, list):
         return _unknown("COMPARATORS_NOT_PROVIDED")
+    as_of = own_price.get("observed_on")
+    try:
+        if not isinstance(as_of, str):
+            raise ValueError("missing")
+        date.fromisoformat(as_of)
+    except ValueError:
+        return _unknown("OWN_PRICE_DATE_UNKNOWN")
     prices = []
     for row in competitors:
         if not isinstance(row, dict) or row.get("comparability") != "VERIFIED_COMPARABLE":
             continue
         if not isinstance(row.get("approval_ref"), str) or not row["approval_ref"].strip():
+            continue
+        # Only simultaneous prices can form a meaningful price ratio.
+        if not isinstance(row.get("price"), dict) or row["price"].get("observed_on") != as_of:
             continue
         cost = _fact(row.get("price"), "VERIFIED_COMPETITOR_PRICE")
         if cost is not None and cost > 0:
