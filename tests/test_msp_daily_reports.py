@@ -12,12 +12,12 @@ spec.loader.exec_module(m)
 
 def rows():
     a=[["",""] for _ in range(30)]
-    vals={1:"21.10.2026",2:"9,0. млн. руб.",3:"0,5. млн. руб.",
-          4:"6 341 181",5:"6 096 774",6:"🟡 +4%",8:"76 811",
-          9:"🟡 +1%",12:"3,0. млн. руб.",13:"700 тыс. руб.",
-          14:"1 583 188",15:"2 032 258",16:"🔴 -22%",
-          18:"-211 184",19:"🔴 -9%",25:"9 946 142",
-          26:"299 851",28:"2 362 147",29:"-188 357"}
+    vals={1:"21.10.2026",2:"5,0. млн. руб.",3:"0,2. млн. руб.",
+          4:"1 234 567",5:"1 200 000",6:"🟡 +4%",8:"50 000",
+          9:"🟡 +1%",12:"2,0. млн. руб.",13:"300 тыс. руб.",
+          14:"1 100 000",15:"1 000 000",16:"🟢 +10%",
+          18:"-25 000",19:"🔴 -1%",25:"3 400 000",
+          26:"99 000",28:"2 100 000",29:"-20 000"}
     for k,v in vals.items():a[k-1][1]=v
     return a
 
@@ -29,15 +29,15 @@ class TestReports(unittest.TestCase):
             self.assertEqual(snap["date"],"2026-10-21")
             self.assertEqual(m.save(conn,snap)["status"],"inserted")
             self.assertEqual(m.save(conn,snap)["status"],"unchanged")
-            self.assertEqual(m.latest(conn,"2026-10-21")[1]["cells"]["B18"],"-211 184")
+            self.assertEqual(m.latest(conn,"2026-10-21")[1]["cells"]["B18"],"-25 000")
             self.assertEqual(conn.execute("PRAGMA integrity_check").fetchone()[0],"ok")
-            changed=rows();changed[3][1]="6 341 182"
+            changed=rows();changed[3][1]="1 234 568"
             self.assertEqual(m.save(conn,m.snapshot(changed))["revision"],2)
     def test_unicode_space_amounts(self):
         data=rows()
-        data[3][1]="6\u00a0341\u202f181"
+        data[3][1]="1\u00a0234\u202f567"
         parsed=m.snapshot(data)
-        self.assertEqual(m.num(parsed["cells"]["B4"]),6341181)
+        self.assertEqual(m.num(parsed["cells"]["B4"]),1234567)
     def test_missing_required(self):
         a=rows();a[13][1]=""
         with self.assertRaisesRegex(ValueError,"B14"):
