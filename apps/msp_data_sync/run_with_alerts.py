@@ -132,6 +132,18 @@ def notify_one(connection, business_connection, source, result):
         return "silent-ok"
     if status in BAD and state == "problem" and previous_fp == fp:
         return "suppressed-duplicate"
+    # A clean price-journal run must not emit a retrospective "recovered"
+    # message after the owner-approved no-date skip policy. Restore alert state
+    # silently; future REAL price-source partial/failed runs still notify.
+    if source in ("price_journal_current", "price_journal_archive") and status in GOOD and state == "problem":
+        connection.execute(
+            "insert into alert_delivery_state(source,state,fingerprint,last_sent_at,last_message_id) "
+            "values(?,?,?,?,?) on conflict(source) do update set "
+            "state=excluded.state,fingerprint=excluded.fingerprint",
+            (source, "ok", None, None, None),
+        )
+        connection.commit()
+        return "silent-price-recovery"
     message = make_message(source, result, issues, recovering=status in GOOD)
     message_id = send_telegram(message)
     connection.execute(

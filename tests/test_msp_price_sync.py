@@ -185,4 +185,50 @@ class PriceSyncTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 m.sync(self.c,self.cfg,'price_journal_current')
 
+
+    def test_owner_rule_undated_price_rows_are_ignored_for_both_sources(self):
+        for source in ('price_journal_current', 'price_journal_archive'):
+            with self.subTest(source=source):
+                missing = self.row.copy();missing[0] = '   '
+                missing[2] = 'MALFORMED'  # even malformed other fields are immaterial without date
+                buf = io.StringIO()
+                csv.writer(buf).writerows([self.header, missing, self.row])
+                with patch.object(m, 'fetch', return_value=(200, buf.getvalue().encode(), None, None)):
+                    first = m.sync(self.c, self.cfg, source)
+                    second = m.sync(self.c, self.cfg, source)
+                self.assertEqual(first['status'], 'success')
+                self.assertEqual(first['rejected'], 0)
+                self.assertEqual(first['skipped_technical'], 1)
+                self.assertEqual(first['inserted'], 1)
+                self.assertEqual(second['status'], 'unchanged_snapshot')
+                self.assertEqual(second['skipped_technical'], 1)
+                self.assertEqual(self.c.execute(
+                    "select count(*) from sync_run_issue where source=?", (source,)
+                ).fetchone()[0], 0)
+                self.assertEqual(self.c.execute(
+                    "select count(*) from sync_error where source=?", (source,)
+                ).fetchone()[0], 0)
+
+    def test_undated_price_row_alone_is_success_and_never_creates_event(self):
+        missing = self.row.copy();missing[0] = ''
+        n = self.ingest([self.header, missing])
+        self.assertEqual((n['source_rows'], n['skipped_technical'], n['rejected'], n['inserted']), (1, 1, 0, 0))
+        self.assertEqual(self.c.execute("select count(*) from price_event").fetchone()[0], 0)
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0], 0)
+
+    def test_nonempty_invalid_date_is_still_rejected(self):
+        malformed = self.row.copy();malformed[0] = '31.02.2026'
+        n = self.ingest([self.header, malformed])
+        self.assertEqual((n['rejected'], n['skipped_technical']), (1, 0))
+        self.assertEqual(self.c.execute("select count(*) from sync_error").fetchone()[0], 1)
+
+    def test_304_tracks_ignored_missing_date_without_partial(self):
+        missing = self.row.copy();missing[0] = ''
+        buf = io.StringIO();csv.writer(buf).writerows([self.header, missing, self.row])
+        with patch.object(m, 'fetch', side_effect=[(200, buf.getvalue().encode(), None, None), (304, None, None, None)]):
+            first = m.sync(self.c, self.cfg, 'price_journal_current')
+            second = m.sync(self.c, self.cfg, 'price_journal_current')
+        self.assertEqual(first['status'], 'success')
+        self.assertEqual((second['status'], second['skipped_technical'], second['rejected']), ('not_modified', 1, 0))
+
 if __name__=='__main__':unittest.main()
