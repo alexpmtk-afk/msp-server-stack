@@ -34,6 +34,21 @@
 
 **Важно:** успешная синхронизация сейчас НЕ доказывает, что следующая автоматическая синхронизация в 08:00 Europe/Moscow пройдёт; это отдельная будущая проверка по `sync_run` и таймеру.
 
+## 1A. Новая независимая проверка планового запуска 22.10.2026
+
+На 08:54:29 МСК read-only проверка REMOTE в [приватном отчёте №492](https://github.com/alexpmtk-afk/msp-server-bridge/issues/492) подтвердила:
+
+- `product_catalog`: `unchanged_snapshot`, 1 558 строк, rejected=0 (05:00:13 UTC).
+- `self_purchase`: `unchanged_snapshot`, 92 исходные строки, rejected=0 (05:00:13 UTC).
+- `price_journal_archive`: `unchanged_snapshot`, 0 строк, rejected=0 (05:00:15 UTC).
+- **`price_journal_current`: `partial`, 3 494 исходные строки, 1 rejected** (05:00:15 UTC).
+- `msp-data-sync.service`: `Result=exit-code`; user timer active/enabled; Hermes Gateway/notifier active; SQLite quick_check=ok.
+- Количества SQLite не изменились относительно вечернего контролируемого восстановления: 1 558 / 80 / 13 / 5 / 3 492.
+
+**Итог:** самовыкупы на плановом проходе работают корректно; весь утренний цикл нельзя объявлять PASS до исправления отдельного `price_journal_current` partial. Характер отклонённой строки и Telegram-доставка ошибки ещё не установлены. Не запускать повторную запись для выяснения причин; использовать read-only диагностику.
+
+Независимая оценка Hermes: [HERMES_INDEPENDENT_REVIEW_RESULTS_20261022.md](HERMES_INDEPENDENT_REVIEW_RESULTS_20261022.md).
+
 ## 2. Доступность необходимого контекста
 
 Следующие статусы строго различаются:
@@ -82,7 +97,7 @@
 - ✅ Восстановлен нормализованный источник самовыкупов на REMOTE.
 - ✅ Исправлены заголовки/наследуемые поля/текстовые пометки, нет rejected.
 - ✅ Создан бэкап и подтверждена идемпотентность.
-- ⏳ После 08:00 Europe/Moscow 22.10.2026 подтвердить автоматический PASS по `sync_run`; не запускать лишний timer catch-up.
+- ✅ Плановый проход 22.10.2026 около 08:00 МСК: self_purchase и product_catalog `unchanged_snapshot`, rejected=0. ❗ Полный цикл завершился exit-code из-за partial одного источника цен; это отдельный P0-диагностический блокер.
 
 ### SELF-01B — собственные продажи и остатки
 
