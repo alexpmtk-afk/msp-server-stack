@@ -13,7 +13,8 @@ def _count(v, *, unknown="не установлено"):
 def _fmt_number(v):
     if not isinstance(v,(int,float)) or isinstance(v,bool) or not isfinite(v):
         return "нет подтверждённых данных"
-    return str(round(v,2)).replace(".",",")
+    rounded=round(v,2)
+    return (str(int(rounded)) if rounded==int(rounded) else str(rounded)).replace(".",",")
 
 
 def _format_date(s):
