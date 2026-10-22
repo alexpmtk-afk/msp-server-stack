@@ -1,0 +1,12 @@
+[Unit]
+Description=MSP daily Plan-Fact financial report read-only snapshot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/mcp/projects/msp-server-stack
+EnvironmentFile=/opt/mcp/secrets/msp-daily-reports.env
+ExecStart=/usr/bin/python3 /opt/mcp/projects/msp-server-stack/apps/msp_daily_reports/daily.py sync
+NoNewPrivileges=true
+PrivateTmp=true

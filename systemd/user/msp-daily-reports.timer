@@ -1,0 +1,11 @@
+[Unit]
+Description=Capture MSP daily Plan-Fact report at 10:30 Moscow
+
+[Timer]
+OnCalendar=*-*-* 10:30:00 Europe/Moscow
+Persistent=true
+RandomizedDelaySec=0
+Unit=msp-daily-reports.service
+
+[Install]
+WantedBy=timers.target
