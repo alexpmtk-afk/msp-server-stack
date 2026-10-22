@@ -51,19 +51,34 @@ class DecisionIndicatorTests(unittest.TestCase):
         self.assertEqual(x["reason"], "OBSERVATION_INTERVAL_NOT_ALIGNED")
 
     def test_price_index_requires_verified_comparators(self):
-        own = fact(900, "VERIFIED_OWN_PRICE")
+        own = fact(900, "VERIFIED_OWN_PRICE", observed_on="2026-10-22")
         potential = [{"comparability": "POTENTIAL_MARKET_PEER",
-                      "price": fact(1000, "VERIFIED_COMPETITOR_PRICE")}]
+                      "price": fact(1000, "VERIFIED_COMPETITOR_PRICE", observed_on="2026-10-22")}]
         self.assertEqual(verified_peer_price_index(own, potential)["status"], "UNKNOWN")
         verified = [
             {"comparability": "VERIFIED_COMPARABLE", "approval_ref": "human-check-1",
-             "price": fact(800, "VERIFIED_COMPETITOR_PRICE")},
+             "price": fact(800, "VERIFIED_COMPETITOR_PRICE", observed_on="2026-10-22")},
             {"comparability": "VERIFIED_COMPARABLE", "approval_ref": "human-check-2",
              "price": fact(1000, "VERIFIED_COMPETITOR_PRICE")},
         ]
         r = verified_peer_price_index(own, verified)
         self.assertEqual(r["value"], "1")
         self.assertEqual(r["peer_count"], 2)
+
+    def test_stale_peer_price_not_mixed_with_current_price(self):
+        own = fact(900, "VERIFIED_OWN_PRICE", observed_on="2026-10-22")
+        old = [{"comparability": "VERIFIED_COMPARABLE", "approval_ref": "checked",
+                "price": fact(800, "VERIFIED_COMPETITOR_PRICE",
+                              observed_on="2026-09-21")}]
+        x = verified_peer_price_index(own, old)
+        self.assertEqual(x["reason"], "NO_VERIFIED_COMPARABLE_PRICES")
+
+    def test_available_days_cannot_exceed_observation_period(self):
+        interval = {"d1": "2026-09-01", "d2": "2026-09-07"}
+        x = organic_sales_per_available_day(
+            fact(20, "SELLER_ORGANIC_SALES", interval=interval),
+            fact(14, "SELLER_AVAILABILITY", interval=interval))
+        self.assertEqual(x["reason"], "INVALID_AVAILABILITY_WINDOW")
 
     def test_incomplete_finance_is_unknown_not_zero(self):
         costs = finance()
@@ -75,7 +90,7 @@ class DecisionIndicatorTests(unittest.TestCase):
     def test_unit_margin_is_derived_arithmetic_not_static(self):
         x = variable_unit_contribution(finance())
         self.assertEqual(x["value"], "910")
-        self.assertFalse(x["not_a_net_company_profit"] is False)
+        self.assertTrue(x["not_a_net_company_profit"])
 
     def test_model_scenario_not_a_verified_effect(self):
         scenario = {"value": "3", "status": "MODEL_ESTIMATE",
