@@ -108,9 +108,9 @@ def analyze(event_date: str, before: dict, after: dict, *,
         result["confounders"].append("STOCK_DAYS_DIFFERENT")
     if pre.get("rating_in_period_field") != post.get("rating_in_period_field"):
         result["confounders"].append("RATING_FIELD_CHANGED_ASOF_UNKNOWN")
-    if (pre.get("sales") or 0) + (post.get("sales") or 0) <= 5:
-        # Only a descriptive small-event flag. Not a statistical hypothesis test.
-        result["confounders"].append("VERY_FEW_ESTIMATED_SALES")
+    if pre.get("sales") == 0 or post.get("sales") == 0:
+        # Zero-count windows make relative changes unstable or undefined.
+        result["confounders"].append("ZERO_ESTIMATED_SALES_IN_A_WINDOW")
     if not (pre.get("valid") and post.get("valid")):
         result["report_status"] = "INCOMPLETE"
     else:
