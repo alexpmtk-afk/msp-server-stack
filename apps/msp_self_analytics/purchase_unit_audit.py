@@ -4,8 +4,8 @@ Pure offline function. No API calls or marketplace modifications.
 """
 from __future__ import annotations
 
-def audit_units(purchase_units: int, observed_review_ids: list[str] | None = None) -> dict:
-    if isinstance(purchase_units, bool) or not isinstance(purchase_units, int) or purchase_units < 1:
+def audit_units(planned_total: int, observed_review_ids: list[str] | None = None) -> dict:
+    if isinstance(planned_total, bool) or not isinstance(planned_total, int) or planned_total < 1:
         raise ValueError("INVALID_PURCHASE_UNIT_COUNT")
     observed = None
     if observed_review_ids is not None:
@@ -15,10 +15,11 @@ def audit_units(purchase_units: int, observed_review_ids: list[str] | None = Non
             raise ValueError("INVALID_REVIEW_IDENTIFIER")
         observed = len(set(x.strip() for x in observed_review_ids))
     return {
-        "purchase_units": purchase_units,
+        "planned_total_per_card": planned_total,
+        "purchase_units": 1,
         "individually_verified_review_count": observed,
-        "unmatched_units": None if observed is None else max(0,purchase_units-observed),
-        "more_reviews_than_units": observed is not None and observed > purchase_units,
-        "multiple_units_single_date_ambiguous": purchase_units > 1,
+        "unmatched_units": None if observed is None else max(0,1-observed),
+        "more_reviews_than_units": observed is not None and observed > 1,
+        "multiple_units_single_date_ambiguous": False,
         "do_not_assume_purchases_are_reviews": True,
     }
