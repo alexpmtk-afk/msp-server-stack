@@ -70,7 +70,7 @@ def snapshot(rows):
  try:date=datetime.strptime(get(1),"%d.%m.%Y").date().isoformat()
  except ValueError as e:raise ValueError("bad B1 date") from e
  for row in (4,5,8,14,15,18,25,26,28,29):
-  if not re.fullmatch(r"-?[0-9 ]+",get(row)):raise ValueError("bad numeric B"+str(row))
+  if not re.fullmatch(r"-?[0-9]+",re.sub(r"[\s\u00a0\u202f]","",get(row))):raise ValueError("bad numeric B"+str(row))
  for row in (6,9,16,19):
   if not re.search(r"[+-]?\d+%$",get(row)):raise ValueError("bad percentage B"+str(row))
  return {"date":date,"source":{"id":SHEET_ID,"gid":GID,"range":"A1:B30"},
@@ -98,7 +98,7 @@ def latest(db,date=None):
 
 def num(v):
  """Numeric cells of daily source, with non-breaking spaces."""
- return int(str(v).replace(" ","").replace("\u00a0",""))
+ return int(re.sub(r"[\s\u00a0\u202f]","",str(v)))
 def unit(v):
  s=str(v).strip()
  m=re.search(r"(-?\d+[,.]?\d*)\.?\s*(млн|тыс)",s)
