@@ -115,7 +115,11 @@ def render(data,dest):
  fonts={"r":"DejaVuSans.ttf" if dejavu else "LiberationSans-Regular.ttf",
         "b":"DejaVuSans-Bold.ttf" if dejavu else "LiberationSans-Bold.ttf",
         "i":"DejaVuSans-Oblique.ttf" if dejavu else "LiberationSans-Italic.ttf"}
- font={k:ImageFont.truetype(str(font_root/f),16 if k!="r" else 17) for k,f in fonts.items()}
+ font={}
+ for k,f in fonts.items():
+  size=16 if k!="r" else 17
+  try:font[k]=ImageFont.truetype(str(font_root/f),size)
+  except OSError:font[k]=ImageFont.load_default(size=size)
  im=Image.new("RGB",(643,533),"white");d=ImageDraw.Draw(im)
  for x in (0,247,408,443,639,642):d.line((x,0,x,532),fill="#dedede")
  for y in (0,31,61,91,121,151,180,210,239,268,297,327,358,386,415,446,475,505,532):d.line((0,y,642,y),fill="#dedede")
