@@ -1,7 +1,7 @@
 """MSP-SELF historical comparison of observed MPSTATS periods, without causal claims.
 
 No network, marketplace writes, feedback content or SKU requirement.
-Inputs: anonymized event day + two metric windows + optional approved peer series.
+Inputs: recorded review date plus purchase date, two metric windows, optional approved peers.
 Outputs: descriptive quantities and explicit missing/confounding flags.
 """
 from __future__ import annotations
@@ -24,15 +24,23 @@ def _metric(source, name):
     return float(value)
 
 
-def windows(event_date: str, days: int = 14) -> dict:
+def windows(review_date: str, days: int = 14, *, purchase_date: str) -> dict:
     if isinstance(days, bool) or not isinstance(days, int) or days < 1:
         raise InvalidObservation("INVALID_WINDOW_DAYS")
     try:
-        t = date.fromisoformat(event_date)
+        t = date.fromisoformat(review_date)
     except (ValueError, TypeError) as e:
-        raise InvalidObservation("INVALID_EVENT_DATE") from e
+        raise InvalidObservation("REVIEW_DATE_REQUIRED") from e
+    try:
+        bought = date.fromisoformat(purchase_date)
+    except (ValueError, TypeError) as e:
+        raise InvalidObservation("PURCHASE_DATE_REQUIRED") from e
+    if t < bought:
+        raise InvalidObservation("REVIEW_DATE_BEFORE_PURCHASE")
     return {
-        "event_date": t.isoformat(),
+        "review_date": t.isoformat(),
+        "anchor_kind": "REGISTRY_REVIEW_DATE_NOT_AUTOMATICALLY_PUBLICATION_VERIFIED",
+        "purchase_date": purchase_date,
         "days": days,
         "before": {"d1": (t - timedelta(days=days)).isoformat(),
                    "d2": (t - timedelta(days=1)).isoformat()},
@@ -78,15 +86,36 @@ def _delta(before: float | None, after: float | None) -> dict:
     }
 
 
-def analyze(event_date: str, before: dict, after: dict, *,
+def analyze(review_date: str, before: dict, after: dict, *,
+            purchase_date: str,
+            review_publication_verified: bool = False,
+            business_goal: str = "unknown",
             period_days: int = 14, competitors: list[dict] | None = None) -> dict:
-    """Calculate descriptive change; validated competitor flags are required for controls."""
-    win = windows(event_date, period_days)
+    """Describe post-review patterns. Purchase date is NEVER the implicit anchor."""
+    if business_goal not in ("first_reviews", "rating_recovery", "unknown"):
+        raise InvalidObservation("UNKNOWN_BUSINESS_GOAL")
+    win = windows(review_date, period_days, purchase_date=purchase_date)
     pre = _sample(before, "BEFORE", win["before"], period_days)
     post = _sample(after, "AFTER", win["after"], period_days)
     result = {
         "report_type": "RETROSPECTIVE_OBSERVATION_NOT_CAUSAL_EFFECT",
-        "event_date": win["event_date"],
+        "review_date": win["review_date"],
+        "purchase_date": win["purchase_date"],
+        "business_goal": business_goal,
+        "outcome_fields": {
+            "mpstats_estimated_sales": "OBSERVED_IF_VALID_WINDOW",
+            "orders": "NOT_VERIFIED_IN_CURRENT_MPSTATS_PILOT",
+            "review_count_history": "NOT_VERIFIED_IN_CURRENT_MPSTATS_PILOT",
+            "rating_history": "NOT_VERIFIED_AS_OF_DATES",
+            "review_publication_date": (
+                "VERIFIED" if review_publication_verified else "REPORTED_BY_REGISTRY"
+            ),
+        },
+        "anchor_kind": win["anchor_kind"],
+        "publication_evidence": (
+            "VERIFIED" if review_publication_verified is True else
+            "REGISTRY_DATE_ONLY_NOT_VERIFIED"
+        ),
         "windows": win,
         "before": pre,
         "after": post,
@@ -101,6 +130,10 @@ def analyze(event_date: str, before: dict, after: dict, *,
         "causal_effect_proven": False,
         "recommendation_automation_allowed": False,
     }
+    if review_publication_verified is not True:
+        result["confounders"].append("REVIEW_PUBLICATION_DATE_NOT_INDEPENDENTLY_VERIFIED")
+    if purchase_date != review_date:
+        result["confounders"].append("PURCHASE_PRECEDED_REVIEW_DATE")
     b_days, a_days = pre.get("provider_days_in_stock"), post.get("provider_days_in_stock")
     if b_days is None or a_days is None:
         result["confounders"].append("STOCK_DAYS_UNAVAILABLE")

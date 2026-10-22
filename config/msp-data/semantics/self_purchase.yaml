@@ -1,4 +1,4 @@
-version: 6
+version: 7
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -60,7 +60,10 @@ fields:
     validation: nullable_in_planned_required_in_completed
   review_date:
     source: "Дата отзыва"
-    meaning: Дата отзыва, если указана.
+    meaning: >
+      Дата отзыва, указанная в реестре (НЕ дата покупки). Это кандидатная
+      точка начала исследования последствий появления отзыва, но не обязательно
+      независимо подтверждённая дата его видимой публикации.
   review_url:
     source: "Ссылка на отзыв"
     meaning: Ссылка на отзыв, если указана.
@@ -181,3 +184,28 @@ limitations:
   - "Исторические completed при удалении строки из источника автоматически не удаляются."
   - "Повторные записи одного SKU на одну дату различаются source_ordinal; перестановка может изменить идентичность."
   - "Планы со строками, удалёнными из текущего источника, остаются в таблице аудита с is_current=0."
+
+review_outcome_analytics:
+  policy_approved: "2026-10-22"
+  canonical_document: "docs/self-purchases/REVIEW_PUBLICATION_EVENT_MODEL_20261022.md"
+  historical_primary_anchor: review_date
+  historical_primary_anchor_source: "Реестр выкупов/отзывов — Дата отзыва"
+  purchase_date_role: "история покупки, ключ завершённой операции и интервал до отзыва; НЕ начало анализа последствий отзыва"
+  completion_state_meaning: "completed означает подтверждённую покупку, не опубликованный отзыв"
+  review_date_is_publication_proof: false
+  review_url_is_publication_date_proof: false
+  verified_publication_date: "отдельное независимое подтверждение; в текущей SQLite отсутствует отдельное поле"
+  scenarios:
+    - first_reviews
+    - rating_recovery
+    - unknown
+  without_review_date: "REVIEW_DATE_NOT_RECORDED; не запускать анализ последствий отзыва"
+  review_date_before_purchase: "INVALID_DATE_ORDER; не запускать"
+  mismatched_verified_publication_date: "SOURCE_DATE_MISMATCH; не подменять дату автоматически"
+  registry_review_date_only: "READY_REGISTRY_DATE_WITH_UNCERTAINTY; возможен условный анализ с указанием непроверенности фактической публикации"
+  verified_publication: "READY_VERIFIED_PUBLICATION; исследование с датой подтверждённой публикации"
+  windows: "T-14...T-1 и T+1...T+14; T=date of review, дату T исключить; 14 регулируется параметром"
+  monitor: "исторический агрегированный рейтинг и число отзывов, датированные следующие отзывы, заказы/продажи, наличие, цена, реклама, сопоставимые конкуренты"
+  historical_rating_unavailable: "UNKNOWN; не подменять текущим рейтингом"
+  no_causal_attribution_without_control: true
+  legacy_purchase_based_mpstats_pilots: "SUPERSEDED_PURCHASE_ANCHOR: подтверждают только доступность источника MPSTATS, не реакцию после отзыва"
