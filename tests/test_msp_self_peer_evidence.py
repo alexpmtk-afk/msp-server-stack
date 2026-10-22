@@ -78,6 +78,12 @@ class PeerEvidenceTest(unittest.TestCase):
         self.assertNotIn("общественные места", str(r))
         self.assertNotIn("сталь", str(r))
 
+    def test_own_card_identity_must_be_known(self):
+        own = listing(111222333)
+        own.pop("id")
+        with self.assertRaisesRegex(ValueError, "OWN_LISTING_ID_REQUIRED"):
+            evaluate_peer_evidence(own, [listing(222333444)], as_of="2026-10-22")
+
     def test_hard_card_limit(self):
         with self.assertRaisesRegex(ValueError, "CANDIDATE_LIMIT_EXCEEDED"):
             evaluate_peer_evidence(listing(111222333),
