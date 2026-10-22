@@ -17,6 +17,20 @@ def pair(b=2,a=1,bd=14,ad=10):
             sample("2026-10-07","2026-10-20",a,ad,rating=5))
 
 class TestHistoricalAnalysis(unittest.TestCase):
+    def test_multi_unit_count_does_not_prove_multiple_publications(self):
+        before, after = pair()
+        observation = m.analyze("2026-10-06",before,after,
+                                purchase_date="2026-09-27",purchase_units=3)
+        self.assertEqual(observation["purchase_units"],3)
+        self.assertIsNone(observation["review_evidence"]["confirmed_distinct_reviews"])
+        self.assertTrue(observation["purchased_units_are_not_verified_ratings"])
+        self.assertIn("MULTIPLE_PURCHASE_UNITS_REVIEW_DATE_PER_UNIT_UNRESOLVED",
+                      observation["confounders"])
+
+    def test_quantity_required(self):
+        with self.assertRaises(TypeError):
+            m.analyze("2026-10-06",*pair(),purchase_date="2026-09-27")
+
     def test_purchase_date_does_not_define_review_comparison(self):
         self.assertEqual(
             m.windows("2026-10-06",purchase_date="2026-09-27",purchase_units=1)["before"]["d2"],
