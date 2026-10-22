@@ -88,12 +88,25 @@ def _delta(before: float | None, after: float | None) -> dict:
 
 def analyze(review_date: str, before: dict, after: dict, *,
             purchase_date: str,
+            purchase_units: int,
+            verified_review_count: int | None = None,
+            verified_five_star_count: int | None = None,
             review_publication_verified: bool = False,
             business_goal: str = "unknown",
             period_days: int = 14, competitors: list[dict] | None = None) -> dict:
     """Describe post-review patterns. Purchase date is NEVER the implicit anchor."""
     if business_goal not in ("first_reviews", "rating_recovery", "unknown"):
         raise InvalidObservation("UNKNOWN_BUSINESS_GOAL")
+    if isinstance(purchase_units, bool) or not isinstance(purchase_units, int) or purchase_units < 1:
+        raise InvalidObservation("PURCHASE_UNITS_REQUIRED")
+    for name, value in (("VERIFIED_REVIEWS", verified_review_count), ("VERIFIED_FIVE_STARS", verified_five_star_count)):
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, int) or value < 0 or value > purchase_units
+        ):
+            raise InvalidObservation(name + "_INVALID")
+    if verified_five_star_count is not None:
+        if verified_review_count is None or verified_five_star_count > verified_review_count:
+            raise InvalidObservation("FIVE_STARS_NOT_SUBSET_OF_VERIFIED_REVIEWS")
     win = windows(review_date, period_days, purchase_date=purchase_date)
     pre = _sample(before, "BEFORE", win["before"], period_days)
     post = _sample(after, "AFTER", win["after"], period_days)
@@ -101,6 +114,21 @@ def analyze(review_date: str, before: dict, after: dict, *,
         "report_type": "RETROSPECTIVE_OBSERVATION_NOT_CAUSAL_EFFECT",
         "review_date": win["review_date"],
         "purchase_date": win["purchase_date"],
+        "purchase_units": purchase_units,
+        "one_unit_one_five_star_scenario": {
+            "hypothetical_maximum_count": purchase_units,
+            "is_observed_review_count": False,
+            "is_confirmed_five_star_count": False,
+        },
+        "review_evidence": {
+            "confirmed_distinct_reviews": verified_review_count,
+            "confirmed_five_star_reviews": verified_five_star_count,
+            "unverified_unit_count": (
+                purchase_units - verified_review_count
+                if verified_review_count is not None else None
+            ),
+            "individual_publication_dates_required_when_multiple_units": purchase_units > 1,
+        },
         "business_goal": business_goal,
         "outcome_fields": {
             "mpstats_estimated_sales": "OBSERVED_IF_VALID_WINDOW",
@@ -130,6 +158,10 @@ def analyze(review_date: str, before: dict, after: dict, *,
         "causal_effect_proven": False,
         "recommendation_automation_allowed": False,
     }
+    if purchase_units > 1:
+        result["confounders"].append("MULTIPLE_PURCHASE_UNITS_REVIEW_DATE_PER_UNIT_UNRESOLVED")
+    if verified_review_count is None or verified_review_count < purchase_units:
+        result["confounders"].append("PURCHASE_UNITS_NOT_ALL_VERIFIED_AS_PUBLIC_REVIEWS")
     if review_publication_verified is not True:
         result["confounders"].append("REVIEW_PUBLICATION_DATE_NOT_INDEPENDENTLY_VERIFIED")
     if purchase_date != review_date:
