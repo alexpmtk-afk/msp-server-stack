@@ -6,7 +6,8 @@ on:
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
       - 'tests/test_msp_self_analytics_review_event.py'
-      - 'apps/msp_self_analytics/purchase_unit_audit.py'
+      - 'tests/test_msp_self_case_report.py'
+      - 'apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/case_report.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
       - 'tests/test_msp_self_analytics_review_event.py'
+      - 'tests/test_msp_self_case_report.py'
       - 'apps/msp_self_analytics/purchase_unit_audit.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   workflow_dispatch:
@@ -33,3 +35,4 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_source_quality.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_retrospective.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_review_event.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_case_report.py' -v
