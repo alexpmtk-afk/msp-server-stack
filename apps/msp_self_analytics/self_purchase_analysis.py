@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 def build_observational_case(
     rows, historical_observations, *,
     as_of, price_events=None, price_source_status="UNAVAILABLE",
-    verified_unit_costs=None, requested_days=30,
+    verified_unit_costs=None, requested_days=90,
     max_checkpoints=12, max_provider_reads=24,
 ):
     """One cohesive result with traceable missing-evidence gates.
