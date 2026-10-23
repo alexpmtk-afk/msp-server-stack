@@ -31,7 +31,7 @@ def observations(plan):
 
 class CheckpointWorkflowTests(unittest.TestCase):
     def test_three_events_produce_six_distinct_exact_requests(self):
-        p = plan_checkpoint_reads(series(), as_of="2026-10-22")
+        p = plan_checkpoint_reads(series(), as_of="2026-10-22",requested_days=30)
         self.assertEqual(p["checkpoint_count"], 3)
         self.assertEqual(p["provider_read_count"], 6)
         self.assertEqual([x["effective_days_each"]
@@ -44,7 +44,7 @@ class CheckpointWorkflowTests(unittest.TestCase):
         rows = [event("2026-07-01", "2026-07-04", 1),
                 event("2026-07-05", "2026-07-08", 2),
                 event("2026-07-06", "2026-07-08", 3)]
-        p = plan_checkpoint_reads(rows, as_of="2026-08-20")
+        p = plan_checkpoint_reads(rows, as_of="2026-08-20",requested_days=30)
         self.assertEqual(p["checkpoint_count"], 2)
         self.assertEqual(p["provider_read_count"], 4)
 
@@ -57,9 +57,9 @@ class CheckpointWorkflowTests(unittest.TestCase):
         self.assertEqual(p["provider_read_count"], 6)
 
     def test_result_with_all_expected_readbacks(self):
-        p = plan_checkpoint_reads(series(), as_of="2026-10-22")
+        p = plan_checkpoint_reads(series(), as_of="2026-10-22",requested_days=30)
         d = observations(p)
-        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22")
+        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22",requested_days=30)
         self.assertEqual(r["status"], "COMPLETE_DESCRIPTIVE")
         self.assertEqual(r["summary"]["with_estimated_sales"], 3)
         self.assertEqual(r["summary"]["incomplete_source"], 0)
@@ -69,28 +69,28 @@ class CheckpointWorkflowTests(unittest.TestCase):
         self.assertEqual(r["checkpoints"][-1]["status"], "FULL_EQUAL_WINDOW")
 
     def test_missing_provider_observation_is_not_zero(self):
-        p = plan_checkpoint_reads(series(), as_of="2026-10-22")
+        p = plan_checkpoint_reads(series(), as_of="2026-10-22",requested_days=30)
         d = observations(p)
         del d[p["checkpoint_to_requests"][2]["after"]]
-        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22")
+        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22",requested_days=30)
         self.assertEqual(r["summary"]["incomplete_source"], 1)
         self.assertEqual(r["checkpoints"][1]["status"], "MPSTATS_WINDOWS_INCOMPLETE")
         self.assertEqual(r["status"], "PARTIAL_DESCRIPTIVE")
 
     def test_wrong_response_date_is_rejected(self):
-        p = plan_checkpoint_reads(series(), as_of="2026-10-22")
+        p = plan_checkpoint_reads(series(), as_of="2026-10-22",requested_days=30)
         d = observations(p)
         d[p["checkpoint_to_requests"][3]["before"]]["d2"] = "2026-08-03"
-        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22")
+        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22",requested_days=30)
         self.assertEqual(r["checkpoints"][2]["status"], "MPSTATS_WINDOWS_INCOMPLETE")
 
     def test_stock_inequality_and_zero_baseline_are_flagged(self):
-        p = plan_checkpoint_reads(series(), as_of="2026-10-22")
+        p = plan_checkpoint_reads(series(), as_of="2026-10-22",requested_days=30)
         d = observations(p)
         first = p["checkpoint_to_requests"][1]
         d[first["before"]]["sales"] = 0
         d[first["before"]]["days_in_stock"] = 0
-        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22")
+        r = assemble_checkpoint_analysis(series(), d, as_of="2026-10-22",requested_days=30)
         flags = r["checkpoints"][0]["source_quality_flags"]
         self.assertIn("STOCK_AVAILABILITY_DIFFERS", flags)
         self.assertIn("STOCK_NORMALIZED_RATE_UNAVAILABLE", flags)
@@ -116,13 +116,13 @@ class CheckpointWorkflowTests(unittest.TestCase):
     def test_call_cap_requires_explicit_escalation(self):
         with self.assertRaisesRegex(CheckpointPlanningError,
                                     "PROVIDER_READ_LIMIT_EXCEEDED"):
-            plan_checkpoint_reads(series(), as_of="2026-10-22",
+            plan_checkpoint_reads(series(), as_of="2026-10-22",requested_days=30,
                                   max_provider_reads=5)
 
     def test_russian_report_no_causal_claim(self):
-        p = plan_checkpoint_reads(series(), as_of="2026-10-22")
+        p = plan_checkpoint_reads(series(), as_of="2026-10-22",requested_days=30)
         r = assemble_checkpoint_analysis(
-            series(), observations(p), as_of="2026-10-22")
+            series(), observations(p), as_of="2026-10-22",requested_days=30)
         text = format_checkpoint_history_ru(r, label="Контрольный товар")
         self.assertEqual(text.count("Контроль "), 3)
         self.assertIn("Контроль 1", text)
