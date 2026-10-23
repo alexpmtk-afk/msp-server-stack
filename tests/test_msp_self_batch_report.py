@@ -31,7 +31,7 @@ class PortfolioTest(unittest.TestCase):
     def test_batch_keeps_cards_isolated_and_sorts_deterministically(self):
         rows = URN + [row("other", "2026-08-01", "2026-08-08", target=1),
                       row("ignored", "2026-07-01", None, status="planned")]
-        p = plan_portfolio(rows, as_of="2026-10-22")
+        p = plan_portfolio(rows, as_of="2026-10-22",requested_days=30)
         self.assertEqual(p["card_count"], 2)
         self.assertEqual(p["noncompleted_rows_excluded"], 1)
         self.assertEqual(p["provider_request_count"], 4)
@@ -50,7 +50,7 @@ class PortfolioTest(unittest.TestCase):
             "before": provider("2026-07-06", "2026-08-04", 0, 26),
             "after": provider("2026-08-19", "2026-09-17", 3, 30),
         }}
-        result = build_portfolio_report(URN, observations, as_of="2026-10-22")
+        result = build_portfolio_report(URN, observations, as_of="2026-10-22",requested_days=30)
         self.assertEqual(result["summary"]["ready_with_both_sources"], 1)
         report = result["cards"][0]
         self.assertEqual(report["status"], "INTERMEDIATE_FULL_WINDOW")
@@ -60,7 +60,7 @@ class PortfolioTest(unittest.TestCase):
         self.assertFalse(result["causal_effect_estimated"])
 
     def test_missing_provider_data_is_unknown_not_zero(self):
-        result = build_portfolio_report(URN, {}, as_of="2026-10-22")
+        result = build_portfolio_report(URN, {}, as_of="2026-10-22",requested_days=30)
         self.assertEqual(result["summary"]["provider_data_incomplete"], 1)
         self.assertEqual(result["cards"][0]["status"], "MPSTATS_WINDOWS_INCOMPLETE")
         self.assertIn("недостаточно сопоставимых данных", result["cards"][0]["text_ru"])
@@ -70,29 +70,29 @@ class PortfolioTest(unittest.TestCase):
         value = {key: {
             "before": provider("2026-07-07", "2026-08-04", 10, 26),
             "after": provider("2026-08-19", "2026-09-17", 20, 30)}}
-        outcome = build_portfolio_report(URN, value, as_of="2026-10-22")
+        outcome = build_portfolio_report(URN, value, as_of="2026-10-22",requested_days=30)
         self.assertEqual(outcome["summary"]["provider_data_incomplete"], 1)
 
     def test_repeated_plan_conflict_blocks_provider_requests(self):
         rows = URN[:2] + [row("urn", "2026-08-07", "2026-08-18", target=7)]
-        plan = plan_portfolio(rows, as_of="2026-10-22")
+        plan = plan_portfolio(rows, as_of="2026-10-22",requested_days=30)
         self.assertEqual(plan["cards"][0]["status"], "RECONCILIATION_REQUIRED")
         self.assertEqual(plan["provider_request_count"], 0)
-        result = build_portfolio_report(rows, {}, as_of="2026-10-22")
+        result = build_portfolio_report(rows, {}, as_of="2026-10-22",requested_days=30)
         self.assertEqual(result["summary"]["reconciliation_required"], 1)
         self.assertIsNone(result["cards"][0]["report"])
 
     def test_no_review_or_no_post_days_does_not_consume_provider(self):
         rows = [row("a", "2026-10-20", None, target=1),
                 row("b", "2026-10-20", "2026-10-21", target=1)]
-        result = plan_portfolio(rows, as_of="2026-10-22")
+        result = plan_portfolio(rows, as_of="2026-10-22",requested_days=30)
         self.assertEqual(result["provider_request_count"], 0)
         self.assertEqual({c["status"] for c in result["cards"]},
                          {"NO_RECORDED_REVIEW_DATE", "POST_WINDOW_PENDING"})
 
     def test_recent_review_uses_short_equal_windows(self):
         rows = [row("fresh", "2026-10-10", "2026-10-19", target=1)]
-        plan = plan_portfolio(rows, as_of="2026-10-22")
+        plan = plan_portfolio(rows, as_of="2026-10-22",requested_days=30)
         self.assertEqual(plan["provider_request_count"], 2)
         self.assertEqual(plan["cards"][0]["requests"],
                          [{"side": "before", "d1": "2026-10-17", "d2": "2026-10-18"},
@@ -100,18 +100,18 @@ class PortfolioTest(unittest.TestCase):
 
     def test_broken_card_does_not_stop_other_cards(self):
         rows = URN + [row("bad", "2026-09-01", "2026-08-01", target=1)]
-        p = plan_portfolio(rows, as_of="2026-10-22")
+        p = plan_portfolio(rows, as_of="2026-10-22",requested_days=30)
         self.assertEqual(p["provider_request_count"], 2)
         self.assertEqual(len([c for c in p["cards"] if c["status"] == "INVALID_SERIES"]), 1)
 
     def test_card_limit_and_invalid_rows(self):
         rows = [row(str(i), "2026-01-01", "2026-01-05") for i in range(3)]
         with self.assertRaisesRegex(PortfolioDataError, "CARD_LIMIT_EXCEEDED"):
-            plan_portfolio(rows, as_of="2026-10-22", max_cards=2)
+            plan_portfolio(rows, as_of="2026-10-22", requested_days=30, max_cards=2)
         with self.assertRaisesRegex(PortfolioDataError, "INVALID_SOURCE_ROW"):
-            plan_portfolio([None], as_of="2026-10-22")
+            plan_portfolio([None], as_of="2026-10-22",requested_days=30)
         with self.assertRaisesRegex(PortfolioDataError, "IDENTITY_REQUIRED"):
-            plan_portfolio([{"purchase_status": "completed"}], as_of="2026-10-22")
+            plan_portfolio([{"purchase_status": "completed"}], as_of="2026-10-22",requested_days=30)
 
     def test_keys_cannot_collide_on_embedded_delimiters(self):
         self.assertNotEqual(card_key(("w|b", "la", "ser|1")),
