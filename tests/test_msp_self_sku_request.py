@@ -99,7 +99,7 @@ class SkuRequestTests(unittest.TestCase):
     def test_all_review_checkpoints_preserved(self):
         plan = plan_requested_sku(self.db, marketplace="wb",
                                   store="laser", sku="123456789",
-                                  as_of="2026-10-23")
+                                  as_of="2026-10-23",requested_days=30)
         self.assertEqual(plan["recorded_purchase_rows"], 3)
         self.assertEqual(plan["analysis_plan"]["series"]["planned_total_per_card"], 5)
         self.assertEqual([x["effective_days_each"]
