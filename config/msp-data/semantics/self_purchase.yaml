@@ -227,7 +227,11 @@ review_checkpoint_analytics:
   review_date_meaning: "each row's registry-recorded review date, not a plan count and not independently verified publication"
   event_count: "COUNT(completed source rows); no inference from quantity"
   event_anchor: "each distinct nonnull review_date, chronological order; group multiple same-day recorded reviews into one calendar checkpoint"
-  requested_days_default: 30
+  requested_days_default: 90
+  requested_days_hard_cap: 90
+  requested_days_rule: 'min(90, full completed days after review_date before as_of and days before next distinct review_date where applicable)'
+  historical_30_day_values: 'legacy partial windows; never reuse as final 90-day comparisons'
+  owner_correction: '2026-10-23; symmetric finished-day periods up to 90; review and today excluded'
   as_of_is_exclusive: true
   first_baseline_anchor: "strictly before first recorded review_date"
   checkpoint_post_anchor: "strictly after current checkpoint review_date"
@@ -236,7 +240,7 @@ review_checkpoint_analytics:
   effective_days: "min(requested_days, full days since current review before as_of, calendar days before next review)"
   before_window: "first_review_date - N ... first_review_date - 1"
   after_window: "checkpoint_review_date + 1 ... checkpoint_review_date + N"
-  short_window: "SHORTER_EQUAL_WINDOW_PRELIMINARY; same N on both sides, not 30 vs fewer"
+  short_window: "SHORTER_EQUAL_WINDOW_PRELIMINARY; same N on both sides, not 90 vs fewer"
   no_finished_post_day: "POST_WINDOW_PENDING; no fabricated metrics"
   multiperiod_report: "one checkpoint report for first, second, third and all successive dated review groups"
   historical_final_aggregate: "retained as overall series summary before first and after latest, never a substitute for each checkpoint"
