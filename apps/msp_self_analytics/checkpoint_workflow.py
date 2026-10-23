@@ -41,7 +41,7 @@ def plan_checkpoint_reads(
     rows: list[dict],
     *,
     as_of: str,
-    requested_days: int = 30,
+    requested_days: int = 90,
     max_checkpoints: int = 12,
     max_provider_reads: int = 24,
 ) -> dict:
@@ -101,7 +101,7 @@ def assemble_checkpoint_analysis(
     observations: dict[str, dict],
     *,
     as_of: str,
-    requested_days: int = 30,
+    requested_days: int = 90,
     max_checkpoints: int = 12,
     max_provider_reads: int = 24,
 ) -> dict:
