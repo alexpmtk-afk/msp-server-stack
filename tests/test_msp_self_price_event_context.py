@@ -42,6 +42,35 @@ class PriceContextTests(unittest.TestCase):
         self.assertEqual(result["checkpoints"][1]["recorded_price_changes_between_windows"],1)
         self.assertEqual(result["checkpoints"][2]["recorded_price_changes_between_windows"],1)
 
+    def test_numeric_prices_after_review_must_be_exposed(self):
+        result=price_event_context(base(), [
+            {"event_date":"2026-09-01","source_segment":"current",
+             "source_ordinal":1,"old_price":"2 000,00","new_price":"1700",
+             "list_price":"2300","minimum_price":"1500"}],
+             source_status="VERIFIED_READONLY_VIEW")
+        cp=result["checkpoints"][2]
+        self.assertTrue(cp["post_review_seller_price_changed_in_journal"])
+        record=cp["after_window_price_events"][0]
+        self.assertEqual(record["old_seller_price_rub"],"2000.00")
+        self.assertEqual(record["new_seller_price_rub"],"1700")
+        self.assertEqual(record["change_rub"],"-300.00")
+        self.assertEqual(record["change_percent"],"-15.00")
+        self.assertEqual(record["source_segment"],"current")
+        self.assertTrue(record["old_new_pair_verified"])
+        self.assertEqual(record["price_kind"],
+                         "seller_price_after_seller_discount_not_buyer_final")
+
+    def test_missing_prices_remain_unknown_not_zero(self):
+        result=price_event_context(base(), [
+            {"event_date":"2026-09-01","source_segment":"archive",
+             "old_price":None,"new_price":""}],
+             source_status="VERIFIED_READONLY_VIEW")
+        record=result["checkpoints"][2]["after_window_price_events"][0]
+        self.assertIsNone(record["old_seller_price_rub"])
+        self.assertIsNone(record["new_seller_price_rub"])
+        self.assertIsNone(record["change_percent"])
+        self.assertFalse(record["old_new_pair_verified"])
+
     def test_unavailable_view_never_claims_stable_price(self):
         x=price_event_context(base(),[],source_status="UNAVAILABLE")
         self.assertEqual(x["status"],"UNKNOWN_PRICE_HISTORY")
