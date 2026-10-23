@@ -15,6 +15,7 @@ on:
       - 'tests/test_msp_self_peer_evidence.py'
       - 'tests/test_msp_self_mpstats_option_comparison.py'
       - 'tests/test_msp_self_decision_indicators.py'
+      - 'tests/test_msp_self_review_checkpoints.py'
       - 'apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/case_report.py apps/msp_self_analytics/peer_prefilter.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
@@ -24,6 +25,7 @@ on:
       - 'tests/test_msp_self_peer_evidence.py'
       - 'tests/test_msp_self_mpstats_option_comparison.py'
       - 'tests/test_msp_self_decision_indicators.py'
+      - 'tests/test_msp_self_review_checkpoints.py'
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
@@ -57,3 +59,4 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_self_peer_evidence.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_mpstats_option_comparison.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_decision_indicators.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_review_checkpoints.py' -v
