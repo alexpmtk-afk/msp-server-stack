@@ -67,6 +67,10 @@ def build_observational_case(
         narrative+="\nЖурнал цен: надёжное датированное сопоставление пока недоступно."
     else:
         for p in prices["checkpoints"]:
+            for event in p.get("after_window_price_events") or []:
+                old, new = event.get("old_seller_price_rub"), event.get("new_seller_price_rub")
+                price = (old + " → " + new + " ₽") if old is not None and new is not None else "цены неизвестны"
+                narrative += ("\nЦена ПОСЛЕ отзыва " + event["event_date"] + ": " + price + "; журнал МСП.")
             if p.get("confounding_price_events"):
                 narrative+=(
                     "\nКонтроль "+str(p["checkpoint_number"])+
