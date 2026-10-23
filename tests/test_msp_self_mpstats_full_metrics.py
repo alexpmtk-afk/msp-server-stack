@@ -26,6 +26,8 @@ class MpstatsExpandedFieldsTests(unittest.TestCase):
         self.assertTrue(skill.startswith('---\nname: msp-self-purchases\n'))
         self.assertIn('общий план на карточку', skill)
         self.assertIn('после каждой даты отзыва', skill)
+        self.assertIn('scripts/msp_self_sku_report_cli.py', skill)
+        self.assertIn('TELEGRAM', skill.upper())
         self.assertNotIn('по карточке/периоду считай сумму единиц, не число строк', skill)
         self.assertNotIn('Для каждой завершённой строки из `v_self_purchase` сохраняй', skill)
 
