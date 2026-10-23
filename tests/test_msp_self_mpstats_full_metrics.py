@@ -19,6 +19,16 @@ def events():
 
 
 class MpstatsExpandedFieldsTests(unittest.TestCase):
+    def test_hermes_skill_frontmatter_and_nonadditive_quantity(self):
+        from pathlib import Path
+        skill = (Path(__file__).resolve().parents[1] /
+                 'apps/hermes/msp_self_purchases_skill/SKILL.md').read_text(encoding='utf-8')
+        self.assertTrue(skill.startswith('---\nname: msp-self-purchases\n'))
+        self.assertIn('общий план на карточку', skill)
+        self.assertIn('после каждой даты отзыва', skill)
+        self.assertNotIn('по карточке/периоду считай сумму единиц, не число строк', skill)
+        self.assertNotIn('Для каждой завершённой строки из `v_self_purchase` сохраняй', skill)
+
     def test_field_names_not_hallucinated_and_zero_not_missing(self):
         src = {
           "sales":0, "revenue":0, "days_in_stock":0,
