@@ -125,8 +125,7 @@ class CheckpointWorkflowTests(unittest.TestCase):
             series(), observations(p), as_of="2026-10-22")
         text = format_checkpoint_history_ru(r, label="Контрольный товар")
         self.assertEqual(text.count("Контроль "), 3)
-        self.assertIn("одинаковые", text.lower()) if False else None
-        self.assertIn("1–", text)
+        self.assertIn("Контроль 1", text)
         self.assertIn("30-дневный итог", text)
         self.assertIn("не доказывает", text)
         self.assertNotIn("эффективность подтверждена", text)
