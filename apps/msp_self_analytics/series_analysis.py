@@ -40,18 +40,18 @@ def analyze_series(
     rows: list[dict],
     *,
     as_of: str,
-    requested_days: int = 30,
+    requested_days: int = 90,
     independently_verified_review_ids: list[str] | None = None,
 ) -> dict:
     """Analyze ONE marketplace/store/SKU series from separate completed rows.
 
     The caller must only pass rows for a single identity. A missing review_date
     means the purchased row did not yet provide a reported publication date.
-    One link shared by multiple rows never proves unique independent reviews.
+    One link shared by multiple rows never proves unique independent reviews.\n    Default: equal complete observed days before/after, hard cap 90 days.
     """
     if not isinstance(rows, list) or not rows:
         raise SeriesDataError("NO_COMPLETED_ROWS")
-    if isinstance(requested_days, bool) or not isinstance(requested_days, int) or requested_days < 1:
+    if isinstance(requested_days, bool) or not isinstance(requested_days, int) or not 1 <= requested_days <= 90:
         raise SeriesDataError("INVALID_WINDOW_DAYS")
     today = _day(as_of)
     assert today is not None
