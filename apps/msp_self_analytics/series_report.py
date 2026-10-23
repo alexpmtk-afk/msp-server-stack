@@ -39,7 +39,7 @@ def _change(a,b):
             "percent": (100*(b/a-1) if a is not None and b is not None and a>0 else None)}
 
 
-def build_series_report(rows, before, after, *, as_of, requested_days=30):
+def build_series_report(rows, before, after, *, as_of, requested_days=90):
     series=analyze_series(rows,as_of=as_of,requested_days=requested_days)
     output={"report_type":"CARD_REVIEW_SERIES_DESCRIPTIVE",
             "series":series,"status":series["status"],
@@ -77,7 +77,7 @@ def build_series_report(rows, before, after, *, as_of, requested_days=30):
 
 
 def build_series_checkpoint_reports(rows, observations_by_checkpoint, *,
-                                    as_of, requested_days=30):
+                                    as_of, requested_days=90):
     """Create one independent MPSTATS observation per *dated* review checkpoint.
 
     observations_by_checkpoint maps 1-based checkpoint index to:
@@ -94,7 +94,7 @@ def build_series_checkpoint_reports(rows, observations_by_checkpoint, *,
         num = cp["checkpoint_number"]
         row = {
             "checkpoint_number": num,
-            "review_date": cp["review_date"],
+            "review_date": cp["review_date"],\n            "requested_days_each": cp["requested_days_each"],\n            "effective_days_each": cp["effective_days_each"],
             "recorded_review_rows_on_date": cp["recorded_review_rows_on_date"],
             "cumulative_recorded_review_rows": cp["cumulative_recorded_review_rows"],
             "status": cp["status"],
