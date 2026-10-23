@@ -283,7 +283,7 @@ historical_unit_and_review_evidence:
   when_targets_conflict: "TARGET_CONFLICT; no arbitrary max/min and no fabricated count"
   series_primary_start: "earliest review_date for the same marketplace/store/SKU"
   series_primary_end: "latest review_date for the same marketplace/store/SKU"
-  default_window_days: 30
+  default_window_days: 90
   windows: "legacy overall-series summary only; each review-date checkpoint uses its own equal pre-first/post-event windows, censored before next event; see review_checkpoint_analytics"
   interim_allowed: "after any subset of recorded review rows, explicitly INTERMEDIATE_SERIES"
   full_series_gate: "completed row count reaches target, dated review count reaches target, after window completed; publication evidence separate"
