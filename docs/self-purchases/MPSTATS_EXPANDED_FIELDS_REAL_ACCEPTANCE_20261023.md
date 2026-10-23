@@ -42,3 +42,9 @@
 - `config/msp-data/semantics/self_purchase.yaml` → `mpstats_external_metrics`.
 
 Ограничения: испытано на WB и `wb_sku(full)`. API другого отчёта или Ozon может возвращать иной набор полей. Не подключать новые кабинеты только из-за недостающей колонки. Не делать скрытых, искусственных или неаутентичных заказов или отзывов. Это анализ уже записанной истории.
+
+## Установка в Hermes — подтверждена 23.10.2026
+
+[Private issue №576](https://github.com/alexpmtk-afk/msp-server-bridge/issues/576) завершилась **`INSTALLED_PASS`**, исходная версия `e95060d7bee8303dc2fcc94747a97c07f8bc04a0`. На VPS в `/home/hermes/.hermes/skills/productivity/msp-self-purchases/` установлены и сверены 8 расчётных модулей, включая новый `scripts/mpstats_full_metrics.py`; семантика `references/self_purchase_semantics_v11.yaml` и документ `references/MPSTATS_EXPANDED_FIELDS_REAL_ACCEPTANCE_20261023.md` также проверены по SHA-256. Новое правило находится в начале `SKILL.md`.
+
+Итоги защищённого скрипта: `regression_three_checkpoint_test=PASS`, `integrated_observational_regression=PASS`, `expanded_metric_regression=PASS`; старые первоисточники сохранены, резервная копия прежнего Skill оставлена. `database_writes=0`, `marketplace_writes=0`, `service_restarts=0`. Это подтверждает установку файлов и изолированный тест функции; **не** подтверждает запуск произвольного Telegram-запроса или периодической рассылки всех карточек.
