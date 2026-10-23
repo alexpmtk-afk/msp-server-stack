@@ -38,6 +38,10 @@ The live MCP schema explains how to call tools. These references define what eac
 
 For money/percent/count fields, consult `references/metric_semantics.json` before arithmetic or business conclusions. If currency, percent scale, order-vs-sale basis, or accounting basis is marked unverified, preserve the raw provider value and say that the unit/basis is not yet independently verified.
 
+## Price history context for retrospective SKU analyses (23.10.2026)
+
+When MPSTATS is used for historical outcome analysis after a recorded review date, ALWAYS reconcile read-only MSP `v_price_history` seller events by `marketplace/store/marketplace_sku`. For post-review seller-price edits report the **event date, old_price → new_price RUB, delta RUB and percent where verifiable**; unknown is not zero. `new_price` is seller price after seller discount, not independently verified final buyer price. A dated MPSTATS historical price series is a separate provider source and requires a confirmed read-only tool/schema/granularity; `wb_sku(full)` period statistics or a current price snapshot are not proof of daily history. Never substitute an unverified MPSTATS price trajectory. Show disagreements as two labeled sources. Price movements confound attribution of order changes to reviews but alone do not establish causality.
+
 ## Hard source-routing rules
 
 1. Internal listing identity is `marketplace + store + marketplace_sku`.

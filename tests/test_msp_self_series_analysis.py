@@ -18,7 +18,7 @@ def urn_rows(plan=5):
 
 class TestSeries(unittest.TestCase):
     def test_urn_three_of_five_not_fifteen(self):
-        a=m.analyze_series(urn_rows(),as_of="2026-10-22")
+        a=m.analyze_series(urn_rows(),as_of="2026-10-22",requested_days=30)
         self.assertEqual(a["planned_total_per_card"],5)
         self.assertEqual(a["recorded_completed_purchase_rows"],3)
         self.assertEqual(a["recorded_purchase_occurrences"],3)
@@ -49,7 +49,7 @@ class TestSeries(unittest.TestCase):
     def test_not_yet_reviewed_row_is_not_published_feedback(self):
         r=urn_rows()
         r.append({**r[-1],"source_row":40,"purchase_date":"2026-08-23","review_date":None})
-        a=m.analyze_series(r,as_of="2026-10-22")
+        a=m.analyze_series(r,as_of="2026-10-22",requested_days=30)
         self.assertEqual(a["recorded_completed_purchase_rows"],4)
         self.assertEqual(a["recorded_review_date_rows"],3)
         self.assertEqual(a["rows_without_review_date"],1)
@@ -60,7 +60,7 @@ class TestSeries(unittest.TestCase):
         for i,date in enumerate(("2026-08-24","2026-09-01"),1):
             r.append({**r[-1],"source_row":40+i,
                 "purchase_date":date,"review_date":("2026-08-31" if i==1 else "2026-09-08")})
-        a=m.analyze_series(r,as_of="2026-10-22")
+        a=m.analyze_series(r,as_of="2026-10-22",requested_days=30)
         self.assertEqual(a["series_phase"],"REPORTED_SERIES_COMPLETE_PUBLICATION_UNVERIFIED")
         self.assertEqual(a["latest_review_date"],"2026-09-08")
         self.assertEqual(a["windows"]["after"]["d1"],"2026-09-09")
@@ -69,7 +69,7 @@ class TestSeries(unittest.TestCase):
     def test_conflicting_target_is_explicit_not_summed(self):
         r=urn_rows()
         r[1]["quantity"]=4
-        a=m.analyze_series(r,as_of="2026-10-22")
+        a=m.analyze_series(r,as_of="2026-10-22",requested_days=30)
         self.assertEqual(a["series_phase"],"TARGET_CONFLICT")
         self.assertIsNone(a["planned_total_per_card"])
         self.assertEqual(a["planned_total_values_conflict"],[4,5])
@@ -78,22 +78,22 @@ class TestSeries(unittest.TestCase):
         r=urn_rows()
         r[2]["marketplace_sku"]="111333555"
         with self.assertRaisesRegex(m.SeriesDataError,"MIXED_CARD_IDENTITIES"):
-            m.analyze_series(r,as_of="2026-10-22")
+            m.analyze_series(r,as_of="2026-10-22",requested_days=30)
 
     def test_duplicate_source_row_rejected(self):
         r=urn_rows();r[1]["source_row"]=22
         with self.assertRaisesRegex(m.SeriesDataError,"DUPLICATE_SOURCE_ROW"):
-            m.analyze_series(r,as_of="2026-10-22")
+            m.analyze_series(r,as_of="2026-10-22",requested_days=30)
 
     def test_public_reviews_not_automatically_verified(self):
-        a=m.analyze_series(urn_rows(),as_of="2026-10-22")
+        a=m.analyze_series(urn_rows(),as_of="2026-10-22",requested_days=30)
         self.assertIsNone(a["independently_verified_distinct_review_count"])
         self.assertFalse(a["individual_publication_dates_independently_verified"])
         self.assertFalse(a["sale_effect_not_proven"] is False)
 
     def test_case_without_review_date_is_not_eligible(self):
         r=urn_rows()[:1];r[0]["review_date"]=None
-        a=m.analyze_series(r,as_of="2026-10-22")
+        a=m.analyze_series(r,as_of="2026-10-22",requested_days=30)
         self.assertEqual(a["status"],"NO_REVIEW_DATE")
         self.assertIsNone(a["windows"])
 

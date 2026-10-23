@@ -22,7 +22,7 @@ class TestFullSeriesReport(unittest.TestCase):
  def test_correct_urn_plan_and_windows_with_sales(self):
   before=values("2026-07-06","2026-08-04",4)
   after=values("2026-08-19","2026-09-17",7)
-  r=build_series_report(urn(),before,after,as_of="2026-10-22")
+  r=build_series_report(urn(),before,after,as_of="2026-10-22",requested_days=30)
   self.assertEqual(r["status"],"INTERMEDIATE_FULL_WINDOW")
   self.assertEqual(r["series"]["recorded_completed_purchase_rows"],3)
   self.assertEqual(r["series"]["planned_total_per_card"],5)
@@ -33,7 +33,7 @@ class TestFullSeriesReport(unittest.TestCase):
  def test_provider_mismatched_time_is_not_accepted(self):
   before=values("2026-07-06","2026-08-04",4)
   after=values("2026-08-19","2026-09-16",7)
-  r=build_series_report(urn(),before,after,as_of="2026-10-22")
+  r=build_series_report(urn(),before,after,as_of="2026-10-22",requested_days=30)
   self.assertEqual(r["status"],"MPSTATS_WINDOWS_INCOMPLETE")
   self.assertIsNone(r["provider_observations"].get("estimated_sales_change"))
 
@@ -47,7 +47,7 @@ class TestFullSeriesReport(unittest.TestCase):
  def test_zero_sales_not_a_missing_value(self):
   before=values("2026-07-06","2026-08-04",0)
   after=values("2026-08-19","2026-09-17",2)
-  r=build_series_report(urn(),before,after,as_of="2026-10-22")
+  r=build_series_report(urn(),before,after,as_of="2026-10-22",requested_days=30)
   self.assertIsNone(r["provider_observations"]["estimated_sales_change"]["percent"])
   self.assertEqual(r["provider_observations"]["estimated_sales_change"]["absolute"],2)
 

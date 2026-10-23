@@ -1,4 +1,4 @@
-version: 9
+version: 11
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -185,6 +185,74 @@ limitations:
   - "Повторные записи одного SKU на одну дату различаются source_ordinal; перестановка может изменить идентичность."
   - "Планы со строками, удалёнными из текущего источника, остаются в таблице аудита с is_current=0."
 
+mpstats_external_metrics:
+  verified_on: "2026-10-23"
+  source_method: "wb_sku(report=full), period_stats"
+  mode: "external_analytics_stock_parser"
+  no_additional_seller_cabinet_required: true
+  linked_report: "docs/self-purchases/MPSTATS_EXPANDED_FIELDS_REAL_ACCEPTANCE_20261023.md"
+  technical_field_sales:
+    ui_label_since_2026: "Заказы, шт."
+    meaning: "external MPSTATS estimate, including potential recorded self-purchases, not verified paid or organic orders"
+    no_duplicate_add_to_sales_estimated: true
+  technical_field_revenue:
+    ui_label_since_2026: "Заказы, руб."
+    meaning: "external MPSTATS monetary estimate, not payment or realized margin"
+  technical_field_days_in_stock:
+    meaning: "provider's available stock days; compare stock-day rates only if present and >0"
+  optional_fields: [sales_estimated, revenue_estimated, purchase, purchase_after_return, lost_profit]
+  optional_fields_rule: "keep exact provider field names; do not infer unit or interpretation absent provider endpoint evidence"
+  order_count_field_orders_available_in_wb_sku_full_probe: false
+  refund_count_field_available_in_wb_sku_full_probe: false
+  unavailable_means: UNKNOWN
+  NEVER:
+    - "derive refunds as purchase minus purchase_after_return"
+    - "sum sales and sales_estimated"
+    - "call any provider field independently confirmed paid organic orders"
+    - "treat external sum revenue as verified seller profit"
+    - "attribute changes causally to historical self-purchase events"
+  history_windows: "for every dated review checkpoint use equal complete days before first/after current, censor at next event"
+  live_readonly_probes: [573, 574, 575]
+
+review_checkpoint_analytics:
+  policy_approved: "2026-10-23"
+  policy_document: "docs/self-purchases/PER_REVIEW_CHECKPOINT_WINDOWS_20261023.md"
+  precedence: "per-date checkpoint observations have priority over the former sole first-to-last aggregate; keep former only for longitudinal series summary"
+  grouping_key: [marketplace, store, marketplace_sku]
+  target_source_column: "Кол-во выкупов"
+  target_sqlite_field: self_purchase.quantity
+  target_meaning: "repeated total planned event count per card; never sum(quantity)"
+  review_date_source_column: "Дата отзыва"
+  review_date_sqlite_field: self_purchase.review_date
+  review_date_meaning: "each row's registry-recorded review date, not a plan count and not independently verified publication"
+  event_count: "COUNT(completed source rows); no inference from quantity"
+  event_anchor: "each distinct nonnull review_date, chronological order; group multiple same-day recorded reviews into one calendar checkpoint"
+  requested_days_default: 90
+  requested_days_hard_cap: 90
+  requested_days_rule: 'min(90, full completed days after review_date before as_of and days before next distinct review_date where applicable)'
+  historical_30_day_values: 'legacy partial windows; never reuse as final 90-day comparisons'
+  owner_correction: '2026-10-23; symmetric finished-day periods up to 90; review and today excluded'
+  as_of_is_exclusive: true
+  first_baseline_anchor: "strictly before first recorded review_date"
+  checkpoint_post_anchor: "strictly after current checkpoint review_date"
+  checkpoint_day_excluded: true
+  next_checkpoint_censor: "strictly stop before next recorded review_date, never include later review events in earlier checkpoint post-window"
+  effective_days: "min(requested_days, full days since current review before as_of, calendar days before next review)"
+  before_window: "first_review_date - N ... first_review_date - 1"
+  after_window: "checkpoint_review_date + 1 ... checkpoint_review_date + N"
+  short_window: "SHORTER_EQUAL_WINDOW_PRELIMINARY; same N on both sides, not 90 vs fewer"
+  no_finished_post_day: "POST_WINDOW_PENDING; no fabricated metrics"
+  multiperiod_report: "one checkpoint report for first, second, third and all successive dated review groups"
+  historical_final_aggregate: "retained as overall series summary before first and after latest, never a substitute for each checkpoint"
+  provider_data: "query independent exact date-aligned MPSTATS observations for EACH checkpoint"
+  price_journal_required_each_checkpoint: true
+  price_journal_identity: "marketplace,store,marketplace_sku; v_price_history readonly; current + archive"
+  price_history_numeric_reporting: "For each dated event AFTER review: event_date; old_price->new_price in RUB; optional delta and percent, unknown not zero"
+  mpstats_price_validation: "Separate read-only dated provider history only if tool, account scope and chronological field contract confirmed; otherwise UNKNOWN"
+  attribution_guard: "Post-review price changes are independent potential demand confounders, not proof of self-purchase or price effects"
+  effect: "descriptive only; multiple marketing/stock/price changes and event overlap prevent causal attribution"
+  no_marketplace_actions: true
+
 review_outcome_analytics:
   policy_approved: "2026-10-22"
   canonical_document: "docs/self-purchases/REVIEW_PUBLICATION_EVENT_MODEL_20261022.md"
@@ -220,8 +288,8 @@ historical_unit_and_review_evidence:
   when_targets_conflict: "TARGET_CONFLICT; no arbitrary max/min and no fabricated count"
   series_primary_start: "earliest review_date for the same marketplace/store/SKU"
   series_primary_end: "latest review_date for the same marketplace/store/SKU"
-  default_window_days: 30
-  windows: "N days strictly before first review_date and N days strictly after latest review_date; exclude review days and middle series"
+  default_window_days: 90
+  windows: "legacy overall-series summary only; each review-date checkpoint uses its own equal pre-first/post-event windows, censored before next event; see review_checkpoint_analytics"
   interim_allowed: "after any subset of recorded review rows, explicitly INTERMEDIATE_SERIES"
   full_series_gate: "completed row count reaches target, dated review count reaches target, after window completed; publication evidence separate"
   incomplete_followup: "use shorter equal observed windows explicitly preliminary, or POST_WINDOW_PENDING"
