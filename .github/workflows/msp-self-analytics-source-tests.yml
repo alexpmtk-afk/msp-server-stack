@@ -21,6 +21,7 @@ on:
       - 'tests/test_msp_self_integrated_analytics.py'
       - 'tests/test_msp_self_mpstats_full_metrics.py'
       - 'tests/test_msp_self_sku_request.py'
+      - 'tests/test_msp_self_dynamic_90_days.py'
       - 'apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/case_report.py apps/msp_self_analytics/peer_prefilter.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
@@ -36,6 +37,7 @@ on:
       - 'tests/test_msp_self_integrated_analytics.py'
       - 'tests/test_msp_self_mpstats_full_metrics.py'
       - 'tests/test_msp_self_sku_request.py'
+      - 'tests/test_msp_self_dynamic_90_days.py'
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
@@ -75,3 +77,4 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_self_integrated_analytics.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_mpstats_full_metrics.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_sku_request.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_dynamic_90_days.py' -v
