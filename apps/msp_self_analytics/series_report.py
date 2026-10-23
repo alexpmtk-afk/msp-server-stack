@@ -94,7 +94,9 @@ def build_series_checkpoint_reports(rows, observations_by_checkpoint, *,
         num = cp["checkpoint_number"]
         row = {
             "checkpoint_number": num,
-            "review_date": cp["review_date"],\n            "requested_days_each": cp["requested_days_each"],\n            "effective_days_each": cp["effective_days_each"],
+            "review_date": cp["review_date"],
+            "requested_days_each": cp["requested_days_each"],
+            "effective_days_each": cp["effective_days_each"],
             "recorded_review_rows_on_date": cp["recorded_review_rows_on_date"],
             "cumulative_recorded_review_rows": cp["cumulative_recorded_review_rows"],
             "status": cp["status"],
