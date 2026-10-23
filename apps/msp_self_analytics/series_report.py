@@ -74,3 +74,66 @@ def build_series_report(rows, before, after, *, as_of, requested_days=30):
                       "FINAL_REPORTED_FULL_WINDOW" if windows["full_requested_window"]
                       else "INTERMEDIATE_SHORT_EQUAL_WINDOW")
     return output
+
+
+def build_series_checkpoint_reports(rows, observations_by_checkpoint, *,
+                                    as_of, requested_days=30):
+    """Create one independent MPSTATS observation per *dated* review checkpoint.
+
+    observations_by_checkpoint maps 1-based checkpoint index to:
+      {"before": <provider payload>, "after": <provider payload>}
+    The caller must independently request provider windows *for each checkpoint*;
+    this function rejects mismatched windows instead of recycling a final-stage
+    MPSTATS observation as earlier-stage evidence.
+    """
+    series = analyze_series(rows, as_of=as_of, requested_days=requested_days)
+    if not isinstance(observations_by_checkpoint, dict):
+        raise ValueError("CHECKPOINT_OBSERVATIONS_DICTIONARY_REQUIRED")
+    results = []
+    for cp in series["checkpoints"]:
+        num = cp["checkpoint_number"]
+        row = {
+            "checkpoint_number": num,
+            "review_date": cp["review_date"],
+            "recorded_review_rows_on_date": cp["recorded_review_rows_on_date"],
+            "cumulative_recorded_review_rows": cp["cumulative_recorded_review_rows"],
+            "status": cp["status"],
+            "windows": cp["windows"],
+            "provider_observations": None,
+            "causal_conclusion": False,
+        }
+        if cp["windows"] is None:
+            results.append(row)
+            continue
+        incoming = observations_by_checkpoint.get(num)
+        if not isinstance(incoming, dict):
+            row["status"] = "MPSTATS_WINDOWS_NOT_PROVIDED"
+            results.append(row)
+            continue
+        dates = cp["windows"]
+        days = cp["effective_days_each"]
+        before = _window(incoming.get("before"), dates["before"], days)
+        after = _window(incoming.get("after"), dates["after"], days)
+        if not (before.get("valid") and after.get("valid")):
+            row["status"] = "MPSTATS_WINDOWS_INCOMPLETE"
+            row["provider_observations"] = {"before": before, "after": after}
+            results.append(row)
+            continue
+        row["provider_observations"] = {
+            "before": before, "after": after,
+            "estimated_sales_change": _change(before["sales"], after["sales"]),
+            "sales_per_provider_stock_day_change": _change(
+                before["sales_per_provider_stock_day"],
+                after["sales_per_provider_stock_day"]),
+            "provider_is_estimate_not_verified_paid_orders": True,
+        }
+        results.append(row)
+    return {
+        "report_type": "CARD_REVIEW_EACH_CHECKPOINT_DESCRIPTIVE",
+        "series": series,
+        "checkpoints": results,
+        "recorded_reviews_are_not_independent_publication_proof": True,
+        "estimated_sales_are_not_verified_paid_orders": True,
+        "causal_conclusion": False,
+        "marketplace_actions_allowed": False,
+    }
