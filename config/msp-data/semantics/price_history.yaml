@@ -102,5 +102,35 @@
   "relations": "LEFT JOIN catalog on complete listing business key",
   "normalization": "Inherited from source datasets",
   "updates": "Dynamic view, immediately reflects both event segments and catalog changes",
-  "limitations": "Unmatched events are retained; match status is not price freshness or execution proof"
+  "limitations": "Unmatched events are retained; match status is not price freshness or execution proof",
+  "observational_reporting": {
+    "required_for": "each dated review checkpoint SKU analysis",
+    "join_key": [
+      "marketplace",
+      "store",
+      "marketplace_sku"
+    ],
+    "read_only_view": "v_price_history",
+    "segments": [
+      "current",
+      "archive"
+    ],
+    "windows": [
+      "before",
+      "between",
+      "after"
+    ],
+    "after_event_required_fields": [
+      "event_date",
+      "old_price",
+      "new_price"
+    ],
+    "derived_when_both_prices_valid": [
+      "change_rub",
+      "change_percent"
+    ],
+    "data_uncertainty": "missing price values unknown not zero; seller price is not final buyer price",
+    "causal_rule": "after-review seller price correction is confounder not proof of order change cause",
+    "mpstats_crosscheck": "separate read-only dated MPSTATS history only after schema, access, price type and temporal granularity verified"
+  }
 }
