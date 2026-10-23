@@ -67,9 +67,27 @@ def format_checkpoint_history_ru(report: dict, *, label: str | None = None) -> s
             lines.append("  MPSTATS: нет двух проверенных ответов за точные даты.")
             continue
         before, after = obs["before"], obs["after"]
-        lines.append("  Оценочные продажи MPSTATS: " +
+        lines.append("  Внешняя оценка заказов MPSTATS (поле sales): " +
                      _number(before.get("sales")) + " ДО → " +
                      _number(after.get("sales")) + " ПОСЛЕ.")
+        # Expose only validated, paired numeric fields. Provider has renamed
+        # external stock-parser sales/revenue to Orders pcs/Orders rub in UI.
+        # Do not treat 'purchase' fields as proven return counts.
+        details = cp.get("additional_mpstats_metrics") or {}
+        fields = details.get("fields") or {}
+        money = fields.get("revenue") or {}
+        if money.get("state") == "AVAILABLE":
+            lines.append("  Сумма оценочных заказов MPSTATS (поле revenue): " +
+                         _number(money.get("before")) + " ДО → " +
+                         _number(money.get("after")) + " ПОСЛЕ.")
+        for key in ("sales_estimated", "revenue_estimated", "purchase",
+                    "purchase_after_return"):
+            detail = fields.get(key) or {}
+            if detail.get("state") == "AVAILABLE":
+                lines.append("  Дополнительный показатель MPSTATS " + key + ": " +
+                             _number(detail.get("before")) + " ДО → " +
+                             _number(detail.get("after")) +
+                             " ПОСЛЕ (тип/единицы не приравниваем к продажам или возвратам).")
         lines.append("  Дни наличия по MPSTATS: " +
                      _number(before.get("provider_stock_days")) + " ДО → " +
                      _number(after.get("provider_stock_days")) + " ПОСЛЕ.")
@@ -81,6 +99,11 @@ def format_checkpoint_history_ru(report: dict, *, label: str | None = None) -> s
         if "OTHER_PRICE_ADVERTISING_DEMAND_CONFOUNDERS_UNVERIFIED" in flags:
             lines.append("  Изменения цены, рекламы и спроса отдельно не исключены.")
     lines.extend([
+        "Показатели API sales/revenue относятся к внешней оценке MPSTATS "
+        "(в интерфейсе с 2026 года — заказы и их сумма), не подтверждают "
+        "фактическую оплату или органическое происхождение заказов.",
+        "Отдельное количество возвратов и фактическая сумма выплат "
+        "из данного ответа пока не подтверждены.",
         "Исторические рейтинги, публикация каждого отзыва и реальные оплаченные "
         "органические заказы отдельно не подтверждены.",
         "Итог: наблюдаемая динамика не доказывает причинное действие прошлых выкупов "
