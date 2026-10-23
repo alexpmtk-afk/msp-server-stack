@@ -58,7 +58,7 @@ def _group_completed(rows: list[dict], *, max_cards: int) -> tuple[dict, int]:
 
 
 def plan_portfolio(
-    rows: list[dict], *, as_of: str, requested_days: int = 30,
+    rows: list[dict], *, as_of: str, requested_days: int = 90,
     max_cards: int = 20,
 ) -> dict:
     """Group cards and issue at most two exact period requests per eligible card.
@@ -107,7 +107,7 @@ def plan_portfolio(
 
 def build_portfolio_report(
     rows: list[dict], observations: dict[str, dict] | None, *,
-    as_of: str, requested_days: int = 30, max_cards: int = 20,
+    as_of: str, requested_days: int = 90, max_cards: int = 20,
 ) -> dict:
     """Produce individual human-readable observations after provider readback.
 
