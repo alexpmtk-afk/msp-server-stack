@@ -19,6 +19,7 @@ on:
       - 'tests/test_msp_self_checkpoint_workflow.py'
       - 'tests/test_msp_self_price_event_context.py'
       - 'tests/test_msp_self_integrated_analytics.py'
+      - 'tests/test_msp_self_mpstats_full_metrics.py'
       - 'apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/case_report.py apps/msp_self_analytics/peer_prefilter.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
@@ -32,6 +33,7 @@ on:
       - 'tests/test_msp_self_checkpoint_workflow.py'
       - 'tests/test_msp_self_price_event_context.py'
       - 'tests/test_msp_self_integrated_analytics.py'
+      - 'tests/test_msp_self_mpstats_full_metrics.py'
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
@@ -52,7 +54,7 @@ jobs:
       - name: Test source quality module without network or real marketplace data
         shell: bash
         run: |
-          python3 -m py_compile apps/msp_self_analytics/source_quality.py apps/msp_self_analytics/retrospective.py apps/msp_self_analytics/review_event.py apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/series_analysis.py apps/msp_self_analytics/series_report.py apps/msp_self_analytics/series_report_ru.py apps/msp_self_analytics/batch_report.py apps/msp_self_analytics/peer_evidence.py apps/msp_self_analytics/mpstats_option_comparison.py apps/msp_self_analytics/decision_indicators.py apps/msp_self_analytics/checkpoint_workflow.py apps/msp_self_analytics/checkpoint_report_ru.py apps/msp_self_analytics/price_event_context.py apps/msp_self_analytics/self_purchase_analysis.py apps/msp_self_analytics/case_report.py
+          python3 -m py_compile apps/msp_self_analytics/source_quality.py apps/msp_self_analytics/retrospective.py apps/msp_self_analytics/review_event.py apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/series_analysis.py apps/msp_self_analytics/series_report.py apps/msp_self_analytics/series_report_ru.py apps/msp_self_analytics/batch_report.py apps/msp_self_analytics/peer_evidence.py apps/msp_self_analytics/mpstats_option_comparison.py apps/msp_self_analytics/decision_indicators.py apps/msp_self_analytics/checkpoint_workflow.py apps/msp_self_analytics/mpstats_full_metrics.py apps/msp_self_analytics/checkpoint_report_ru.py apps/msp_self_analytics/price_event_context.py apps/msp_self_analytics/self_purchase_analysis.py apps/msp_self_analytics/case_report.py
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_source_quality.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_retrospective.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_review_event.py' -v
@@ -69,3 +71,4 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_self_checkpoint_workflow.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_price_event_context.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_integrated_analytics.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_mpstats_full_metrics.py' -v
