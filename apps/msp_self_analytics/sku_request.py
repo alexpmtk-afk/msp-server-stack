@@ -91,7 +91,7 @@ def plan_requested_sku(
     store: str,
     sku: str,
     as_of: str,
-    requested_days: int = 30,
+    requested_days: int = 90,
     max_checkpoints: int = 12,
     max_provider_reads: int = 24,
 ) -> dict:
