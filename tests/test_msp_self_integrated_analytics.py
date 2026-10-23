@@ -41,6 +41,20 @@ class IntegratedAnalyticsTests(unittest.TestCase):
         self.assertIn("Финансовые данные неполны",result["human_readable_ru"])
         self.assertIn("изменения цены",result["human_readable_ru"])
 
+    def test_post_review_price_change_numeric_evidence_renders(self):
+        value=build_observational_case(
+            rows(),data(),as_of="2026-10-23",
+            price_events=[{"event_date":"2026-09-01",
+                           "source_segment":"current","source_ordinal":1,
+                           "old_price":"2500","new_price":"2000"}],
+            price_source_status="VERIFIED_READONLY_VIEW")
+        self.assertIn("Цена ПОСЛЕ отзыва 2026-09-01: 2500 → 2000 ₽",
+                      value["human_readable_ru"])
+        self.assertEqual(value["price_history"]["checkpoints"][-1]
+                         ["after_window_price_events"][0]["change_percent"],
+                         "-20.00")
+        self.assertFalse(value["business_effect_proven"])
+
     def test_price_unavailable_stays_unknown(self):
         result=build_observational_case(rows(),data(),as_of="2026-10-23")
         self.assertEqual(result["price_history"]["status"],"UNKNOWN_PRICE_HISTORY")
