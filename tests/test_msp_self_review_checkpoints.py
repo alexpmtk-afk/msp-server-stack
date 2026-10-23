@@ -29,7 +29,7 @@ def metrics(w, sales, stock=None):
 
 class ReviewDateCheckpointTests(unittest.TestCase):
     def test_three_reviews_produce_three_separate_snapshots(self):
-        s = analyze_series(original(), as_of="2026-10-22")
+        s = analyze_series(original(), as_of="2026-10-22",requested_days=30)
         c = s["checkpoints"]
         self.assertEqual(len(c), 3)
         self.assertEqual([x["cumulative_recorded_review_rows"] for x in c],
@@ -70,7 +70,7 @@ class ReviewDateCheckpointTests(unittest.TestCase):
     def test_back_to_back_review_dates_do_not_fabricate_event_effect(self):
         rows = [entry("2026-07-01", "2026-07-04", 1),
                 entry("2026-07-02", "2026-07-05", 2)]
-        c = analyze_series(rows, as_of="2026-08-20")["checkpoints"]
+        c = analyze_series(rows, as_of="2026-08-20",requested_days=30)["checkpoints"]
         self.assertEqual(c[0]["status"], "POST_WINDOW_PENDING")
         self.assertIsNone(c[0]["windows"])
         self.assertEqual(c[1]["effective_days_each"], 30)
@@ -79,7 +79,7 @@ class ReviewDateCheckpointTests(unittest.TestCase):
         rows = [entry("2026-07-01", "2026-07-04", 1),
                 entry("2026-07-02", "2026-07-04", 2),
                 entry("2026-07-05", "2026-07-08", 3)]
-        c = analyze_series(rows, as_of="2026-08-20")["checkpoints"]
+        c = analyze_series(rows, as_of="2026-08-20",requested_days=30)["checkpoints"]
         self.assertEqual(len(c), 2)
         self.assertEqual(c[0]["recorded_review_rows_on_date"], 2)
         self.assertEqual(c[0]["cumulative_recorded_review_rows"], 2)
@@ -87,7 +87,7 @@ class ReviewDateCheckpointTests(unittest.TestCase):
 
     def test_missing_review_not_mistaken_for_new_checkpoint(self):
         rows = original()+[entry("2026-08-30", None, 38)]
-        s = analyze_series(rows, as_of="2026-10-22")
+        s = analyze_series(rows, as_of="2026-10-22",requested_days=30)
         self.assertEqual(len(s["checkpoints"]), 3)
         self.assertEqual(s["recorded_completed_purchase_rows"], 4)
         self.assertEqual(s["recorded_review_date_rows"], 3)
@@ -116,7 +116,7 @@ class ReviewDateCheckpointTests(unittest.TestCase):
     def test_series_target_conflict_stays_visible(self):
         rows = original()
         rows[-1]["quantity"] = 4
-        a = analyze_series(rows, as_of="2026-10-22")
+        a = analyze_series(rows, as_of="2026-10-22",requested_days=30)
         self.assertIsNone(a["planned_total_per_card"])
         self.assertEqual(a["series_phase"], "TARGET_CONFLICT")
         self.assertEqual(len(a["checkpoints"]), 3)
