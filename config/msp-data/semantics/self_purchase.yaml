@@ -245,6 +245,11 @@ review_checkpoint_analytics:
   multiperiod_report: "one checkpoint report for first, second, third and all successive dated review groups"
   historical_final_aggregate: "retained as overall series summary before first and after latest, never a substitute for each checkpoint"
   provider_data: "query independent exact date-aligned MPSTATS observations for EACH checkpoint"
+  price_journal_required_each_checkpoint: true
+  price_journal_identity: "marketplace,store,marketplace_sku; v_price_history readonly; current + archive"
+  price_history_numeric_reporting: "For each dated event AFTER review: event_date; old_price->new_price in RUB; optional delta and percent, unknown not zero"
+  mpstats_price_validation: "Separate read-only dated provider history only if tool, account scope and chronological field contract confirmed; otherwise UNKNOWN"
+  attribution_guard: "Post-review price changes are independent potential demand confounders, not proof of self-purchase or price effects"
   effect: "descriptive only; multiple marketing/stock/price changes and event overlap prevent causal attribution"
   no_marketplace_actions: true
 
