@@ -13,9 +13,11 @@ from typing import Any
 try:
     from apps.msp_self_analytics.series_analysis import analyze_series, SeriesDataError
     from apps.msp_self_analytics.series_report import build_series_checkpoint_reports
+    from apps.msp_self_analytics.mpstats_full_metrics import extract_full_period_metrics, pair_period_metrics
 except ModuleNotFoundError:
     from series_analysis import analyze_series, SeriesDataError
     from series_report import build_series_checkpoint_reports
+    from mpstats_full_metrics import extract_full_period_metrics, pair_period_metrics
 
 
 class CheckpointPlanningError(ValueError):
@@ -144,6 +146,15 @@ def assemble_checkpoint_analysis(
             cp["source_quality_flags"].append("MPSTATS_EXACT_WINDOWS_UNAVAILABLE")
             continue
         summary["with_estimated_sales"] += 1
+        # Only after strict MPSTATS date/source checks above. Preserve
+        # independent provider fields rather than inferring missing orders.
+        raw_pair = by_cp.get(cp["checkpoint_number"], {})
+        raw_before = raw_pair.get("before")
+        raw_after = raw_pair.get("after")
+        cp["additional_mpstats_metrics"] = pair_period_metrics(
+            extract_full_period_metrics(raw_before),
+            extract_full_period_metrics(raw_after),
+        )
         a = after.get("provider_stock_days")
         b = before.get("provider_stock_days")
         if a is None or b is None:
