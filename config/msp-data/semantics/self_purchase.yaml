@@ -1,4 +1,4 @@
-version: 10
+version: 11
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -184,6 +184,35 @@ limitations:
   - "Исторические completed при удалении строки из источника автоматически не удаляются."
   - "Повторные записи одного SKU на одну дату различаются source_ordinal; перестановка может изменить идентичность."
   - "Планы со строками, удалёнными из текущего источника, остаются в таблице аудита с is_current=0."
+
+mpstats_external_metrics:
+  verified_on: "2026-10-23"
+  source_method: "wb_sku(report=full), period_stats"
+  mode: "external_analytics_stock_parser"
+  no_additional_seller_cabinet_required: true
+  linked_report: "docs/self-purchases/MPSTATS_EXPANDED_FIELDS_REAL_ACCEPTANCE_20261023.md"
+  technical_field_sales:
+    ui_label_since_2026: "Заказы, шт."
+    meaning: "external MPSTATS estimate, including potential recorded self-purchases, not verified paid or organic orders"
+    no_duplicate_add_to_sales_estimated: true
+  technical_field_revenue:
+    ui_label_since_2026: "Заказы, руб."
+    meaning: "external MPSTATS monetary estimate, not payment or realized margin"
+  technical_field_days_in_stock:
+    meaning: "provider's available stock days; compare stock-day rates only if present and >0"
+  optional_fields: [sales_estimated, revenue_estimated, purchase, purchase_after_return, lost_profit]
+  optional_fields_rule: "keep exact provider field names; do not infer unit or interpretation absent provider endpoint evidence"
+  order_count_field_orders_available_in_wb_sku_full_probe: false
+  refund_count_field_available_in_wb_sku_full_probe: false
+  unavailable_means: UNKNOWN
+  NEVER:
+    - "derive refunds as purchase minus purchase_after_return"
+    - "sum sales and sales_estimated"
+    - "call any provider field independently confirmed paid organic orders"
+    - "treat external sum revenue as verified seller profit"
+    - "attribute changes causally to historical self-purchase events"
+  history_windows: "for every dated review checkpoint use equal complete days before first/after current, censor at next event"
+  live_readonly_probes: [573, 574, 575]
 
 review_checkpoint_analytics:
   policy_approved: "2026-10-23"
