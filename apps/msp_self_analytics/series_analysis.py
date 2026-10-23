@@ -130,6 +130,13 @@ def analyze_series(
         "marketplace_actions_allowed": False,
         "windows": None,
     }
+    # Each distinct review-date checkpoint receives a separate completed-day
+    # window. A subsequent review censors the preceding checkpoint's window;
+    # its observations are never silently attributed to the earlier event.
+    out["checkpoints"] = _review_checkpoints(
+        different_dates, review_rows, first_review, target, today, requested_days,
+        total_completed=completed,
+    )
     if first_review is None or last_review is None:
         return out
     # A completed post day must be strictly before as_of, never the review day.
@@ -160,3 +167,66 @@ def analyze_series(
     if actual_days < requested_days:
         out["status"] = "SHORTER_EQUAL_WINDOW_PRELIMINARY"
     return out
+
+
+def _review_checkpoints(
+    dates: list[date], review_rows: list[dict], first: date | None,
+    target: int | None, as_of: date, requested_days: int,
+    *, total_completed: int,
+) -> list[dict]:
+    """Repeated baseline vs each successive review group, with censoring.
+
+    Excludes the day of each registry review, the current incomplete date,
+    and all later review dates from any earlier checkpoint post-window.
+    Same-day events are one checkpoint (not distinguishable by daily data).
+    """
+    if first is None:
+        return []
+    checkpoints = []
+    counted = 0
+    for i, when in enumerate(dates):
+        number = sum(r["review"] == when for r in review_rows)
+        counted += number
+        next_day = dates[i + 1] if i + 1 < len(dates) else None
+        # As_of is exclusive: yesterday is the last *completed* day.
+        completed_since = max(0, (as_of - when).days - 1)
+        until_next = ((next_day - when).days - 1) if next_day is not None else requested_days
+        n = min(requested_days, completed_since, max(0, until_next))
+        status = ("POST_WINDOW_PENDING" if n < 1 else
+                  "FULL_EQUAL_WINDOW" if n == requested_days else
+                  "SHORTER_EQUAL_WINDOW_PRELIMINARY")
+        entry = {
+            "checkpoint_number": i + 1,
+            "review_date": when.isoformat(),
+            "recorded_review_rows_on_date": number,
+            "cumulative_recorded_review_rows": counted,
+            "plan_target_per_card": target,
+            "total_completed_purchase_rows_in_snapshot": total_completed,
+            "next_review_date": next_day.isoformat() if next_day else None,
+            "status": status,
+            "effective_days_each": n,
+            "requested_days_each": requested_days,
+            "censored_by_next_review": next_day is not None,
+            "day_of_review_excluded": True,
+            "same_day_events_not_individually_separable": number > 1,
+            "independent_publication_verified": False,
+            "causal_effect_proven": False,
+            "windows": None,
+        }
+        if n:
+            entry["windows"] = {
+                "before": {
+                    "d1": (first - timedelta(days=n)).isoformat(),
+                    "d2": (first - timedelta(days=1)).isoformat(),
+                },
+                "after": {
+                    "d1": (when + timedelta(days=1)).isoformat(),
+                    "d2": (when + timedelta(days=n)).isoformat(),
+                },
+                "baseline": "BEFORE_FIRST_RECORDED_REVIEW_DATE",
+                "outcome": "AFTER_THIS_RECORDED_REVIEW_DATE",
+                "equal_windows": True,
+                "full_requested_window": n == requested_days,
+            }
+        checkpoints.append(entry)
+    return checkpoints
