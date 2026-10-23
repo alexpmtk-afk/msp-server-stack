@@ -56,8 +56,11 @@ def format_checkpoint_history_ru(report: dict, *, label: str | None = None) -> s
                      _date(w["before"]["d2"]) + "; ПОСЛЕ: " +
                      _date(w["after"]["d1"]) + "–" +
                      _date(w["after"]["d2"]) + ".")
+        n = cp.get("effective_days_each")
+        cap = cp.get("requested_days_each", 90)
+        lines.append("  Длительность: " + str(n) + " полных дней ДО и ПОСЛЕ; максимум " + str(cap) + " дней.")
         if not w["full_requested_window"]:
-            lines.append("  Равные укороченные окна (не полный 30-дневный итог).")
+            lines.append("  Равные укороченные окна (не полный " + str(cap) + "-дневный итог).")
         obs = cp.get("provider_observations")
         if (not isinstance(obs, dict) or
                 not isinstance(obs.get("before"), dict) or
