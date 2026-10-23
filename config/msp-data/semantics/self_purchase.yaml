@@ -1,4 +1,4 @@
-version: 9
+version: 10
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -185,6 +185,36 @@ limitations:
   - "Повторные записи одного SKU на одну дату различаются source_ordinal; перестановка может изменить идентичность."
   - "Планы со строками, удалёнными из текущего источника, остаются в таблице аудита с is_current=0."
 
+review_checkpoint_analytics:
+  policy_approved: "2026-10-23"
+  policy_document: "docs/self-purchases/PER_REVIEW_CHECKPOINT_WINDOWS_20261023.md"
+  precedence: "per-date checkpoint observations have priority over the former sole first-to-last aggregate; keep former only for longitudinal series summary"
+  grouping_key: [marketplace, store, marketplace_sku]
+  target_source_column: "Кол-во выкупов"
+  target_sqlite_field: self_purchase.quantity
+  target_meaning: "repeated total planned event count per card; never sum(quantity)"
+  review_date_source_column: "Дата отзыва"
+  review_date_sqlite_field: self_purchase.review_date
+  review_date_meaning: "each row's registry-recorded review date, not a plan count and not independently verified publication"
+  event_count: "COUNT(completed source rows); no inference from quantity"
+  event_anchor: "each distinct nonnull review_date, chronological order; group multiple same-day recorded reviews into one calendar checkpoint"
+  requested_days_default: 30
+  as_of_is_exclusive: true
+  first_baseline_anchor: "strictly before first recorded review_date"
+  checkpoint_post_anchor: "strictly after current checkpoint review_date"
+  checkpoint_day_excluded: true
+  next_checkpoint_censor: "strictly stop before next recorded review_date, never include later review events in earlier checkpoint post-window"
+  effective_days: "min(requested_days, full days since current review before as_of, calendar days before next review)"
+  before_window: "first_review_date - N ... first_review_date - 1"
+  after_window: "checkpoint_review_date + 1 ... checkpoint_review_date + N"
+  short_window: "SHORTER_EQUAL_WINDOW_PRELIMINARY; same N on both sides, not 30 vs fewer"
+  no_finished_post_day: "POST_WINDOW_PENDING; no fabricated metrics"
+  multiperiod_report: "one checkpoint report for first, second, third and all successive dated review groups"
+  historical_final_aggregate: "retained as overall series summary before first and after latest, never a substitute for each checkpoint"
+  provider_data: "query independent exact date-aligned MPSTATS observations for EACH checkpoint"
+  effect: "descriptive only; multiple marketing/stock/price changes and event overlap prevent causal attribution"
+  no_marketplace_actions: true
+
 review_outcome_analytics:
   policy_approved: "2026-10-22"
   canonical_document: "docs/self-purchases/REVIEW_PUBLICATION_EVENT_MODEL_20261022.md"
@@ -221,7 +251,7 @@ historical_unit_and_review_evidence:
   series_primary_start: "earliest review_date for the same marketplace/store/SKU"
   series_primary_end: "latest review_date for the same marketplace/store/SKU"
   default_window_days: 30
-  windows: "N days strictly before first review_date and N days strictly after latest review_date; exclude review days and middle series"
+  windows: "legacy overall-series summary only; each review-date checkpoint uses its own equal pre-first/post-event windows, censored before next event; see review_checkpoint_analytics"
   interim_allowed: "after any subset of recorded review rows, explicitly INTERMEDIATE_SERIES"
   full_series_gate: "completed row count reaches target, dated review count reaches target, after window completed; publication evidence separate"
   incomplete_followup: "use shorter equal observed windows explicitly preliminary, or POST_WINDOW_PENDING"
