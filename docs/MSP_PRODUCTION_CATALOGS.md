@@ -1,5 +1,18 @@
 # MSP Production — two separate source catalogs
 
+## Verified REMOTE status — October 26, 2026
+
+- **Metal imported:** 730 current rows in `production_metal_order`; 14 rows without an article were retained; 384 business/source-quality review rows, not 384 sync failures.
+- Verified backup: `/opt/mcp/backups/msp/msp_before_metal_initial_20261026T141103Z.sqlite3` (mode 0600; integrity PASS).
+- Existing MSP and cost catalog row counts unchanged; full SQLite integrity PASS; metal initial import https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/40337235313 .
+- **Sewing not imported:** its original workbook returns **HTTP 401** to unauthenticated Google CSV export on REMOTE. Connector-based user access to Google does not confer access to this server. Read-only audit: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/40336813968 .
+- Both source units and the importer staged under hermes-owned `/home/hermes/.local/share/msp-production/sync.py`. Stage accepted: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/40337725175 .
+- Sewing `msp-production-sewing.timer` at **07:35 MSK** is **installed but disabled/inactive** until valid protected Google read access is authorized and first load passes.
+- Metal `msp-production-metal.service` is staged and on-demand; no metal timer was requested or enabled.
+- Existing daily cost sync at 07:45 and main MSP sync at 08:00 are confirmed enabled/active and unmodified.
+- Never change the original Google Sheet sharing policy without the owner's explicit approval. An OAuth user credential for the owner's existing Google identity or an access-controlled export can enable sewing without broadening the original workbook's visibility.
+
+
 Sources provided October 26, 2026. This implementation is additive to the
 existing /opt/mcp/data/msp/msp_data.sqlite3 and never changes product pricing,
 self-purchases, stock, Hermes Gateway or existing 07:45/08:00 timers.
