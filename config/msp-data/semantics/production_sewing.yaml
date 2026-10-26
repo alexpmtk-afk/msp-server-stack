@@ -1,6 +1,6 @@
 version: 1
 catalog: production_sewing
-state: staged_before_first_remote_import
+state: remote_code_staged_and_0735_timer_disabled; source_csv_http_401; initial_import_blocked
 source_workbook: ГЗП Маскировка | Швейка
 source_tab: ГЗП МП/ОРК 25
 source_gid: 666345199

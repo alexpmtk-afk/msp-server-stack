@@ -1,6 +1,6 @@
 version: 1
 catalog: production_metal
-state: staged_before_first_remote_import
+state: initial_730_orders_imported_remote; manual_service_staged; daily_schedule_unset
 source_workbook: МП Загрузка производства АНТ и ЛМ
 source_tab: Загрузка ЛМ/АНТ
 source_gid: 1990590773
