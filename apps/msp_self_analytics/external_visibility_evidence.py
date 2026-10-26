@@ -158,3 +158,50 @@ def compare_shelf_visibility(stats,items,*,d1:str,d2:str) -> dict:
                    if out["aggregate_detail_discrepancy"] not in (None,0)
                    else "OBSERVED_DETAIL_EVIDENCE")
     return out
+
+
+def format_keyword_price_observations_ru(before:dict,after:dict,*,max_changes:int=12) -> str:
+    """Separate external provider client_price observations from seller price edits.
+
+    The *dates* are observation timestamps; a price difference between
+    consecutive observed dates is NOT proof the seller edited on either date.
+    """
+    if type(max_changes) is not int or not 0<=max_changes<=20:
+        raise ValueError("INVALID_MAX_CHANGES")
+    if not isinstance(before,dict) or not isinstance(after,dict):
+        return "MPSTATS: датированная история client_price не подтверждена."
+    if any(x.get("status")!="OBSERVED_SPARSE_PROVIDER_HISTORY" for x in (before,after)):
+        return "MPSTATS: датированная история client_price недоступна по обоим проверяемым окнам."
+    result=[
+        "MPSTATS (внешняя аналитика, без рекламного кабинета):",
+        "  Дней с наблюдением client_price: "+
+        str(before["daily_client_price_positive_days"])+"/"+
+        str(before["window"]["days"])+" ДО → "+
+        str(after["daily_client_price_positive_days"])+"/"+
+        str(after["window"]["days"])+" ПОСЛЕ.",
+        "  Различных значений client_price на наблюдаемых днях: "+
+        str(before["observed_client_price_levels"])+" ДО → "+
+        str(after["observed_client_price_levels"])+" ПОСЛЕ.",
+        "  Переходов между различающимися наблюдаемыми значениями: "+
+        str(len(before["observed_price_transitions"]))+" ДО → "+
+        str(len(after["observed_price_transitions"]))+" ПОСЛЕ.",
+    ]
+    for event in after["observed_price_transitions"][:max_changes]:
+        result.append("  MPSTATS client_price ПОСЛЕ: "+
+            event["previous_observed_date"]+" ("+
+            str(event["previous_client_price"])+") → "+
+            event["new_observed_date"]+" ("+
+            str(event["new_client_price"])+"); разница наблюдений "+
+            str(event["observed_price_delta"])+
+            " (не подтверждённая дата корректировки продавца).")
+    extra=len(after["observed_price_transitions"])-max_changes
+    if extra>0:
+        result.append("  Дополнительно "+str(extra)+" переходов в наблюдениях; "+
+            "полный список не показан в кратком отчёте.")
+    result.append(
+        "  ВНИМАНИЕ: client_price — поле внешней аналитики MPSTATS, "+
+        "его точный вид цены и единицы ещё не подтверждены. "+
+        "Пропущенные дни не заполнялись. Нельзя приписывать изменения "+
+        "заказов самовыкупу или считать переходы client_price "+
+        "изменениями цены продавца из журнала МСП.")
+    return "\n".join(result)
