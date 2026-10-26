@@ -1,0 +1,12 @@
+[Unit]
+Description=MSP sewing production daily 07:35 MSK; before cost 07:45
+
+[Timer]
+OnCalendar=*-*-* 07:35:00 Europe/Moscow
+Persistent=false
+RandomizedDelaySec=0
+AccuracySec=1s
+Unit=msp-production-sewing.service
+
+[Install]
+WantedBy=timers.target

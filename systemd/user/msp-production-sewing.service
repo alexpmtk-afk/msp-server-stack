@@ -1,0 +1,13 @@
+[Unit]
+Description=MSP sewing and camouflage production source sync (Hermes user)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/hermes/.local/share/msp-production
+EnvironmentFile=/home/hermes/.config/msp/production.env
+ExecStart=/usr/bin/python3 /home/hermes/.local/share/msp-production/sync.py --source sewing --db /opt/mcp/data/msp/msp_data.sqlite3
+TimeoutStartSec=420
+UMask=0077
+NoNewPrivileges=true

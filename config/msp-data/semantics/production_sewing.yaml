@@ -1,0 +1,45 @@
+version: 1
+catalog: production_sewing
+state: staged_before_first_remote_import
+source_workbook: ГЗП Маскировка | Швейка
+source_tab: ГЗП МП/ОРК 25
+source_gid: 666345199
+source_sheet_id_env: MSP_PRODUCTION_SEWING_SHEET_ID
+storage_table: production_sewing_order
+current_view: v_production_sewing
+sync_time_moscow: "07:35"
+identity:
+  key: [source_tab, source_row]
+  note: Source row is a physical locator, not a globally stable production order identifier.
+  repeated_article: allowed
+  repeated_order_number: allowed
+  split_orders: preserve_literal_slash_suffix; no_automatic_merging
+  movement_warning: Inserting/reordering source rows may cause row-based revisions; preserve raw snapshots.
+source_columns:
+  A: requester
+  B: internal_article
+  C: product_name
+  D: requested_qty_raw
+  E: delivered_qty_raw
+  F: placed_at_raw
+  G: order_number
+  H: desired_at_raw
+  I: confirmed_at_raw
+  J: comment_text
+  K: responsible
+types:
+  quantity: decimal_text_with_raw_value; missing_is_NULL_not_zero
+  date: preserve_raw; ISO_only_for_unambiguous_DD_MM_YYYY
+  order_number: text_never_number; no_trimming_internal_characters
+  internal_article: text; optional; missing_flagged_not_dropped
+history:
+  row_change_journal: production_row_revision
+  source_quality_journal: production_data_issue
+  sync_run_journal: production_import_run
+  absence: mark_not_current_keep_original_and_revision
+  same_row: no_new_revision
+authorization: Google_CSV_read_only_no_source_writes
+notes:
+  - Fulfillment and overdue status are not automatically inferred from incomplete raw dates and quantities.
+  - Columns beyond K are not part of this initial contract.
+  - Full agent-facing business semantics and rules will be prepared after base import acceptance.
