@@ -55,6 +55,20 @@ class ExternalEvidenceTests(unittest.TestCase):
         a=analyze_keyword_history(x,d1="2026-09-22",d2="2026-09-28")
         self.assertFalse(a["all_word_rows_received"])
         self.assertEqual(a["provider_reported_total_words"],51)
+        self.assertEqual(a["status"],"PARTIAL_KEYWORD_PAGINATION")
+        msg=format_keyword_price_observations_ru(a,a)
+        self.assertIn("неполная постраничная выдача",msg)
+        self.assertNotIn("Переходов между",msg)
+
+    def test_missing_pagination_total_is_not_treated_as_complete(self):
+        x=kws()
+        x.pop("total")
+        a=analyze_keyword_history(x,d1="2026-09-22",d2="2026-09-28")
+        self.assertEqual(a["daily_client_price_positive_days"],4)
+        self.assertFalse(a["all_word_rows_received"])
+        self.assertEqual(a["status"],"PARTIAL_KEYWORD_PAGINATION")
+        self.assertIn("неполная постраничная выдача",
+            format_keyword_price_observations_ru(a,a))
 
     def test_outside_date_is_not_included(self):
         x=kws()
