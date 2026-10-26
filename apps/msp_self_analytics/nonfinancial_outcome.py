@@ -14,13 +14,22 @@ try:
 except ModuleNotFoundError:
     from dated_rating_dynamics import (
         analyze_dated_positive_ratings, format_dated_positive_ratings_ru)
+try:
+    from apps.msp_self_analytics.dated_review_activity import (
+        analyze_daily_review_activity, format_daily_review_activity_ru)
+except ModuleNotFoundError:
+    from dated_review_activity import (
+        analyze_daily_review_activity, format_daily_review_activity_ru)
 
 
 def _numeric(value):
     return type(value) in (int,float) and isfinite(value)
 
 
-def summarize_nonfinancial_outcome(history, price_history, *, dated_rating_sources=None):
+def summarize_nonfinancial_outcome(
+    history, price_history, *, dated_rating_sources=None,
+    dated_review_activity_sources=None,
+):
     if not isinstance(history,dict) or not isinstance(history.get("checkpoints"),list):
         raise ValueError("HISTORY_REQUIRED")
     if not isinstance(price_history,dict):
@@ -31,6 +40,10 @@ def summarize_nonfinancial_outcome(history, price_history, *, dated_rating_sourc
     if dated_rating_sources is not None and not isinstance(dated_rating_sources,dict):
         raise ValueError("DATED_RATING_SOURCES_MAPPING_REQUIRED")
     dated_rating_sources=dated_rating_sources or {}
+    if (dated_review_activity_sources is not None
+            and not isinstance(dated_review_activity_sources,dict)):
+        raise ValueError("DATED_REVIEW_ACTIVITY_MAPPING_REQUIRED")
+    dated_review_activity_sources=dated_review_activity_sources or {}
     outcomes=[]
     for cp in history["checkpoints"]:
         number=cp.get("checkpoint_number")
@@ -66,6 +79,14 @@ def summarize_nonfinancial_outcome(history, price_history, *, dated_rating_sourc
             rating_evidence=analyze_dated_positive_ratings(
                 dated_rating_sources[number],event_date=cp["review_date"],
                 after_start=period["d1"],after_end=period["d2"])
+        review_activity=None
+        if (number in dated_review_activity_sources and isinstance(window,dict)
+                and isinstance(window.get("after"),dict)):
+            period=window["after"]
+            review_activity=analyze_daily_review_activity(
+                dated_review_activity_sources[number],
+                event_date=cp["review_date"],
+                after_start=period["d1"],after_end=period["d2"])
         rating_state=(
             "DAILY_MPSTATS_POSITIVE_RATINGS_OBSERVED"
             if isinstance(rating_evidence,dict)
@@ -82,6 +103,7 @@ def summarize_nonfinancial_outcome(history, price_history, *, dated_rating_sourc
             "seller_price_context":price_context,
             "new_positive_public_reviews_status":rating_state,
             "dated_rating_provider_observation":rating_evidence,
+            "dated_review_activity_observation":review_activity,
             "new_other_public_reviews_status":"UNKNOWN_NO_VERIFIED_DATED_SOURCE",
             "historical_rating_change_status":"UNKNOWN_NO_VERIFIED_DATED_SOURCE",
             "review_publication_verified":False,
@@ -124,6 +146,9 @@ def format_nonfinancial_outcome_ru(summary):
         elif cp["seller_price_context"]=="PRICE_HISTORY_UNKNOWN":
             line+=". История цен продавца неполна"
         lines.append(line+".")
+        if cp.get("dated_review_activity_observation") is not None:
+            lines.append("  "+format_daily_review_activity_ru(
+                cp["dated_review_activity_observation"]))
         if cp.get("dated_rating_provider_observation") is not None:
             lines.append("  "+format_dated_positive_ratings_ru(
                 cp["dated_rating_provider_observation"]))
