@@ -56,6 +56,9 @@ def build_observational_case(
             "review_date":item["review_date"],
             "historical_sales_status":item["status"],
             "price_context_status":price_state,
+            "price_events_before":p.get("recorded_price_changes_before_window") if p else None,
+            "price_events_after":p.get("recorded_price_changes_after_window") if p else None,
+            "price_changed_after_review":p.get("post_review_seller_price_changed_in_journal") if p else None,
             "price_impact_uncertainty":strength,
             "financial_return_status":"UNKNOWN_CAUSAL_INCREMENT",
             "verified_control_group_status":"NOT_VERIFIED",
@@ -67,18 +70,40 @@ def build_observational_case(
         narrative+="\nЖурнал цен: надёжное датированное сопоставление пока недоступно."
     else:
         for p in prices["checkpoints"]:
-            for event in p.get("after_window_price_events") or []:
-                old, new = event.get("old_seller_price_rub"), event.get("new_seller_price_rub")
-                price = (old + " → " + new + " ₽") if old is not None and new is not None else "цены неизвестны"
-                narrative += ("\nЦена ПОСЛЕ отзыва " + event["event_date"] + ": " + price + "; журнал МСП.")
-            if p.get("confounding_price_events"):
+            number=p["checkpoint_number"]
+            before=p.get("before_window_price_events") or []
+            between=p.get("between_windows_price_events") or []
+            after=p.get("after_window_price_events") or []
+            narrative+=(
+                "\nКонтроль "+str(number)+": журнал цен МСП — изменений ДО "+
+                str(len(before))+", в промежутке "+str(len(between))+
+                ", ПОСЛЕ "+str(len(after))+".")
+            for label,group in (("ДО",before),("МЕЖДУ ПЕРИОДАМИ",between),
+                                ("ПОСЛЕ отзыва",after)):
+                for event in group:
+                    old=event.get("old_seller_price_rub")
+                    new=event.get("new_seller_price_rub")
+                    pair=(old+" → "+new+" ₽") if old is not None and new is not None else (
+                        "было/стало: значение неизвестно")
+                    change=event.get("change_rub")
+                    percent=event.get("change_percent")
+                    if change is not None:
+                        pair+="; изменение "+change.replace(".",",")+" ₽"
+                    if percent is not None:
+                        pair+=" ("+percent.replace(".",",")+"%)"
+                    source=event.get("source_segment") or "не указан"
+                    narrative+=(
+                        "\nЦена "+label+" "+event["event_date"]+": "+pair+
+                        "; источник: журнал МСП ("+source+").")
+            if after:
                 narrative+=(
-                    "\nКонтроль "+str(p["checkpoint_number"])+
-                    ": в журнале обнаружены изменения цены в рассматриваемой истории; "
-                    "их влияние не определено.")
+                    "\nВ период ПОСЛЕ цена продавца корректировалась; "
+                    "это самостоятельный возможный фактор изменения заказов. "
+                    "Причинность изменения спроса не установлена.")
         narrative+=(
-            "\nПустые записи журнала не доказывают неизменную цену, "
-            "скидки или условия продажи на площадке.")
+            "\nВ журнале указана цена продавца после его скидки, "
+            "а не подтверждённая конечная цена покупателя. "
+            "Пустой журнал не доказывает постоянство цены/СПП.")
     if finance["status"]=="FACT_DERIVED":
         narrative+=(
             "\nПеременный вклад единицы товара подтверждён финансовыми данными, "
