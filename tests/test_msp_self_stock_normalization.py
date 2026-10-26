@@ -82,6 +82,11 @@ class NormalizedStockExposureTests(unittest.TestCase):
         self.assertIn("Изменение интенсивности",text)
         self.assertIn("Малая выборка",text)
         self.assertIn("НЕ доказательство эффекта отзыва",text)
+        self.assertEqual(cp["advertising_evidence_status"],"UNVERIFIED_FOR_SKU_AND_WINDOW")
+        self.assertEqual(cp["verified_comparator_status"],"NO_VERIFIED_COMPARATORS")
+        self.assertIn("не означает отсутствие рекламы или 0 ₽",text)
+        self.assertIn("подтверждённых сопоставимых товаров нет",text)
+
 
     def test_zero_stock_report_flags_no_rate(self):
         r=report(0,7,0,27)
