@@ -1,7 +1,7 @@
 """Synthetic regression fixtures for read-only MPSTATS keyword/shelf evidence."""
 import unittest
 from apps.msp_self_analytics.external_visibility_evidence import (
-    analyze_keyword_history, compare_shelf_visibility,
+    analyze_keyword_history, compare_shelf_visibility, format_keyword_price_observations_ru,
 )
 
 
@@ -85,6 +85,17 @@ class ExternalEvidenceTests(unittest.TestCase):
         self.assertEqual(a["detail_paid_position_entries"],1)
         self.assertFalse(a["aggregate_count_equals_human_impressions"])
         self.assertFalse(a["paid_marker_equals_seller_ad_spend"])
+
+    def test_russian_numeric_provider_price_changes_are_not_seller_edit_claims(self):
+        original=kws()
+        after=analyze_keyword_history(original,d1="2026-09-22",d2="2026-09-28")
+        before=analyze_keyword_history(original,d1="2026-09-22",d2="2026-09-28")
+        text=format_keyword_price_observations_ru(before,after,max_changes=1)
+        self.assertIn("client_price ПОСЛЕ: 2026-09-23 (1500) → 2026-09-25 (1200)",text)
+        self.assertIn("точный вид цены и единицы ещё не подтверждены",text)
+        self.assertIn("Дополнительно 1 переходов",text)
+        self.assertNotIn("private query",text)
+        self.assertNotIn("изменения цены продавца из журнала МСП доказаны",text)
 
     def test_incomplete_shelves_pagination_refuses_numeric_comparison(self):
         x=compare_shelf_visibility({"visibility_count":100},
