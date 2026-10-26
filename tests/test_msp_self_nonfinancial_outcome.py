@@ -93,6 +93,29 @@ class NonfinancialOutcomeTests(unittest.TestCase):
         self.assertFalse(result["any_causal_success_proven"])
         self.assertIn("3 положительных",format_nonfinancial_outcome_ru(result))
 
+    def test_verified_daily_review_total_preserves_unknown_positive_distribution(self):
+        checkpoint=cp(1,0.08,0.16,pct=100)
+        checkpoint["windows"]={"after":{"d1":"2026-09-22","d2":"2026-09-23"}}
+        daily={"status":"VERIFIED_DATED_SOURCE",
+               "source_kind":"MPSTATS_VERIFIED_DAILY_REVIEW_ACTIVITY",
+               "source_ref":"checked-per-day-counter",
+               "series_kind":"DAILY_NEW_REVIEW_COUNTS",
+               "date_granularity":"DAY","rating_scale":"FIVE_STAR",
+               "rows":[{"date":"2026-09-22","new_reviews":2,"average_rating":5},
+                       {"date":"2026-09-23","new_reviews":1,"average_rating":3}]}
+        r=summarize_nonfinancial_outcome(
+            {"checkpoints":[checkpoint]},prices(),
+            dated_review_activity_sources={1:daily})
+        row=r["checkpoints"][0]
+        self.assertEqual(row["dated_review_activity_observation"]["total_new_reviews"],3)
+        self.assertIsNone(row["dated_review_activity_observation"]["positive_4_5_reviews"])
+        self.assertEqual(row["new_positive_public_reviews_status"],
+                         "UNKNOWN_NO_VERIFIED_DATED_SOURCE")
+        text=format_nonfinancial_outcome_ru(r)
+        self.assertIn("Новые отзывы по дневной аналитике MPSTATS: 3",text)
+        self.assertIn("Точное число положительных",text)
+        self.assertFalse(row["causal_effect_proven"])
+
     def test_missing_comparable_provider_data_is_not_success(self):
         x=summarize_nonfinancial_outcome({"checkpoints":[
             {"checkpoint_number":1,"review_date":"2026-09-21"}]},
