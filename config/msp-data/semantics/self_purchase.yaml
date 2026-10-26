@@ -312,3 +312,16 @@ stock_normalized_observation:
   causal_effect_allowed: false
   code: ["apps/msp_self_analytics/stock_normalization.py", "apps/msp_self_analytics/checkpoint_workflow.py", "apps/msp_self_analytics/checkpoint_report_ru.py"]
   no_marketplace_actions: true
+
+advertising_and_comparator_observations:
+  policy_approved: "2026-10-26"
+  provider: "MPSTATS authorized historical WB read-only only, not an undated snapshot"
+  ad_source_requires: ["same marketplace+store+SKU", "cabinet identity", "exact before/after dates", "currency+unit meanings"]
+  advertising_default_status: "UNVERIFIED_FOR_SKU_AND_WINDOW"
+  no_ad_campaign_rows: "SOURCE_UNAVAILABLE_OR_EMPTY; never infer zero spend, no advertising or zero impact"
+  comparator_default_status: "NO_VERIFIED_COMPARATORS"
+  preliminary_peers: "wb_similar category candidates only, not a verified control group"
+  comparator_acceptance: "same purpose, material features, package, price segment and comparable exposure verified"
+  causal_attribution_prohibited: true
+  reporting: "explicit source gaps in Russian after stock-normalized MPSTATS observations"
+  no_marketplace_actions: true
