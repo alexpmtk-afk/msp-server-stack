@@ -1,0 +1,46 @@
+version: 1
+catalog: production_metal
+state: staged_before_first_remote_import
+source_workbook: МП Загрузка производства АНТ и ЛМ
+source_tab: Загрузка ЛМ/АНТ
+source_gid: 1990590773
+source_sheet_id_env: MSP_PRODUCTION_METAL_SHEET_ID
+storage_table: production_metal_order
+current_view: v_production_metal
+automatic_schedule: not_assigned_by_user
+identity:
+  key: [source_tab, source_row]
+  note: The same order number can cover different articles; article can repeat across orders.
+  production_site: LM_or_ANT_as_given_in_column_B
+  move_warning: Source row is not a permanent order ID.
+source_columns:
+  A: requester
+  B: production_site
+  C: internal_article
+  D: product_name
+  E: requested_qty_raw
+  F: delivered_qty_raw
+  G: remainder_qty_raw
+  H: placed_at_raw
+  I: invoice_number
+  J: order_number
+  K: desired_at_raw
+  L: comment_text
+  M: confirmed_at_raw
+types:
+  quantity: decimal_text_with_raw_value; missing_is_NULL_not_zero
+  dates: raw_preserved; ISO_only_for_unambiguous_DD_MM_YYYY
+  invoice_and_order_number: preserve_as_string
+  empty_article: keep_if_other_business_fields_present; classify_missing_article
+  formula_only_remainder: ignore_if_no_other_business_content
+history:
+  row_change_journal: production_row_revision
+  source_quality_journal: production_data_issue
+  sync_run_journal: production_import_run
+  absence: mark_not_current_keep_old_record
+authorization: Google_CSV_read_only_no_source_writes
+notes:
+  - Do not infer a year for entries like 27.10; preserve literal cell.
+  - Do not treat leftover quantity as confirmed when source column is empty.
+  - A blank article is not necessarily a cancelled order.
+  - Detailed agent semantics to follow initial import.
