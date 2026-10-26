@@ -64,6 +64,35 @@ class NonfinancialOutcomeTests(unittest.TestCase):
                          "SELLER_PRICE_EDITS_IN_AFTER_WINDOW")
         self.assertIn("корректировка цены продавца",format_nonfinancial_outcome_ru(x))
 
+    def test_optional_verified_daily_aggregate_appears_but_cannot_prove_effect(self):
+        source={
+            "status":"VERIFIED_DATED_SOURCE",
+            "source_kind":"MPSTATS_VERIFIED_DATED_RATING_AGGREGATES",
+            "source_ref":"checked-date-series",
+            "date_granularity":"DAY","rating_scale":"FIVE_STAR",
+            "negative_stars":[1,2,3],"series_kind":"DAILY_NEW_COUNTS",
+            "rows":[
+                {"date":"2026-09-22","ratings_total":3,
+                 "ratings_negative":1,"ratings_with_text":2,
+                 "ratings_negative_with_text":1},
+                {"date":"2026-09-23","ratings_total":1,
+                 "ratings_negative":0,"ratings_with_text":1,
+                 "ratings_negative_with_text":0},
+            ]}
+        checkpoint=cp(1,0.08,0.17,pct=112.5)
+        checkpoint["windows"]={"after":{"d1":"2026-09-22","d2":"2026-09-23"}}
+        result=summarize_nonfinancial_outcome(
+            {"checkpoints":[checkpoint]},prices(),
+            dated_rating_sources={1:source})
+        case=result["checkpoints"][0]
+        self.assertEqual(case["new_positive_public_reviews_status"],
+                         "DAILY_MPSTATS_POSITIVE_RATINGS_OBSERVED")
+        self.assertEqual(case["dated_rating_provider_observation"]["positive_ratings_4_5"],3)
+        self.assertEqual(case["dated_rating_provider_observation"]["positive_reviews_with_text_4_5"],2)
+        self.assertFalse(case["review_publication_verified"])
+        self.assertFalse(result["any_causal_success_proven"])
+        self.assertIn("3 положительных",format_nonfinancial_outcome_ru(result))
+
     def test_missing_comparable_provider_data_is_not_success(self):
         x=summarize_nonfinancial_outcome({"checkpoints":[
             {"checkpoint_number":1,"review_date":"2026-09-21"}]},
