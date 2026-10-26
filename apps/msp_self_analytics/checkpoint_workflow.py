@@ -133,6 +133,8 @@ def assemble_checkpoint_analysis(
         cp["historical_rating_status"] = "UNKNOWN"
         cp["verified_paid_organic_orders"] = "UNKNOWN"
         cp["verified_comparator_count"] = 0
+        cp["advertising_evidence_status"] = "UNVERIFIED_FOR_SKU_AND_WINDOW"
+        cp["verified_comparator_status"] = "NO_VERIFIED_COMPARATORS"
         cp["economics_status"] = "UNKNOWN"
         cp["source_quality_flags"] = []
         if cp["status"] == "POST_WINDOW_PENDING":
