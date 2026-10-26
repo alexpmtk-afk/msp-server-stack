@@ -31,3 +31,14 @@
 Точки исполнения: `price_event_context.py`, `self_purchase_analysis.py`, серверный `msp_self_sku_report_cli.py`; правила дублируются в Hermes Skill `msp-self-purchases`, `mpstats` и семантике `self_purchase.yaml`/`price_history.yaml`.
 
 Примечание по внедрению: изменения исходного кода и инструкции в GitHub **не равны установке на VPS**. Требуется отдельный readback хешей и реальная проверка числовых данных из `v_price_history` прежде чем утверждать готовность.
+
+## Продолжение 26.10.2026 — статус живой проверки MPSTATS
+
+- [#624](https://github.com/alexpmtk-afk/msp-server-bridge/issues/624): через реальный MCP подтверждены read-only контракты `repricer_tokens`, `mine_products_history`, `repricer_list`, `repricer_history`. История своих карточек требует `user_token_id` + `nmid`; история репрайсера требует `repricer_id` + `nmid`.
+- [#625](https://github.com/alexpmtk-afk/msp-server-bridge/issues/625): `repricer_tokens` успешно вернул два подключения. `wb_sku(report=sales)` вернул агрегаты без датированной истории цен, `wb_sku(report=by_period)` не дал пригодного структурированного ответа.
+- [#628](https://github.com/alexpmtk-afk/msp-server-bridge/issues/628): `mine_products_history` по проверенному WB SKU вернул `TOOL_ERROR` на **обоих** подключениях. Исторические ряды и сопоставление кабинета не подтверждены.
+- [#633](https://github.com/alexpmtk-afk/msp-server-bridge/issues/633): `repricer_list` также вернул `TOOL_ERROR`. Проверенный repricer_id и история изменения цены не получены.
+- **Решение:** для этой карточки сохраняется `MPSTATS_PRICE_HISTORY_NOT_VERIFIED`. Эти ошибки могут зависеть от прав, подключения или доступности API; нельзя утверждать, что у MPSTATS вообще отсутствует история цен. Следующая попытка возможна только после безопасного подтверждения доступов к своим кабинетам и идентификаторов, без выбора чужого кабинета или выдумывания данных.
+- [#635](https://github.com/alexpmtk-afk/msp-server-bridge/issues/635): установлен улучшенный числовой отчёт по журналу МСП: отдельно ДО/МЕЖДУ/ПОСЛЕ, число записей, дата, старая/новая цена, разница ₽ и %, сегмент архива. Пять проверок CI прошли; локальный отчет проверен на VPS (2/2 окна MPSTATS), резервная копия создана, без записи в SQLite/маркетплейсы и без перезапуска Gateway.
+
+**Не смешивать:** верифицированная история *наших действий по изменению цены* (`v_price_history`) и неподтверждённая история *цен глазами покупателей MPSTATS*. Никаких причинных оценок только по совпадению роста заказов с датой изменения цены.
