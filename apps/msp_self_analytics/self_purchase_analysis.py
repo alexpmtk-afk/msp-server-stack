@@ -27,7 +27,7 @@ def build_observational_case(
     as_of, price_events=None, price_source_status="UNAVAILABLE",
     verified_unit_costs=None, requested_days=90,
     max_checkpoints=12, max_provider_reads=24,
-    dated_rating_sources=None,
+    dated_rating_sources=None, dated_review_activity_sources=None,
 ):
     """One cohesive result with traceable missing-evidence gates.
 
@@ -71,7 +71,8 @@ def build_observational_case(
             "source_quality_flags":item.get("source_quality_flags",[]),
         })
     nonfinancial=summarize_nonfinancial_outcome(
-        history,prices,dated_rating_sources=dated_rating_sources)
+        history,prices,dated_rating_sources=dated_rating_sources,
+        dated_review_activity_sources=dated_review_activity_sources)
     narrative=format_checkpoint_history_ru(history)
     narrative+="\n"+format_nonfinancial_outcome_ru(nonfinancial)
     if prices["status"]=="UNKNOWN_PRICE_HISTORY":
