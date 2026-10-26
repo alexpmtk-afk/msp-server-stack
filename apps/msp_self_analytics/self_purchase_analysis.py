@@ -11,11 +11,15 @@ try:
     from apps.msp_self_analytics.price_event_context import price_event_context
     from apps.msp_self_analytics.checkpoint_report_ru import format_checkpoint_history_ru
     from apps.msp_self_analytics.decision_indicators import variable_unit_contribution
+    from apps.msp_self_analytics.nonfinancial_outcome import (
+        summarize_nonfinancial_outcome, format_nonfinancial_outcome_ru)
 except ModuleNotFoundError:
     from checkpoint_workflow import assemble_checkpoint_analysis
     from price_event_context import price_event_context
     from checkpoint_report_ru import format_checkpoint_history_ru
     from decision_indicators import variable_unit_contribution
+    from nonfinancial_outcome import (
+        summarize_nonfinancial_outcome, format_nonfinancial_outcome_ru)
 
 
 def build_observational_case(
@@ -65,7 +69,9 @@ def build_observational_case(
             "operational_conclusion":"OBSERVE_AND_REVIEW_ONLY",
             "source_quality_flags":item.get("source_quality_flags",[]),
         })
+    nonfinancial=summarize_nonfinancial_outcome(history,prices)
     narrative=format_checkpoint_history_ru(history)
+    narrative+="\n"+format_nonfinancial_outcome_ru(nonfinancial)
     if prices["status"]=="UNKNOWN_PRICE_HISTORY":
         narrative+="\nЖурнал цен: надёжное датированное сопоставление пока недоступно."
     else:
@@ -117,6 +123,7 @@ def build_observational_case(
         "history":history,
         "price_history":prices,
         "verified_unit_contribution":finance,
+        "nonfinancial_outcome":nonfinancial,
         "checkpoint_interpretations":interpretation,
         "business_effect_proven":False,
         "reported_purchase_count_is_sum_of_rows":True,
