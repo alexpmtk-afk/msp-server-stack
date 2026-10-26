@@ -103,7 +103,11 @@ def analyze_keyword_history(payload, *, d1:str, d2:str) -> dict:
             "actual_seller_edit_date_verified":False,
         })
     result["observed_price_transitions"]=transitions
-    result["status"]="OBSERVED_SPARSE_PROVIDER_HISTORY"
+    # A partial keyword page is not a fully verified history, even when
+    # the daily prices that arrived have valid dates and values.
+    result["status"]=("OBSERVED_SPARSE_PROVIDER_HISTORY"
+                      if result["all_word_rows_received"]
+                      else "PARTIAL_KEYWORD_PAGINATION")
     return result
 
 
@@ -170,6 +174,10 @@ def format_keyword_price_observations_ru(before:dict,after:dict,*,max_changes:in
         raise ValueError("INVALID_MAX_CHANGES")
     if not isinstance(before,dict) or not isinstance(after,dict):
         return "MPSTATS: датированная история client_price не подтверждена."
+    if any(x.get("status")=="PARTIAL_KEYWORD_PAGINATION" for x in (before,after)):
+        return ("MPSTATS: неполная постраничная выдача поисковых данных "
+                "(total не подтверждён или не совпадает с числом строк). "
+                "Нельзя считать историю client_price полной и сравнивать её как подтверждённую.")
     if any(x.get("status")!="OBSERVED_SPARSE_PROVIDER_HISTORY" for x in (before,after)):
         return "MPSTATS: датированная история client_price недоступна по обоим проверяемым окнам."
     result=[
