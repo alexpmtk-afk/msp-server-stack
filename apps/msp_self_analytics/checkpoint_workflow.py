@@ -14,10 +14,12 @@ try:
     from apps.msp_self_analytics.series_analysis import analyze_series, SeriesDataError
     from apps.msp_self_analytics.series_report import build_series_checkpoint_reports
     from apps.msp_self_analytics.mpstats_full_metrics import extract_full_period_metrics, pair_period_metrics
+    from apps.msp_self_analytics.stock_normalization import normalize_stock_exposure
 except ModuleNotFoundError:
     from series_analysis import analyze_series, SeriesDataError
     from series_report import build_series_checkpoint_reports
     from mpstats_full_metrics import extract_full_period_metrics, pair_period_metrics
+    from stock_normalization import normalize_stock_exposure
 
 
 class CheckpointPlanningError(ValueError):
@@ -155,6 +157,10 @@ def assemble_checkpoint_analysis(
             extract_full_period_metrics(raw_before),
             extract_full_period_metrics(raw_after),
         )
+        cp["stock_normalized_orders"] = normalize_stock_exposure(
+            before.get("sales"), after.get("sales"),
+            before.get("provider_stock_days"), after.get("provider_stock_days"),
+            window_days=cp["effective_days_each"])
         a = after.get("provider_stock_days")
         b = before.get("provider_stock_days")
         if a is None or b is None:
@@ -163,6 +169,10 @@ def assemble_checkpoint_analysis(
         elif a != b:
             summary["unequal_stock_availability"] += 1
             cp["source_quality_flags"].append("STOCK_AVAILABILITY_DIFFERS")
+        if cp["stock_normalized_orders"]["status"]=="READY_LOW_SAMPLE":
+            cp["source_quality_flags"].append("LOW_ESTIMATED_ORDER_SAMPLE")
+        if cp["stock_normalized_orders"]["status"]=="ZERO_STOCK_EXPOSURE":
+            cp["source_quality_flags"].append("STOCK_NORMALIZED_RATE_UNAVAILABLE")
         if a == 0 or b == 0:
             cp["source_quality_flags"].append("STOCK_NORMALIZED_RATE_UNAVAILABLE")
         if before.get("sales") == 0:
