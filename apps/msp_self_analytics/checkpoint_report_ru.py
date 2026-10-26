@@ -127,6 +127,14 @@ def format_checkpoint_history_ru(report: dict, *, label: str | None = None) -> s
             else:
                 lines.append("  Заказы на день наличия неизвестны: "
                              "нет достоверных заказов и/или дней наличия.")
+        if cp.get("advertising_evidence_status") == "UNVERIFIED_FOR_SKU_AND_WINDOW":
+            lines.append("  Реклама: исторические расходы/кампании по этому SKU "
+                         "за точные даты НЕ подтверждены; пустой ответ MPSTATS "
+                         "не означает отсутствие рекламы или 0 ₽.")
+        if cp.get("verified_comparator_status") == "NO_VERIFIED_COMPARATORS":
+            lines.append("  Конкуренты: только предварительные кандидаты MPSTATS; "
+                         "подтверждённых сопоставимых товаров нет, "
+                         "рыночные факторы неизвестны.")
         flags = cp.get("source_quality_flags") or []
         if "STOCK_AVAILABILITY_DIFFERS" in flags:
             lines.append("  Наличие различалось: суммарные продажи напрямую несопоставимы.")
