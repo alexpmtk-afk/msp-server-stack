@@ -64,7 +64,7 @@ def summarize_nonfinancial_outcome(history, price_history):
         })
     return {"status":"OBSERVATIONAL_NONFINANCIAL_ONLY",
             "checkpoint_count":len(outcomes),"checkpoints":outcomes,
-            "confirmed_historical_positive_review_counts":0,
+            "confirmed_historical_positive_review_counts":None,
             "confirmed_historical_positive_review_count_is_zero":False,
             "any_causal_success_proven":False,
             "monetary_finance_requested":False}
