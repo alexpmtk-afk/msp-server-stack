@@ -298,3 +298,17 @@ historical_unit_and_review_evidence:
   legacy_quantity_sums: "SUPERSEDED_NON_ADDITIVE_QUANTITY; do not cite as purchase count"
   code: ["apps/msp_self_analytics/series_analysis.py", "apps/msp_self_analytics/series_report.py"]
   no_marketplace_actions: true
+
+stock_normalized_observation:
+  policy_approved: "2026-10-26"
+  source: "MPSTATS wb_sku(full).period_stats.sales and days_in_stock over exact before/after intervals"
+  calculation: "estimated_orders_per_in_stock_day = sales / days_in_stock for each period, days_in_stock > 0"
+  observation_window: "N equal calendar days both sides, 1<=N<=90, review day and unfinished today excluded"
+  required_in_report: ["estimated_orders_before_after", "recorded_in_stock_days_before_after", "stock_coverage_percent_before_after", "orders_per_in_stock_day_before_after", "percent_change_if_baseline_positive", "sample_limitations"]
+  small_estimated_sample_threshold: 10
+  zero_stock_or_missing_values: "UNKNOWN, not 0, no division or fabricated order rate"
+  provider_estimated_orders_not_paid_or_organic: true
+  missing_day_extrapolation_allowed: false
+  causal_effect_allowed: false
+  code: ["apps/msp_self_analytics/stock_normalization.py", "apps/msp_self_analytics/checkpoint_workflow.py", "apps/msp_self_analytics/checkpoint_report_ru.py"]
+  no_marketplace_actions: true
