@@ -94,6 +94,39 @@ def format_checkpoint_history_ru(report: dict, *, label: str | None = None) -> s
         lines.append("  Дни наличия по MPSTATS: " +
                      _number(before.get("provider_stock_days")) + " ДО → " +
                      _number(after.get("provider_stock_days")) + " ПОСЛЕ.")
+        normalized = cp.get("stock_normalized_orders")
+        if isinstance(normalized, dict):
+            rate_status = normalized.get("status")
+            if rate_status in ("READY_DESCRIPTIVE", "READY_LOW_SAMPLE"):
+                lines.append(
+                    "  Оценочные заказы на 1 день наличия: "
+                    + _number(normalized["orders_per_in_stock_day_before"]) +
+                    " ДО → " + _number(normalized["orders_per_in_stock_day_after"]) +
+                    " ПОСЛЕ (MPSTATS, не реальные оплаченные продажи).")
+                if normalized["rate_percent_change"] is not None:
+                    lines.append("  Изменение интенсивности: " +
+                                 _number(normalized["rate_percent_change"]) +
+                                 "%; НЕ доказательство эффекта отзыва.")
+                else:
+                    lines.append(
+                        "  Изменение интенсивности в процентах: неизвестно "
+                        "(нулевая исходная база).")
+                lines.append(
+                    "  Доля дней с наличием: " +
+                    _number(normalized["in_stock_coverage_percent_before"]) +
+                    "% ДО → " +
+                    _number(normalized["in_stock_coverage_percent_after"]) +
+                    "% ПОСЛЕ.")
+                if normalized["small_observed_sample"]:
+                    lines.append(
+                        "  Малая выборка оценочных заказов хотя бы в одном "
+                        "периоде (<10); относительная динамика неустойчива.")
+            elif rate_status=="ZERO_STOCK_EXPOSURE":
+                lines.append("  Заказы на день наличия не вычислены: "
+                             "есть период с 0 подтверждённых дней наличия.")
+            else:
+                lines.append("  Заказы на день наличия неизвестны: "
+                             "нет достоверных заказов и/или дней наличия.")
         flags = cp.get("source_quality_flags") or []
         if "STOCK_AVAILABILITY_DIFFERS" in flags:
             lines.append("  Наличие различалось: суммарные продажи напрямую несопоставимы.")
