@@ -39,7 +39,8 @@ class IntegratedAnalyticsTests(unittest.TestCase):
         self.assertFalse(result["business_effect_proven"])
         self.assertEqual(result["verified_unit_contribution"]["status"],"UNKNOWN")
         self.assertIn("Финансовые данные неполны",result["human_readable_ru"])
-        self.assertIn("изменения цены",result["human_readable_ru"])
+        self.assertIn("журнал цен МСП — изменений ДО",result["human_readable_ru"])
+        self.assertNotIn("В период ПОСЛЕ цена продавца",result["human_readable_ru"])
 
     def test_post_review_price_change_numeric_evidence_renders(self):
         value=build_observational_case(
@@ -53,7 +54,19 @@ class IntegratedAnalyticsTests(unittest.TestCase):
         self.assertEqual(value["price_history"]["checkpoints"][-1]
                          ["after_window_price_events"][0]["change_percent"],
                          "-20.00")
+        self.assertIn("изменение -500 ₽ (-20,00%)", value["human_readable_ru"])
+        self.assertIn("В период ПОСЛЕ цена продавца корректировалась", value["human_readable_ru"])
+        self.assertTrue(value["checkpoint_interpretations"][-1]["price_changed_after_review"])
         self.assertFalse(value["business_effect_proven"])
+
+    def test_missing_numeric_pair_remains_explicitly_unknown(self):
+        value=build_observational_case(rows(),data(),as_of="2026-10-23",
+            price_events=[{"event_date":"2026-09-01",
+                           "old_price":None,"new_price":"1700"}],
+            price_source_status="VERIFIED_READONLY_VIEW")
+        self.assertIn("было/стало: значение неизвестно",value["human_readable_ru"])
+        self.assertNotIn("0 → 1700",value["human_readable_ru"])
+        self.assertTrue(value["checkpoint_interpretations"][-1]["price_changed_after_review"])
 
     def test_price_unavailable_stays_unknown(self):
         result=build_observational_case(rows(),data(),as_of="2026-10-23")
