@@ -17,3 +17,22 @@ class Tests(unittest.TestCase):
   v=review_source_evidence(**ARGS,comments={'comments':[{'date':'2026-09-25','valuation':5,'text':'sample'}]});self.assertEqual(v['observed_positive_text_entries'],0);self.assertIsNone(v['new_positive_text_reviews'])
  def test_placeholders_are_not_observations(self):
   v=review_source_evidence(**ARGS,period=[{'data':'2026-09-25','daynum':0,'comments':0,'rating':0},{'data':'2026-10-25','comments':1,'rating':5}]);self.assertNotIn('provider_comments_counter',v)
+ def test_same_review_id_is_counted_once(self):
+  row={'id':'same-id','date':'2026-09-28','valuation':5,'text':'example'}
+  v=review_source_evidence(**ARGS,comments={'comments':[row,row]})
+  self.assertEqual(v['observed_positive_text_entries'],1)
+  self.assertEqual(v['duplicate_review_ids'],1)
+  self.assertFalse(v['independent_reviewers_verified'])
+ def test_conflicting_same_review_id_blocks_count(self):
+  row={'id':'same-id','date':'2026-09-28','valuation':5,'text':'example'}
+  v=review_source_evidence(**ARGS,comments={'comments':[row,{**row,'valuation':4}]})
+  self.assertEqual(v['conflicting_review_ids'],1)
+  self.assertIsNone(v['observed_positive_text_entries'])
+ def test_duplicate_period_date_blocks_rating_change(self):
+  p=[{'data':'2026-09-25','comments':0,'rating':4},
+     {'data':'2026-10-25','comments':1,'rating':5},
+     {'data':'2026-10-25','comments':2,'rating':5}]
+  v=review_source_evidence(**ARGS,period=p)
+  self.assertIsNone(v['rating_change'])
+  self.assertNotIn('valid_rating_observations',v)
+  self.assertNotIn('provider_comments_counter',v)
