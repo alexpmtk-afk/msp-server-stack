@@ -27,7 +27,7 @@ def build_observational_case(
     as_of, price_events=None, price_source_status="UNAVAILABLE",
     verified_unit_costs=None, requested_days=90,
     max_checkpoints=12, max_provider_reads=24,
-    dated_rating_sources=None, dated_review_activity_sources=None,
+    dated_rating_sources=None, dated_review_activity_sources=None, review_source_evidence=None, own_order_sources=None,
 ):
     """One cohesive result with traceable missing-evidence gates.
 
@@ -40,6 +40,8 @@ def build_observational_case(
         rows, historical_observations, as_of=as_of,
         requested_days=requested_days, max_checkpoints=max_checkpoints,
         max_provider_reads=max_provider_reads)
+    if own_order_sources:
+        history["order_evidence"]={"status":"OWN_FEED_CHECKED_LOAD_COVERAGE_UNKNOWN"}
     prices=price_event_context(history,price_events,
                                source_status=price_source_status)
     finance=variable_unit_contribution(verified_unit_costs)
@@ -75,6 +77,13 @@ def build_observational_case(
         dated_review_activity_sources=dated_review_activity_sources)
     narrative=format_checkpoint_history_ru(history)
     narrative+="\n"+format_nonfinancial_outcome_ru(nonfinancial)
+    if review_source_evidence:
+        try:
+            from apps.msp_self_analytics.review_source_adapter import format_review_source_evidence_ru
+        except ModuleNotFoundError:
+            from review_source_adapter import format_review_source_evidence_ru
+        for value in review_source_evidence.values():
+            narrative+="\n"+format_review_source_evidence_ru(value)
     if prices["status"]=="UNKNOWN_PRICE_HISTORY":
         narrative+="\nЖурнал цен: надёжное датированное сопоставление пока недоступно."
     else:
@@ -118,7 +127,7 @@ def build_observational_case(
             "\nПеременный вклад единицы товара подтверждён финансовыми данными, "
             "но дополнительная прибыль от исторических отзывов всё равно не доказана.")
     else:
-        narrative+="\nФинансовые данные неполны; фактическую окупаемость определить нельзя."
+        narrative+="\nДенежная окупаемость отложена; не является условием готовности нестоимостного отчёта."
     return {
         "status":"OBSERVATIONAL_REPORT_READY"
                  if history["status"]=="COMPLETE_DESCRIPTIVE"
@@ -127,6 +136,7 @@ def build_observational_case(
         "price_history":prices,
         "verified_unit_contribution":finance,
         "nonfinancial_outcome":nonfinancial,
+        "review_source_evidence":review_source_evidence or {},
         "checkpoint_interpretations":interpretation,
         "business_effect_proven":False,
         "reported_purchase_count_is_sum_of_rows":True,
