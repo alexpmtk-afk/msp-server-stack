@@ -4,30 +4,14 @@ These are the six signal types that were explicitly discussed with the user and 
 
 ## 1. SIG-002 — «Поднять цену»
 
-Source: `_04_работа с платным хранением / низкий остаток`.
+**Новая утверждённая бизнес-семантика от 27.10.2026 имеет приоритет.** Полное объяснение в `apps/hermes/msp_signals_skill/references/production-orders.md`, раздел 6. Сигнал из `_04_работа с платным хранением / низкий остаток` уже рассчитал `_N` дней обеспеченности **конкретной карточки**; не пересчитывать его из таблиц продаж или остатков. Числовой SKU берётся из скобок; каждый блок `Товар N:` анализировать отдельно, включая переносы строк.
 
-Interpretation:
+1. Через `product_listing` сопоставить SKU с внутренним артикулом. Проверить оба текущих каталога `production_sewing_order`, `production_metal_order`, фильтр `requester=МП`. Без даты в самом Telegram **не значит** нет заказа.
+2. Количество фактической передачи пусто → 0. Заказ минус факт → непереданный остаток (минимум 0). В металле не полагаться на G «Осталось». Просмотреть все строки и комментарии: отмены, переносы, партии, брак у производителя; не двойной подсчёт завершённых.
+3. Если до окончания `_N` по московской дате есть подтверждённая положительная производственная партия → **НЕ ПОДНИМАТЬ**. До склада Ozon логистику **не оценивать**: работает схема FBS с собственного склада. Если нет соответствующей будущей партии и данные достоверны → **ПОДНЯТЬ**, кроме подтверждённой распродажи/вывода из ассортимента → **НЕ ПОДНИМАТЬ**. При значимой неопределённости → **УТОЧНИТЬ**.
+4. Актуальные остатки FBS при действительно необходимой проверке брать только из 1С через QRsite; обычного решения по сигналу они не требуют. Цена на маркетплейсе никогда не меняется автоматически.
 
-- the number after the underscore is days of stock coverage, not units;
-- dates are promised production inbound dates;
-- the article in parentheses is the marketplace SKU, not the internal article; accept `(123456789)`, `(Арт. 123456789)`, `(Артикул: 123456789)`;
-- multiple Telegram `Товар N:` items may wrap over several text lines. Group lines by product marker before linking `_N`, inbound date and SKU;
-- dates can be `DD.MM.YYYY`, `DD.MM.YY` (e.g., `26.10.26` is 2026-10-26), or ISO; `_6_` means six days and **no** production date, `_9_26.10.26` means nine days and arrival 2026-10-26.
-
-Decision per item (user clarification 2026-10-09):
-
-1. resolve the exact marketplace SKU (article in parentheses) and the _N coverage-days value;
-2. if _N is absent or cannot be interpreted -> insufficient data, do not invent a price decision;
-3. if _N is present but **no production/inbound date appears for that product** -> **recommend raising the price**. Business interpretation: the product has not been ordered for production, so there is no known next arrival; do not describe this as merely "insufficient data";
-4. if a date is printed but invalid, stale or ambiguous -> insufficient data pending clarification; an unusable printed date is not proof of no production order;
-5. if a valid inbound date exists, compare the nearest applicable date with the boundary of current calendar date + N coverage days;
-6. inbound on or before the boundary -> do not raise price; inbound after the boundary -> recommend raising price.
-
-The current day is included in N. Example: 05.10 with N=3 covers 05, 06 and 07 October; inbound on 08.10 is acceptable, 09.10 or later requires a price increase. A product with 6 coverage days and a blank production-date field must be marked "recommend raising the price — no production order / no planned arrival date".
-
-This is a **business interpretation of the missing date in this particular signal**, not a generic assertion that every missing date in every source means no production order. Preserve the original SKU and exact coverage days in the report.
-
-Execution is not enabled. The future action tool and the actual price-change amount are still undefined.
+**Примеры, подтверждённые владельцем 27.10.2026:** Ozon 3721851671, `_9`, 38 шт. 29.10 и 76 шт. 23.11 — **НЕ ПОДНИМАТЬ**, ранняя партия внутри 9 дней. WB 366748699 — распродажа и снятие с производства, **НЕ ПОДНИМАТЬ**, хотя простое сравнение с отсутствующей партией дало бы повышение.
 
 ## 2. SIG-016 — «Нужно обнулить FBS для распродажи FBO»
 
