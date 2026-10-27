@@ -38,7 +38,7 @@ class IntegratedAnalyticsTests(unittest.TestCase):
             "PRICE_CHANGE_CONFOUND_RECORDED")
         self.assertFalse(result["business_effect_proven"])
         self.assertEqual(result["verified_unit_contribution"]["status"],"UNKNOWN")
-        self.assertIn("Финансовые данные неполны",result["human_readable_ru"])
+        self.assertIn("Денежная окупаемость отложена",result["human_readable_ru"])
         self.assertIn("журнал цен МСП — изменений ДО",result["human_readable_ru"])
         self.assertNotIn("В период ПОСЛЕ цена продавца",result["human_readable_ru"])
 
