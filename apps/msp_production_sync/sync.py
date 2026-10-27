@@ -211,7 +211,16 @@ def fetch_csv(source):
     sid=os.environ.get(source_def["sheet_env"],"").strip()
     if not re.fullmatch(r"[A-Za-z0-9_-]{20,120}",sid):
         raise ValueError("invalid source spreadsheet configuration")
-    url="https://docs.google.com/spreadsheets/d/"+sid+"/export?format=csv&gid="+source_def["gid"]
+    # Some link-viewable Google Sheets accept Visualization CSV but return
+    # HTTP 401 from the usual /export endpoint. Verified from the REMOTE
+    # runner against the owner-provided sewing workbook on 2026-10-27.
+    # Keep metal's established export URL unchanged.
+    if source=="sewing":
+        url=("https://docs.google.com/spreadsheets/d/"+sid+
+             "/gviz/tq?tqx=out%3Acsv&gid="+source_def["gid"])
+    else:
+        url=("https://docs.google.com/spreadsheets/d/"+sid+
+             "/export?format=csv&gid="+source_def["gid"])
     req=Request(url,headers={"User-Agent":"msp-production-catalog/1.0"})
     with urlopen(req,timeout=40) as response:
         content_type=response.headers.get("Content-Type","").lower()
