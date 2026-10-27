@@ -40,8 +40,37 @@ def build_observational_case(
         rows, historical_observations, as_of=as_of,
         requested_days=requested_days, max_checkpoints=max_checkpoints,
         max_provider_reads=max_provider_reads)
-    if own_order_sources:
-        history["order_evidence"]={"status":"OWN_FEED_CHECKED_LOAD_COVERAGE_UNKNOWN"}
+    # A supplied result may be a failed attempt, not successfully read data.
+    # Even successful page traversal does not establish source coverage or a
+    # link between WB order IDs and registry events.
+    own_summaries = []
+    if isinstance(own_order_sources, dict):
+        for checkpoint_number, pair in own_order_sources.items():
+            parts = [pair.get(side) for side in ("before", "after")] if isinstance(pair, dict) else [None, None]
+            observed = all(
+                isinstance(part, dict)
+                and part.get("status") == "OBSERVED_OWN_WB_FEED"
+                and part.get("pagination_complete") is True
+                for part in parts)
+            own_summaries.append({
+                "checkpoint_number": checkpoint_number,
+                "both_windows_observed": observed,
+                "source_load_coverage_verified": (
+                    observed and all(part.get("source_load_coverage_verified") is True
+                                     for part in parts)),
+                "registry_order_id_linkage_verified": False,
+            })
+    if not own_summaries:
+        own_status = "UNKNOWN_NO_OWN_ORDER_SOURCE"
+    elif not all(row["both_windows_observed"] for row in own_summaries):
+        own_status = "OWN_FEED_PARTIAL_OR_UNAVAILABLE"
+    else:
+        own_status = "OWN_FEED_OBSERVED_COVERAGE_UNVERIFIED"
+    history["order_evidence"] = {
+        "status": own_status, "checkpoints": own_summaries,
+        "independent_organic_orders_verified": False,
+        "own_orders_automatically_subtracted": False,
+    }
     prices=price_event_context(history,price_events,
                                source_status=price_source_status)
     finance=variable_unit_contribution(verified_unit_costs)
