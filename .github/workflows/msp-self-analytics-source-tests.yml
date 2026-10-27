@@ -30,6 +30,7 @@ on:
       - 'tests/test_msp_self_dated_review_activity.py'
       - 'tests/test_msp_self_review_source_adapter.py'
       - 'tests/test_msp_self_own_order_reconciliation.py'
+      - 'tests/test_msp_self_cli_conclusions.py'
       - 'scripts/remote/msp_self_sku_report_cli.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
@@ -54,6 +55,7 @@ on:
       - 'tests/test_msp_self_dated_review_activity.py'
       - 'tests/test_msp_self_review_source_adapter.py'
       - 'tests/test_msp_self_own_order_reconciliation.py'
+      - 'tests/test_msp_self_cli_conclusions.py'
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
@@ -102,3 +104,4 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_self_dated_review_activity.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_review_source_adapter.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_own_order_reconciliation.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_cli_conclusions.py' -v
