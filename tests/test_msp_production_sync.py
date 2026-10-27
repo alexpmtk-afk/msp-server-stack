@@ -93,6 +93,42 @@ class ProductionCatalogTests(unittest.TestCase):
         self.assertEqual(m.number(" 1\u00a0230,5 "),("1230.5",None))
         self.assertEqual(m.number("#REF!"),(None,"invalid_quantity"))
 
+    def test_sewing_uses_gviz_and_metal_keeps_legacy_csv_export(self):
+        import csv
+        import io
+        import os
+        from unittest.mock import patch
+        class Response:
+            headers={"Content-Type":"text/csv; charset=utf-8"}
+            def __init__(self,content): self.content=content
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self,limit): return self.content[:limit]
+        observed=[]
+        def open_request(request,timeout):
+            observed.append(request.full_url)
+            source="sewing" if "gviz/tq" in request.full_url else "metal"
+            buf=io.StringIO(newline="")
+            writer=csv.writer(buf)
+            writer.writerow(m.SOURCES[source]["headers"])
+            if source=="sewing":
+                writer.writerow(["МП","A-15","Test","50","20","26.10.2026","111",
+                                 "01.11.2026","03.11.2026","","Н.Швейки"])
+            else:
+                writer.writerow(["МП","ЛМ","M-1","Test","10","2","8",
+                                 "26.10.2026","","IN-1","01.11.2026","","03.11.2026"])
+            return Response(buf.getvalue().encode("utf-8"))
+        with patch.dict(os.environ,{
+            "MSP_PRODUCTION_SEWING_SHEET_ID":"abcdefghijklmnopqrst123456",
+            "MSP_PRODUCTION_METAL_SHEET_ID":"abcdefghijklmnopqrst123456",
+        }), patch.object(m,"urlopen",open_request):
+            sew=m.fetch_csv("sewing")
+            metal=m.fetch_csv("metal")
+        self.assertIn("/gviz/tq?tqx=out%3Acsv&gid=666345199",observed[0])
+        self.assertIn("/export?format=csv&gid=1990590773",observed[1])
+        self.assertEqual(len(m.parse_source("sewing",sew)),1)
+        self.assertEqual(len(m.parse_source("metal",metal)),1)
+
     def test_header_failure_prevents_import(self):
         with self.assertRaises(ValueError):
             m.parse_source("sewing",[["Wrong"]*11,["МП","A"]])
