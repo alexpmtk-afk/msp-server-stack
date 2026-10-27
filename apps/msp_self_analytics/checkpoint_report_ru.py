@@ -31,6 +31,11 @@ def format_checkpoint_history_ru(report: dict, *, label: str | None = None) -> s
     if label is not None and (not isinstance(label, str) or not label.strip()):
         raise ValueError("INVALID_PRODUCT_LABEL")
     lines = ["ИСТОРИЧЕСКИЙ АНАЛИЗ ПО ДАТАМ ОТЗЫВОВ"]
+    try:
+        from apps.msp_self_analytics.order_evidence import report_guard_ru
+    except ModuleNotFoundError:
+        from order_evidence import report_guard_ru
+    lines.append(report_guard_ru(report))
     if label is not None:
         lines.append("Товар: " + label.strip())
     lines.append(
