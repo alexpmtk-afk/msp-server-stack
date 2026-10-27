@@ -10,10 +10,10 @@ from math import isfinite
 
 try:
     from apps.msp_self_analytics.dated_rating_dynamics import (
-        analyze_dated_positive_ratings, format_dated_positive_ratings_ru)
+        analyze_dated_positive_ratings, format_dated_positive_ratings_ru, compare_dated_rating_periods)
 except ModuleNotFoundError:
     from dated_rating_dynamics import (
-        analyze_dated_positive_ratings, format_dated_positive_ratings_ru)
+        analyze_dated_positive_ratings, format_dated_positive_ratings_ru, compare_dated_rating_periods)
 try:
     from apps.msp_self_analytics.dated_review_activity import (
         analyze_daily_review_activity, format_daily_review_activity_ru)
@@ -28,7 +28,7 @@ def _numeric(value):
 
 def summarize_nonfinancial_outcome(
     history, price_history, *, dated_rating_sources=None,
-    dated_review_activity_sources=None,
+    dated_review_activity_sources=None, review_observations=None,
 ):
     if not isinstance(history,dict) or not isinstance(history.get("checkpoints"),list):
         raise ValueError("HISTORY_REQUIRED")
@@ -44,6 +44,7 @@ def summarize_nonfinancial_outcome(
             and not isinstance(dated_review_activity_sources,dict)):
         raise ValueError("DATED_REVIEW_ACTIVITY_MAPPING_REQUIRED")
     dated_review_activity_sources=dated_review_activity_sources or {}
+    review_observations=review_observations or {}
     outcomes=[]
     for cp in history["checkpoints"]:
         number=cp.get("checkpoint_number")
@@ -79,6 +80,14 @@ def summarize_nonfinancial_outcome(
             rating_evidence=analyze_dated_positive_ratings(
                 dated_rating_sources[number],event_date=cp["review_date"],
                 after_start=period["d1"],after_end=period["d2"])
+        rating_pair=None
+        if isinstance(window,dict) and isinstance(window.get('before'),dict) and isinstance(window.get('after'),dict):
+            rating_pair=compare_dated_rating_periods(
+                dated_rating_sources.get(number),event_date=cp['review_date'],
+                before_start=window['before']['d1'],before_end=window['before']['d2'],
+                after_start=window['after']['d1'],after_end=window['after']['d2'])
+        if rating_pair is not None and number in dated_rating_sources:
+            rating_evidence=rating_pair["after"]
         review_activity=None
         if (number in dated_review_activity_sources and isinstance(window,dict)
                 and isinstance(window.get("after"),dict)):
@@ -98,14 +107,17 @@ def summarize_nonfinancial_outcome(
         outcomes.append({
             "checkpoint_number":number,"reported_review_date":cp.get("review_date"),
             "order_signal":status,
+            "observed_rating_change":review_observations.get(number,{}).get("rating_change"),
+            "observed_positive_text_entries":review_observations.get(number,{}).get("observed_positive_text_entries"),
             "normalized_rate_change_percent":relative_change,
             "small_estimated_order_sample":small_sample,
             "seller_price_context":price_context,
             "new_positive_public_reviews_status":rating_state,
             "dated_rating_provider_observation":rating_evidence,
+            "dated_rating_comparison":rating_pair,
             "dated_review_activity_observation":review_activity,
             "new_other_public_reviews_status":"UNKNOWN_NO_VERIFIED_DATED_SOURCE",
-            "historical_rating_change_status":"UNKNOWN_NO_VERIFIED_DATED_SOURCE",
+            "historical_rating_change_status":("OBSERVED_EXACT_ENDPOINT_CHANGE" if review_observations.get(number,{}).get("rating_change") is not None else "UNKNOWN_NO_VERIFIED_DATED_SOURCE"),
             "review_publication_verified":False,
             "organic_paid_order_change_verified":False,
             "advertising_contribution_verified":False,
@@ -152,12 +164,15 @@ def format_nonfinancial_outcome_ru(summary):
         if cp.get("dated_rating_provider_observation") is not None:
             lines.append("  "+format_dated_positive_ratings_ru(
                 cp["dated_rating_provider_observation"]))
-            lines.append("  Изменение совокупного рейтинга: неизвестно.")
+
         else:
             lines.append(
                 "  Новые положительные оценки/отзывы после даты отзыва: неизвестно "
-                "(нет подтверждённой датированной истории публикаций); "
-                "изменение совокупного рейтинга: неизвестно.")
+                "(нет подтверждённой датированной истории публикаций).")
+        rating=cp.get("observed_rating_change")
+        lines.append("  Изменение общего рейтинга: "+(str(rating)+" балла по точным конечным снимкам" if rating is not None else "UNKNOWN — нет сопоставимых конечных снимков")+".")
+        records=cp.get("observed_positive_text_entries")
+        if records is not None:lines.append("  Отдельно: получено положительных текстовых записей ПОСЛЕ: "+str(records)+"; не полное число публикаций и не доказанный независимый спрос.")
     lines.append(
         "Ни положительный результат по заказам, ни чужие предварительные "
         "товары, ни совпадение дат не доказывают результативность "

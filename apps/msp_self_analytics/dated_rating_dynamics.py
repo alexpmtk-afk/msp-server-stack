@@ -51,11 +51,11 @@ def _value(entry):
 
 def _unknown(reason,source_kind=None):
     return {"status":"UNKNOWN","reason":reason,"source_kind":source_kind,
-            "positive_ratings_4_5":None,"positive_reviews_with_text_4_5":None,
+            "positive_ratings_4_5":None,"positive_reviews_with_text_4_5":None,"positive_ratings_without_text_4_5":None,
             "distinct_other_buyers_verified":False,"effect_proven":False}
 
 
-def analyze_dated_positive_ratings(source,*,event_date,after_start,after_end):
+def _analyze_rating_window(source,*,date_from,date_to,allow_signed_net=False):
     """Count positive 4-5 ratings AFTER event only with source-proved dates.
 
     For DAILY_NEW_COUNTS, every after-window date must be present exactly once.
@@ -63,9 +63,9 @@ def analyze_dated_positive_ratings(source,*,event_date,after_start,after_end):
     after_end. That result is explicitly NET count change, not new events.
     Unsupported source or missing days never implies zero positives.
     """
-    t,first,last=map(_as_date,(event_date,after_start,after_end))
-    if first<=t or last<first or last>t+timedelta(days=90):
-        raise ValueError("AFTER_WINDOW_INVALID")
+    first,last=map(_as_date,(date_from,date_to))
+    if last<first or (last-first).days>=90:
+        raise ValueError("RATING_WINDOW_INVALID")
     if not isinstance(source,dict):
         return _unknown("DATED_SOURCE_NOT_AVAILABLE")
     if (source.get("status")!="VERIFIED_DATED_SOURCE"
@@ -106,6 +106,7 @@ def analyze_dated_positive_ratings(source,*,event_date,after_start,after_end):
             "completed_days":(last-first).days+1,
             "source_kind":kind,"positive_ratings_4_5":positive,
             "positive_reviews_with_text_4_5":positive_text,
+            "positive_ratings_without_text_4_5":positive-positive_text,
             "net_change_only":False,
             "distinct_other_buyers_verified":False,"effect_proven":False,
             "provider_counts_not_independent_publication_proof":True,
@@ -119,11 +120,11 @@ def analyze_dated_positive_ratings(source,*,event_date,after_start,after_end):
     dtext=end["ratings_with_text"]-baseline["ratings_with_text"]
     dnegative_text=end["ratings_negative_with_text"]-baseline["ratings_negative_with_text"]
     diffs=(dtotal,dnegative,dtext,dnegative_text)
-    if any(v<0 for v in diffs):
+    if not allow_signed_net and any(v<0 for v in diffs):
         return _unknown("CUMULATIVE_COUNTER_DECREASE_OR_MODERATION",kind)
     dpos=dtotal-dnegative
     dpositive_text=dtext-dnegative_text
-    if dpos<0 or dpositive_text<0 or dpositive_text>dpos:
+    if not allow_signed_net and (dpos<0 or dpositive_text<0 or dpositive_text>dpos):
         return _unknown("CUMULATIVE_SUBCOUNTER_CHANGES_INCONSISTENT",kind)
     return {
         "status":"NET_RATING_COUNT_CHANGE_ONLY",
@@ -131,10 +132,44 @@ def analyze_dated_positive_ratings(source,*,event_date,after_start,after_end):
         "completed_days":(last-first).days+1,
         "source_kind":kind,"positive_ratings_4_5":dpos,
         "positive_reviews_with_text_4_5":dpositive_text,
+        "positive_ratings_without_text_4_5":dpos-dpositive_text,
         "net_change_only":True,
         "distinct_other_buyers_verified":False,"effect_proven":False,
         "provider_counts_not_independent_publication_proof":True,
     }
+
+
+def analyze_dated_positive_ratings(source,*,event_date,after_start,after_end):
+    """Backward-compatible AFTER gate; legacy moderation rejection preserved."""
+    t,first,last=map(_as_date,(event_date,after_start,after_end))
+    if first<=t or last<first or last>t+timedelta(days=90):
+        raise ValueError("AFTER_WINDOW_INVALID")
+    return _analyze_rating_window(source,date_from=after_start,date_to=after_end)
+
+
+def compare_dated_rating_periods(source,*,event_date,before_start,before_end,
+                                 after_start,after_end):
+    """One VERIFIED source/series kind for equal windows; never mix daily and net.
+
+    The registered event is excluded. The caller supplies the established
+    first-series baseline and next-event-censored completed windows.
+    Cumulative deltas may be negative: deletions are net changes, not new events.
+    Canonical names here are an INTERNAL contract, not invented MCP fields.
+    """
+    t,b1,b2,a1,a2=map(_as_date,(event_date,before_start,before_end,after_start,after_end))
+    if not b1<=b2<t<a1<=a2 or (b2-b1)!=(a2-a1) or (a2-a1).days>=90:
+        raise ValueError("EQUAL_COMPLETED_WINDOWS_REQUIRED")
+    before=_analyze_rating_window(source,date_from=before_start,date_to=before_end,allow_signed_net=True)
+    after=_analyze_rating_window(source,date_from=after_start,date_to=after_end,allow_signed_net=True)
+    ready={'DAILY_POSITIVE_COUNTS_OBSERVED','NET_RATING_COUNT_CHANGE_ONLY'}
+    comparable=(before['status'] in ready and after['status']==before['status'])
+    fields=('positive_ratings_4_5','positive_reviews_with_text_4_5','positive_ratings_without_text_4_5')
+    return {'status':'COMPARABLE_DAILY_COUNTS' if comparable and not before['net_change_only'] else
+                     'COMPARABLE_NET_CHANGES' if comparable else 'PARTIAL_OR_UNKNOWN',
+            'before':before,'after':after,
+            'change':{f:after[f]-before[f] if comparable else None for f in fields},
+            'source_ref':source.get('source_ref') if isinstance(source,dict) else None,
+            'independent_buyers_verified':False,'causal_effect_proven':False}
 
 
 def format_dated_positive_ratings_ru(result):

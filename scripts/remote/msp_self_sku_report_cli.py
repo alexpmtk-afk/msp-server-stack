@@ -129,16 +129,19 @@ class MpstatsReader:
             raise RuntimeError("PROVIDER_LIMITS_UNAVAILABLE")
 
     def call(self, name, args):
-        if name not in ("account_limits", "wb_sku"):
+        if name not in ("account_limits", "wb_sku", "lk_wb_card_table"):
             raise RuntimeError("PROVIDER_TOOL_NOT_ALLOWED")
-        self.calls += 1
-        if self.calls > MAX_READS:
+        if self.calls >= MAX_READS:
             raise RuntimeError("PROVIDER_CALL_LIMIT_EXCEEDED")
-        http, _, reply = _post(
-            self.url, {"jsonrpc": "2.0", "id": self.calls + 100,
-                       "method": "tools/call",
-                       "params": {"name": name, "arguments": args}},
-            self.session, self.protocol)
+        self.calls += 1
+        try:
+            http, _, reply = _post(
+                self.url, {"jsonrpc": "2.0", "id": self.calls + 100,
+                           "method": "tools/call",
+                           "params": {"name": name, "arguments": args}},
+                self.session, self.protocol)
+        except (urllib.error.URLError, TimeoutError, OSError):
+            return None,"NETWORK_UNAVAILABLE"
         body, status = _unpack(reply)
         return body, (status if http < 400 else "HTTP_ERROR")
 
@@ -214,8 +217,7 @@ def format_checkpoint_conclusion(checkpoint, review_evidence):
                   "внешний спрос неизвестны; причинный эффект не доказан")
     return "Контроль " + str(number) + ": " + "; ".join(pieces) + "."
 
-
-def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
+def report_card(marketplace, store, sku, *, as_of=None,
                 provider_factory=MpstatsReader):
     """Return the owner's Russian report; suitable for an authorized Hermes reply.
 
@@ -239,16 +241,17 @@ def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
         return {"status": plan["status"],
                 "text": "Для этой карточки пока нет завершённых периодов после записанных дат отзывов.",
                 "mpstats_calls": 0}
-    # Initialization quota inspection consumes one of the MAX_READS calls.
-    if plan["provider_read_count"] + 1 > MAX_READS:
+    if plan["provider_read_count"] > MAX_READS:
         raise RuntimeError("PROVIDER_CALL_LIMIT_EXCEEDED")
     client = provider_factory()
     observations = {}
     passed = 0
     for request in plan["requests"]:
-        payload, state = client.call(
-            "wb_sku", {"sku": int(sku), "report": "full",
-                       "d1": request["d1"], "d2": request["d2"]})
+        payload,state=(None,"CALL_BUDGET")
+        if client.calls<MAX_READS:
+            payload, state = client.call(
+                "wb_sku", {"sku": int(sku), "report": "full",
+                           "d1": request["d1"], "d2": request["d2"]})
         stats = _period_stats(payload)
         observations[request["key"]] = dict(
             request_status=state,
@@ -263,6 +266,8 @@ def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
     from review_source_adapter import review_source_evidence
     from own_order_reconciliation import fetch_own_wb_orders, format_own_orders_ru
     review_sources={};own_sources={};own_text=[]
+    dated_ratings={};dated_activity={};period_cache={}
+    lk_status="NOT_READ_CALL_BUDGET"
     comments,state_comments=(None,"CALL_BUDGET")
     if client.calls<MAX_READS:
         comments,state_comments=client.call("wb_sku",{"sku":int(sku),"report":"comments"})
@@ -270,14 +275,45 @@ def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
     for cp in preliminary["history"]["checkpoints"]:
         windows=cp.get("windows")
         if not windows or not windows.get("after"):continue
-        period,state_period=(None,"CALL_BUDGET")
-        if client.calls<MAX_READS:
-            period,state_period=client.call("wb_sku",{"sku":int(sku),"report":"by_period","d1":cp["review_date"],"d2":windows["after"]["d2"]})
-        review_sources[cp["checkpoint_number"]]=review_source_evidence(sku=sku,event_date=cp["review_date"],after_start=windows["after"]["d1"],after_end=windows["after"]["d2"],comments=comments,period=period,comments_status=state_comments,period_status=state_period,lk_status=(source_audit or {}).get("lk_status","UNKNOWN_ACCESS_NOT_VERIFIED"))
+        # Each exact window plus preceding baseline, shared across checkpoints.
+        period_rows=[]; states=[];previous_response_tokens=set()
+        for side in ("before","after"):
+            w=windows[side]
+            d1=(dt.date.fromisoformat(w["d1"])-dt.timedelta(days=1)).isoformat()
+            key=(d1,w["d2"])
+            if key not in period_cache:
+                period_cache[key]=(client.call("wb_sku",{"sku":int(sku),"report":"by_period","d1":d1,"d2":w["d2"]})
+                                   if client.calls<MAX_READS else (None,"CALL_BUDGET"))
+            data,state=period_cache[key];states.append(state)
+            if isinstance(data,list):
+                # Deduplicate only overlap ACROSS responses, preserving provider
+                # duplicates within each individual response for validation.
+                tokens={json.dumps(row,sort_keys=True,ensure_ascii=False) for row in data}
+                period_rows.extend(row for row in data if json.dumps(row,sort_keys=True,ensure_ascii=False) not in previous_response_tokens)
+                previous_response_tokens.update(tokens)
+        number=cp["checkpoint_number"]
+        review_sources[number]=review_source_evidence(
+            sku=sku,event_date=cp["review_date"],
+            before_start=windows["before"]["d1"],before_end=windows["before"]["d2"],
+            after_start=windows["after"]["d1"],after_end=windows["after"]["d2"],
+            comments=comments,period=period_rows,comments_status=state_comments,
+            period_status=";".join(states),lk_status=lk_status)
+        # Absence is an explicit source-gate input, NOT a fabricated verified
+        # series. The existing dated_* validators run and return UNKNOWN.
+        dated_ratings[number]={"status":"UNAVAILABLE","reason":"MCP_FOUR_COUNTERS_NOT_VERIFIED"}
+        dated_activity[number]={"status":"UNAVAILABLE","reason":"MCP_DAILY_NEW_REVIEWS_NOT_VERIFIED"}
         b=fetch_own_wb_orders(sku=sku,store=store,**windows["before"])
         a=fetch_own_wb_orders(sku=sku,store=store,**windows["after"])
         own_sources[cp["checkpoint_number"]]={"before":b,"after":a}
         own_text.append(format_own_orders_ru(b,a))
+    if client.calls<MAX_READS:
+        lk_data,lk_state=client.call("lk_wb_card_table",{
+            "type":"articles","value":str(sku),"period_type":"90days","self_redemption":False})
+        # Never trust aggregate cabinet scope or guess a new field mapping.
+        lk_status=("Недоступна: отказ или ошибка доступа MCP"
+                   if lk_state in ("TOOL_ERROR","HTTP_ERROR","NETWORK_UNAVAILABLE") else
+                   "Ответ получен, но кабинет, поля и историческая семантика не подтверждены")
+        for evidence in review_sources.values():evidence["lk_status"]=lk_status
     # Additional read-only MPSTATS observation: exact historical days and
     # provider-labelled client_price, never seller edits or actual paid price.
     # Skip rather than overflow the per-request MPSTATS call budget.
@@ -299,7 +335,8 @@ def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
         selected["rows_for_local_analysis_only"], observations, as_of=day,
         price_events=prices, price_source_status=price_status,
         verified_unit_costs=None, requested_days=90,
-        max_checkpoints=12, max_provider_reads=MAX_READS, review_source_evidence=review_sources, own_order_sources=own_sources)
+        max_checkpoints=12, max_provider_reads=MAX_READS, review_source_evidence=review_sources, own_order_sources=own_sources,
+        dated_rating_sources=dated_ratings,dated_review_activity_sources=dated_activity)
     price_observations_text=[]
     if provider_keyword_rows:
         for checkpoint in assembled["history"]["checkpoints"]:
@@ -316,15 +353,13 @@ def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
         price_observations_text.append(
             "Внешний ряд MPSTATS client_price: не запрашивался из-за "+
             "ограничения количества вызовов; неизвестно не означает постоянную цену.")
-    conclusions=[]
-    for checkpoint in assembled["history"]["checkpoints"]:
-        evidence=review_sources.get(checkpoint["checkpoint_number"],{})
-        conclusions.append(format_checkpoint_conclusion(checkpoint,evidence))
+    conclusions=[format_checkpoint_conclusion(cp,review_sources.get(cp["checkpoint_number"],{})) for cp in assembled["history"]["checkpoints"]]
     return {
         "status": assembled["status"],
         "text": ("Карточка определена по каталогу: " + marketplace.upper() +
-                 "; магазин " + store + ".\n" + assembled["human_readable_ru"] + "\n" + "\n".join(price_observations_text)+"\n"+"\n".join(own_text)+"\nЕДИНЫЙ НЕСТОИМОСТНОЙ ВЫВОД\n"+"\n".join(conclusions)+"\nДенежная окупаемость отложена."),
-        "review_source_evidence":review_sources,
+                 "; магазин " + store + ".\n" + assembled["human_readable_ru"] + "\n" + "\n".join(price_observations_text)+"\n"+"\n".join(own_text)+"\n"+"\n".join(conclusions)+"\nЕдиный итог: оценка заказов MPSTATS описательна, внешние независимые заказы после очистки и сверки не установлены. Найденные положительные отзывы не доказывают независимый спрос или причинный эффект. Денежная окупаемость отложена."),
+        "review_source_evidence":assembled["review_source_evidence"],
+        "nonfinancial_outcome":assembled["nonfinancial_outcome"],
         "own_order_sources":own_sources,
         "provider_windows": len(plan["requests"]),
         "provider_windows_with_data": passed,

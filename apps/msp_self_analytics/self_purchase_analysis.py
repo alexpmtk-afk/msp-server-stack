@@ -40,9 +40,6 @@ def build_observational_case(
         rows, historical_observations, as_of=as_of,
         requested_days=requested_days, max_checkpoints=max_checkpoints,
         max_provider_reads=max_provider_reads)
-    # A supplied result may be a failed attempt, not successfully read data.
-    # Even successful page traversal does not establish source coverage or a
-    # link between WB order IDs and registry events.
     own_summaries = []
     if isinstance(own_order_sources, dict):
         for checkpoint_number, pair in own_order_sources.items():
@@ -103,7 +100,13 @@ def build_observational_case(
         })
     nonfinancial=summarize_nonfinancial_outcome(
         history,prices,dated_rating_sources=dated_rating_sources,
-        dated_review_activity_sources=dated_review_activity_sources)
+        dated_review_activity_sources=dated_review_activity_sources,
+        review_observations=review_source_evidence)
+    review_source_evidence={k:dict(v) for k,v in (review_source_evidence or {}).items()}
+    for outcome in nonfinancial['checkpoints']:
+        number=outcome['checkpoint_number']
+        if number in review_source_evidence:
+            review_source_evidence[number]['strict_rating_comparison']=outcome['dated_rating_comparison']
     narrative=format_checkpoint_history_ru(history)
     narrative+="\n"+format_nonfinancial_outcome_ru(nonfinancial)
     if review_source_evidence:
