@@ -174,6 +174,47 @@ def _price_history(marketplace, store, sku):
         con.close()
 
 
+def format_checkpoint_conclusion(checkpoint, review_evidence):
+    """Descriptive, evidence-gated conclusion for ONE registered checkpoint."""
+    number = checkpoint.get("checkpoint_number", "?")
+    source = checkpoint.get("provider_observations") or {}
+    before = source.get("before") or {}
+    after = source.get("after") or {}
+    b, a = before.get("sales"), after.get("sales")
+    if all(type(x) in (int, float) and x >= 0 for x in (b, a)):
+        direction = ("выросли" if a > b else
+                     "снизились" if a < b else "не изменились")
+        pieces = ["оценочные заказы MPSTATS " + direction +
+                  " (" + str(b) + " → " + str(a) + ")"]
+    else:
+        pieces = ["динамика оценочных заказов MPSTATS неизвестна"]
+    norm = checkpoint.get("stock_normalized_orders") or {}
+    if norm.get("status") in ("READY_LOW_SAMPLE", "READY_DESCRIPTIVE"):
+        delta = norm.get("rate_percent_change")
+        if type(delta) in (int, float):
+            pieces.append("изменение заказов на день наличия " +
+                          (f"{delta:+.1f}%").replace(".", ","))
+        else:
+            pieces.append("процентное изменение заказов на день наличия неизвестно")
+        if norm.get("small_observed_sample") is True:
+            pieces.append("выборка оценочных заказов мала")
+    else:
+        pieces.append("нормированная интенсивность заказов неизвестна")
+    if norm.get("stock_coverage_differs") is True:
+        pieces.append("дни наличия различаются")
+    elif norm.get("stock_coverage_differs") is None:
+        pieces.append("полная история дней наличия не подтверждена")
+    count = review_evidence.get("observed_positive_text_entries")
+    if type(count) is int and count >= 0:
+        pieces.append("в источнике получено записей 4–5★ с текстом: " +
+                      str(count) + " (полнота неизвестна)")
+    else:
+        pieces.append("количество полученных записей 4–5★ с текстом неизвестно")
+    pieces.append("полное число новых положительных оценок и независимый "
+                  "внешний спрос неизвестны; причинный эффект не доказан")
+    return "Контроль " + str(number) + ": " + "; ".join(pieces) + "."
+
+
 def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
                 provider_factory=MpstatsReader):
     """Return the owner's Russian report; suitable for an authorized Hermes reply.
@@ -198,7 +239,8 @@ def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
         return {"status": plan["status"],
                 "text": "Для этой карточки пока нет завершённых периодов после записанных дат отзывов.",
                 "mpstats_calls": 0}
-    if plan["provider_read_count"] > MAX_READS:
+    # Initialization quota inspection consumes one of the MAX_READS calls.
+    if plan["provider_read_count"] + 1 > MAX_READS:
         raise RuntimeError("PROVIDER_CALL_LIMIT_EXCEEDED")
     client = provider_factory()
     observations = {}
@@ -276,16 +318,8 @@ def report_card(marketplace, store, sku, *, as_of=None, source_audit=None,
             "ограничения количества вызовов; неизвестно не означает постоянную цену.")
     conclusions=[]
     for checkpoint in assembled["history"]["checkpoints"]:
-        index=checkpoint["checkpoint_number"]
-        observations=checkpoint.get("provider_observations",{})
-        before=observations.get("before",{});after=observations.get("after",{})
-        counts=(before.get("sales"),after.get("sales"))
-        normalized=checkpoint.get("stock_normalized_orders",{})
-        rate=normalized.get("rate_percent_change")
-        trend=("оценочные заказы не выросли" if counts[0] is not None and counts[1] is not None and counts[1]<=counts[0] else "динамика заказов требует сверки")
-        evidence=review_sources.get(index,{})
-        found=evidence.get("observed_positive_text_entries")
-        conclusions.append("Контроль "+str(index)+": "+trend+"; изменение оценочной интенсивности "+(str(round(rate,1))+"%" if isinstance(rate,(int,float)) else "UNKNOWN")+". Получено положительных текстовых записей MPSTATS: "+str(found if found is not None else "UNKNOWN")+"; полнота и независимость авторов неизвестны. Подтверждённого роста независимого спроса/эффекта исходного самовыкупа нет; точная динамика новых 4–5★ UNKNOWN, выборка мала, наличие и наблюдения цен менялись.")
+        evidence=review_sources.get(checkpoint["checkpoint_number"],{})
+        conclusions.append(format_checkpoint_conclusion(checkpoint,evidence))
     return {
         "status": assembled["status"],
         "text": ("Карточка определена по каталогу: " + marketplace.upper() +
