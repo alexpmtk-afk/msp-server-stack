@@ -92,5 +92,28 @@ class IntegratedAnalyticsTests(unittest.TestCase):
         self.assertFalse(result["marketplace_actions_allowed"])
 
 
+    def test_failed_own_feed_attempt_does_not_claim_reconciliation(self):
+        res=build_observational_case(
+            rows(),data(),as_of="2026-10-23",
+            own_order_sources={
+                1:{"before":{"status":"SOURCE_UNAVAILABLE"},
+                   "after":{"status":"OBSERVED_OWN_WB_FEED",
+                            "pagination_complete":True}}})
+        self.assertEqual(res["history"]["order_evidence"]["status"],
+                         "OWN_FEED_PARTIAL_OR_UNAVAILABLE")
+        self.assertFalse(res["history"]["order_evidence"]["independent_organic_orders_verified"])
+        self.assertFalse(res["history"]["order_evidence"]["own_orders_automatically_subtracted"])
+
+    def test_observed_own_feed_still_does_not_prove_coverage(self):
+        observation={"status":"OBSERVED_OWN_WB_FEED",
+                     "pagination_complete":True,
+                     "source_load_coverage_verified":False}
+        res=build_observational_case(
+            rows(),data(),as_of="2026-10-23",
+            own_order_sources={1:{"before":observation,"after":observation}})
+        self.assertEqual(res["history"]["order_evidence"]["status"],
+                         "OWN_FEED_OBSERVED_COVERAGE_UNVERIFIED")
+        self.assertFalse(res["history"]["order_evidence"]["independent_organic_orders_verified"])
+
 if __name__=="__main__":
     unittest.main()
