@@ -3,10 +3,11 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from scripts.remote.msp_reports_credentials_receiver import (
-    CredentialTransferError, receive_bundle, validate_bundle,
+    CredentialTransferError, receive_bundle, validate_bundle, interactive_bundle,
 )
 
 
@@ -55,6 +56,27 @@ class ReceiverTests(unittest.TestCase):
         self.assertEqual(len(backups), 1)
         self.assertEqual(backups[0].read_bytes(), self.raw)
         self.assertEqual(backups[0].stat().st_mode & 0o777, 0o600)
+
+    def test_masked_interactive_validates_nine_fields(self):
+        provided = iter([
+            "WB_LASER_TOKEN", "WB_NOV_TOKEN", "WB_DMITR_TOKEN",
+            "1001", "OZON_LASER_KEY", "1002", "OZON_NOV_KEY", "1003", "OZON_DMITR_KEY"
+        ])
+        prompts = []
+        def fake_hidden_prompt(label):
+            prompts.append(label)
+            return next(provided)
+        with patch("sys.stdin.isatty", return_value=True):
+            raw = interactive_bundle(prompt=fake_hidden_prompt)
+        values = validate_bundle(raw)
+        self.assertEqual(len(prompts), 9)
+        self.assertEqual(len(values), 6)
+        self.assertEqual(values["wb_laser_master"]["token"], "WB_LASER_TOKEN")
+
+    def test_masked_interactive_rejects_non_tty_before_prompts(self):
+        with patch("sys.stdin.isatty", return_value=False):
+            with self.assertRaisesRegex(CredentialTransferError, "real SSH terminal"):
+                interactive_bundle(prompt=lambda _: self.fail("should not prompt"))
 
     def test_rejects_missing_cabinet(self):
         bad = fake_bundle()
