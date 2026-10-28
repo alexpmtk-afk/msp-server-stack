@@ -58,6 +58,13 @@ class LocalArchiveTests(unittest.TestCase):
         self.assertTrue(r["annual_changed"])
         self.assertEqual(r["annual_rows"], 2)
 
+    def test_ozon_annual_missing_detected(self):
+        sample(self.source, ["report_year", "report_month", "row_number"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1"}])
+        r = import_csv(self.root, "ozon_final_realization", "ozon_laser_master", "2026-01", self.source)
+        Path(r["annual_path"]).unlink()
+        self.assertFalse(verify(self.root)["ok"])
+
     def test_current_replaces_month(self):
         sample(self.source, ["posting_number", "status"], [{"posting_number": "A", "status": "awaiting"}])
         r1 = import_csv(self.root, "ozon_current_orders_fbo", "ozon_dmitrieva", "2026-10", self.source)
