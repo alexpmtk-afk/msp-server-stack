@@ -1,7 +1,8 @@
 ﻿#Requires -Version 5.1
 <#
   SECURE ONE-TIME WB/Ozon token transfer from a Windows PC to MSP VPS.
-  - UTF-8 BOM required for Windows PowerShell 5.1 when Russian labels appear.\n  - Nine masked prompts, all JSON constructed in memory.
+  - UTF-8 BOM required for Windows PowerShell 5.1 when Russian labels appear.
+  - Nine masked prompts, all JSON constructed in memory.
   - No credential file, transcript, command-line token, clipboard, or log.
   - SSH host key must already be trusted; public-key login required.
   - Server receiver must first be installed after an approved deployment.
@@ -73,15 +74,101 @@ if ($result -notmatch '^RECEIVER_READY=YES;SECRETS_RECEIVED=NO$') {
     throw 'Unexpected receiver readiness response. No credentials were collected or transmitted.'
 }
 Write-Host 'Receiver is ready. Enter credentials on THIS PC; values will be hidden.'
+Write-Host 'For paste, use mouse RIGHT-CLICK or Shift+Insert. Do NOT type Ctrl+V (may enter a control character).'
 
-function Read-Secret([string]$label) {
+function Read-Secret([string]$label, [string]$kind) {
     $secure = Read-Host -Prompt $label -AsSecureString
     if ($null -eq $secure -or $secure.Length -eq 0) {
         throw 'A required credential field is empty.'
     }
     $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
     try {
-        return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
+        $value = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
+        if ([string]::IsNullOrWhiteSpace($value) -or $value -ne $value.Trim()) {
+            throw ('Empty or whitespace-affected value in ' + $label + '; nothing sent. Restart after correcting input.')
+        }
+        if ($value -match '[\x00-\x1F\x7F]') {
+            throw ('Control character detected in ' + $label + '. Ctrl+V may enter character 0x16. Use mouse RIGHT-CLICK or Shift+Insert; nothing sent.')
+        }
+        if ($kind -eq 'wb' -and $value -notmatch '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+
+
+$bundle = [ordered]@{}
+try {
+    $bundle['wb_laser_master'] = [ordered]@{ token = (Read-Secret 'WB Лазер-Мастер: токен' 'wb') }
+    $bundle['wb_novokshenov'] = [ordered]@{ token = (Read-Secret 'WB Новокшенов: токен' 'wb') }
+    $bundle['wb_dmitrieva'] = [ordered]@{ token = (Read-Secret 'WB Дмитриева: токен' 'wb') }
+    $bundle['ozon_laser_master'] = [ordered]@{
+        client_id = (Read-Secret 'Ozon Лазер-Мастер: Client-Id' 'ozon-client')
+        api_key = (Read-Secret 'Ozon Лазер-Мастер: API Key' 'ozon-key')
+    }
+    $bundle['ozon_novokshenov'] = [ordered]@{
+        client_id = (Read-Secret 'Ozon Новокшенов: Client-Id' 'ozon-client')
+        api_key = (Read-Secret 'Ozon Новокшенов: API Key' 'ozon-key')
+    }
+    $bundle['ozon_dmitrieva'] = [ordered]@{
+        client_id = (Read-Secret 'Ozon Дмитриева: Client-Id' 'ozon-client')
+        api_key = (Read-Secret 'Ozon Дмитриева: API Key' 'ozon-key')
+    }
+    $json = ConvertTo-Json -InputObject $bundle -Compress -Depth 5
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    [byte[]]$bytes = $utf8.GetBytes($json)
+    try {
+        $mode = if ($ReplaceExisting) { 'replace' } else { 'create' }
+        $result = Invoke-SshReceiver -Mode $mode -StdinBytes $bytes
+        if ($result -notmatch '^RESULT=(CREATED|UPDATED|UNCHANGED);CABINETS=6;SECRETS_PRINTED=NO;SERVICES_RESTARTED=NO$') {
+            throw 'Unexpected receiver result. Check server state without printing secrets.'
+        }
+        Write-Host $result
+    } finally {
+        [Array]::Clear($bytes, 0, $bytes.Length)
+        $json = $null
+    }
+} finally {
+    $bundle.Clear()
+}
+) {
+            throw ('WB token is not JWT-shaped in ' + $label + '. Confirm original token; nothing sent.')
+        }
+        if ($kind -eq 'ozon-client' -and $value -notmatch '^[0-9]+
+
+$bundle = [ordered]@{}
+try {
+    $bundle['wb_laser_master'] = [ordered]@{ token = (Read-Secret 'WB Лазер-Мастер: токен') }
+    $bundle['wb_novokshenov'] = [ordered]@{ token = (Read-Secret 'WB Новокшенов: токен') }
+    $bundle['wb_dmitrieva'] = [ordered]@{ token = (Read-Secret 'WB Дмитриева: токен') }
+    $bundle['ozon_laser_master'] = [ordered]@{
+        client_id = (Read-Secret 'Ozon Лазер-Мастер: Client-Id')
+        api_key = (Read-Secret 'Ozon Лазер-Мастер: API Key')
+    }
+    $bundle['ozon_novokshenov'] = [ordered]@{
+        client_id = (Read-Secret 'Ozon Новокшенов: Client-Id')
+        api_key = (Read-Secret 'Ozon Новокшенов: API Key')
+    }
+    $bundle['ozon_dmitrieva'] = [ordered]@{
+        client_id = (Read-Secret 'Ozon Дмитриева: Client-Id')
+        api_key = (Read-Secret 'Ozon Дмитриева: API Key')
+    }
+    $json = ConvertTo-Json -InputObject $bundle -Compress -Depth 5
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    [byte[]]$bytes = $utf8.GetBytes($json)
+    try {
+        $mode = if ($ReplaceExisting) { 'replace' } else { 'create' }
+        $result = Invoke-SshReceiver -Mode $mode -StdinBytes $bytes
+        if ($result -notmatch '^RESULT=(CREATED|UPDATED|UNCHANGED);CABINETS=6;SECRETS_PRINTED=NO;SERVICES_RESTARTED=NO$') {
+            throw 'Unexpected receiver result. Check server state without printing secrets.'
+        }
+        Write-Host $result
+    } finally {
+        [Array]::Clear($bytes, 0, $bytes.Length)
+        $json = $null
+    }
+} finally {
+    $bundle.Clear()
+}
+) {
+            throw ('Ozon Client-Id requires digits in ' + $label + '; nothing sent.')
+        }
+        return $value
     } finally {
         [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
         $secure.Dispose()
