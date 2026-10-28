@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 from .archive import DEFAULT_ROOT, import_csv
 from .providers import (
-    ProviderError, wb_discover_main, wb_detail, ozon_final_month,
+    ProviderError, wb_discover_all, wb_detail, ozon_final_month,
     ozon_current_postings, ozon_accrual_day,
 )
 from .runtime import ReadOnlyHTTP, credential_status
@@ -104,17 +104,22 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
         if args.action == "wb-list":
             if not args.cabinet.startswith("wb_"):
                 raise ValueError("WB cabinet required")
-            values = wb_discover_main(sender, args.year)
+            values = wb_discover_all(sender, args.year)
             result = {"cabinet": args.cabinet, "year": args.year, "report_ids": [r["reportId"] for r in values],
-                      "reports": len(values), "status": "DISCOVERED_NOT_DOWNLOADED"}
+                      "reports": len(values), "main": sum(r["reportType"] == 1 for r in values),
+                      "buyout": sum(r["reportType"] == 2 for r in values),
+                      "status": "DISCOVERED_NOT_DOWNLOADED"}
         elif args.action == "wb-one":
-            listed = wb_discover_main(sender, args.year)
-            valid = {int(row["reportId"]) for row in listed}
-            if args.report_id not in valid:
+            listed = wb_discover_all(sender, args.year)
+            types = {int(row["reportId"]): row["reportType"] for row in listed}
+            if args.report_id not in types:
                 raise ProviderError("reportId not listed for selected cabinet/year")
-            rows = wb_detail(sender, args.report_id)
-            result = ingest_rows(args.root, "wb_weekly_finance_main", args.cabinet, str(args.year), rows,
+            report_type = types[args.report_id]
+            rows = wb_detail(sender, args.report_id, report_type)
+            dataset = "wb_weekly_finance_main" if report_type == 1 else "wb_weekly_finance_buyout"
+            result = ingest_rows(args.root, dataset, args.cabinet, str(args.year), rows,
                                  ("reportId", "rrdId"))
+            result["report_type"] = report_type
             result["report_id"] = args.report_id
             result["status"] = "LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE"
         elif args.action == "ozon-final-one":
