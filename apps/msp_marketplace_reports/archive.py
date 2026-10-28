@@ -25,6 +25,7 @@ CABINETS = {
 }
 DATASETS = {
     "wb_weekly_finance_main": ("wb", ("reportId", "rrdId")),
+    "wb_weekly_finance_buyout": ("wb", ("reportId", "rrdId")),
     "ozon_final_realization": ("ozon", ("report_year", "report_month", "row_number")),
     "ozon_current_orders_fbo": ("ozon", ("posting_number",)),
     "ozon_current_orders_fbs": ("ozon", ("posting_number",)),
@@ -154,7 +155,7 @@ def _validate(dataset: str, cabinet: str, period: str):
         raise ValueError("unknown cabinet for dataset")
     if not PERIOD_RE.fullmatch(period):
         raise ValueError("bad period")
-    month_expected = dataset != "wb_weekly_finance_main"
+    month_expected = not dataset.startswith("wb_weekly_finance_")
     if ("-" in period) != month_expected:
         raise ValueError("dataset requires " + ("YYYY-MM" if month_expected else "YYYY"))
     return marketplace, keys
@@ -162,8 +163,9 @@ def _validate(dataset: str, cabinet: str, period: str):
 
 def _location(root: Path, dataset: str, cabinet: str, period: str):
     year = period[:4]
-    if dataset == "wb_weekly_finance_main":
-        return root / "База данных" / "WB" / cabinet / year / "finance" / "weekly" / "main" / (cabinet + "__weekly_main__" + year + ".csv")
+    if dataset in ("wb_weekly_finance_main", "wb_weekly_finance_buyout"):
+        category = "main" if dataset == "wb_weekly_finance_main" else "buyout"
+        return root / "База данных" / "WB" / cabinet / year / "finance" / "weekly" / category / (cabinet + "__weekly_" + category + "__" + year + ".csv")
     base = root / "База данных" / "Ozon" / cabinet / year
     if dataset == "ozon_final_realization":
         return base / "FINAL" / "monthly_source" / (cabinet + "__realization__" + period + ".csv")
@@ -233,14 +235,14 @@ def import_csv(root: Path, dataset: str, cabinet: str, period: str, source: Path
     if dataset == "ozon_final_realization":
         if any(row["report_year"] != period[:4] or row["report_month"] != period for row in incoming.values()):
             raise ValueError("Ozon FINAL rows must match report year/month")
-    if dataset == "wb_weekly_finance_main" and any(
+    if dataset.startswith("wb_weekly_finance_") and any(
         (row.get("dateTo") or row.get("date_to") or "")[:4] not in ("", period)
         for row in incoming.values()
     ):
         raise ValueError("WB finance period outside selected annual partition")
     path = _location(root, dataset, cabinet, period)
     with _lock(root, cabinet, dataset):
-        if dataset == "wb_weekly_finance_main":
+        if dataset.startswith("wb_weekly_finance_"):
             result = _import_wb(root, path, dataset, cabinet, period, fields, incoming, keys)
         else:
             result = _import_snapshot(root, path, dataset, cabinet, period, fields, incoming)
