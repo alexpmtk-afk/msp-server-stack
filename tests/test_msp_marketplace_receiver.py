@@ -111,7 +111,7 @@ class ReceiverTests(unittest.TestCase):
         bad = fake_bundle()
         for cabinet, credentials in bad.items():
             for field in credentials:
-                credentials[field] = "\\u0016"
+                credentials[field] = "\u0016"
         # JSON escapes a single ASCII control character instead of rejecting it.
         with self.assertRaisesRegex(CredentialTransferError, "control character"):
             receive_bundle(to_bytes(bad), destination=self.dest, replace=True)
