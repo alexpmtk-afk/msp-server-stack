@@ -140,3 +140,8 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 ## 2026-10-28: локальная проверка JWT — ошибка диагностической команды
 - Команда для проверки JWT выдала `TypeError: unsupported operand type(s) for &: 'NoneType' and 'int'` в Bash консоли WinSCP. Это означает, что при проверке у `wb_laser_master` заявленное поле `s` было `None` или отсутствовало. Неправильный порядок проверки типа в предложенном тернарном выражении вызвал ошибку. При такой проверке запросы к WB не выполнялись и файл секретов не изменялся.
 - Исправленный вариант сначала проверяет, что `s` целое число, затем применяет маску `1<<12` (позиция 13 — Finance), при отсутствии возвращает `UNKNOWN`. Аналогично обрабатывает отсутствующий `exp`. Нельзя выводить JWT, содержимое payload или персональные идентификаторы. Структура JWT не подтверждает подлинность или статус у WB.
+
+## WB token syntax offline test (2026-10-28)
+- On VM-817589, local read-only JWT metadata check for `wb_laser_master` returned TOKEN_FORMAT=OTHER, TOKEN_TYPE=UNKNOWN, FINANCE_SCOPE=UNKNOWN, EXPIRED=UNKNOWN, S_CLAIM=MISSING_OR_NONNUMERIC.
+- These UNKNOWN values follow from the non-JWT structure; do not infer expiry, Finance permissions or geo-block from them. Earlier Finance host requests returned 400 text/plain from the same cabinet.
+- WB official documentation describes API tokens as JWT and requires Personal/Service with Finance permission for finance reports. Next: offline-only structure classification for all three WB credentials (dot segments, Bearer prefix, whitespace, length bucket), printing no token fragments, claims, IDs or secret values. No further provider calls until configuration issue resolved.
