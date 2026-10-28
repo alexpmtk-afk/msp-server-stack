@@ -24,7 +24,7 @@ ID сохраняются при ротации ключа.
 
 ## План размещения (не создан на сервере)
 - `/opt/mcp/data/msp-marketplace-reports/` — CSV, реестры и резервные версии.
-- `/opt/mcp/secrets/msp-marketplace-reports/` — отдельные учётные данные, исключительно на VPS, права ограничить.
+- `/etc/msp-marketplace-reports/` — отдельные учётные данные, исключительно на VPS (root:root 0700; cabinets.json 0600). Не использовать общий каталог `/opt/mcp/secrets`: он принадлежит `hermes`.
 - Код через утверждённую версию из GitHub; система МСП/SQLite и существующий Marketplaces MCP не изменяются.
 
 ## Этапы
