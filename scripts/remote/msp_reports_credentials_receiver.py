@@ -15,7 +15,7 @@ import stat
 import sys
 from pathlib import Path
 
-DESTINATION = Path("/opt/mcp/secrets/msp-marketplace-reports/cabinets.json")
+DESTINATION = Path("/etc/msp-marketplace-reports/cabinets.json")
 CABINETS = {
     "wb_laser_master": ("token",),
     "wb_novokshenov": ("token",),
