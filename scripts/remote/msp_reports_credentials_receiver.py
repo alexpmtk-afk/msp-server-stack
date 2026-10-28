@@ -167,9 +167,40 @@ def receive_bundle(raw: bytes, *, destination: Path = DESTINATION, replace: bool
     return "UPDATED" if existing is not None else "CREATED"
 
 
+
+def interactive_bundle(prompt=None) -> bytes:
+    """Collect nine secrets on a real terminal; no shell history or local file."""
+    import getpass
+
+    if not sys.stdin.isatty():
+        raise CredentialTransferError("interactive input requires a real SSH terminal")
+    read_secret = prompt or getpass.getpass
+    data = {}
+    labels = {
+        "wb_laser_master": "WB Лазер-Мастер",
+        "wb_novokshenov": "WB Новокшенов",
+        "wb_dmitrieva": "WB Дмитриева",
+        "ozon_laser_master": "Ozon Лазер-Мастер",
+        "ozon_novokshenov": "Ozon Новокшенов",
+        "ozon_dmitrieva": "Ozon Дмитриева",
+    }
+    for cabinet, keys in CABINETS.items():
+        fields = {}
+        for key in keys:
+            value = read_secret("%s — %s: " % (labels[cabinet], key))
+            if not isinstance(value, str) or not value or value != value.strip():
+                raise CredentialTransferError("empty or malformed credential for " + cabinet)
+            fields[key] = value
+        data[cabinet] = fields
+    raw = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    validate_bundle(raw)
+    return raw
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Secure 6-cabinet credential receiver")
     parser.add_argument("--check", action="store_true", help="validate receiver readiness only; no secret input")
+    parser.add_argument("--interactive", action="store_true", help="enter nine secrets in a hidden SSH terminal")
     parser.add_argument("--replace", action="store_true", help="explicitly allow credential replacement with backup")
     args = parser.parse_args(argv)
     if os.geteuid() != 0:
@@ -186,9 +217,17 @@ def main(argv=None) -> int:
         print("RECEIVER_READY=YES;SECRETS_RECEIVED=NO")
         return 0
     try:
-        raw = sys.stdin.buffer.read(MAX_BYTES + 1)
+        if args.interactive:
+            # Refuse before prompting if a target already exists. Rotation
+            # requires a distinct deliberate --replace operation.
+            check_ready()
+            if DESTINATION.exists() and not args.replace:
+                raise CredentialTransferError("credential file already exists; not asking for secrets")
+            raw = interactive_bundle()
+        else:
+            raw = sys.stdin.buffer.read(MAX_BYTES + 1)
         status = receive_bundle(raw, replace=args.replace)
-    except (CredentialTransferError, OSError) as e:
+    except (CredentialTransferError, OSError, EOFError, KeyboardInterrupt) as e:
         message = str(e) if isinstance(e, CredentialTransferError) else "filesystem operation failed"
         print("ERROR=" + message, file=sys.stderr)
         return 1
