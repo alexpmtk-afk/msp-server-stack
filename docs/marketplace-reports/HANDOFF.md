@@ -68,3 +68,10 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Windows PowerShell: владелец выполнил SCP с действующим отдельным ключом `msp_remote_ed25519` от локального файла `msp_reports_credentials_receiver.py` в `/root/msp_reports_credentials_receiver.py` на VM-817589; SCP сообщил 100%, 9495 байт, exit без ошибки.
 - **Пока не проверены** Git blob SHA (`6392a2ceabfe5b1890ca2667028ee38a07eb073d`) на VPS и `python3 /root/msp_reports_credentials_receiver.py --check`. Никаких секретов в чат не передавалось.
 - Следующий шаг: оператор выполняет только проверку целостности и `--check`; при любом FAIL не вводить реквизиты.
+
+## Приёмник: предварительная проверка прав — FAIL (28.10.2026)
+- Владелец запустил на VM-817589 `git hash-object /root/msp_reports_credentials_receiver.py` и `python3 ... --check`.
+- Результат: `FILE_CHECK=PASS` (эталон Git blob `6392a2ceabfe5b1890ca2667028ee38a07eb073d`), затем `ERROR=secrets parent directory unsafe`.
+- Скрипт требует: `/opt/mcp/secrets` — обычный каталог (не ссылка), владелец root, отсутствует групповая/общая запись (режим & 0022 = 0). Существующий `msp-marketplace-reports` ранее подтверждён как root:root 0700.
+- **НЕ изменять права `/opt/mcp/secrets` вслепую**, там могут располагаться секреты других служб. Оператору запрошена только безопасная диагностика `stat -c 'OWNER=%U;GROUP=%G;RIGHTS=%a;TYPE=%F' /opt/mcp/secrets`.
+- Перенос ключей НЕ начинался, защитные проверки сработали штатно.
