@@ -150,6 +150,12 @@ class ReadOnlyHTTP:
     def __call__(self, request: Request):
         if request.marketplace != self.marketplace:
             raise ProviderError("marketplace/cabinet mismatch")
+        # Mandatory temporary safety stop: the local per-cabinet gate below
+        # does not coordinate with the established shared seller/method queue.
+        # Remove this stop only after the shared contract is implemented,
+        # tested and verified against actual deployment configuration.
+        if not getattr(self, "_shared_quota_verified", False):
+            raise ProviderError("API DOWNLOAD BLOCKED: shared seller/method rate controller is not verified")
         url = _endpoint(request)
         body = json.dumps(request.body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         if len(body) > 20000:
