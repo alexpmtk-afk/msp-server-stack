@@ -169,3 +169,8 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - В WinSCP пользователь вручную заменил все 9 некорректных реквизитов в `/etc/msp-marketplace-reports/cabinets.json` реальными значениями (секреты в GitHub не публиковались).
 - Локальная проверка на VPS: `SECURITY=PASS`, `WB_FORMAT=PASS`, `OZON_FORMAT=PASS`, `CABINETS=6`. Директория root:root 0700, файл root:root 0600; у всех трёх WB полей видимая JWT-структура, у трёх Ozon комплектов формат корректен.
 - Эта проверка подтверждает формат и права, не доказывает авторизацию либо наличие разрешений. Следующий шаг — единственный read-only запрос GET к WB Finance `/api/v1/account/balance` для `wb_laser_master`, печатать только HTTP/тип ответа, без данных кабинета. После успешной авторизации переходить к историческим отчётам.
+
+## 2026-10-28: WB Лазер-Мастер successfully authenticated
+- After manually correcting all nine credential fields, the operator ran read-only GET `https://finance-api.wildberries.ru/api/v1/account/balance` with `wb_laser_master`: `TEST=WB_LASER_MASTER;HTTP=200;RESPONSE=JSON`.
+- Confirms that the corrected WB credential works with the account balance finance API from VM-817589. Earlier HTTP 400 responses with literal `U+0016` credentials were not evidence of geo/IP blocking. This result does not establish access to every Finance API method or other cabinets.
+- Next step: one read-only POST `https://finance-api.wildberries.ru/api/finance/v1/sales-reports/list` for 2026-10-01..2026-10-27, `period=weekly`, `limit=10`, `offset=0`. Respect 1 request/minute for this reports endpoint. Print only HTTP, JSON container type and report count; no seller financial details or token values.
