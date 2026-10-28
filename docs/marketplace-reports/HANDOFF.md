@@ -119,3 +119,9 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Second manual trial of WB sales report list produced `JSONDecodeError: Extra data: line 1 column 5`. The script expected JSON and therefore failed before displaying the HTTP status or error category. Ubuntu apport printed a secondary unrelated exception for `-c`. No report was stored and no token value appeared in captured output.
 - Official WB finance API documentation specifies POST `/api/finance/v1/sales-reports/list` with JSON body containing `dateFrom`, `dateTo`, optional `period`, `limit`, `offset`; supplied request syntax appears consistent. Root cause of HTTP 400 remains unconfirmed.
 - Avoid retrying immediately because the endpoint permits one request per seller per minute. Next diagnosis: first inspect *presence only* of HTTPS/ALL proxy settings on VPS (without printing URLs); then, if necessary, classify response type and status from one bounded retry without printing body or credentials.
+
+## Potential geo-based access restriction, October 28 2026
+- Operator checked urllib proxy detection on VM-817589: HTTPS_PROXY_CONFIGURED=NO; ALL_PROXY_CONFIGURED=NO; TARGET_PROXY_BYPASS=NO.
+- Operator hypothesizes foreign German datacenter IP may trigger WB network filtering. This is NOT confirmed by current HTTP 400 or non-JSON body.
+- Historical evidence: official Wildberries API announcement once said incoming API data from outside Russia was temporarily disabled and later resumed (https://t.me/s/wb_api_notifications/151). Does not prove an active geo restriction on 2026-10-28.
+- Previous query syntax aligns with published API schema. Next safe step: diagnose response metadata and body type without displaying body, credentials or marketplace data, and avoid tight retries. Do not alter infrastructure / route until evidence establishes network-level rejection.
