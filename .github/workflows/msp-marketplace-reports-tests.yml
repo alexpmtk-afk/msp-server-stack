@@ -5,6 +5,7 @@ on:
       - "apps/msp_marketplace_reports/**"
       - "tests/test_msp_marketplace_reports.py"
       - "tests/test_msp_marketplace_providers.py"
+      - "tests/test_msp_marketplace_security.py"
       - ".github/workflows/msp-marketplace-reports-tests.yml"
   workflow_dispatch:
 
