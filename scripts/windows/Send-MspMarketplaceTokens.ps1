@@ -85,12 +85,26 @@ function Read-Secret([string]$label, [string]$kind) {
     try {
         $value = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
         if ([string]::IsNullOrWhiteSpace($value) -or $value -ne $value.Trim()) {
-            throw ('Empty or whitespace-affected value in ' + $label + '; nothing sent. Restart after correcting input.')
+            throw ('Empty or whitespace-affected value in ' + $label + '; nothing sent.')
         }
-        if ($value -match '[\x00-\x1F\x7F]') {
-            throw ('Control character detected in ' + $label + '. Ctrl+V may enter character 0x16. Use mouse RIGHT-CLICK or Shift+Insert; nothing sent.')
+        if ($value -match '[\\x00-\\x1F\\x7F]') {
+            throw ('Control character detected in ' + $label + '. Use mouse RIGHT-CLICK or Shift+Insert instead of Ctrl+V; nothing sent.')
         }
-        if ($kind -eq 'wb' -and $value -notmatch '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+
+        if ($kind -eq 'wb') {
+            $parts = $value.Split('.')
+            if ($parts.Length -ne 3 -or $parts[0].Length -eq 0 -or $parts[1].Length -eq 0 -or $parts[2].Length -eq 0) {
+                throw ('Invalid WB token structure for ' + $label + '; nothing sent.')
+            }
+        }
+        if ($kind -eq 'ozon-client' -and $value -match '[^0-9]') {
+            throw ('Ozon Client-Id must be numeric in ' + $label + '; nothing sent.')
+        }
+        return $value
+    } finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
+        $secure.Dispose()
+    }
+}
 
 $bundle = [ordered]@{}
 try {
