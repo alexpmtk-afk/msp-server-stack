@@ -10,6 +10,7 @@ import argparse
 import hmac
 import json
 import os
+import re
 import secrets
 import stat
 import sys
@@ -50,8 +51,15 @@ def validate_bundle(raw: bytes) -> dict:
             value = supplied[field]
             if not isinstance(value, str) or not 1 <= len(value) <= 8192:
                 raise CredentialTransferError("invalid credential format for " + cabinet)
-            if value != value.strip() or "\x00" in value or "\r" in value or "\n" in value:
-                raise CredentialTransferError("invalid credential whitespace for " + cabinet)
+            if value != value.strip() or any(ord(ch) < 32 or ord(ch) == 127 for ch in value):
+                raise CredentialTransferError("credential contains whitespace or control character for " + cabinet)
+            if cabinet.startswith("wb_") and field == "token":
+                if not re.fullmatch(r"[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+", value):
+                    raise CredentialTransferError("WB token is not JWT-shaped for " + cabinet)
+            if cabinet.startswith("ozon_") and field == "client_id" and not value.isascii():
+                raise CredentialTransferError("Ozon client ID must contain ASCII digits for " + cabinet)
+            if cabinet.startswith("ozon_") and field == "client_id" and not value.isdecimal():
+                raise CredentialTransferError("Ozon client ID must contain digits for " + cabinet)
             clean[field] = value
         normalized[cabinet] = clean
     return normalized
