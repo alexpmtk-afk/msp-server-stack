@@ -1,7 +1,7 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
   SECURE ONE-TIME WB/Ozon token transfer from a Windows PC to MSP VPS.
-  - Nine masked prompts, all JSON constructed in memory.
+  - UTF-8 BOM required for Windows PowerShell 5.1 when Russian labels appear.\n  - Nine masked prompts, all JSON constructed in memory.
   - No credential file, transcript, command-line token, clipboard, or log.
   - SSH host key must already be trusted; public-key login required.
   - Server receiver must first be installed after an approved deployment.
