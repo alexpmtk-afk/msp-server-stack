@@ -60,6 +60,18 @@ class SecureTransportTests(unittest.TestCase):
         with self.assertRaisesRegex(ProviderError, "mismatch"):
             client(Request("ozon", "/v1/finance/realization/posting", {"year": 2026, "month": 9}))
 
+    def test_shared_quota_unverified_blocks_provider_before_network(self):
+        client = ReadOnlyHTTP(
+            cabinet="wb_laser_master", credentials_file=self.credentials, state_root=self.root
+        )
+        def fail_if_called(*args, **kwargs):
+            self.fail("Network must not be used before shared quota verification")
+        client.opener.open = fail_if_called
+        with self.assertRaisesRegex(ProviderError, "API DOWNLOAD BLOCKED"):
+            client(Request("wb", WB_LIST, {"dateFrom": "2026-10-01",
+                                           "dateTo": "2026-10-27", "period": "weekly",
+                                           "limit": 1, "offset": 0}))
+
 
 class StagingTests(unittest.TestCase):
     def setUp(self):
