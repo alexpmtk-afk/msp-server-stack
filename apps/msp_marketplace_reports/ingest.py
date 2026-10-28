@@ -88,6 +88,7 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
     wb.add_argument("--cabinet", required=True)
     wb.add_argument("--year", type=int, default=2026)
     wb.add_argument("--report-id", type=int, required=True)
+    wb.add_argument("--report-type", type=int, choices=(1, 2), required=True, help="confirmed WB report type from report list")
     final = actions.add_parser("ozon-final-one", help="read one closed month and import")
     final.add_argument("--cabinet", required=True)
     final.add_argument("--period", required=True)
@@ -110,11 +111,10 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
                       "buyout": sum(r["reportType"] == 2 for r in values),
                       "status": "DISCOVERED_NOT_DOWNLOADED"}
         elif args.action == "wb-one":
-            listed = wb_discover_all(sender, args.year)
-            types = {int(row["reportId"]): row["reportType"] for row in listed}
-            if args.report_id not in types:
-                raise ProviderError("reportId not listed for selected cabinet/year")
-            report_type = types[args.report_id]
+            # For this operator-confirmed ID, use a single report's detail endpoint.
+            # The ID/type pairing must first be obtained from the provider's list.
+            # Avoid a full-year rediscovery before each individual archive action.
+            report_type = args.report_type
             rows = wb_detail(sender, args.report_id, report_type)
             dataset = "wb_weekly_finance_main" if report_type == 1 else "wb_weekly_finance_buyout"
             result = ingest_rows(args.root, dataset, args.cabinet, str(args.year), rows,
