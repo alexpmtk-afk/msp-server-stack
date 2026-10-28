@@ -6,12 +6,13 @@
   - SSH host key must already be trusted; public-key login required.
   - Server receiver must first be installed after an approved deployment.
   - Remote receiver accepts stdin and writes root-owned 0600 secrets.
-  Usage: .\Send-MspMarketplaceTokens.ps1 -SshTarget user@verified-vps -Port 22
+  Usage: .\Send-MspMarketplaceTokens.ps1 -SshTarget root@verified-vps -IdentityFile "C:\Users\user\.ssh\msp_remote_ed25519" -Port 22
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$SshTarget,
     [ValidateRange(1,65535)][int]$Port=22,
+    [Parameter(Mandatory=$true)][string]$IdentityFile,
     [switch]$ReplaceExisting
 )
 $ErrorActionPreference = 'Stop'
@@ -22,10 +23,14 @@ if ($SshTarget -notmatch '^[A-Za-z0-9][A-Za-z0-9_.@-]{0,254}$') {
 if (-not (Get-Command 'ssh.exe' -ErrorAction SilentlyContinue)) {
     throw 'OpenSSH client ssh.exe not found.'
 }
+if (-not (Test-Path -LiteralPath $IdentityFile -PathType Leaf)) {
+    throw 'SSH private key file not found. No secrets have been entered.'
+}
+if ($IdentityFile -match '["\r\n]') { throw 'Invalid SSH key path.' }
 
 # No user-selected remote command or path. The fixed receiver must be
 # deployed/version-reviewed before executing this local transfer script.
-$receiver = '/opt/mcp/projects/msp-server-stack/scripts/remote/msp_reports_credentials_receiver.py'
+$receiver = '/root/msp_reports_credentials_receiver.py'
 
 function Invoke-SshReceiver {
     param([string]$Mode, [byte[]]$StdinBytes)
@@ -33,7 +38,7 @@ function Invoke-SshReceiver {
     $psi.FileName = 'ssh.exe'
     $flag = if ($Mode -eq 'check') { ' --check' } elseif ($Mode -eq 'replace') { ' --replace' } else { '' }
     $remoteCommand = 'sudo -n python3 ' + $receiver + $flag
-    $psi.Arguments = '-T -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 -p ' +
+    $psi.Arguments = '-T -i "' + $IdentityFile + '" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 -p ' +
         $Port + ' ' + $SshTarget + ' "' + $remoteCommand + '"'
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
