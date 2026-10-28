@@ -87,7 +87,7 @@ function Read-Secret([string]$label, [string]$kind) {
         if ([string]::IsNullOrWhiteSpace($value) -or $value -ne $value.Trim()) {
             throw ('Empty or whitespace-affected value in ' + $label + '; nothing sent.')
         }
-        if ($value -match '[\\x00-\\x1F\\x7F]') {
+        if ($value -match '[\x00-\x1F\x7F]') {
             throw ('Control character detected in ' + $label + '. Use mouse RIGHT-CLICK or Shift+Insert instead of Ctrl+V; nothing sent.')
         }
         if ($kind -eq 'wb') {
