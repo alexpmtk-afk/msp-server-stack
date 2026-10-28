@@ -7,7 +7,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from scripts.remote.msp_reports_credentials_receiver import (
-    CredentialTransferError, receive_bundle, validate_bundle, interactive_bundle,
+    CredentialTransferError, DESTINATION, check_ready, receive_bundle, validate_bundle, interactive_bundle,
 )
 
 
@@ -77,6 +77,15 @@ class ReceiverTests(unittest.TestCase):
         with patch("sys.stdin.isatty", return_value=False):
             with self.assertRaisesRegex(CredentialTransferError, "real SSH terminal"):
                 interactive_bundle(prompt=lambda _: self.fail("should not prompt"))
+
+    def test_canonical_destination_is_isolated_from_hermes(self):
+        self.assertEqual(DESTINATION, Path("/etc/msp-marketplace-reports/cabinets.json"))
+
+    def test_readiness_check_with_secure_parent(self):
+        self.assertIsNone(check_ready(self.dest))
+        self.root.chmod(0o777)
+        with self.assertRaisesRegex(CredentialTransferError, "unsafe"):
+            check_ready(self.dest)
 
     def test_rejects_missing_cabinet(self):
         bad = fake_bundle()
