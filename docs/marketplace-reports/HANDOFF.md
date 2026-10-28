@@ -223,3 +223,10 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Доказано только отсутствие принимающего подключения TCP сервиса на 127.0.0.1:6379 в момент проверки. Наличие/отсутствие пакета Redis/Valkey, контейнера, UNIX socket, альтернативного порта или отдельного сервера не установлено.
 - Новую очередь Redis не разворачивать, сервисы не запускать и не менять. До установления фактического расположения общего контроллера Marketplace MCP и проверки совместимости не включать `MSP_REPORTS_SHARED_QUEUE_VERIFIED`, не запускать чтение WB/Ozon из архиватора.
 - Следующий шаг: чистая локальная инвентаризация Redis/Valkey (`systemctl`, установленные бинарники, контейнеры), без чтения секретов, изменения служб и внешних API-запросов. Гермесу переданы задачи независимой проверки.
+
+## 2026-10-28: дополнительная read-only инвентаризация Redis/Valkey VPS
+- Оператор выполнил `systemctl is-active redis-server redis valkey`, `command -v redis-server valkey-server redis-cli` и необязательный поиск названия контейнера Docker.
+- Результат: `SERVICE_redis-server=inactive`, `SERVICE_redis=inactive`, `SERVICE_valkey=inactive`, `PROGRAM_redis-server=NOT_FOUND`, `PROGRAM_valkey-server=NOT_FOUND`, `PROGRAM_redis-cli=NOT_FOUND`; в выводе нет `CONTAINER=...`.
+- Это не доказывает отсутствия произвольно названного контейнера, Unix socket или удалённого Redis. На `127.0.0.1:6379` ранее `REDIS_LOCAL=CLOSED`.
+- Не устанавливать/запускать новый Redis и не включать `MSP_REPORTS_SHARED_QUEUE_VERIFIED`: до общей очереди неизвестна совместимость со старой инфраструктурой. Запросы WB/Ozon архиватором остаются запрещены.
+- Следующее действие: локальная диагностика только чтением `systemctl`/`ps`/`command -v` для возможного Marketplace MCP, Docker/Podman и Redis, без раскрытия окружения, секретов или запросов к API.
