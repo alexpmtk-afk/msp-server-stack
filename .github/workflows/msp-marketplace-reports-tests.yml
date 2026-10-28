@@ -6,6 +6,9 @@ on:
       - "tests/test_msp_marketplace_reports.py"
       - "tests/test_msp_marketplace_providers.py"
       - "tests/test_msp_marketplace_security.py"
+      - "tests/test_msp_marketplace_receiver.py"
+      - "scripts/remote/msp_reports_credentials_receiver.py"
+      - "scripts/windows/Send-MspMarketplaceTokens.ps1"
       - ".github/workflows/msp-marketplace-reports-tests.yml"
   workflow_dispatch:
 
