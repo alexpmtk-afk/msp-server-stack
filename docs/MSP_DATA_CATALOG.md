@@ -2,6 +2,8 @@
 
 Canonical detailed contract: [MSP_DATA_LAYER.md](MSP_DATA_LAYER.md).
 
+**Заказы по дням/неделям/месяцам** не входят в четыре таблицы, перечисленные ниже. Не следует делать вывод «данных заказов не существует» по отсутствию этих полей в SQLite. См. [каталог поиска отчётов заказов](data-sources/MARKETPLACE_ORDERS.md): отдельный источник, который ещё требует подтверждения точного URL и доступности из runtime. Отдельно отмечать, что данные производства — не заказы покупателей.
+
 ## Runtime and source
 
 - Business SQLite: `/opt/mcp/data/msp/msp_data.sqlite3` (not committed to Git).
