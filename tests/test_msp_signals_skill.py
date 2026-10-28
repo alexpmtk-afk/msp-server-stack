@@ -18,7 +18,7 @@ class SignalSkillContractTests(unittest.TestCase):
         self.assertIn('обработай сигналы', skill)
         self.assertIn('Поднять цену', skill)
         self.assertIn('references/reviewed-rules.md', skill)
-        self.assertIn('НЕ поднимать', skill)
+        self.assertIn('НЕ ПОДНИМАТЬ', skill)
 
     def test_missing_production_date_contract_matches_notifier(self):
         skill = SKILL.read_text(encoding='utf-8')
@@ -26,8 +26,11 @@ class SignalSkillContractTests(unittest.TestCase):
         sim = SIM.read_text(encoding='utf-8')
         for title in (skill, rules, sim):
             self.assertIn('production', title.lower())
-        self.assertIn('не заказан на производство', skill)
-        self.assertIn('recommend raising the price', rules)
+        # The current skill explicitly rejects the old inference from an
+        # absent signal date; notifier parsing below remains a legacy test.
+        self.assertIn('«нет даты → нет заказа»', skill)
+        self.assertIn('устарели', skill)
+        self.assertIn('Без даты в самом Telegram **не значит** нет заказа.', rules)
         self.assertIn('no production/inbound date', sim)
         sample = 'Поднять цену\nТовар (123456789) _6 '
         self.assertEqual(identify(sample)[0], 'SIG-002')
@@ -51,11 +54,11 @@ class SignalSkillContractTests(unittest.TestCase):
         self.assertIn('SKU 985847424', result[1])
         self.assertIn('26.10.2026', result[1])
         skill=SKILL.read_text(encoding='utf-8')
-        self.assertIn('(Арт. 2791038373)',skill)
-        self.assertIn('Товар 2:',skill)
-        self.assertIn('_9_26.10.26',skill)
+        self.assertIn('SKU/магазин/маркетплейс',skill)
+        self.assertIn('Число `_N` уже рассчитано',skill)
+        self.assertIn('не пересчитывать FBS, FBO',skill)
         rule=RULES.read_text(encoding='utf-8')
-        self.assertIn('DD.MM.YY', rule)
+        self.assertIn('каждый блок `Товар N:` анализировать отдельно, включая переносы строк', rule)
     def test_valid_and_invalid_dates_keep_original_semantics(self):
         text = 'товар (123456789) _3 12.10.2026\nтовар (987654321) _3 11.10.2026\nтовар (112233445) _3 32.10.2026'
         out=price_advice(text,date(2026,10,8))

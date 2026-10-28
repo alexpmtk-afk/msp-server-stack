@@ -37,6 +37,11 @@ def format_series_report_ru(report: dict, *, label: str | None = None) -> str:
     else:
         title=f"План {plan}; записано выкупов {bought}; дат отзывов {reviews}"
     lines=["ОТЧЁТ ПО ИСТОРИИ КАРТОЧКИ"]
+    try:
+        from apps.msp_self_analytics.order_evidence import report_guard_ru
+    except ModuleNotFoundError:
+        from order_evidence import report_guard_ru
+    lines.append(report_guard_ru(report))
     if label is not None:
         if not isinstance(label,str) or not label.strip():
             raise ValueError("INVALID_LABEL")

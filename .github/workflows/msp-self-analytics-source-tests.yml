@@ -11,11 +11,51 @@ on:
       - 'tests/test_msp_self_series_analysis.py'
       - 'tests/test_msp_self_series_report.py'
       - 'tests/test_msp_self_series_report_ru.py'
-      - 'apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/case_report.py apps/msp_self_analytics/peer_prefilter.py'
+      - 'tests/test_msp_self_batch_report.py'
+      - 'tests/test_msp_self_peer_evidence.py'
+      - 'tests/test_msp_self_mpstats_option_comparison.py'
+      - 'tests/test_msp_self_decision_indicators.py'
+      - 'tests/test_msp_self_review_checkpoints.py'
+      - 'tests/test_msp_self_checkpoint_workflow.py'
+      - 'tests/test_msp_self_price_event_context.py'
+      - 'tests/test_msp_self_integrated_analytics.py'
+      - 'tests/test_msp_self_mpstats_full_metrics.py'
+      - 'tests/test_msp_self_sku_request.py'
+      - 'tests/test_msp_self_dynamic_90_days.py'
+      - 'tests/test_msp_self_stock_normalization.py'
+      - 'tests/test_msp_self_external_visibility_evidence.py'
+      - 'tests/test_msp_self_peer_history_context.py'
+      - 'tests/test_msp_self_nonfinancial_outcome.py'
+      - 'tests/test_msp_self_dated_rating_dynamics.py'
+      - 'tests/test_msp_self_dated_review_activity.py'
+      - 'tests/test_msp_self_review_source_adapter.py'
+      - 'tests/test_msp_self_own_order_reconciliation.py'
+      - 'tests/test_msp_self_cli_conclusions.py'
+      - 'scripts/remote/msp_self_sku_report_cli.py'
       - '.github/workflows/msp-self-analytics-source-tests.yml'
   push:
-    branches: [main]
+    branches: [main, feature/msp-self-batch-descriptive-20261022]
     paths:
+      - 'tests/test_msp_self_batch_report.py'
+      - 'tests/test_msp_self_peer_evidence.py'
+      - 'tests/test_msp_self_mpstats_option_comparison.py'
+      - 'tests/test_msp_self_decision_indicators.py'
+      - 'tests/test_msp_self_review_checkpoints.py'
+      - 'tests/test_msp_self_checkpoint_workflow.py'
+      - 'tests/test_msp_self_price_event_context.py'
+      - 'tests/test_msp_self_integrated_analytics.py'
+      - 'tests/test_msp_self_mpstats_full_metrics.py'
+      - 'tests/test_msp_self_sku_request.py'
+      - 'tests/test_msp_self_dynamic_90_days.py'
+      - 'tests/test_msp_self_stock_normalization.py'
+      - 'tests/test_msp_self_external_visibility_evidence.py'
+      - 'tests/test_msp_self_peer_history_context.py'
+      - 'tests/test_msp_self_nonfinancial_outcome.py'
+      - 'tests/test_msp_self_dated_rating_dynamics.py'
+      - 'tests/test_msp_self_dated_review_activity.py'
+      - 'tests/test_msp_self_review_source_adapter.py'
+      - 'tests/test_msp_self_own_order_reconciliation.py'
+      - 'tests/test_msp_self_cli_conclusions.py'
       - 'apps/msp_self_analytics/**'
       - 'tests/test_msp_self_analytics_source_quality.py'
       - 'tests/test_msp_self_analytics_retrospective.py'
@@ -36,7 +76,7 @@ jobs:
       - name: Test source quality module without network or real marketplace data
         shell: bash
         run: |
-          python3 -m py_compile apps/msp_self_analytics/source_quality.py apps/msp_self_analytics/retrospective.py apps/msp_self_analytics/review_event.py apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/series_analysis.py apps/msp_self_analytics/series_report.py apps/msp_self_analytics/series_report_ru.py apps/msp_self_analytics/case_report.py
+          python3 -m py_compile apps/msp_self_analytics/source_quality.py apps/msp_self_analytics/retrospective.py apps/msp_self_analytics/review_event.py apps/msp_self_analytics/purchase_unit_audit.py apps/msp_self_analytics/series_analysis.py apps/msp_self_analytics/series_report.py apps/msp_self_analytics/series_report_ru.py apps/msp_self_analytics/batch_report.py apps/msp_self_analytics/peer_evidence.py apps/msp_self_analytics/mpstats_option_comparison.py apps/msp_self_analytics/decision_indicators.py apps/msp_self_analytics/checkpoint_workflow.py apps/msp_self_analytics/stock_normalization.py apps/msp_self_analytics/external_visibility_evidence.py apps/msp_self_analytics/peer_history_context.py apps/msp_self_analytics/nonfinancial_outcome.py apps/msp_self_analytics/dated_rating_dynamics.py apps/msp_self_analytics/dated_review_activity.py apps/msp_self_analytics/order_evidence.py apps/msp_self_analytics/own_order_reconciliation.py apps/msp_self_analytics/review_source_adapter.py scripts/remote/msp_self_sku_report_cli.py apps/msp_self_analytics/mpstats_full_metrics.py apps/msp_self_analytics/sku_request.py apps/msp_self_analytics/checkpoint_report_ru.py apps/msp_self_analytics/price_event_context.py apps/msp_self_analytics/self_purchase_analysis.py apps/msp_self_analytics/case_report.py
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_source_quality.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_retrospective.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_analytics_review_event.py' -v
@@ -45,3 +85,23 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_msp_self_series_analysis.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_series_report.py' -v
           python3 -m unittest discover -s tests -p 'test_msp_self_series_report_ru.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_batch_report.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_peer_evidence.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_mpstats_option_comparison.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_decision_indicators.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_review_checkpoints.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_checkpoint_workflow.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_price_event_context.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_integrated_analytics.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_mpstats_full_metrics.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_sku_request.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_dynamic_90_days.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_stock_normalization.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_external_visibility_evidence.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_peer_history_context.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_nonfinancial_outcome.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_dated_rating_dynamics.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_dated_review_activity.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_review_source_adapter.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_own_order_reconciliation.py' -v
+          python3 -m unittest discover -s tests -p 'test_msp_self_cli_conclusions.py' -v

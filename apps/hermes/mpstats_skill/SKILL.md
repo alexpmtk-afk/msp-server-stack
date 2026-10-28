@@ -10,6 +10,20 @@ metadata:
 ---
 # MPSTATS
 
+## История оценок WB/Ozon — правило 28.10.2026
+
+Для рейтинга и оценок сначала читать соседний msp_self_purchases_skill:
+`references/RATING_HISTORY_SOURCES_20261028.md`; канон —
+`docs/self-purchases/RATING_HISTORY_SOURCES_20261028.md`.
+Рабочие внешние методы: wb_sku/ozon_sku с report=by_period и comments.
+Не ждать четырёх счётчиков с текстами, чтобы получить даты и звёзды.
+Тексты не нужны. WB-объект comments и Ozon-массив разбирать отдельно;
+rating WB может быть округлён, commentsvaluation хранить отдельно.
+Дата — review_date; свои ID исключать, свои дни без ID выделять отдельно.
+Выборка не равна всем оценкам, разность comments не равна новым публикациям.
+В Hermes установлен отдельный msp-self-purchases/scripts/msp_rating_history_cli.py.
+Отказ lk_wb_card_table не блокирует этот внешний маршрут.
+
 ## When to use
 
 Use the installed `mpstats` MCP server for:
@@ -37,6 +51,14 @@ Official provider references are indexed in `references/official-knowledge.md`. 
 The live MCP schema explains how to call tools. These references define what each source means, when it should be used, what recurrent metrics mean, and what must not be inferred.
 
 For money/percent/count fields, consult `references/metric_semantics.json` before arithmetic or business conclusions. If currency, percent scale, order-vs-sale basis, or accounting basis is marked unverified, preserve the raw provider value and say that the unit/basis is not yet independently verified.
+
+## Historical WB keyword price observations without advertising-cabinet connection (26.10.2026)
+
+The read-only MPSTATS method `wb_sku(report=keywords,d1,d2)` returns `data.words` (search phrases with date-indexed positions) and `data.dates` (a dated aggregate with `client_price`, `visibility`, `sales`, `traffic` etc). The daily `client_price` is a provider-labelled observation; DO NOT treat it as the actual buyer-paid price, a seller price change or a verified daily record where missing days are zero. At each review checkpoint use the exact symmetrical DO/POSLE windows, preserve missing dates and show observed values with **both** neighboring observation dates if they differ. Cross-check independently with internal MSP `v_price_history` seller events; source labels must remain separate. This does NOT depend on linking an advertising account. Provider external `wb_sku(search_stats)` / `wb_shelves(items/stats)` can expose visibility context, NOT proven ad spend, real buyer impressions or causal effect of a review. No wbbidder account linking or `wb_shelves_project` creation for historical analysis. Keep total MCP read budget at 24. Canon: `apps/msp_self_analytics/external_visibility_evidence.py`.
+
+## Price history context for retrospective SKU analyses (23.10.2026)
+
+When MPSTATS is used for historical outcome analysis after a recorded review date, ALWAYS reconcile read-only MSP `v_price_history` seller events by `marketplace/store/marketplace_sku`. For post-review seller-price edits report the **event date, old_price → new_price RUB, delta RUB and percent where verifiable**; unknown is not zero. `new_price` is seller price after seller discount, not independently verified final buyer price. A dated MPSTATS historical price series is a separate provider source and requires a confirmed read-only tool/schema/granularity; `wb_sku(full)` period statistics or a current price snapshot are not proof of daily history. Never substitute an unverified MPSTATS price trajectory. Show disagreements as two labeled sources. Price movements confound attribution of order changes to reviews but alone do not establish causality.
 
 ## Hard source-routing rules
 

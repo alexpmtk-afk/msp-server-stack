@@ -19,7 +19,7 @@ ROWS=[event("2026-08-05","2026-07-24"),event("2026-08-07","2026-07-30"),
 class TestRussianSeriesReport(unittest.TestCase):
  def test_urn_three_of_five_and_zero_baseline(self):
   r=build_series_report(ROWS,metrics("2026-07-06","2026-08-04",0,26),
-      metrics("2026-08-19","2026-09-17",3,30),as_of="2026-10-22")
+      metrics("2026-08-19","2026-09-17",3,30),as_of="2026-10-22",requested_days=30)
   t=format_series_report_ru(r,label="Урна 400×300×800")
   self.assertIn("План 5; записано выкупов 3; дат отзывов 3",t)
   self.assertIn("06.07.2026",t)
@@ -32,11 +32,11 @@ class TestRussianSeriesReport(unittest.TestCase):
   b=metrics("2026-07-06","2026-08-04",0,26)
   a=metrics("2026-08-19","2026-09-17",3,30)
   a["request_status"]="TOOL_ERROR"
-  r=build_series_report(ROWS,b,a,as_of="2026-10-22")
+  r=build_series_report(ROWS,b,a,as_of="2026-10-22",requested_days=30)
   self.assertIn("недостаточно сопоставимых данных",format_series_report_ru(r))
  def test_zero_days_still_descriptive(self):
   r=build_series_report(ROWS,metrics("2026-07-06","2026-08-04",0,0),
-      metrics("2026-08-19","2026-09-17",3,30),as_of="2026-10-22")
+      metrics("2026-08-19","2026-09-17",3,30),as_of="2026-10-22",requested_days=30)
   self.assertIn("0 до и 3 после",format_series_report_ru(r))
  def test_requires_real_report_structure(self):
   with self.assertRaises(ValueError):

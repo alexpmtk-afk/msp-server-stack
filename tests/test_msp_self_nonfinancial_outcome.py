@@ -1,0 +1,151 @@
+"""Nonfinancial result is observational only; no invented public reviews."""
+import unittest
+
+from apps.msp_self_analytics.nonfinancial_outcome import (
+    summarize_nonfinancial_outcome, format_nonfinancial_outcome_ru,
+)
+from apps.msp_self_analytics.self_purchase_analysis import build_observational_case
+from apps.msp_self_analytics.checkpoint_workflow import plan_checkpoint_reads
+
+
+def cp(n, before, after, status="READY_LOW_SAMPLE", pct=None, small=True):
+    return {"checkpoint_number":n, "review_date":"2026-09-21",
+        "stock_normalized_orders":{
+            "status":status,
+            "orders_per_in_stock_day_before":before,
+            "orders_per_in_stock_day_after":after,
+            "rate_percent_change":pct,
+            "small_observed_sample":small,
+        }}
+
+
+def prices(*entries):
+    return {"status":"VERIFIED_READONLY_VIEW","checkpoints":list(entries)}
+
+
+class NonfinancialOutcomeTests(unittest.TestCase):
+    def test_up_without_claiming_causes_or_followup_reviews(self):
+        hist={"checkpoints":[cp(1,0.08,5/30,pct=108.333,small=True)]}
+        p=prices({"checkpoint_number":1,"after_window_price_events":[]})
+        result=summarize_nonfinancial_outcome(hist,p)
+        observed=result["checkpoints"][0]
+        self.assertEqual(observed["order_signal"],"OBSERVED_RATE_UP")
+        self.assertEqual(observed["new_positive_public_reviews_status"],
+                         "UNKNOWN_NO_VERIFIED_DATED_SOURCE")
+        self.assertFalse(result["confirmed_historical_positive_review_count_is_zero"])
+        self.assertFalse(result["any_causal_success_proven"])
+        text=format_nonfinancial_outcome_ru(result)
+        self.assertIn("рост оценочных заказов",text)
+        self.assertIn("Малая выборка",text)
+        self.assertIn("неизвестно",text)
+        self.assertNotIn("подтверждённая эффективность",text)
+
+    def test_decrease_flat_and_unknown_stay_distinct(self):
+        hist={"checkpoints":[cp(1,1,0.5,pct=-50,small=False),
+                             cp(2,0.2,0.2,pct=0,small=False),
+                             cp(3,None,None,status="ZERO_STOCK_EXPOSURE")]}
+        p=prices()
+        x=summarize_nonfinancial_outcome(hist,p)
+        self.assertEqual([a["order_signal"] for a in x["checkpoints"]],
+            ["OBSERVED_RATE_DOWN","OBSERVED_RATE_UNCHANGED","UNKNOWN_SOURCE_OR_WINDOW"])
+        self.assertEqual(x["checkpoints"][2]["normalized_rate_change_percent"],None)
+
+    def test_zero_before_does_not_produce_fake_percentage(self):
+        x=summarize_nonfinancial_outcome({"checkpoints":[cp(1,0,1,pct=None)]},prices())
+        self.assertEqual(x["checkpoints"][0]["order_signal"],"OBSERVED_RATE_UP")
+        self.assertIsNone(x["checkpoints"][0]["normalized_rate_change_percent"])
+        self.assertIn("процентное изменение не установлено",
+                      format_nonfinancial_outcome_ru(x))
+
+    def test_price_change_warning_is_not_attributed_to_review(self):
+        x=summarize_nonfinancial_outcome({"checkpoints":[cp(1,0.2,0.3)]},
+             prices({"checkpoint_number":1,"after_window_price_events":[{"event_date":"2026-10-01"}]}))
+        self.assertEqual(x["checkpoints"][0]["seller_price_context"],
+                         "SELLER_PRICE_EDITS_IN_AFTER_WINDOW")
+        self.assertIn("корректировка цены продавца",format_nonfinancial_outcome_ru(x))
+
+    def test_optional_verified_daily_aggregate_appears_but_cannot_prove_effect(self):
+        source={
+            "status":"VERIFIED_DATED_SOURCE",
+            "source_kind":"MPSTATS_VERIFIED_DATED_RATING_AGGREGATES",
+            "source_ref":"checked-date-series",
+            "date_granularity":"DAY","rating_scale":"FIVE_STAR",
+            "negative_stars":[1,2,3],"series_kind":"DAILY_NEW_COUNTS",
+            "rows":[
+                {"date":"2026-09-22","ratings_total":3,
+                 "ratings_negative":1,"ratings_with_text":2,
+                 "ratings_negative_with_text":1},
+                {"date":"2026-09-23","ratings_total":1,
+                 "ratings_negative":0,"ratings_with_text":1,
+                 "ratings_negative_with_text":0},
+            ]}
+        checkpoint=cp(1,0.08,0.17,pct=112.5)
+        checkpoint["windows"]={"after":{"d1":"2026-09-22","d2":"2026-09-23"}}
+        result=summarize_nonfinancial_outcome(
+            {"checkpoints":[checkpoint]},prices(),
+            dated_rating_sources={1:source})
+        case=result["checkpoints"][0]
+        self.assertEqual(case["new_positive_public_reviews_status"],
+                         "DAILY_MPSTATS_POSITIVE_RATINGS_OBSERVED")
+        self.assertEqual(case["dated_rating_provider_observation"]["positive_ratings_4_5"],3)
+        self.assertEqual(case["dated_rating_provider_observation"]["positive_reviews_with_text_4_5"],2)
+        self.assertFalse(case["review_publication_verified"])
+        self.assertFalse(result["any_causal_success_proven"])
+        self.assertIn("3 положительных",format_nonfinancial_outcome_ru(result))
+
+    def test_verified_daily_review_total_preserves_unknown_positive_distribution(self):
+        checkpoint=cp(1,0.08,0.16,pct=100)
+        checkpoint["windows"]={"after":{"d1":"2026-09-22","d2":"2026-09-23"}}
+        daily={"status":"VERIFIED_DATED_SOURCE",
+               "source_kind":"MPSTATS_VERIFIED_DAILY_REVIEW_ACTIVITY",
+               "source_ref":"checked-per-day-counter",
+               "series_kind":"DAILY_NEW_REVIEW_COUNTS",
+               "date_granularity":"DAY","rating_scale":"FIVE_STAR",
+               "rows":[{"date":"2026-09-22","new_reviews":2,"average_rating":5},
+                       {"date":"2026-09-23","new_reviews":1,"average_rating":3}]}
+        r=summarize_nonfinancial_outcome(
+            {"checkpoints":[checkpoint]},prices(),
+            dated_review_activity_sources={1:daily})
+        row=r["checkpoints"][0]
+        self.assertEqual(row["dated_review_activity_observation"]["total_new_reviews"],3)
+        self.assertIsNone(row["dated_review_activity_observation"]["positive_4_5_reviews"])
+        self.assertEqual(row["new_positive_public_reviews_status"],
+                         "UNKNOWN_NO_VERIFIED_DATED_SOURCE")
+        text=format_nonfinancial_outcome_ru(r)
+        self.assertIn("Новые отзывы по дневной аналитике MPSTATS: 3",text)
+        self.assertIn("Точное число положительных",text)
+        self.assertFalse(row["causal_effect_proven"])
+
+    def test_missing_comparable_provider_data_is_not_success(self):
+        x=summarize_nonfinancial_outcome({"checkpoints":[
+            {"checkpoint_number":1,"review_date":"2026-09-21"}]},
+            {"status":"UNKNOWN_PRICE_HISTORY"})
+        self.assertEqual(x["checkpoints"][0]["order_signal"],"UNKNOWN_SOURCE_OR_WINDOW")
+        self.assertEqual(x["checkpoints"][0]["seller_price_context"],"PRICE_HISTORY_UNKNOWN")
+
+    def test_integration_uses_real_checkpoint_model_but_synthetic_data(self):
+        rows=[{"marketplace":"wb","store":"laser","marketplace_sku":"123456789",
+               "quantity":3,"source_row":1,"purchase_date":"2026-09-01",
+               "review_date":"2026-09-21"}]
+        req=plan_checkpoint_reads(rows,as_of="2026-10-26")["requests"]
+        observations={}
+        for r in req:
+            is_before=r["d2"]<"2026-09-21"
+            observations[r["key"]]={
+                "request_status":"PASS_STRUCTURED","d1":r["d1"],"d2":r["d2"],
+                "sales":2 if is_before else 5,
+                "days_in_stock":25 if is_before else 30,
+                "revenue":100 if is_before else 250}
+        result=build_observational_case(rows,observations,as_of="2026-10-26")
+        self.assertEqual(result["status"],"OBSERVATIONAL_REPORT_READY")
+        self.assertIn("nonfinancial_outcome",result)
+        self.assertEqual(result["nonfinancial_outcome"]["checkpoint_count"],1)
+        self.assertEqual(result["nonfinancial_outcome"]["checkpoints"][0]["order_signal"],
+                         "OBSERVED_RATE_UP")
+        self.assertIn("НЕСТОИМОСТНАЯ ОЦЕНКА",result["human_readable_ru"])
+        self.assertIn("Новые положительные оценки/отзывы",result["human_readable_ru"])
+        self.assertFalse(result["business_effect_proven"])
+
+
+if __name__=="__main__":
+    unittest.main()
