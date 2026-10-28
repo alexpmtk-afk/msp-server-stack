@@ -109,3 +109,8 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Причина вероятнее всего: скачанная версия `.ps1` содержала русские подписи UTF-8 **без BOM**, которую Windows PowerShell 5.1 при `-File` мог декодировать как системную кодовую страницу; ошибки строк/скобок — типичный эффект неправильного прочтения типографических символов.
 - Исправление в PR №89: UTF-8 BOM добавлен в `scripts/windows/Send-MspMarketplaceTokens.ps1`, Git blob `21780de414e2d211f1b84dd97b39feefa135bf5d` (коммит `584332413e606b26baee5f9ed5becc8e8d0252c4`). Добавлена проверка синтаксического разбора настоящим Windows PowerShell 5.1 в GitHub Actions (`0f989711aec22967e79a9ace3b9df33c2242a8f3`).
 - Дальше: после PASS теста Windows скачать новую версию с закреплённого коммита, проверить BOM (первые байты EF BB BF), сначала отдельно выполнить разбор `Parser.ParseFile` без запуска и только затем запускать безопасный отправитель. Старая копия в Downloads подлежит замене. Приёмник `/root/` на VPS уже проверен и не менялся.
+
+## Finance API integration check (2026-10-28)
+- A manual read-only WB list trial returned HTTP 400 (Bad Request); no financial data was stored.
+- Published API schema confirms the request path, POST method, weekly period, date-only format and limit=10 are supported; the reason for the 400 remains unknown without provider error details.
+- Do not make rapid retry calls; at most one per minute per seller. No credentials should be added to this document.
