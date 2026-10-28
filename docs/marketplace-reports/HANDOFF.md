@@ -63,3 +63,8 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Владелец проверил `ssh -i ~/.ssh/msp_remote_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -p 22 root@<адрес VPS> "hostname; whoami"`. Ответ: `VM-817589`, `root`. SSH-авторизация по существующему ключу PASS, пароль не требуется. IP сервера в публичный репозиторий не добавляем.
 - Исправлен Windows-отправитель: теперь требует явный `-IdentityFile` и ожидает размещённый оператором приёмник `/root/msp_reports_credentials_receiver.py`, а не ещё не установленный checkout `/opt/mcp/projects/msp-server-stack`.
 - Следующий шаг: скачать фиксированную проверенную версию серверного приёмника (без ключей) и передать через защищённый WinSCP или scp в `/root`, затем выполнить `--check`. Наличие файла и импорт секретов не утверждать до фактической проверки.
+
+## Серверный приёмник передан по SCP (28.10.2026)
+- Windows PowerShell: владелец выполнил SCP с действующим отдельным ключом `msp_remote_ed25519` от локального файла `msp_reports_credentials_receiver.py` в `/root/msp_reports_credentials_receiver.py` на VM-817589; SCP сообщил 100%, 9495 байт, exit без ошибки.
+- **Пока не проверены** Git blob SHA (`6392a2ceabfe5b1890ca2667028ee38a07eb073d`) на VPS и `python3 /root/msp_reports_credentials_receiver.py --check`. Никаких секретов в чат не передавалось.
+- Следующий шаг: оператор выполняет только проверку целостности и `--check`; при любом FAIL не вводить реквизиты.
