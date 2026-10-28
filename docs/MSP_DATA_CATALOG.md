@@ -2,6 +2,8 @@
 
 Canonical detailed contract: [MSP_DATA_LAYER.md](MSP_DATA_LAYER.md).
 
+**Заказы покупателей по дням/неделям/месяцам:** читать [общий реестр утверждённых отчётов](data-sources/APPROVED_REPORTS.md). Если QRsite не предоставляет нужные данные, использовать `_01_заказы` через проверенный серверный аккаунт. SQL-каталог `/opt/mcp/data/msp/msp_report_catalog.sqlite3` содержит инструкции и колонки, НЕ копию заказов; бизнес-факты читаются по требованию из конкретных вкладок. Заказы производства и выплаты продавцу — другие показатели.
+
 ## Runtime and source
 
 - Business SQLite: `/opt/mcp/data/msp/msp_data.sqlite3` (not committed to Git).

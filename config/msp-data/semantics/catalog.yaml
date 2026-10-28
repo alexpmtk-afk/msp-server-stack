@@ -1,4 +1,4 @@
-version: 12
+version: 14
 catalog_group: msp_data
 purpose: >
   Локальный серверный слой справочников и событий МСП. Он нужен агенту и MCP-инструментам,
@@ -162,7 +162,21 @@ additional_catalogs:
     last_accepted_source_status_total: 1046
     accepted_current_cost_values: 957
     expected_daily_cost_schedule: 07:45 Europe/Moscow
+  production_sewing:
+    status: remote_service_staged_no_sync_due_to_csv_401; timer_0735_disabled
+    table: production_sewing_order
+    view: v_production_sewing
+    daily_schedule: 07:35 Europe/Moscow after_first_acceptance
+    semantics: production_sewing.yaml
+  production_metal:
+    status: 730_source_orders_imported_2026_10_26; manual_service_staged
+    table: production_metal_order
+    view: v_production_metal
+    daily_schedule: not_yet_requested
+    semantics: production_metal.yaml
 semantics_files:
+  - production_sewing.yaml
+  - production_metal.yaml
   - product_catalog.yaml
   - self_purchase.yaml
   - price_journal_current.yaml

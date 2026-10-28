@@ -2,10 +2,10 @@
 from datetime import date,datetime,timezone,timedelta
 from math import isfinite
 
-def review_source_evidence(*,sku,event_date,after_start,after_end,comments=None,period=None,comments_status='UNAVAILABLE',period_status='UNAVAILABLE',lk_status='NOT_VERIFIED',before_start=None,before_end=None):
+def review_source_evidence(*,sku,event_date,after_start,after_end,comments=None,period=None,comments_status='UNAVAILABLE',period_status='UNAVAILABLE',lk_status='NOT_VERIFIED',before_start=None,before_end=None,marketplace='wb'):
  t,first,last=map(date.fromisoformat,(event_date,after_start,after_end))
  if first<=t or last<first or (last-first).days>=90:raise ValueError('Invalid completed after-window')
- out={'sku':str(sku),'event_date':event_date,'after_start':after_start,'after_end':after_end,'new_positive_ratings':None,'new_positive_text_reviews':None,'rating_change':None,'observed_positive_text_entries':None,'comments_status':comments_status,'period_status':period_status,'lk_status':lk_status,'complete_publication_history':False,'independent_reviewers_verified':False,'causal_effect_proven':False,'observations':[]}
+ out={'marketplace':marketplace,'sku':str(sku),'event_date':event_date,'after_start':after_start,'after_end':after_end,'new_positive_ratings':None,'new_positive_text_reviews':None,'rating_change':None,'observed_positive_text_entries':None,'comments_status':comments_status,'period_status':period_status,'lk_status':lk_status,'complete_publication_history':False,'independent_reviewers_verified':False,'causal_effect_proven':False,'observations':[]}
  if isinstance(comments,dict) and isinstance(comments.get('comments'),list):
   entries=[];all_records=[]
   seen_ids={}
@@ -159,7 +159,9 @@ def format_review_source_evidence_ru(e):
  lines.append('Дневная таблица кабинета: '+e.get('lk_status','NOT_VERIFIED')+'. Неизвестные значения не равны нулю.')
  if e.get('comments_cache_updated_utc'):lines.append('Кэш comments обновлён: '+e['comments_cache_updated_utc']+'; полнота до конца окна не доказана.')
  lines.append('Независимость покупателей и причинный эффект не подтверждены. Тексты отзывов в отчёт не включаются.')
- return '\n'.join(lines)
+ if e.get('marketplace','wb')=='wb':
+  lines.append('WB: здесь сравнивается исходное поле rating MPSTATS, которое может быть округлено. Это не подтверждённый точный дробный рейтинг; отдельное commentsvaluation проверяется в запросе истории.')
+ return '\n'.join(lines).replace('wb_sku','ozon_sku' if e.get('marketplace')=='oz' else 'wb_sku')
 
 
 def _comparison_table_ru(e):

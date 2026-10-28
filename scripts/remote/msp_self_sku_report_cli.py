@@ -129,7 +129,7 @@ class MpstatsReader:
             raise RuntimeError("PROVIDER_LIMITS_UNAVAILABLE")
 
     def call(self, name, args):
-        if name not in ("account_limits", "wb_sku", "lk_wb_card_table"):
+        if name not in ("account_limits", "wb_sku", "ozon_sku", "lk_wb_card_table"):
             raise RuntimeError("PROVIDER_TOOL_NOT_ALLOWED")
         if self.calls >= MAX_READS:
             raise RuntimeError("PROVIDER_CALL_LIMIT_EXCEEDED")
@@ -217,6 +217,49 @@ def format_checkpoint_conclusion(checkpoint, review_evidence):
                   "внешний спрос неизвестны; причинный эффект не доказан")
     return "Контроль " + str(number) + ": " + "; ".join(pieces) + "."
 
+def _report_ozon_ratings(store,sku,day,provider_factory):
+    """Same checkpoint/formula engine, Ozon-only source adapter.
+
+    Ozon orders/revenue/price normalization is NOT certified by this rating
+    research and is never populated with WB observations.
+    """
+    try:
+        from apps.msp_self_analytics.sku_request import load_existing_series
+        from apps.msp_self_analytics.series_analysis import analyze_series
+        from apps.msp_self_analytics.marketplace_rating_sources import collect_rating_evidence
+        from apps.msp_self_analytics.review_source_adapter import format_review_source_evidence_ru
+    except ModuleNotFoundError:
+        from sku_request import load_existing_series
+        from series_analysis import analyze_series
+        from marketplace_rating_sources import collect_rating_evidence
+        from review_source_adapter import format_review_source_evidence_ru
+    rows=load_existing_series(DB,marketplace='oz',store=store,sku=sku)
+    if not any(row.get('review_date') for row in rows):
+        return {'status':'NO_REGISTERED_REVIEW_DATES','marketplace':'oz',
+                'text':'Ozon: в реестре нет зарегистрированной даты собственного отзыва. Дата покупки не подставляется; сравнение ДО/ПОСЛЕ не выполнялось.',
+                'mpstats_calls':0,'history_checkpoint_count':0,
+                'causal_effect_proven':False,'marketplace_actions_allowed':False}
+    history=analyze_series(rows,as_of=day,requested_days=90)
+    checkpoints=history['checkpoints']
+    if not any(cp.get('windows') for cp in checkpoints):
+        return {'status':'POST_WINDOW_PENDING','marketplace':'oz',
+                'text':'Ozon: нет завершённых суток ПОСЛЕ зарегистрированных дат отзывов.',
+                'mpstats_calls':0,'history_checkpoint_count':len(checkpoints),
+                'causal_effect_proven':False,'marketplace_actions_allowed':False}
+    client=provider_factory()
+    collected=collect_rating_evidence(client,marketplace='oz',sku=sku,checkpoints=checkpoints,max_reads=MAX_READS)
+    text=['OZON; магазин '+store+'. История оценок и отзывов по отдельным датам реестра.']
+    for cp in checkpoints:
+        e=collected['evidence'].get(cp['checkpoint_number'])
+        if e:text.append(format_review_source_evidence_ru(e))
+        else:text.append('Контроль '+str(cp['checkpoint_number'])+': завершённое окно ещё недоступно.')
+    text.append('Заказы, выручка и цены Ozon этим исследованием источников не подтверждены; значения WB не подставлялись. Полные новые 4–5★ неизвестны, независимые покупатели и причинный эффект не установлены. Денежная окупаемость отложена.')
+    return {'status':'OBSERVATIONAL_REPORT_PARTIAL','marketplace':'oz','text':'\n'.join(text),
+            'review_source_evidence':collected['evidence'],'mpstats_calls':client.calls,
+            'history_checkpoint_count':len(checkpoints),'order_history_status':'OZON_FULL_METRICS_NOT_VERIFIED',
+            'causal_effect_proven':False,'marketplace_actions_allowed':False}
+
+
 def report_card(marketplace, store, sku, *, as_of=None,
                 provider_factory=MpstatsReader):
     """Return the owner's Russian report; suitable for an authorized Hermes reply.
@@ -230,6 +273,8 @@ def report_card(marketplace, store, sku, *, as_of=None,
     marketplace, store, sku = (
         match["marketplace"], match["store"], match["marketplace_sku"])
     day = as_of or dt.datetime.now(ZoneInfo("Europe/Moscow")).date().isoformat()
+    if marketplace=="oz":
+        return _report_ozon_ratings(store,sku,day,provider_factory)
     selected = planner(DB, marketplace=marketplace, store=store, sku=sku,
                        as_of=day, max_checkpoints=12, max_provider_reads=MAX_READS)
     if selected["status"] == "OZON_PROVIDER_MAPPING_NOT_YET_VERIFIED":
@@ -262,46 +307,21 @@ def report_card(marketplace, store, sku, *, as_of=None,
                 "lost_profit")})
         if state in ("PASS_JSON", "PASS_STRUCTURED") and stats:
             passed += 1
-    # Review observations take priority over optional keyword price context.
-    from review_source_adapter import review_source_evidence
+    # Marketplace-specific source extraction; common formulas and windows.
+    try:
+        from apps.msp_self_analytics.marketplace_rating_sources import collect_rating_evidence
+    except ModuleNotFoundError:
+        from marketplace_rating_sources import collect_rating_evidence
     from own_order_reconciliation import fetch_own_wb_orders, format_own_orders_ru
-    review_sources={};own_sources={};own_text=[]
-    dated_ratings={};dated_activity={};period_cache={}
-    lk_status="NOT_READ_CALL_BUDGET"
-    comments,state_comments=(None,"CALL_BUDGET")
-    if client.calls<MAX_READS:
-        comments,state_comments=client.call("wb_sku",{"sku":int(sku),"report":"comments"})
     preliminary=builder(selected["rows_for_local_analysis_only"], observations, as_of=day, requested_days=90)
-    for cp in preliminary["history"]["checkpoints"]:
-        windows=cp.get("windows")
-        if not windows or not windows.get("after"):continue
-        # Each exact window plus preceding baseline, shared across checkpoints.
-        period_rows=[]; states=[];previous_response_tokens=set()
-        for side in ("before","after"):
-            w=windows[side]
-            d1=(dt.date.fromisoformat(w["d1"])-dt.timedelta(days=1)).isoformat()
-            key=(d1,w["d2"])
-            if key not in period_cache:
-                period_cache[key]=(client.call("wb_sku",{"sku":int(sku),"report":"by_period","d1":d1,"d2":w["d2"]})
-                                   if client.calls<MAX_READS else (None,"CALL_BUDGET"))
-            data,state=period_cache[key];states.append(state)
-            if isinstance(data,list):
-                # Deduplicate only overlap ACROSS responses, preserving provider
-                # duplicates within each individual response for validation.
-                tokens={json.dumps(row,sort_keys=True,ensure_ascii=False) for row in data}
-                period_rows.extend(row for row in data if json.dumps(row,sort_keys=True,ensure_ascii=False) not in previous_response_tokens)
-                previous_response_tokens.update(tokens)
-        number=cp["checkpoint_number"]
-        review_sources[number]=review_source_evidence(
-            sku=sku,event_date=cp["review_date"],
-            before_start=windows["before"]["d1"],before_end=windows["before"]["d2"],
-            after_start=windows["after"]["d1"],after_end=windows["after"]["d2"],
-            comments=comments,period=period_rows,comments_status=state_comments,
-            period_status=";".join(states),lk_status=lk_status)
-        # Absence is an explicit source-gate input, NOT a fabricated verified
-        # series. The existing dated_* validators run and return UNKNOWN.
-        dated_ratings[number]={"status":"UNAVAILABLE","reason":"MCP_FOUR_COUNTERS_NOT_VERIFIED"}
-        dated_activity[number]={"status":"UNAVAILABLE","reason":"MCP_DAILY_NEW_REVIEWS_NOT_VERIFIED"}
+    collected=collect_rating_evidence(client,marketplace='wb',sku=sku,
+        checkpoints=preliminary['history']['checkpoints'],max_reads=MAX_READS)
+    review_sources=collected['evidence'];dated_ratings=collected['dated_rating_sources']
+    dated_activity={number:{'status':'UNAVAILABLE','reason':'WB_DAILY_NEW_REVIEWS_NOT_VERIFIED'} for number in review_sources}
+    own_sources={};own_text=[]
+    for cp in preliminary['history']['checkpoints']:
+        windows=cp.get('windows')
+        if not windows:continue
         b=fetch_own_wb_orders(sku=sku,store=store,**windows["before"])
         a=fetch_own_wb_orders(sku=sku,store=store,**windows["after"])
         own_sources[cp["checkpoint_number"]]={"before":b,"after":a}
