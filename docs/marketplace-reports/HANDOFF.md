@@ -114,3 +114,8 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - A manual read-only WB list trial returned HTTP 400 (Bad Request); no financial data was stored.
 - Published API schema confirms the request path, POST method, weekly period, date-only format and limit=10 are supported; the reason for the 400 remains unknown without provider error details.
 - Do not make rapid retry calls; at most one per minute per seller. No credentials should be added to this document.
+
+## WB API trial: response parsing failure (2026-10-28)
+- Second manual trial of WB sales report list produced `JSONDecodeError: Extra data: line 1 column 5`. The script expected JSON and therefore failed before displaying the HTTP status or error category. Ubuntu apport printed a secondary unrelated exception for `-c`. No report was stored and no token value appeared in captured output.
+- Official WB finance API documentation specifies POST `/api/finance/v1/sales-reports/list` with JSON body containing `dateFrom`, `dateTo`, optional `period`, `limit`, `offset`; supplied request syntax appears consistent. Root cause of HTTP 400 remains unconfirmed.
+- Avoid retrying immediately because the endpoint permits one request per seller per minute. Next diagnosis: first inspect *presence only* of HTTPS/ALL proxy settings on VPS (without printing URLs); then, if necessary, classify response type and status from one bounded retry without printing body or credentials.
