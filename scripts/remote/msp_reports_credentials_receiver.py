@@ -54,7 +54,7 @@ def validate_bundle(raw: bytes) -> dict:
             if value != value.strip() or any(ord(ch) < 32 or ord(ch) == 127 for ch in value):
                 raise CredentialTransferError("credential contains whitespace or control character for " + cabinet)
             if cabinet.startswith("wb_") and field == "token":
-                if not re.fullmatch(r"[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+", value):
+                if not re.fullmatch(r"[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+", value):
                     raise CredentialTransferError("WB token is not JWT-shaped for " + cabinet)
             if cabinet.startswith("ozon_") and field == "client_id" and not value.isascii():
                 raise CredentialTransferError("Ozon client ID must contain ASCII digits for " + cabinet)
