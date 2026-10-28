@@ -125,3 +125,9 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Operator hypothesizes foreign German datacenter IP may trigger WB network filtering. This is NOT confirmed by current HTTP 400 or non-JSON body.
 - Historical evidence: official Wildberries API announcement once said incoming API data from outside Russia was temporarily disabled and later resumed (https://t.me/s/wb_api_notifications/151). Does not prove an active geo restriction on 2026-10-28.
 - Previous query syntax aligns with published API schema. Next safe step: diagnose response metadata and body type without displaying body, credentials or marketplace data, and avoid tight retries. Do not alter infrastructure / route until evidence establishes network-level rejection.
+
+## 2026-10-28 WB finance API: response envelope diagnosis
+- User ran one read-only POST /api/finance/v1/sales-reports/list on VM-817589: HTTP=400; BODY_TYPE=PLAIN_TEXT_OR_OTHER; CONTENT_TYPE=TEXT; BLOCK_HINT=NO. Therefore response was not normal documented JSON error object; geographic filtering is still an unproven hypothesis.
+- Previous urllib.getproxies() check: HTTPS_PROXY_CONFIGURED=NO; ALL_PROXY_CONFIGURED=NO; TARGET_PROXY_BYPASS=NO. No configured proxy; cannot exclude provider's gateway/firewall.
+- Published WB API docs confirm POST body dateFrom/dateTo, period=weekly, limit<=1000, offset=0 and specify that account balance GET /api/v1/account/balance is a separate read-only Finance-category method.
+- Next diagnostic: a single authorized GET to /api/v1/account/balance for the same cabinet, display only HTTP status and response content-type class (do NOT print balance, financial JSON, tokens). If this also fails with text/plain 400, network/host-level rejection becomes more plausible; if GET works, focus on reports method or token scope. Observe WB request limits.
