@@ -3,7 +3,7 @@ import unittest
 from datetime import date
 
 from apps.msp_marketplace_reports.providers import (
-    ProviderError, wb_discover_main, wb_detail, ozon_final_month,
+    ProviderError, wb_discover_main, wb_discover_all, wb_detail, ozon_final_month,
     ozon_current_postings, ozon_accrual_day,
     WB_LIST, WB_DETAIL, OZON_FBO, OZON_FBS, OZON_ACCRUAL, OZON_FINAL,
 )
@@ -31,6 +31,34 @@ class WBContractTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         self.assertEqual(calls[0].path, WB_LIST)
         self.assertEqual(calls[0].body["period"], "weekly")
+
+    def test_discovery_all_types_preserves_buyouts(self):
+        send, calls = scripted([(200, [
+            {"reportId": 1001, "dateFrom": "2026-10-05", "dateTo": "2026-10-11", "reportType": 1},
+            {"reportId": 1002, "dateFrom": "2026-10-05", "dateTo": "2026-10-11", "reportType": 2},
+        ])])
+        reports = wb_discover_all(send, 2026, date(2026, 10, 28))
+        self.assertEqual([(x["reportId"], x["reportType"]) for x in reports], [(1001, 1), (1002, 2)])
+        self.assertEqual(len(calls), 1)
+
+    def test_discovery_rejects_unknown_type(self):
+        send, _ = scripted([(200, [
+            {"reportId": 1003, "dateFrom": "2026-10-05", "dateTo": "2026-10-11", "reportType": 3}
+        ])])
+        with self.assertRaisesRegex(ProviderError, "unsupported WB report type"):
+            wb_discover_all(send, 2026, date(2026, 10, 28))
+
+    def test_wb_buyout_detail_and_wrong_type(self):
+        send, _ = scripted([
+            (200, [{"reportId": 77, "rrdId": 33, "reportType": 2}]),
+            (204, None),
+        ])
+        self.assertEqual(len(wb_detail(send, 77, report_type=2)), 1)
+        send_bad, _ = scripted([
+            (200, [{"reportId": 77, "rrdId": 33, "reportType": 1}]),
+        ])
+        with self.assertRaisesRegex(ProviderError, "mismatches list"):
+            wb_detail(send_bad, 77, report_type=2)
 
     def test_wb_detail_until_204(self):
         send, calls = scripted([
