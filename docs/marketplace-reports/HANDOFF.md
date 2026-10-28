@@ -92,3 +92,9 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Новая версия использует `/etc/msp-marketplace-reports/cabinets.json`, не `/opt/mcp/secrets` (который принадлежит Hermes).
 - Следующая проверка владельцем: `git hash-object` должен дать `a721cff3cf6531874613ffba547cc8e77600d6ab`, затем `python3 /root/msp_reports_credentials_receiver.py --check` должен вернуть `RECEIVER_READY=YES;SECRETS_RECEIVED=NO`.
 - Пока результаты проверки на VPS не получены. Реальные токены не передавались, сервисы не запускались.
+
+## VPS: приёмник прошёл обе проверки — 28.10.2026
+- Пользователь выполнил на VM-817589 проверку установленной в `/root/msp_reports_credentials_receiver.py` программы: `FILE_CHECK=PASS` против Git blob `a721cff3cf6531874613ffba547cc8e77600d6ab`.
+- Результат проверки `python3 ... --check`: `RECEIVER_READY=YES;SECRETS_RECEIVED=NO`.
+- Подготовительный корневой каталог `/etc` проверен отдельно как `root:root 755`; приёмник готов сам создать `/etc/msp-marketplace-reports` (root:root 0700) и файл (0600) при успешном приёме.
+- **Реальные девять реквизитов пока не переданы**. Следующий этап: скачать Windows-отправитель `scripts/windows/Send-MspMarketplaceTokens.ps1` с закреплённой версии GitHub и отдельно подтвердить скачивание. Только затем запускать его через уже проверенный ключ `msp_remote_ed25519`. Не показывать и не присылать реквизиты.
