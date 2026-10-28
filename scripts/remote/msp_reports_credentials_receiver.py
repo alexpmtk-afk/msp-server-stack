@@ -88,6 +88,29 @@ def _secure_directory(path: Path):
         raise CredentialTransferError("credential directory must be owned and private (0700)")
 
 
+def check_ready(destination: Path = DESTINATION):
+    """Read-only preflight; reject missing/insecure parent before token prompts."""
+    destination = Path(destination)
+    parent = destination.parent.parent
+    try:
+        details = parent.lstat()
+    except FileNotFoundError:
+        raise CredentialTransferError("secrets parent directory absent") from None
+    if (not stat.S_ISDIR(details.st_mode)
+            or details.st_uid != os.geteuid()
+            or details.st_mode & 0o022):
+        raise CredentialTransferError("secrets parent directory unsafe")
+    try:
+        child = destination.parent.lstat()
+    except FileNotFoundError:
+        child = None
+    if child is not None and (not stat.S_ISDIR(child.st_mode)
+                              or child.st_uid != os.geteuid()
+                              or (child.st_mode & 0o777) != 0o700):
+        raise CredentialTransferError("credential directory unsafe")
+    _regular(destination)
+
+
 def _write_exclusive(path: Path, raw: bytes):
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
     if hasattr(os, "O_NOFOLLOW"):
@@ -154,6 +177,12 @@ def main(argv=None) -> int:
         return 2
     os.umask(0o077)
     if args.check:
+        try:
+            check_ready()
+        except (CredentialTransferError, OSError) as e:
+            message = str(e) if isinstance(e, CredentialTransferError) else "filesystem check failed"
+            print("ERROR=" + message, file=sys.stderr)
+            return 1
         print("RECEIVER_READY=YES;SECRETS_RECEIVED=NO")
         return 0
     try:
