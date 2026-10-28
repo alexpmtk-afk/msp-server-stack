@@ -22,7 +22,7 @@ The goal of this repository is simple: if the remote server is lost, the softwar
 
 ## Каталог источников заказов МП
 
-Общий поиск источников заказов Ozon/WB (день, неделя, месяц) и порядок проверки доступа: [docs/data-sources/MARKETPLACE_ORDERS.md](docs/data-sources/MARKETPLACE_ORDERS.md). Документация и доступ к самой таблице — **разные условия**. Пока точная ссылка на новый отчёт 27.10 не восстановлена и установка в рабочий Hermes не проверена, не объявлять источник общедоступным.
+Общий поиск источников заказов Ozon/WB (день, неделя, месяц) и порядок проверки доступа: [docs/data-sources/MARKETPLACE_ORDERS.md](docs/data-sources/MARKETPLACE_ORDERS.md). Документация и доступ к самой таблице — **разные условия**. Владелец передал ID возможного отчёта 28.10; точный локатор хранится в приватном `msp-server-bridge/docs/data-sources/MARKETPLACE_ORDERS_SOURCE_PRIVATE.md`. Подключённый Google Sheets возвращает 403, и установка в рабочий Hermes не проверена — источник не считать общедоступным.
 
 ## Remote server interaction
 
