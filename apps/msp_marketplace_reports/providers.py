@@ -138,7 +138,7 @@ def wb_detail(send: Send, report_id: int, report_type: int = 1):
     current = 0
     seen = set()
     for _ in range(MAX_PAGES):
-        req = Request("wb", WB_DETAIL + str(report_id), {"limit": 100000, "rrdId": current})
+        req = Request("wb", WB_DETAIL + str(report_id), {"limit": 10000, "rrdId": current})
         status, payload = send(req)
         if status == 204:
             return all_rows
