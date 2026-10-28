@@ -46,7 +46,7 @@ jobs:
           $errors = $null
           [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$errors)
           if ($errors.Count -ne 0) {
-            foreach ($issue in $errors) { Write-Host $issue.Message }
+            foreach ($issue in $errors) { Write-Host ('LINE=' + $issue.Extent.StartLineNumber + ';COLUMN=' + $issue.Extent.StartColumnNumber + ';MESSAGE=' + $issue.Message) }
             throw 'PowerShell parse errors found'
           }
           Write-Host 'WINDOWS_PS51_PARSER=PASS'
