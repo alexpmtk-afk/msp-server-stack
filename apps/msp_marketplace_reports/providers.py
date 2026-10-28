@@ -84,8 +84,8 @@ def _moscow_bounds(start: date, end: date):
     return since.strftime("%Y-%m-%dT%H:%M:%SZ"), until.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def wb_discover_main(send: Send, year: int, today: date | None = None):
-    """Return every reportType=1 fragment discovered for the calendar year.
+def wb_discover_all(send: Send, year: int, today: date | None = None):
+    """Return every reportType=1 or 2 fragment discovered for the calendar year.
 
     Reports may span a month/year boundary. The physical fragment, not just the
     weekly bucket, is a separate fetch unit.
@@ -107,8 +107,9 @@ def wb_discover_main(send: Send, year: int, today: date | None = None):
                 report_type = int(report_type)
             except (ValueError, TypeError):
                 raise ProviderError("WB report type missing or malformed") from None
-            if report_type != 1:
-                continue
+            if report_type not in (1, 2):
+                raise ProviderError("unsupported WB report type")
+            item = dict(item, reportType=report_type)
             for k in ("dateFrom", "dateTo"):
                 try:
                     date.fromisoformat(str(item[k])[:10])
@@ -123,8 +124,15 @@ def wb_discover_main(send: Send, year: int, today: date | None = None):
     raise ProviderError("WB report discovery page limit reached")
 
 
-def wb_detail(send: Send, report_id: int):
-    """Follow rrdId until explicit 204. Fail closed on ambiguous empty pages."""
+def wb_discover_main(send: Send, year: int, today: date | None = None):
+    """Compatibility filter. New ingestion must use wb_discover_all to retain buyouts."""
+    return [row for row in wb_discover_all(send, year, today) if row["reportType"] == 1]
+
+
+def wb_detail(send: Send, report_id: int, report_type: int = 1):
+    """Follow rrdId until explicit 204; verify the listed report type."""
+    if report_type not in (1, 2):
+        raise ProviderError("unsupported WB report type")
     report_id = _positive_id(report_id, "reportId")
     all_rows = []
     current = 0
@@ -144,8 +152,13 @@ def wb_detail(send: Send, report_id: int):
         for item in page:
             if _positive_id(item.get("reportId", report_id), "reportId") != report_id:
                 raise ProviderError("foreign WB reportId in detail")
-            if item.get("reportType") is not None and int(item["reportType"]) != 1:
-                raise ProviderError("unexpected WB reportType")
+            if item.get("reportType") is not None:
+                try:
+                    actual_type = int(item["reportType"])
+                except (TypeError, ValueError):
+                    raise ProviderError("invalid WB detail reportType") from None
+                if actual_type != report_type:
+                    raise ProviderError("WB detail reportType mismatches list")
             cursor = _positive_id(item.get("rrdId"), "rrdId")
             key = (report_id, cursor)
             if key in seen:
