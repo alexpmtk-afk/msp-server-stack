@@ -10,6 +10,20 @@ metadata:
 ---
 # MPSTATS
 
+## История оценок WB/Ozon — правило 28.10.2026
+
+Для рейтинга и оценок сначала читать соседний msp_self_purchases_skill:
+`references/RATING_HISTORY_SOURCES_20261028.md`; канон —
+`docs/self-purchases/RATING_HISTORY_SOURCES_20261028.md`.
+Рабочие внешние методы: wb_sku/ozon_sku с report=by_period и comments.
+Не ждать четырёх счётчиков с текстами, чтобы получить даты и звёзды.
+Тексты не нужны. WB-объект comments и Ozon-массив разбирать отдельно;
+rating WB может быть округлён, commentsvaluation хранить отдельно.
+Дата — review_date; свои ID исключать, свои дни без ID выделять отдельно.
+Выборка не равна всем оценкам, разность comments не равна новым публикациям.
+В Hermes установлен отдельный msp-self-purchases/scripts/msp_rating_history_cli.py.
+Отказ lk_wb_card_table не блокирует этот внешний маршрут.
+
 ## When to use
 
 Use the installed `mpstats` MCP server for:
