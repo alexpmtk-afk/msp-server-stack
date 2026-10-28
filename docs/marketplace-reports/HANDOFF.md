@@ -58,3 +58,8 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 ## Проверка Windows OpenSSH
 - Владелец выполнил в локальном Windows PowerShell `Get-Command ssh.exe`; результат `SSH_WINDOWS=YES`.
 - Следующий шаг — подключиться из Windows PowerShell к *известному из WinSCP* VPS через `ssh -tt -p <PORT> <USER>@<HOST>`, сверив отпечаток сервера при первом контакте; после подключения проверять `hostname`, `whoami`, `test -t 0`. Секреты не вводить до подтверждения защищённого терминала и согласованной установки приёмника.
+
+## Подтверждён вход Windows PowerShell → VPS по ключу (28.10.2026)
+- Владелец проверил `ssh -i ~/.ssh/msp_remote_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -p 22 root@<адрес VPS> "hostname; whoami"`. Ответ: `VM-817589`, `root`. SSH-авторизация по существующему ключу PASS, пароль не требуется. IP сервера в публичный репозиторий не добавляем.
+- Исправлен Windows-отправитель: теперь требует явный `-IdentityFile` и ожидает размещённый оператором приёмник `/root/msp_reports_credentials_receiver.py`, а не ещё не установленный checkout `/opt/mcp/projects/msp-server-stack`.
+- Следующий шаг: скачать фиксированную проверенную версию серверного приёмника (без ключей) и передать через защищённый WinSCP или scp в `/root`, затем выполнить `--check`. Наличие файла и импорт секретов не утверждать до фактической проверки.
