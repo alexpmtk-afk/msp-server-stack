@@ -20,6 +20,10 @@ The goal of this repository is simple: if the remote server is lost, the softwar
 
 Постоянный ориентир разработки: **[docs/self-purchases/PROJECT_COMPASS.md](docs/self-purchases/PROJECT_COMPASS.md)**. Обязателен для ChatGPT/Codex и Hermes при работе над аналитикой самовыкупов, конкурентами, новыми карточками и рейтингами. Дословная стенограмма и замороженная концепция находятся в **приватном** `msp-server-bridge/docs/self-purchases/`; не переносить их в публичный репозиторий. Подготовленный Hermes Skill: `apps/hermes/msp_self_purchases_skill/SKILL.md`. Его наличие здесь не означает установку на REMOTE.
 
+## Каталог источников заказов МП
+
+Общий поиск источников заказов Ozon/WB (день, неделя, месяц) и порядок проверки доступа: [docs/data-sources/MARKETPLACE_ORDERS.md](docs/data-sources/MARKETPLACE_ORDERS.md). Документация и доступ к самой таблице — **разные условия**. Пока точная ссылка на новый отчёт 27.10 не восстановлена и установка в рабочий Hermes не проверена, не объявлять источник общедоступным.
+
 ## Remote server interaction
 
 For any task that requires reading, testing or changing the remote server, start with:
