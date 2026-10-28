@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from .archive import CABINETS
+from .quota import SharedQuota
 from .providers import (
     ProviderError, Request, WB_LIST, WB_DETAIL, OZON_FINAL, OZON_FBO, OZON_FBS, OZON_ACCRUAL,
 )
@@ -144,24 +145,23 @@ class ReadOnlyHTTP:
         if not isinstance(credentials, dict):
             raise ProviderError("cabinet not configured")
         self.headers = _headers(self.marketplace, credentials)
+        self.quota = SharedQuota(self.marketplace, credentials)
         self.state_root = Path(state_root)
         self.opener = urllib.request.build_opener(_NoRedirect())
 
     def __call__(self, request: Request):
         if request.marketplace != self.marketplace:
             raise ProviderError("marketplace/cabinet mismatch")
-        # Mandatory temporary safety stop: the local per-cabinet gate below
-        # does not coordinate with the established shared seller/method queue.
-        # Remove this stop only after the shared contract is implemented,
-        # tested and verified against actual deployment configuration.
-        if not getattr(self, "_shared_quota_verified", False):
-            raise ProviderError("API DOWNLOAD BLOCKED: shared seller/method rate controller is not verified")
+        # Fail closed unless the operator has verified deployment's common
+        # Redis namespace. All pages and attempts reserve shared quota first.
+        self.quota._approved_url()
         url = _endpoint(request)
         body = json.dumps(request.body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         if len(body) > 20000:
             raise ProviderError("request too large")
         req = urllib.request.Request(url, data=body, headers=self.headers, method="POST")
         with _rate_gate(self.state_root, self.marketplace, self.cabinet):
+            rules = self.quota.reserve(request)
             try:
                 with self.opener.open(req, timeout=60) as response:
                     status = response.status
@@ -178,7 +178,10 @@ class ReadOnlyHTTP:
                     except (ValueError, UnicodeError):
                         raise ProviderError("provider returned invalid JSON") from None
             except urllib.error.HTTPError as e:
-                # Never print returned headers/body or request object (may contain keys).
+                # Record a global shared provider cooldown; do not retry or
+                # expose response body, headers or the request containing keys.
+                if int(e.code) == 429:
+                    self.quota.cooldown(rules, e.headers)
                 return int(e.code), None
             except (urllib.error.URLError, TimeoutError, OSError):
                 raise ProviderError("provider transport unavailable; retry with saved cursor") from None
