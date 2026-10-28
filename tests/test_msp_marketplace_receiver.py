@@ -1,4 +1,4 @@
-"""Test the privileged receiver in a sandbox, not against /opt/mcp."""
+"""Test the privileged receiver in an isolated sandbox, not against real credentials."""
 import json
 import os
 import tempfile
@@ -13,9 +13,9 @@ from scripts.remote.msp_reports_credentials_receiver import (
 
 def fake_bundle():
     return {
-        "wb_laser_master": {"token": "TEST_TOKEN_A"},
-        "wb_novokshenov": {"token": "TEST_TOKEN_B"},
-        "wb_dmitrieva": {"token": "TEST_TOKEN_C"},
+        "wb_laser_master": {"token": "eyJhbGciOiJub25lIn0.eyJjYWIiOiJBIn0.c2lnQQ"},
+        "wb_novokshenov": {"token": "eyJhbGciOiJub25lIn0.eyJjYWIiOiJCIn0.c2lnQg"},
+        "wb_dmitrieva": {"token": "eyJhbGciOiJub25lIn0.eyJjYWIiOiJDIn0.c2lnQw"},
         "ozon_laser_master": {"client_id": "1001", "api_key": "TEST_KEY_A"},
         "ozon_novokshenov": {"client_id": "1002", "api_key": "TEST_KEY_B"},
         "ozon_dmitrieva": {"client_id": "1003", "api_key": "TEST_KEY_C"},
@@ -46,7 +46,7 @@ class ReceiverTests(unittest.TestCase):
     def test_change_requires_flag_and_keeps_secure_backup(self):
         receive_bundle(self.raw, destination=self.dest)
         second = fake_bundle()
-        second["wb_laser_master"]["token"] = "TEST_ROTATED"
+        second["wb_laser_master"]["token"] = "eyJhbGciOiJub25lIn0.eyJjYWIiOiJSLU5FVyJ9.c2lnUg"
         new = to_bytes(second)
         with self.assertRaisesRegex(CredentialTransferError, "replacement required"):
             receive_bundle(new, destination=self.dest)
@@ -59,7 +59,7 @@ class ReceiverTests(unittest.TestCase):
 
     def test_masked_interactive_validates_nine_fields(self):
         provided = iter([
-            "WB_LASER_TOKEN", "WB_NOV_TOKEN", "WB_DMITR_TOKEN",
+            "eyJhbGciOiJub25lIn0.eyJjYWIiOiJBIn0.c2lnQQ", "eyJhbGciOiJub25lIn0.eyJjYWIiOiJCIn0.c2lnQg", "eyJhbGciOiJub25lIn0.eyJjYWIiOiJDIn0.c2lnQw",
             "1001", "OZON_LASER_KEY", "1002", "OZON_NOV_KEY", "1003", "OZON_DMITR_KEY"
         ])
         prompts = []
@@ -71,7 +71,7 @@ class ReceiverTests(unittest.TestCase):
         values = validate_bundle(raw)
         self.assertEqual(len(prompts), 9)
         self.assertEqual(len(values), 6)
-        self.assertEqual(values["wb_laser_master"]["token"], "WB_LASER_TOKEN")
+        self.assertEqual(values["wb_laser_master"]["token"], "eyJhbGciOiJub25lIn0.eyJjYWIiOiJBIn0.c2lnQQ")
 
     def test_masked_interactive_rejects_non_tty_before_prompts(self):
         with patch("sys.stdin.isatty", return_value=False):
@@ -106,6 +106,28 @@ class ReceiverTests(unittest.TestCase):
             validate_bundle(to_bytes(bad))
         with self.assertRaises(CredentialTransferError):
             validate_bundle(b"x" * 65537)
+
+    def test_rejects_ctrl_v_character_for_every_field(self):
+        bad = fake_bundle()
+        for cabinet, credentials in bad.items():
+            for field in credentials:
+                credentials[field] = "\\u0016"
+        # JSON escapes a single ASCII control character instead of rejecting it.
+        with self.assertRaisesRegex(CredentialTransferError, "control character"):
+            receive_bundle(to_bytes(bad), destination=self.dest, replace=True)
+        self.assertFalse(self.dest.exists())
+
+    def test_rejects_non_jwt_wb_token(self):
+        bad = fake_bundle()
+        bad["wb_laser_master"]["token"] = "SHORT_WRONG_VALUE"
+        with self.assertRaisesRegex(CredentialTransferError, "JWT-shaped"):
+            validate_bundle(to_bytes(bad))
+
+    def test_rejects_nonnumeric_ozon_client_id(self):
+        bad = fake_bundle()
+        bad["ozon_laser_master"]["client_id"] = "not-a-client-id"
+        with self.assertRaisesRegex(CredentialTransferError, "digits"):
+            validate_bundle(to_bytes(bad))
 
     def test_rejects_symlinked_target(self):
         self.dir.mkdir(mode=0o700)
