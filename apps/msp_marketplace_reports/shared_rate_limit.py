@@ -1,8 +1,6 @@
-"""Copied unchanged (apart from this provenance notice) from the existing marketplace MCP queue.
-Source: alexpmtk-afk/marketplaces-mcp-ru/core/rate_limit.py
-Source Git blob: a1f612ee6eecfd53ada28379737fd7d71a8116ca
-Its Redis keys and Lua reservation protocol must stay compatible with the old shared queue.
-"""
+# Copied from alexpmtk-afk/marketplaces-mcp-ru/core/rate_limit.py
+# Original Git blob: a1f612ee6eecfd53ada28379737fd7d71a8116ca
+# Preserve Redis key format and atomic Lua scheduling with the old MCP queue.
 """Process-wide and host-wide marketplace request scheduling.
 
 Every HTTP attempt reserves its send time here before it reaches WB/Ozon.
