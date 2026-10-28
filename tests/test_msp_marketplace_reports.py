@@ -36,6 +36,20 @@ class LocalArchiveTests(unittest.TestCase):
         self.assertEqual(r3["new_rows"], 1)
         self.assertTrue(verify(self.root)["ok"])
 
+    def test_wb_main_and_buyout_have_independent_annual_ledgers(self):
+        sample(self.source, ["reportId", "rrdId", "reportType", "dateTo"], [
+            {"reportId": "101", "rrdId": "20", "reportType": "1", "dateTo": "2026-10-11"}])
+        main = import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
+        sample(self.source, ["reportId", "rrdId", "reportType", "dateTo"], [
+            {"reportId": "102", "rrdId": "21", "reportType": "2", "dateTo": "2026-10-11"}])
+        buyout = import_csv(self.root, "wb_weekly_finance_buyout", "wb_laser_master", "2026", self.source)
+        self.assertNotEqual(main["path"], buyout["path"])
+        self.assertIn("/buyout/", buyout["path"])
+        self.assertIn("/main/", main["path"])
+        self.assertEqual(main["rows"], 1)
+        self.assertEqual(buyout["rows"], 1)
+        self.assertTrue(verify(self.root)["ok"])
+
     def test_wb_conflict_rejected(self):
         sample(self.source, ["reportId", "rrdId", "amount"], [{"reportId": "11", "rrdId": "1", "amount": "42"}])
         first = import_csv(self.root, "wb_weekly_finance_main", "wb_dmitrieva", "2026", self.source)
