@@ -93,3 +93,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\windows\Send-
 Файл программы не содержит реальных ключей, но это подготовительная
 работа, **не включение нового архивного сервиса**. Не запускать `ingest.py`
 без отдельной проверки реальной совместимости с ответами API и реестром покрытия.
+
+## Уточнённый путь для действующего SSH-ключа (28.10.2026)
+- Владелец подтвердил успешный вход под `root` на VM-817589 через Windows OpenSSH с существующим ключом `%USERPROFILE%\\.ssh\\msp_remote_ed25519`.
+- Подготовительный приёмник в утверждаемой отдельной ветке следует сначала положить в `/root/msp_reports_credentials_receiver.py` (без секретов). Программа при этом **не запускается автоматически**. Ручная проверка: `python3 /root/msp_reports_credentials_receiver.py --check`.
+- В Windows-отправителе обязательный `-IdentityFile`. Пример вызова **только после подтверждения размещения приёмника**: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\Send-MspMarketplaceTokens.ps1 -SshTarget root@KNOWN_HOST -IdentityFile \"$env:USERPROFILE\\.ssh\\msp_remote_ed25519\" -Port 22`.
+- Не менять права каталога с `0700`; файл ключей будет `0600`. Никакой `echo\"token\"` или записи открытого `cabinets.json` в папки WinSCP.
