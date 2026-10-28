@@ -86,3 +86,9 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Владелец выполнил `stat /etc`: `OWNER=root;GROUP=root;RIGHTS=755;TYPE=directory`. Проверка каталога-родителя нового `/etc/msp-marketplace-reports/cabinets.json` — PASS (нет права записи для группы/прочих).
 - Оператору предложено из Windows обновить `/root/msp_reports_credentials_receiver.py` с фиксированного коммита `6eaf17f9013be799454434ef49835fdede785a18`; ожидаемый Git blob SHA нового файла: `a721cff3cf6531874613ffba547cc8e77600d6ab`.
 - Пока не подтверждена передача новой программы, `--check` нового хранилища и наличие ключей; запрещено запускать старую версию для приёма секретов.
+
+## VPS: новая версия приёмника передана через SSH (28.10.2026)
+- Владелец выполнил загрузку обновлённого приёмника из коммита `6eaf17f9013be799454434ef49835fdede785a18` через SCP в `/root/msp_reports_credentials_receiver.py`; вывод: `100% 9483` байта, без ошибок.
+- Новая версия использует `/etc/msp-marketplace-reports/cabinets.json`, не `/opt/mcp/secrets` (который принадлежит Hermes).
+- Следующая проверка владельцем: `git hash-object` должен дать `a721cff3cf6531874613ffba547cc8e77600d6ab`, затем `python3 /root/msp_reports_credentials_receiver.py --check` должен вернуть `RECEIVER_READY=YES;SECRETS_RECEIVED=NO`.
+- Пока результаты проверки на VPS не получены. Реальные токены не передавались, сервисы не запускались.
