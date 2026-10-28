@@ -23,7 +23,7 @@ metadata:
 `references/RATING_HISTORY_SOURCES_20261028.md`. Канонический исходник:
 `docs/self-purchases/RATING_HISTORY_SOURCES_20261028.md` в репозитории.
 Запрос из проверенного checkout: `scripts/remote/msp_rating_history_cli.py
---marketplace wb|oz --sku SKU --from YYYY-MM-DD --to YYYY-MM-DD`.
+--marketplace wb --sku SKU --from YYYY-MM-DD --to YYYY-MM-DD`.
 Запуск из checkout не заменяет проверку установленного отдельного входа;
 состояние установки подтверждается манифестом из новой инструкции.
 Отдельные адаптеры WB/Ozon передают данные в существующий общий механизм;

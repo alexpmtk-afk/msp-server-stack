@@ -116,7 +116,7 @@ Ozon: с апреля 2026 опубликованы методы /v2/review/list
 
 ## Воспроизводимый запрос из checkout
 
-`scripts/remote/msp_rating_history_cli.py --marketplace wb|oz --sku SKU
+`scripts/remote/msp_rating_history_cli.py --marketplace wb --sku SKU
 --from YYYY-MM-DD --to YYYY-MM-DD --review-date YYYY-MM-DD --json`
 
 Дату --review-date брать из реестра. Остальные собственные даты передавать
