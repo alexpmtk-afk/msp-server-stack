@@ -1,7 +1,12 @@
 """Offline contract tests using mock responses; no token or network."""
 import unittest
+import tempfile
+from pathlib import Path
+from contextlib import redirect_stdout
+import io
 from datetime import date
 
+from apps.msp_marketplace_reports.ingest import run as ingest_run
 from apps.msp_marketplace_reports.providers import (
     ProviderError, wb_discover_main, wb_discover_all, wb_detail, ozon_final_month,
     ozon_current_postings, ozon_accrual_day,
@@ -91,6 +96,49 @@ class WBContractTests(unittest.TestCase):
         ])
         with self.assertRaises(ProviderError):
             wb_detail(send, 42)
+
+
+class WBOneIngestTests(unittest.TestCase):
+    def test_direct_confirmed_wb_buyout_imports_independently(self):
+        with tempfile.TemporaryDirectory() as temp:
+            calls = []
+            answers = iter([
+                (200, [{"reportId": 883801636, "rrdId": 110, "reportType": 2,
+                        "dateTo": "2026-10-25", "quantity": 1}]),
+                (204, None),
+            ])
+            def factory(**kwargs):
+                def send(request):
+                    calls.append(request)
+                    return next(answers)
+                return send
+            with redirect_stdout(io.StringIO()):
+                result = ingest_run([
+                    "--root", temp, "--creds-file", "/unused/dummy.json",
+                    "wb-one", "--cabinet", "wb_laser_master", "--year", "2026",
+                    "--report-id", "883801636", "--report-type", "2",
+                ], factory=factory)
+            self.assertEqual(result["status"], "LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE")
+            self.assertEqual(result["report_type"], 2)
+            self.assertIn("/buyout/", result["path"])
+            self.assertEqual(result["rows"], 1)
+            self.assertEqual([req.body["rrdId"] for req in calls], [0, 110])
+            self.assertEqual(calls[0].body["limit"], 10000)
+            self.assertTrue(Path(result["path"]).exists())
+
+    def test_wrong_report_type_not_written(self):
+        with tempfile.TemporaryDirectory() as temp:
+            def factory(**kwargs):
+                return lambda req: (200, [{"reportId": 883801632, "rrdId": 33, "reportType": 1}])
+            with redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ProviderError, "mismatches list"):
+                    ingest_run([
+                        "--root", temp, "--creds-file", "/unused/dummy.json",
+                        "wb-one", "--cabinet", "wb_laser_master",
+                        "--year", "2026", "--report-id", "883801632",
+                        "--report-type", "2",
+                    ], factory=factory)
+            self.assertEqual(list(Path(temp).rglob("*.csv")), [])
 
 
 class OzonContractTests(unittest.TestCase):
