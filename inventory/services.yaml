@@ -256,6 +256,38 @@ components:
     semantics: config/msp-data/semantics/product_cost.yaml
     business_data_in_git: false
 
+  - id: msp-production-sewing
+    kind: application-data
+    status: source-access-blocked-http-401
+    source: apps/msp_production_sync/sync.py
+    current_view: v_production_sewing
+    database: /opt/mcp/data/msp/msp_data.sqlite3
+    staged_runtime: /home/hermes/.local/share/msp-production/sync.py
+    service: hermes-user/msp-production-sewing.service
+    timer: hermes-user/msp-production-sewing.timer
+    requested_schedule: "07:35 Europe/Moscow"
+    timer_enabled: false
+    timer_active: false
+    imported_rows: 0
+    reason: original Google workbook denies unauthenticated CSV on REMOTE
+    access_audit: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/40336813968
+
+  - id: msp-production-metal
+    kind: application-data
+    status: initial-import-accepted-no-daily-schedule
+    source: apps/msp_production_sync/sync.py
+    current_view: v_production_metal
+    database: /opt/mcp/data/msp/msp_data.sqlite3
+    service: hermes-user/msp-production-metal.service
+    imported_rows: 730
+    missing_articles_retained: 14
+    quality_review_rows: 384
+    daily_timer: none
+    initial_import_utc: "2026-10-26T14:11Z"
+    backup: /opt/mcp/backups/msp/msp_before_metal_initial_20261026T141103Z.sqlite3
+    acceptance: https://github.com/alexpmtk-afk/msp-server-bridge/actions/runs/40337235313
+    existing_msp_tables_unchanged: true
+
 external_dependencies:
   - id: ai-model-provider
     credentials: external

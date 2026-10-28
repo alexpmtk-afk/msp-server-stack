@@ -44,8 +44,10 @@ msp_self_sku_report_cli.py. Службы, расписания и маркетп
 Воспроизводимый установщик: scripts/install_msp_rating_history_helper.py
 --source-commit SHA40. Он экспортирует согласованные файлы из конкретного
 коммита в отдельную неизменяемую папку с manifest.json и SHA-256, без git pull.
-Рабочая база: bc2726cf9bc39b99d2a69e0191c0b9b249d92d9f; манифест:
-`/home/hermes/.local/share/msp/rating-history/bc2726cf9bc39b99d2a69e0191c0b9b249d92d9f/manifest.json`.
+Точный активный коммит, папка исходников и SHA-256 файлов указаны в
+`/home/hermes/.local/share/msp/rating-history/active-manifest.json`.
+Для новой установки выбирать проверенный коммит основной ветки; отдельный
+манифест конкретной версии сохраняется в её неизменяемой папке.
 
 Текущий доступ даёт датированные снимки и неполные выборки, а не гарантированно
 все оценки. wb_sku и ozon_sku не взаимозаменяемы. WB rating может быть

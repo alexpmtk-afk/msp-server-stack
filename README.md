@@ -20,6 +20,10 @@ The goal of this repository is simple: if the remote server is lost, the softwar
 
 Постоянный ориентир разработки: **[docs/self-purchases/PROJECT_COMPASS.md](docs/self-purchases/PROJECT_COMPASS.md)**. Обязателен для ChatGPT/Codex и Hermes при работе над аналитикой самовыкупов, конкурентами, новыми карточками и рейтингами. Дословная стенограмма и замороженная концепция находятся в **приватном** `msp-server-bridge/docs/self-purchases/`; не переносить их в публичный репозиторий. Подготовленный Hermes Skill: `apps/hermes/msp_self_purchases_skill/SKILL.md`. Его наличие здесь не означает установку на REMOTE.
 
+## Отчёты, которыми можно пользоваться
+
+Обязательный общий [реестр отчётов и SQL-инструкций](docs/data-sources/APPROVED_REPORTS.md): QRsite MCP сначала, утверждённый отчёт `_01_заказы` при отсутствии нужных данных. Серверный readonly-доступ проверен; отдельный Google-коннектор ChatGPT использует другую идентичность и может быть недоступен. Точный локатор хранится приватно.
+
 ## Remote server interaction
 
 For any task that requires reading, testing or changing the remote server, start with:

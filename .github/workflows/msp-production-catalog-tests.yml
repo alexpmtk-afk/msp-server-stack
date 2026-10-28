@@ -1,0 +1,27 @@
+name: MSP Production Catalog Tests
+on:
+  push:
+    paths:
+      - "apps/msp_production_sync/**"
+      - "tests/test_msp_production_sync.py"
+      - "systemd/user/msp-production-*.service"
+      - "systemd/user/msp-production-*.timer"
+      - ".github/workflows/msp-production-catalog-tests.yml"
+  pull_request:
+    paths:
+      - "apps/msp_production_sync/**"
+      - "tests/test_msp_production_sync.py"
+      - "systemd/user/msp-production-*.service"
+      - "systemd/user/msp-production-*.timer"
+      - ".github/workflows/msp-production-catalog-tests.yml"
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile new importer
+        run: python3 -m py_compile apps/msp_production_sync/sync.py
+      - name: Offline production source and SQLite tests
+        run: python3 -m unittest discover -s tests -p 'test_msp_production_sync.py' -v

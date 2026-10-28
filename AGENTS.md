@@ -1,3 +1,11 @@
+## Отчёты, которыми можно пользоваться
+
+Для ЛЮБОЙ задачи МСП по заказам, штукам, суммам, дням/неделям/месяцам читать [общий реестр](docs/data-sources/APPROVED_REPORTS.md). При отсутствии нужных данных в QRsite MCP использовать зарегистрированный отчёт `_01_заказы`, а не искать таблицы на Drive. SQL-инструкция на сервере: `/opt/mcp/data/msp/msp_report_catalog.sqlite3`; команда `python3 /home/hermes/.local/share/msp/approved-reports/report_catalog.py guide --report orders`. Сервисный аккаунт сервера проверен; 403 отдельного коннектора ChatGPT не отменяет этот доступ. Точный ID — только в приватном локаторе/серверном registry.json. Не менять исходный отчёт.
+
+## Совместная работа GitHub и VPS — полномочия от 27.10.2026
+
+Для обоих MSP-репозиториев действует [единый регламент](docs/MSP_GITHUB_VPS_WORKFLOW.md). В рамках порученной задачи Hermes может создавать отдельные ветки, коммиты и PR, включая их публикацию. Это заменяет прежнее «GitHub изменяет только ChatGPT». Прямые изменения `main`, слияние PR и установка на VPS требуют отдельного согласования. Перед работой сверять актуальную базу, открытые PR и незакоммиченные изменения; не затирать работу другого помощника. Этот раздел не меняет бизнес-семантику и не разрешает операции с маркетплейсами или исходной базой.
+
 ## МСП: получение оценок — обязательное правило 28.10.2026
 
 Для WB/Ozon и рейтинга сначала читать
@@ -17,7 +25,7 @@ comments/by_period дают оценки без требования текст�
 
 **Доказательность:** дата в реестре не подтверждает публикацию. MPSTATS `sales` — оценка заказов, не независимые оплаченные продажи. Собственные заказы учитывать отдельно; не вычитать их без проверенной связи и полноты источника. `wb_sku(comments)` и `by_period` — неполные наблюдения; сохранённый запрос `lk_wb_card_table` дал 403. Количество новых 4–5★ без подтверждённого датированного распределения остаётся UNKNOWN. Разница накопительных счётчиков не является числом новых публикаций. Причинная эффективность не доказана. Денежную окупаемость по поручению владельца временно не рассчитывать. Не изменять маркетплейсы, заказы, отзывы или SQLite.
 
-**Ответственность:** коммиты, публикации и изменения GitHub выполняет ChatGPT; Hermes проводит отдельные серверные сверки и согласованное внедрение. Публикация GitHub не доказывает работу на VPS. Читать `docs/self-purchases/PROJECT_COMPASS.md`, `docs/self-purchases/NONFINANCIAL_SOURCE_CONTRACT_20261026.md` и `apps/hermes/msp_self_purchases_skill/SKILL.md`.
+**Ответственность:** ChatGPT и Hermes могут готовить отдельные ветки, коммиты и PR по регламенту владельца от 27.10.2026. Слияние выполняется только по отдельному разрешению; владелец подтвердил слияние этой задачи 28.10.2026. Публикация GitHub не доказывает работу на VPS. Читать `docs/self-purchases/PROJECT_COMPASS.md`, `docs/self-purchases/NONFINANCIAL_SOURCE_CONTRACT_20261026.md` и `apps/hermes/msp_self_purchases_skill/SKILL.md`.
 
 ## МСП Самовыкупы — неподтверждённая похожесть не является контрольной группой
 
@@ -29,7 +37,7 @@ MPSTATS `wb_similar` возвращает **кандидатов**, а не га
 
 # AGENTS.md
 
-When handling **MSP Marketplace Telegram signals** or the SIG-002 price-advice case, agents must use the canonical `docs/signals/REVIEWED_RULES_2026-10-05.md` and the Hermes manual Skill `apps/hermes/msp_signals_skill/SKILL.md`; passive background processing uses `apps/msp_signal_notify/notify.py`. In particular, SKU + `_N` days with **no** production/inbound date in the signal means **recommend raising price** (not «cannot determine»). The skill is instructions only; no marketplace write actions are authorized. Do not change Hermes Gateway or the MSP daily timer when deploying this skill.
+When handling **MSP Marketplace Telegram signals** or the SIG-002 price-advice case, agents must use the canonical `docs/signals/REVIEWED_RULES_2026-10-05.md` and the Hermes manual Skill `apps/hermes/msp_signals_skill/SKILL.md`; passive background processing uses `apps/msp_signal_notify/notify.py`. **Superseded for SIG-002 on 27.10.2026:** missing inbound date in the Telegram signal is NOT proof of missing production order. Use the approved `apps/hermes/msp_signals_skill/references/production-orders.md` decision workflow: per-card `_N` coverage; read `product_listing` and both production tables; empty actual-production-received field = zero; compare confirmed incoming to coverage; liquidation/business owner overrides price raise; no Ozon FBO logistics calculation. The skill is instructions only; no marketplace write actions are authorized. Do not change Hermes Gateway or the MSP daily timer when deploying this skill.
 
 ## Обязательное правило МСП: журнал цен без даты\n\n**Утверждено владельцем 22.10.2026.** В `price_journal_current` и `price_journal_archive` любая строка с пустой/пробельной колонкой `дата` молча игнорируется, не становится `rejected`, не создаёт `sync_error`, не влияет на `partial` и не вызывает уведомления. Никакой эскалации владельцу. Подробно: [`docs/PRICE_JOURNAL_MISSING_DATE_POLICY.md`](docs/PRICE_JOURNAL_MISSING_DATE_POLICY.md). Применение на REMOTE и в Hermes **подтверждено**: [`docs/PRICE_JOURNAL_MISSING_DATE_ACCEPTANCE_20261022.md`](docs/PRICE_JOURNAL_MISSING_DATE_ACCEPTANCE_20261022.md). Это правило выше устаревших инструкций; непустая, но некорректная дата и другие ошибки датированных строк остаются проверяемыми.\n\n## МСП Самовыкупы — обязательный компас
 

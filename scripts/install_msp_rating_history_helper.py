@@ -67,6 +67,7 @@ def main():
                 'existing_main_report_replaced': False, 'services_restarted': False}
     target = bundle / 'manifest.json'
     target.write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
+    (root / 'active-manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
     print(json.dumps({'installed': str(script), 'manifest': str(target), 'source_commit': args.source_commit}))
 
 
