@@ -250,26 +250,47 @@ def import_csv(root: Path, dataset: str, cabinet: str, period: str, source: Path
 
 
 def verify(root: Path):
-    """Read-only audit; no claim of API coverage or completeness."""
+    """Read-only integrity audit, including Ozon monthly-to-annual parity.
+
+    Source-provider coverage is NOT proven by this local verification.
+    """
     root = Path(root).expanduser().resolve()
     reports = []
     failures = []
+    ozon_monthly = {}
+    ozon_annual = {}
     for file in sorted((root / "База данных").rglob("*.csv")):
         meta_file = file.with_name(file.name + ".meta.json")
         try:
             meta = json.loads(meta_file.read_text("utf-8"))
-            dataset = meta["dataset"]
-            cabinet = meta["cabinet"]
-            period = meta["period"]
-            _, keys = _validate(dataset, cabinet, period if not (
-                dataset == "ozon_final_realization" and file.parent.name == "annual"
-            ) else period + "-01")
+            dataset, cabinet, period = meta["dataset"], meta["cabinet"], meta["period"]
+            is_annual = dataset == "ozon_final_realization" and file.parent.name == "annual"
+            _, keys = _validate(dataset, cabinet, period + "-01" if is_annual else period)
             raw = file.read_bytes()
             _, rows = _rows(raw, keys)
             if _sha(raw) != meta["sha256"] or len(rows) != meta["rows"] or len(raw) != meta["bytes"]:
                 raise ValueError("manifest/CSV mismatch")
+            if dataset == "ozon_final_realization":
+                if file.parent.name == "monthly_source":
+                    if any(row["report_month"] != period or row["report_year"] != period[:4] for row in rows.values()):
+                        raise ValueError("Ozon monthly source period mismatch")
+                    group = ozon_monthly.setdefault((cabinet, period[:4]), {})
+                    if any(k in group for k in rows):
+                        raise ValueError("duplicate Ozon key across months")
+                    group.update(rows)
+                elif is_annual:
+                    ozon_annual[(cabinet, period)] = rows
             reports.append({"file": str(file), "rows": len(rows), "dataset": dataset, "period": period})
         except (OSError, ValueError, KeyError, TypeError, UnicodeError) as exc:
             failures.append({"file": str(file), "error": str(exc)})
+    for key, monthly in ozon_monthly.items():
+        annual = ozon_annual.get(key)
+        if annual is None or set(annual) != set(monthly) or any(
+            any(annual[k].get(field, "") != row.get(field, "") for field in set(row) | set(annual[k]))
+            for k, row in monthly.items()
+        ):
+            failures.append({"cabinet_year": list(key), "error": "Ozon annual differs from monthly sources"})
+    if not reports:
+        failures.append({"error": "archive is empty; no files verified"})
     return {"ok": not failures, "files": len(reports), "verified": reports, "failures": failures,
             "provider_coverage_proven": False}
