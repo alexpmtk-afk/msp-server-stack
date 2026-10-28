@@ -10,6 +10,7 @@ import asyncio
 import base64
 import hashlib
 import json
+import math
 import os
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -86,13 +87,15 @@ def _parse_wait(value: str | None):
         return None
     try:
         n = float(value)
-        return max(0.0, n) if n < 86400 else 86400.0
+        return min(86400.0, max(0.0, n)) if math.isfinite(n) else None
     except (TypeError, ValueError):
         pass
     try:
         dt = parsedate_to_datetime(value)
-        return max(0.0, (dt - datetime.now(dt.tzinfo or timezone.utc)).total_seconds())
-    except (TypeError, ValueError, OverflowError):
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return min(86400.0, max(0.0, (dt - datetime.now(timezone.utc)).total_seconds()))
+    except (TypeError, ValueError, OverflowError, IndexError):
         return None
 
 
@@ -100,7 +103,7 @@ def retry_delay(headers, rules):
     values = [_parse_wait(headers.get("Retry-After")),
               _parse_wait(headers.get("X-Ratelimit-Retry"))]
     positive = [v for v in values if v is not None]
-    default = max(60.0, *(r.interval_seconds for r in rules))
+    default = max([60.0, *(r.interval_seconds for r in rules)])
     # When the provider supplies an explicit wait, do not undercut it; use
     # at least the known safe bucket window as the default.
     return min(86400.0, max([default, *positive]))
