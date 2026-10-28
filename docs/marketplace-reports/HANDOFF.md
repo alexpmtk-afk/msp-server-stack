@@ -145,3 +145,9 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - On VM-817589, local read-only JWT metadata check for `wb_laser_master` returned TOKEN_FORMAT=OTHER, TOKEN_TYPE=UNKNOWN, FINANCE_SCOPE=UNKNOWN, EXPIRED=UNKNOWN, S_CLAIM=MISSING_OR_NONNUMERIC.
 - These UNKNOWN values follow from the non-JWT structure; do not infer expiry, Finance permissions or geo-block from them. Earlier Finance host requests returned 400 text/plain from the same cabinet.
 - WB official documentation describes API tokens as JWT and requires Personal/Service with Finance permission for finance reports. Next: offline-only structure classification for all three WB credentials (dot segments, Bearer prefix, whitespace, length bucket), printing no token fragments, claims, IDs or secret values. No further provider calls until configuration issue resolved.
+
+## 2026-10-28: три WB credentials имеют неверную для JWT структуру
+- Локальная (без сети) проверка сервера показала одинаковые безопасные метаданные всех трёх WB полей: DOTS=0, BEARER_PREFIX=NO, SPACES=NO, LENGTH_CLASS=SHORT (<100). Исходные значения не выводились.
+- Официальная документация WB API описывает токены как JWT; у типового JWT три сегмента через две точки. Соответственно сохранённые короткие строки не соответствуют структуре действующих JWT API-токенов. HTTP 400 text/plain для двух методов Finance не позволяет подтвердить геоблокировку; прежде нужно установить, почему были введены короткие значения.
+- Следующий безопасный шаг: владелец проверяет СВОЙ ИСХОДНЫЙ WB API-токен (в локальном исходнике или кабинете), только по признаку двух точек, не отправляя содержимое в чат. До сверки и защищённой замены не повторять запросы WB. Ozon credentials не затрагивать.
+- Уязвимость процедуры подготовки: серверный `validate_bundle` проверяет лишь наличие строк/границы длины, но не JWT-структуру WB. Перед будущим использованием укрепить валидацию и добавить тесты, чтобы эта ошибка не повторялась.
