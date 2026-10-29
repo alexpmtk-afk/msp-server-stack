@@ -143,6 +143,51 @@ class VersionedImportTests(unittest.TestCase):
                 import_csv_versioned(*args, self._wb("12", "20"))
         self.assertEqual(read_active(*args)["files"], wb_files("888"))
 
+    def test_adapter_commit_uncertain_does_not_claim_rollback(self):
+        import apps.msp_marketplace_reports.versioned_archive as va
+        from apps.msp_marketplace_reports.generation_store import publish_batch as core_publish
+        args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        first = import_csv_versioned(*args, self._wb())
+        def ambiguous(root, dataset, cabinet, period, files,
+                      *, expected_generation):
+            def lose_reply(stage):
+                if stage == "after_commit":
+                    raise OSError("synthetic response loss after CURRENT")
+            return core_publish(root, dataset, cabinet, period, files,
+                                expected_generation=expected_generation, fault=lose_reply)
+        with mock.patch.object(va, "publish_batch", side_effect=ambiguous):
+            with self.assertRaisesRegex(CommitUncertainError, "commit result uncertain"):
+                import_csv_versioned(*args, self._wb("12", "30"))
+        after, receipt = read_csv_versioned(*args)
+        self.assertNotEqual(first["generation"], receipt["generation"])
+        self.assertEqual(len(_rows(after, ("reportId", "rrdId"))[1]), 2)
+        retry = import_csv_versioned(*args, self._wb("12", "30"))
+        self.assertFalse(retry["changed"])
+        self.assertEqual(retry["generation"], receipt["generation"])
+
+    def test_cli_opt_in_no_legacy_data_exposure(self):
+        import contextlib
+        import io
+        from apps.msp_marketplace_reports.cli import main
+        args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        self._wb(amount="19")
+        out = io.StringIO()
+        params = ["--root", str(self.root)]
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(main(params + [
+                "import-csv-versioned", "--dataset", args[1],
+                "--cabinet", args[2], "--period", args[3],
+                "--source", str(self.source)]), 0)
+        result = json.loads(out.getvalue())
+        self.assertTrue(result["changed"])
+        self.assertNotIn("19", out.getvalue())  # no financial-row payload printed
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(main(params + [
+                "verify-versioned", "--dataset", args[1],
+                "--cabinet", args[2], "--period", args[3]]), 0)
+        self.assertTrue(json.loads(out.getvalue())["ok"])
+
     def test_readonly_verify_does_not_create_empty_root(self):
         args = (self.root, "ozon_current_orders_fbo", "ozon_dmitrieva", "2026-10")
         self.assertFalse(verify_versioned_scope(*args)["ok"])
