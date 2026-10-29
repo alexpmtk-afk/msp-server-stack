@@ -1,12 +1,15 @@
 """B7 opt-in adapter and evidence recovery: all fixtures offline/synthetic."""
 import json
 import os
+import shutil
+import signal
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from apps.msp_marketplace_reports.archive import _rows
+from apps.msp_marketplace_reports.archive import _rows, import_csv as import_legacy_csv, verify as verify_legacy
 from apps.msp_marketplace_reports.generation_store import (
     CommitUncertainError, GenerationError, publish_batch, read_active, reconcile,
 )
@@ -188,6 +191,93 @@ class VersionedImportTests(unittest.TestCase):
                 "--cabinet", args[2], "--period", args[3]]), 0)
         self.assertTrue(json.loads(out.getvalue())["ok"])
 
+    def test_r96_2_versioned_first_blocks_legacy_and_legacy_verify_mixed(self):
+        args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        receipt = import_csv_versioned(*args, self._wb())
+        with self.assertRaisesRegex(ValueError, "versioned scope exists"):
+            import_legacy_csv(*args, self.source)
+        self.assertEqual(read_active(*args)["generation"], receipt["generation"])
+        # Deliberately introduce an inconsistent legacy copy OUTSIDE either
+        # cooperating writer; both verifiers must fail, never report two PASS.
+        legacy = (self.root / "База данных" / "WB" / "wb_laser_master" / "2026"
+                  / "finance" / "weekly" / "main" /
+                  "wb_laser_master__weekly_main__2026.csv")
+        legacy.parent.mkdir(parents=True)
+        legacy.write_bytes(self.source.read_bytes())
+        from apps.msp_marketplace_reports.archive import _metadata, _rows
+        raw = legacy.read_bytes()
+        rows = len(_rows(raw, ("reportId", "rrdId"))[1])
+        legacy.with_name(legacy.name + ".meta.json").write_text(
+            json.dumps(_metadata(raw, rows, args[1], args[2], args[3])))
+        self.assertFalse(verify_legacy(self.root)["ok"])
+        self.assertFalse(verify_versioned_scope(*args)["ok"])
+        with self.assertRaisesRegex(GenerationError, "legacy CSV scope"):
+            read_csv_versioned(*args)
+
+    def test_r96_2_legacy_first_blocks_versioned(self):
+        args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        legacy = import_legacy_csv(*args, self._wb())
+        before = Path(legacy["path"]).read_bytes()
+        with self.assertRaisesRegex(GenerationError, "legacy CSV scope"):
+            import_csv_versioned(*args, self.source)
+        self.assertEqual(Path(legacy["path"]).read_bytes(), before)
+        self.assertFalse((self.root / ".b7-generations").exists())
+
+    def test_r96_2_dangling_manifest_symlink_blocks_versioned(self):
+        args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        legacy = (self.root / "База данных" / "WB" / "wb_laser_master" / "2026"
+                  / "finance" / "weekly" / "main" /
+                  "wb_laser_master__weekly_main__2026.csv.meta.json")
+        legacy.parent.mkdir(parents=True)
+        legacy.symlink_to(legacy.parent / "does-not-exist.json")
+        self.assertFalse(legacy.exists())
+        self.assertTrue(legacy.is_symlink())
+        with self.assertRaisesRegex(GenerationError, "symbolic link forbidden"):
+            import_csv_versioned(*args, self._wb())
+        self.assertFalse((self.root / ".b7-generations").exists())
+
+    def test_r96_2_shared_admission_lock_closes_preflight_window(self):
+        import apps.msp_marketplace_reports.versioned_archive as va
+        args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        path = self._wb()
+        entered = threading.Event()
+        release = threading.Event()
+        old_check = va._assert_no_legacy
+        result = {}
+        def block(root, dataset, cabinet, period):
+            entered.set()
+            if not release.wait(10):
+                raise RuntimeError("timed out waiting for race release")
+            return old_check(root, dataset, cabinet, period)
+        def newer():
+            try:
+                result["new"] = import_csv_versioned(*args, path)
+            except Exception as exc:
+                result["new_error"] = exc
+        def legacy():
+            try:
+                result["legacy"] = import_legacy_csv(*args, path)
+            except Exception as exc:
+                result["legacy_error"] = exc
+        with mock.patch.object(va, "_assert_no_legacy", side_effect=block):
+            a = threading.Thread(target=newer)
+            b = threading.Thread(target=legacy)
+            a.start()
+            try:
+                self.assertTrue(entered.wait(10))
+                b.start()
+            finally:
+                release.set()
+                a.join(10)
+                if b.ident is not None:
+                    b.join(10)
+        self.assertFalse(a.is_alive())
+        self.assertFalse(b.is_alive())
+        self.assertIn("new", result, result)
+        self.assertIn("legacy_error", result, result)
+        self.assertIn("versioned scope exists", str(result["legacy_error"]))
+        self.assertFalse((self.root / "База данных").exists())
+
     def test_readonly_verify_does_not_create_empty_root(self):
         args = (self.root, "ozon_current_orders_fbo", "ozon_dmitrieva", "2026-10")
         self.assertFalse(verify_versioned_scope(*args)["ok"])
@@ -279,6 +369,113 @@ class EvidenceQuarantineTests(unittest.TestCase):
         with self.assertRaisesRegex(GenerationError, "unlisted uncommitted"):
             self._quarantine(["0" * 32])
         self.assertTrue((self.scope / "generations" / candidate).exists())
+
+    def test_r96_1_retry_resyncs_source_parent_after_failed_first_fsync(self):
+        import apps.msp_marketplace_reports.generation_recovery as gr
+        candidate = self._orphan()
+        original = gr._sync_dir
+        source_parent = self.scope / "generations"
+        evidence = self.scope / "evidence"
+        injected = []
+        def fail(path):
+            if Path(path) == source_parent and not injected:
+                injected.append(True)
+                raise OSError("first source-parent fsync failed")
+            return original(path)
+        with mock.patch.object(gr, "_sync_dir", side_effect=fail):
+            with self.assertRaises(RecoveryUncertainError) as error:
+                self._quarantine([candidate])
+        self.assertEqual(error.exception.moved_in_attempt, (candidate,))
+        self.assertTrue((evidence / candidate).is_dir())
+        self.assertFalse((source_parent / candidate).exists())
+        trace = []
+        def audit(path):
+            trace.append(Path(path))
+            return original(path)
+        with mock.patch.object(gr, "_sync_dir", side_effect=audit):
+            report = self._quarantine([candidate])
+        self.assertIn(source_parent, trace, "retry skipped original failed sync")
+        self.assertIn(evidence, trace)
+        self.assertEqual(report["status"], "EVIDENCE_RETAINED")
+        self.assertEqual(report["moved_in_this_attempt"], [])
+        self.assertIn(candidate, report["resynced_candidates"])
+
+    @unittest.skipUnless(hasattr(os, "fork"), "Linux fork required")
+    def test_r96_1_sigkill_after_evidence_rename_requires_retry_sync(self):
+        import apps.msp_marketplace_reports.generation_recovery as gr
+        candidate = self._orphan()
+        original = gr._sync_dir
+        evidence = self.scope / "evidence"
+        source_parent = self.scope / "generations"
+        pid = os.fork()
+        if pid == 0:
+            try:
+                def terminate(path):
+                    if Path(path) == source_parent and (evidence / candidate).exists():
+                        os.kill(os.getpid(), signal.SIGKILL)
+                    return original(path)
+                with mock.patch.object(gr, "_sync_dir", side_effect=terminate):
+                    self._quarantine([candidate])
+            finally:
+                os._exit(82)
+        _, status = os.waitpid(pid, 0)
+        self.assertTrue(os.WIFSIGNALED(status))
+        self.assertEqual(os.WTERMSIG(status), signal.SIGKILL)
+        trace = []
+        def audit(path):
+            trace.append(Path(path))
+            return original(path)
+        with mock.patch.object(gr, "_sync_dir", side_effect=audit):
+            result = self._quarantine([candidate])
+        self.assertIn(source_parent, trace)
+        self.assertIn(evidence, trace)
+        self.assertEqual(result["status"], "EVIDENCE_RETAINED")
+
+    def test_r96_3_invalid_second_candidate_rejected_before_first_rename(self):
+        candidate = self._orphan()
+        second = "f" * 32
+        if second == candidate:
+            second = "e" * 32
+        clone = self.scope / "generations" / second
+        shutil.copytree(self.scope / "generations" / candidate, clone)
+        evidence = self.scope / "evidence"
+        evidence.mkdir()
+        (evidence / second).write_bytes(b"conflicting evidence entry")
+        before = {p.relative_to(self.scope).as_posix(): p.read_bytes()
+                  for p in self.scope.rglob("*") if p.is_file()}
+        with self.assertRaisesRegex(GenerationError, "invalid evidence"):
+            self._quarantine([candidate, second])
+        self.assertTrue((self.scope / "generations" / candidate).is_dir())
+        self.assertFalse((evidence / candidate).exists())
+        self.assertEqual(before, {
+            p.relative_to(self.scope).as_posix(): p.read_bytes()
+            for p in self.scope.rglob("*") if p.is_file()})
+
+    def test_r96_3_partial_progress_exposed_on_second_rename_error(self):
+        import apps.msp_marketplace_reports.generation_recovery as gr
+        candidate = self._orphan()
+        second = "f" * 32
+        if second == candidate:
+            second = "e" * 32
+        shutil.copytree(self.scope / "generations" / candidate,
+                        self.scope / "generations" / second)
+        ordered = sorted((candidate, second))
+        original = gr.os.replace
+        def fail_second(src, dest):
+            if Path(src).name == ordered[1]:
+                raise OSError("synthetic second rename failure")
+            return original(src, dest)
+        with mock.patch.object(gr.os, "replace", side_effect=fail_second):
+            with self.assertRaises(RecoveryUncertainError) as error:
+                self._quarantine(ordered)
+        self.assertEqual(error.exception.candidate, ordered[1])
+        self.assertEqual(error.exception.moved_in_attempt, (ordered[0],))
+        self.assertIn("partial progress=", str(error.exception))
+        self.assertTrue((self.scope / "evidence" / ordered[0]).exists())
+        result = self._quarantine(ordered)
+        self.assertEqual(result["status"], "EVIDENCE_RETAINED")
+        self.assertEqual(result["moved_in_this_attempt"], [ordered[1]])
+        self.assertEqual(reconcile(*self.args)["status"], "ACTIVE_VERIFIED")
 
     def test_quarantine_isolation_from_other_cabinet(self):
         candidate = self._orphan()
