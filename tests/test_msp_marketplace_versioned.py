@@ -170,7 +170,7 @@ class VersionedImportTests(unittest.TestCase):
         import io
         from apps.msp_marketplace_reports.cli import main
         args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
-        self._wb(amount="19")
+        self._wb(amount="SENSITIVE_AMOUNT_990077")
         out = io.StringIO()
         params = ["--root", str(self.root)]
         with contextlib.redirect_stdout(out):
@@ -180,7 +180,7 @@ class VersionedImportTests(unittest.TestCase):
                 "--source", str(self.source)]), 0)
         result = json.loads(out.getvalue())
         self.assertTrue(result["changed"])
-        self.assertNotIn("19", out.getvalue())  # no financial-row payload printed
+        self.assertNotIn("SENSITIVE_AMOUNT_990077", out.getvalue())  # no financial-row payload printed
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             self.assertEqual(main(params + [
