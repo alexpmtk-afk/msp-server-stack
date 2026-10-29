@@ -74,3 +74,7 @@ R96-1/R96-2/R96-3 независимо PASS на `a0df0d5d4266392853330dc414d50f
 ### Актуальный статус второго блока — ceec4fe
 
 R96-4 и второй офлайн opt-in блок PR №96 независимо **PASS** на `ceec4fe6a9649ea547c0900d5e45b667868bec7f`: 120 stock tests + 143 независимых сценария, [итоговый review](REVIEW_B7_R96_4_CEEC4FE.md). Прежние FAIL R96-1–R96-4 — исторические. Приняты отдельный versioned import/reader и ограниченный quarantine при исправном CURRENT, не полная migration/restore/retention. B7 OPEN, P01/power-loss NOT VERIFIED; следующий блок разрабатывается и принимается отдельно, без автоматического merge/deploy/API.
+
+### B7 третий блок — ba46528
+
+current_repair PR №97 на `ba465288406f68dacb4a2557019a488716d55ba6` независимо **FAIL**: [R97-1 final journal sync replay, R97-2 journal schema types](REVIEW_B7_STAGE3_BA46528.md). 137 stock tests не заменяют 61 независимый сценарий с найденными дефектами. Прежние core/stage2 PASS сохранены; B7 OPEN. Operator witness не аутентифицирован кодом: даже после локального исправления нужен независимый proof до production. P01/power-loss NOT VERIFIED, внедрение/API не допущены.

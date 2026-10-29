@@ -359,3 +359,9 @@ Core G1–G4 PASS сохраняется; исправление R96-4 за ко
 Точный `ceec4fe6a9649ea547c0900d5e45b667868bec7f`: **R96-4 PASS, STAGE2 SCOPED PASS**. 120 локальных stock tests и 143 независимых сценария PASS (71 admission/path, 68 stage2 regressions, 4 core controls). Три прежних counterexample закрыты у обоих импортёров; nested/dangling/hardlink/open/mkdir failure cases, FD cleanup, 8 pre-open FS swaps и pin `.locks` FD проверены. Обе mixed races реальными процессами, quarantine SIGKILL и partial retries проходят; R96-1–R96-3/G1–G4 сохранены.
 
 [Итоговый отчёт и воспроизводимые артефакты](REVIEW_B7_R96_4_CEEC4FE.md). Защита относится к no-follow lock open/кооперирующим writers, не ко всем последующим финансовым path operations при hostile external tree replacement. Предки root должны существовать, no-follow не обходить resolve. Можно продолжать офлайн-разработку следующих частей B7, не merge/deploy/API. B7 OPEN, P01/power-loss NOT VERIFIED. Чужой код/ветка/службы не менялись.
+
+## 2026-10-29 — Hermes: stage3 PR №97 ba46528, независимый FAIL
+
+Точный `ba465288406f68dacb4a2557019a488716d55ba6`: **STAGE3 FAIL**. 137 локальных stock tests PASS; 61 собственный сценарий, включая 21 реальный SIGKILL. [Полный отчёт и evidence](REVIEW_B7_STAGE3_BA46528.md). R97-1: после VERIFIED journal rename и отказа его parent fsync replay early-return CURRENT_VERIFIED без resync (также SIGKILL). R97-2: schema:true/1.0 journal принимаются как 1 в PREPARED/VERIFIED. Код коллеги не менялся.
+
+Preimage и поколения сохранены в проверенных окнах, rollback/extra-generation/CAS/pin guards и порядок locks прошли. Выбор никогда не committed candidate по выдуманному operator witness воспроизвёл документированное ограничение, authenticity flag=false, не новый скрытый дефект. Нужен независимый commit proof перед рабочим применением. Core/stage2 PASS сохраняются; B7 OPEN, P01/power-loss NOT VERIFIED, merge/deploy/API/Redis/Actions NO.
