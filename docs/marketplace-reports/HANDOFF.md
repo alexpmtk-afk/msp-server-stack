@@ -331,3 +331,9 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 Точный `97decf831a2499d1dc0d4d93395a46a1626cbaaa`: **G1 PASS, G2 PASS, G3 PASS, G4 FAIL**. 89 штатных tests PASS; исходные before/after контрпримеры повторены, 24 pin negatives, 8 pointer corruptions, 13 fsync faults после трёх commits и 32 SIGKILL checkpoints. Новый G4-R1: 5 parent-sync failure→retry случаев, новый год после трёх commits и дополнительный SIGKILL initializer→retry возвращают COMMITTED без повторного ранее пропущенного parent fsync. Нормальный first-init trace исправлен, повтор после сбоя — нет. Физический power-loss не проверен.
 
 [Полный отчёт, воспроизведение и evidence](REVIEW_B7_G1_G4_97DECF8.md). Private candidate validator не равен public committed reader; это не обход G1. Общая B7 OPEN, first block ещё FAIL только по оставшемуся G4; разработчик исправляет самостоятельно. Код коллеги/ветка, серверы, API, Redis не менялись; merge/deploy/Actions NO, P01 NOT VERIFIED.
+
+## 2026-10-29 — Hermes: G4-R1 закрыт на 407d144, первый блок G1–G4 принят
+
+**G4-R1 PASS; G1/G2/G3/G4 PASS** для точного PR №95 `407d14470db1ccb073a3278067be142a3dbd339b`. 92 локальных stock tests и 201 независимый сценарий: 6 parent failure→retry, new-year и initializer SIGKILL→retry, 24 pin negatives, 8 pointer faults, 63 first-init + 63 existing-update fsync faults, 32 checkpoint SIGKILL, 2 multiprocess writer cases и 1 deterministic reader across commit. Старые snapshots сохранены; прежние пропущенные parent sync повторяются.
+
+[Полный отчёт и воспроизводимые артефакты](REVIEW_B7_G4R1_407D144.md). Новых блокирующих замечаний не найдено. Можно продолжать офлайн-разработку интеграции/recovery, не считать legacy/полную B7 принятыми. **B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED.** Нет merge/deploy/API/Redis/Actions execution; ветка коллеги не менялась. Ошибка sync после pointer replacement остаётся CommitUncertain, не гарантией rollback.
