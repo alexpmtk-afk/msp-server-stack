@@ -272,3 +272,13 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - P01 перепроверена доступными read-only средствами: локальный Redis refusal=111; новые каналы доступа к старому runtime не обнаружены; legacy main по свежему fetch остаётся 0510a409. **NOT VERIFIED**, необходим конкретный разрешённый read-only маршрут к действующему старому экземпляру, не секреты в чате. Никакой Redis не устанавливался.
 
 - В установленном Skill reference закреплён отдельный тест JSON boolean↔integer и разделение scoped acceptance/regression/B7. Каноническая копия HERMES_HANDOFF_GUIDE.md синхронизирована; SHA256 `d3172a3a9204cf59bfe2ac6434d3b9be1a9d539d1f8d630bc8cec7424c80d53f`. Это инструкции проверки, не установка архиватора.
+
+## 2026-10-29 — Hermes: дополнительный GitHub-доступ проверен, P01 продолжена
+
+- **REPOSITORY_ACCESS=PASS:** новые Contents reads Marketplace bridge и infra реально выполнены. Сведения о маршрутах/истории проверены без запуска workflow. Прежнее «нет доступа к дополнительным repo» больше не считается блокером.
+- Найдены конфликт исторических Yandex/REMOTE инструкций и несовпадение свежего DNS с production source map. Публичный legacy TLS вход возвращает WRONG_VERSION_NUMBER до подтверждённого HTTP/MCP; никакой TLS bypass/plaintext fallback не использован.
+- **P01=NOT VERIFIED:** backend/DB/namespace/PING/совместимость bucket не доказаны. Точные недостающие разрешённые источники: gpt-powershell-bridge metadata 404, Marketplace bridge Actions workflows/runners 403. Исторический Windows маршрут требует подтверждения нынешней identity/доступности.
+- Подробный PRIVATE отчёт опубликован в [bridge PR №720](https://github.com/alexpmtk-afk/msp-server-bridge/pull/720), commit `287eaaad0d9a9db4cb652bc90d2a00a5e9419ee2`, содержимое прочитано обратно. Частные SSH locator/key paths в публичный stack не переносились; безопасный итог — P01_QUEUE_DISCOVERY_20261029.md.
+- Коллеге передаётся результат в PR №90. Чужие исходники/ветки, старые службы, Redis, конфигурация авторизации и текущие финансовые данные не менялись; никаких merge/install/маркетплейс API/запусков mutating workflow.
+
+- Skill reference дополнен разделением Contents/Actions/execution и проверкой актуальности DNS/TLS/historical workflows; публичная каноническая guide-копия совпадает с установленной reference, SHA256 `1c1ab518289cb3695eef29c9caa67c27caa8e9b25bcdce0f8cc49679a8bc1132`. Приватные locator-данные в Skill не записывались.
