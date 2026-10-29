@@ -198,7 +198,9 @@ def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
                 if already_new and (record["state"] == "VERIFIED"):
                     return {"status": "CURRENT_VERIFIED", "generation": generation,
                             "manifest_sha256": expected_digest,
-                            "transaction": transaction, "changed_in_attempt": False}
+                            "transaction": transaction, "changed_in_attempt": False,
+                            "local_chain_verified": True,
+                            "external_witness_authenticated_by_code": False}
             elif already_new:
                 raise GenerationError("CURRENT already valid without matching recovery journal")
             if record is None:
