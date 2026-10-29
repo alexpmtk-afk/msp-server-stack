@@ -14,10 +14,11 @@ from pathlib import Path
 
 from .archive import (
     DATASETS, _encode, _location, _metadata, _ozon_annual_path,
-    _rows, _validate, _sha,
+    _rows, _validate, _sha, _lock,
 )
 from .generation_store import (
     GenerationError, publish_batch, read_active, read_generation,
+    _require_plain,
 )
 
 
@@ -32,6 +33,8 @@ def _assert_no_legacy(root: Path, dataset: str, cabinet: str, period: str):
         annual = _ozon_annual_path(root, cabinet, year)
         month_dir = _location(root, dataset, cabinet, period).parent
         candidates = [annual, annual.with_name(annual.name + ".meta.json")]
+        _require_plain(annual)
+        _require_plain(month_dir)
         # Inventory *all* months for the year, including orphan metadata.
         if month_dir.exists():
             candidates.extend(month_dir.iterdir())
@@ -39,9 +42,10 @@ def _assert_no_legacy(root: Path, dataset: str, cabinet: str, period: str):
             raise GenerationError("legacy Ozon FINAL scope exists; migration required")
     else:
         file = _location(root, dataset, cabinet, period)
-        if file.exists() or file.is_symlink() or file.with_name(
-            file.name + ".meta.json"
-        ).exists():
+        manifest = file.with_name(file.name + ".meta.json")
+        _require_plain(file)
+        _require_plain(manifest)
+        if any(p.exists() or p.is_symlink() for p in (file, manifest)):
             raise GenerationError("legacy CSV scope exists; migration required")
 
 
@@ -108,56 +112,60 @@ def import_csv_versioned(root: Path, dataset: str, cabinet: str,
                not in ("", period) for row in incoming.values()):
             raise ValueError("WB financial period mismatch")
     scope_period = _period_scope(dataset, period)
-    # Refuse legacy before and after candidate building, before the CAS commit.
-    _assert_no_legacy(root, dataset, cabinet, period)
-    active = read_active(root, dataset, cabinet, scope_period)
-    parent = active["generation"] if active else None
-    candidate = dict(active["files"]) if active else {}
-    if dataset.startswith("wb_weekly_finance_"):
-        old_fields, old_rows = (
-            _rows(candidate["data.csv"], keys) if active else ([], {})
-        )
-        merged = dict(old_rows)
-        for key, value in incoming.items():
-            if key in merged:
-                common = set(merged[key]) & set(value)
-                if any(merged[key].get(f, "") != value.get(f, "") for f in common):
-                    raise ValueError("conflicting WB stable key: " + repr(key))
-                merged[key] = dict(merged[key], **value)
-            else:
-                merged[key] = value
-        combined_fields = list(dict.fromkeys([*old_fields, *fields]))
-        payload = _encode(combined_fields, merged)
-        _pair(candidate, "data.csv", payload, dataset, cabinet, period, keys)
-        row_count = len(merged)
-        additions = len(merged) - len(old_rows)
-    elif dataset == "ozon_final_realization":
-        payload = _encode(fields, incoming)
-        _pair(candidate, "monthly/" + period + ".csv", payload,
-              dataset, cabinet, period, keys)
-        _ozon_annual(candidate, cabinet, period[:4])
-        row_count = len(incoming)
-        additions = None
-    else:
-        payload = _encode(fields, incoming)
-        _pair(candidate, "data.csv", payload, dataset, cabinet, period, keys)
-        row_count = len(incoming)
-        additions = None
-    _assert_no_legacy(root, dataset, cabinet, period)
-    receipt = publish_batch(root, dataset, cabinet, scope_period, candidate,
-                            expected_generation=parent)
-    result = {**receipt, "rows": row_count, "dataset": dataset,
-              "cabinet": cabinet, "period": period,
-              "provider_coverage_proven": False}
-    if additions is not None:
-        result["new_rows"] = additions
-    return result
-
+    # Shared admission lock with archive.import_csv: legacy vs versioned
+    # writers cannot race across preflight and CURRENT commit.
+    # Lock ordering: legacy admission lock, then generation scope flock.
+    with _lock(root, cabinet, dataset):
+        # Refuse legacy before and after candidate building, before the CAS commit.
+        _assert_no_legacy(root, dataset, cabinet, period)
+        active = read_active(root, dataset, cabinet, scope_period)
+        parent = active["generation"] if active else None
+        candidate = dict(active["files"]) if active else {}
+        if dataset.startswith("wb_weekly_finance_"):
+            old_fields, old_rows = (
+                _rows(candidate["data.csv"], keys) if active else ([], {})
+            )
+            merged = dict(old_rows)
+            for key, value in incoming.items():
+                if key in merged:
+                    common = set(merged[key]) & set(value)
+                    if any(merged[key].get(f, "") != value.get(f, "") for f in common):
+                        raise ValueError("conflicting WB stable key: " + repr(key))
+                    merged[key] = dict(merged[key], **value)
+                else:
+                    merged[key] = value
+            combined_fields = list(dict.fromkeys([*old_fields, *fields]))
+            payload = _encode(combined_fields, merged)
+            _pair(candidate, "data.csv", payload, dataset, cabinet, period, keys)
+            row_count = len(merged)
+            additions = len(merged) - len(old_rows)
+        elif dataset == "ozon_final_realization":
+            payload = _encode(fields, incoming)
+            _pair(candidate, "monthly/" + period + ".csv", payload,
+                  dataset, cabinet, period, keys)
+            _ozon_annual(candidate, cabinet, period[:4])
+            row_count = len(incoming)
+            additions = None
+        else:
+            payload = _encode(fields, incoming)
+            _pair(candidate, "data.csv", payload, dataset, cabinet, period, keys)
+            row_count = len(incoming)
+            additions = None
+        _assert_no_legacy(root, dataset, cabinet, period)
+        receipt = publish_batch(root, dataset, cabinet, scope_period, candidate,
+                                expected_generation=parent)
+        result = {**receipt, "rows": row_count, "dataset": dataset,
+                  "cabinet": cabinet, "period": period,
+                  "provider_coverage_proven": False}
+        if additions is not None:
+            result["new_rows"] = additions
+        return result
 
 def read_csv_versioned(root: Path, dataset: str, cabinet: str, period: str,
                        *, pinned_generation=None, expected_digest=None):
     """Return (CSV bytes, immutable receipt), never legacy path contents."""
     _validate(dataset, cabinet, period)
+    _assert_no_legacy(Path(root).expanduser(), dataset, cabinet, period)
     scope_period = _period_scope(dataset, period)
     if pinned_generation is None:
         if expected_digest is not None:
@@ -186,6 +194,7 @@ def verify_versioned_scope(root: Path, dataset: str, cabinet: str, period: str):
     """Read-only one-scope verification; no hidden recovery or legacy fallback."""
     _validate(dataset, cabinet, period)
     try:
+        _assert_no_legacy(Path(root).expanduser(), dataset, cabinet, period)
         snapshot = read_active(root, dataset, cabinet, _period_scope(dataset, period))
         if snapshot is None:
             raise GenerationError("no committed generation")
