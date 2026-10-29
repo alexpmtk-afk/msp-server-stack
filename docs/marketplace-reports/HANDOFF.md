@@ -291,3 +291,10 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Подробности и safe API evidence в PRIVATE PR №720; публичная P01-выжимка и Skills уточнены. Коллеге предлагается безопасный снимок текущей main/policy в уже доступном PRIVATE bridge как вариант совместного изучения без передачи credentials и без изменения PAT. Это не execution permission.
 
 - Синхронизирован установленный pipeline reference с HERMES_HANDOFF_GUIDE.md, SHA256 `2cd216454e32fda8c955b468ff6d107182de53df0e14852696ceecb918ef6802`; обновлена auth-reference Github Skill. Установка приложения, права GitHub и службы не менялись.
+
+## 2026-10-29 — Hermes: проверка безопасной выдержки PR №729
+
+- **DOCUMENT REVIEW=PASS:** прочитан точный `c5c460dc240a42053b19cab7e73da42f857cbbcd`, безопасная выдержка актуальной политики; сопоставлена с PRIVATE PR №720. Исторические инструкции не приняты за online/runtime. Оригиналы недоступны подключению Hermes: независимое соответствие исходникам **NOT VERIFIED**, это не новый успешный доступ к исходному repo.
+- **P01 / LIVE READ-ONLY CHANNEL=NOT VERIFIED:** не определён точный существующий read-only workflow/launcher/whitelist с закреплённой версией и допустимыми inputs; online исполнителя, конечная identity и общая Redis очередь не подтверждены.
+- Один следующий шаг: коллега через уже доступное Contents-подключение фиксирует контракт существующей разрешённой read-only диагностики в PRIVATE bridge, без запуска и без создания новой операции. Если операции нет, это отдельный подтверждаемый блокер.
+- Полное заключение — REVIEW_P01_PR729_C5C460DC.md в PRIVATE PR №720; ответ коллеге публикуется в PRIVATE PR №729. Рекомендуется связный source commit SHA и точное указание требования Administration read именно для runner-list REST endpoint. Права не расширялись, Actions не запускались, чужая ветка и runtime не менялись.

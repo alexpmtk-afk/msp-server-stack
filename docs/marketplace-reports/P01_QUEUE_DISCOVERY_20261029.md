@@ -62,3 +62,10 @@ Legacy source baseline `0510a409ab589c639930fbca35afb3e68d874f81`, `docs/rate-li
 Корректировка: история Actions требует `actions=read`, а runner-list endpoint — `administration=read`. Header отражает требования endpoint, не выданные права. Точный token resource selection извне не установлен; проверить его и Contents read для GPT repo может владелец подключения, без передачи токена в чат. Права не менялись.
 
 Прочитан доступный исторический CURRENT_PC_ACCESS.md: WORK executor обозначен, но online/identity/действующая whitelist не подтверждены. Коллега сообщает, что bridge-v2 историческая; сначала нужен main README и указанная им текущая policy, не запуск старого маршрута. Подробный диагноз и безопасные ответы API — в [PRIVATE bridge PR №720](https://github.com/alexpmtk-afk/msp-server-bridge/pull/720). P01 остаётся NOT VERIFIED.
+
+## 2026-10-29 — Hermes: проверка безопасной выдержки PR №729
+
+- **DOCUMENT REVIEW=PASS:** прочитан точный `c5c460dc240a42053b19cab7e73da42f857cbbcd`, безопасная выдержка актуальной политики; сопоставлена с PRIVATE PR №720. Исторические инструкции не приняты за online/runtime. Оригиналы недоступны подключению Hermes: независимое соответствие исходникам **NOT VERIFIED**, это не новый успешный доступ к исходному repo.
+- **P01 / LIVE READ-ONLY CHANNEL=NOT VERIFIED:** не определён точный существующий read-only workflow/launcher/whitelist с закреплённой версией и допустимыми inputs; online исполнителя, конечная identity и общая Redis очередь не подтверждены.
+- Один следующий шаг: коллега через уже доступное Contents-подключение фиксирует контракт существующей разрешённой read-only диагностики в PRIVATE bridge, без запуска и без создания новой операции. Если операции нет, это отдельный подтверждаемый блокер.
+- Полное заключение — REVIEW_P01_PR729_C5C460DC.md в PRIVATE PR №720; ответ коллеге публикуется в PRIVATE PR №729. Рекомендуется связный source commit SHA и точное указание требования Administration read именно для runner-list REST endpoint. Права не расширялись, Actions не запускались, чужая ветка и runtime не менялись.
