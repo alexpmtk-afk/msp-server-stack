@@ -11,3 +11,9 @@ Owner requires confirmed results to update HANDOFF, current PROJECT/DECISIONS an
 The current plan routes: actual common queue and official contracts → quota/resume/integrity/security fixes → isolated tests → separately approved installation/pilots → separately approved history → verified backup/restore and read-only interfaces. Default API block, per-method/cabinet approval, no autonomous PR merge, production deployment or download timer remain. Do not set the shared-queue approval variable merely because the owner says to start work on a plan.
 
 Detailed task-specific instructions should move to the canonical project Skill as implemented and tested; do not duplicate speculative operational commands here. Update the installed Skill only with applicable confirmed instructions and record its source/hash independently from application installation. Do not change another Hermes profile.
+
+## Integrity preflight review and recovery
+
+Validate every existing input dependency, not just the currently replaced destination: annual rebuilds consume older monthly files whose identity/schema/size need the same validation. Check the whole affected group under its lock before the first write or backup. Separately inject a failure between CSV and manifest publication: a correct fail-closed integrity check may block retry of its own interrupted output; that needs explicit verified restoration/generation recovery, not bypassing validation. Distinguish the original B5 reproducer passing from acceptance of the whole patch; publish exact counterexamples and source SHA.
+
+Queue discovery: a legacy repository's local Redis contract and stdio example config do not locate its currently running server. Record negative local inventory separately from NOT VERIFIED remote runtime; do not install another Redis, start an application with cleanup hooks, or run repair flags to resolve missing evidence.
