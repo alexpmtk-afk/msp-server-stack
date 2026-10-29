@@ -56,3 +56,29 @@ Instructions for chats, coding agents and automated assistants working with this
 7. After every state-changing action, perform an independent verification and report the result.
 
 If the required REMOTE execution channel is not available, stop at preparation: produce the exact safe task or command for an authorized executor instead of pretending it was executed.
+
+<!-- MSP_SIGNAL_REGISTRY_START -->
+## Единый реестр сигналов МСП — 29.10.2026
+
+Для SIG-002/015/016/021/022/032 и анализа их отработки сначала читать
+`/opt/mcp/projects/msp-server-stack/docs/signals/SIGNAL_REGISTRY.md`
+(локальная копия `/home/hermes/.local/share/msp/signal-registry/OPERATIONS.md`).
+Реестр SQLite: `/opt/mcp/data/msp/msp_signal_registry.sqlite3`;
+вход: `python3 /home/hermes/.local/share/msp/signal-registry/registry.py status`,
+затем `show --id ID`. Обратная связь в Удалённом сервере и Hermes Group —
+отработка, но НЕ подтверждение успешного действия. Результат сохранять отдельно
+по товару/площадке/кабинету с доказательствами, имитацию не выдавать за факт.
+При ручной работе связывать сохранённую обратную связь через `link` и добавлять
+непокрытые журналами исполнителей результаты через `record-action` по инструкции.
+Неоднозначные сообщения не закрывают сигнал; не угадывать связь по названию.
+Не запускать повторно действия/отправки ради заполнения реестра.
+
+### Обязательность с 29.10.2026
+Владелец поручил Hermes вести реестр постоянно для всех чатов и агентов сервера.
+Каждый считанный сигнал, обратная связь и действие подлежат записи; работа не
+завершена до проверки записи через show. Навык:
+`/home/hermes/.hermes/skills/productivity/msp-signal-registry/SKILL.md`.
+Автосбор охватывает подключённые журналы; ручные/новые исполнители обязаны
+дополнять их через record-action/link. При сбое фиксировать пробел и сверять
+квитанции, не повторять внешнее действие ради заполнения реестра.
+<!-- MSP_SIGNAL_REGISTRY_END -->
