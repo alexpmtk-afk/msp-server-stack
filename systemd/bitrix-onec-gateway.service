@@ -1,0 +1,40 @@
+# TEMPLATE ONLY. Not installed or enabled.
+# Precondition: dedicated nonprivileged bitrix-gw account and group exist.
+# Precondition: app source is present at the ExecStart path.
+# Precondition: root-owned /opt/mcp/secrets/bitrix-onec-gateway.env exists
+# and has been reviewed; it must not be committed to Git.
+# Precondition: /opt/mcp/data/bitrix-onec-gateway is writable ONLY by this service.
+[Unit]
+Description=Isolated Bitrix24 to SRV order command gateway (Phase B)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bitrix-gw
+Group=bitrix-gw
+WorkingDirectory=/opt/mcp/projects/msp-server-stack/apps/bitrix_onec_gateway
+EnvironmentFile=/opt/mcp/secrets/bitrix-onec-gateway.env
+ExecStart=/usr/bin/python3 -I /opt/mcp/projects/msp-server-stack/apps/bitrix_onec_gateway/gateway.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/mcp/data/bitrix-onec-gateway
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+LimitNOFILE=256
+MemoryMax=160M
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target
