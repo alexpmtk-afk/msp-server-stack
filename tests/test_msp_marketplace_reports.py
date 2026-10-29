@@ -95,6 +95,50 @@ class LocalArchiveTests(unittest.TestCase):
             import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
         self.assertEqual(verify(self.root)["files"], 0)
 
+    def test_b5_corrupt_wb_cannot_be_recertified_on_merge(self):
+        sample(self.source, ["reportId", "rrdId", "dateTo", "amount"], [
+            {"reportId": "11", "rrdId": "1", "dateTo": "2026-10-11", "amount": "10"}])
+        old = import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
+        csv_path = Path(old["path"])
+        manifest_path = csv_path.with_name(csv_path.name + ".meta.json")
+        csv_path.write_bytes(csv_path.read_bytes().replace(b";10", b";99"))
+        damaged = csv_path.read_bytes()
+        manifest = manifest_path.read_bytes()
+        self.assertFalse(verify(self.root)["ok"])
+        sample(self.source, ["reportId", "rrdId", "dateTo", "amount"], [
+            {"reportId": "12", "rrdId": "2", "dateTo": "2026-10-18", "amount": "30"}])
+        with self.assertRaisesRegex(ValueError, "integrity/identity mismatch"):
+            import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
+        self.assertEqual(csv_path.read_bytes(), damaged)
+        self.assertEqual(manifest_path.read_bytes(), manifest)
+        self.assertFalse(verify(self.root)["ok"])
+
+    def test_b5_orphan_manifest_or_csv_blocks_replacement(self):
+        sample(self.source, ["posting_number", "status"], [
+            {"posting_number": "X", "status": "open"}])
+        old = import_csv(self.root, "ozon_current_orders_fbo", "ozon_dmitrieva", "2026-10", self.source)
+        csv_path = Path(old["path"])
+        manifest_path = csv_path.with_name(csv_path.name + ".meta.json")
+        csv_path.unlink()
+        sample(self.source, ["posting_number", "status"], [
+            {"posting_number": "X", "status": "closed"}])
+        with self.assertRaisesRegex(ValueError, "pair required"):
+            import_csv(self.root, "ozon_current_orders_fbo", "ozon_dmitrieva", "2026-10", self.source)
+        self.assertTrue(manifest_path.exists())
+        self.assertFalse(csv_path.exists())
+
+    def test_b5_corrupt_ozon_annual_blocks_month_update(self):
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1", "qty": "5"}])
+        r = import_csv(self.root, "ozon_final_realization", "ozon_laser_master", "2026-01", self.source)
+        annual = Path(r["annual_path"])
+        annual.write_bytes(annual.read_bytes().replace(b";5", b";9"))
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1", "qty": "6"}])
+        with self.assertRaisesRegex(ValueError, "integrity/identity mismatch"):
+            import_csv(self.root, "ozon_final_realization", "ozon_laser_master", "2026-01", self.source)
+        self.assertFalse(verify(self.root)["ok"])
+
     def test_corrupt_csv_detected(self):
         sample(self.source, ["accrual_id", "value"], [{"accrual_id": "1", "value": "5"}])
         r = import_csv(self.root, "ozon_current_accruals", "ozon_laser_master", "2026-10", self.source)
