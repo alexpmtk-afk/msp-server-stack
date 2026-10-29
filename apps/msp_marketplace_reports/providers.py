@@ -164,7 +164,10 @@ def wb_detail(send: Send, report_id: int, report_type: int = 1):
             if key in seen:
                 raise ProviderError("duplicate WB detail stable key")
             seen.add(key)
-            all_rows.append(item)
+            # Some provider detail pages omit reportType. The explicitly
+            # selected reportId/type is authoritative for this request;
+            # normalize only after rejecting a conflicting provider value.
+            all_rows.append(dict(item, reportType=report_type))
         next_cursor = _positive_id(page[-1].get("rrdId"), "rrdId")
         if next_cursor <= current:
             raise ProviderError("WB detail rrdId did not advance")

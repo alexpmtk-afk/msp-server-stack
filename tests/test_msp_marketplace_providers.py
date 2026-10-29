@@ -65,6 +65,17 @@ class WBContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ProviderError, "mismatches list"):
             wb_detail(send_bad, 77, report_type=2)
 
+    def test_b9_wb_detail_annotates_type_from_explicit_report_selection(self):
+        for selected in (1, 2):
+            with self.subTest(selected=selected):
+                send, _ = scripted([
+                    (200, [{"reportId": 42, "rrdId": 1}]),
+                    (204, None),
+                ])
+                records = wb_detail(send, 42, report_type=selected)
+                self.assertEqual(records[0]["reportType"], selected)
+                self.assertEqual(records[0]["reportId"], 42)
+
     def test_wb_detail_until_204(self):
         send, calls = scripted([
             (200, [{"reportId": 42, "rrdId": 1, "reportType": 1}]),
