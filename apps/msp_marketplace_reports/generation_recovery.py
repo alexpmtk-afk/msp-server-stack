@@ -22,7 +22,16 @@ from .generation_store import (
 
 
 class RecoveryUncertainError(GenerationError):
-    """May have moved evidence; inspect and repeat with same expected pin."""
+    """Some evidence may have moved or its fsync may be incomplete.
+
+    moved_in_attempt is observed progress, NOT a durability guarantee.
+    Resuming must resync both directories for already moved candidates.
+    """
+
+    def __init__(self, message, *, moved_in_attempt=(), candidate=None):
+        super().__init__(message)
+        self.moved_in_attempt = tuple(moved_in_attempt)
+        self.candidate = candidate
 
 
 def quarantine_uncommitted(root: Path, dataset: str, cabinet: str,
@@ -65,45 +74,56 @@ def quarantine_uncommitted(root: Path, dataset: str, cabinet: str,
             raise GenerationError("cannot quarantine committed generation")
         evidence = scope / "evidence"
         _require_plain(evidence)
-        already = set()
+        # Full-plan preflight: reject *every* source/target conflict before
+        # moving the first candidate. This keeps ordinary validation errors
+        # mutation-free, including when the second candidate is invalid.
+        state = {}
         for candidate in candidates:
-            target = evidence / candidate
-            _require_plain(target)
-            if target.exists():
-                if not target.is_dir():
-                    raise GenerationError("invalid retained evidence entry")
-                already.add(candidate)
-        if pending - set(candidates):
-            raise GenerationError("unlisted uncommitted generations; refuse partial selection")
-        if set(candidates) != pending | already:
-            raise GenerationError("candidate ID missing from pending/evidence inventory")
-        # No unlisted evidence is deleted; the destination tree is retained.
-        _ensure_scope_durable(evidence)
-        moved = []
-        for candidate in sorted(candidates):
             source = scope / "generations" / candidate
             target = evidence / candidate
             _require_plain(source)
             _require_plain(target)
-            if candidate in already:
-                if source.exists():
-                    raise GenerationError("candidate present in both stage and evidence")
-                continue
-            if not source.is_dir():
-                raise GenerationError("missing candidate directory")
-            if fault is not None:
-                fault("before_evidence_rename:" + candidate)
+            if target.exists():
+                if not target.is_dir() or source.exists():
+                    raise GenerationError("candidate present in both stage and evidence or invalid evidence")
+                state[candidate] = "already_retained"
+            elif source.is_dir() and candidate in pending:
+                state[candidate] = "to_move"
+            else:
+                raise GenerationError("candidate ID missing from pending/evidence inventory")
+        if pending - set(candidates):
+            raise GenerationError("unlisted uncommitted generations; refuse partial selection")
+        if set(candidates) != pending | {c for c, kind in state.items()
+                                         if kind == "already_retained"}:
+            raise GenerationError("candidate ID missing from pending/evidence inventory")
+        # Creation itself is durable/retry-safe. No archived evidence is deleted.
+        _ensure_scope_durable(evidence)
+        moved = []
+        resynced = []
+        for candidate in sorted(candidates):
+            source = scope / "generations" / candidate
+            target = evidence / candidate
             try:
-                os.replace(source, target)  # same-fs atomic directory rename
+                if state[candidate] == "to_move":
+                    if fault is not None:
+                        fault("before_evidence_rename:" + candidate)
+                    os.replace(source, target)  # same-fs atomic directory rename
+                    moved.append(candidate)  # observed, not necessarily durable
+                # R96-1: EVEN when the target already exists from a prior
+                # failed fsync/SIGKILL, repeat BOTH directory fsync operations
+                # before success. Existence proves neither completed.
                 _sync_dir(source.parent)
                 _sync_dir(evidence)
+                resynced.append(candidate)
                 if fault is not None:
                     fault("after_evidence_fsync:" + candidate)
             except Exception as exc:
                 raise RecoveryUncertainError(
-                    "evidence relocation uncertain; reconcile and retry with same pin"
+                    "evidence relocation/sync uncertain; partial progress="
+                    + ",".join(moved) + "; candidate=" + candidate
+                    + "; reconcile and retry with same pin",
+                    moved_in_attempt=moved, candidate=candidate,
                 ) from exc
-            moved.append(candidate)
         # No generation was selected by mtime or UUID; active remains exact.
         post = _read_active_at(scope)
         if (post is None or post["generation"] != expected_generation or
@@ -116,4 +136,5 @@ def quarantine_uncommitted(root: Path, dataset: str, cabinet: str,
                 "manifest_sha256": expected_digest,
                 "candidates": sorted(candidates),
                 "moved_in_this_attempt": moved,
+                "resynced_candidates": resynced,
                 "current_unchanged": True}
