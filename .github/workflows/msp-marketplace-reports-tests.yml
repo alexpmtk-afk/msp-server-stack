@@ -6,6 +6,7 @@ on:
       - "tests/test_msp_marketplace_reports.py"
       - "tests/test_msp_marketplace_generations.py"
       - "tests/test_msp_marketplace_versioned.py"
+      - "tests/test_msp_marketplace_current_repair.py"
       - "tests/test_msp_marketplace_providers.py"
       - "tests/test_msp_marketplace_security.py"
       - "tests/test_msp_marketplace_receiver.py"
@@ -27,7 +28,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check Python syntax
-        run: python -m compileall -q apps/msp_marketplace_reports tests/test_msp_marketplace_reports.py tests/test_msp_marketplace_generations.py tests/test_msp_marketplace_versioned.py
+        run: python -m compileall -q apps/msp_marketplace_reports tests/test_msp_marketplace_reports.py tests/test_msp_marketplace_generations.py tests/test_msp_marketplace_versioned.py tests/test_msp_marketplace_current_repair.py
       - name: Run isolated tests without API credentials
         run: python -m unittest discover -s tests -p 'test_msp_marketplace*.py' -v
 
