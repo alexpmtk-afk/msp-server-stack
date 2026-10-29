@@ -16,7 +16,7 @@ from apps.msp_marketplace_reports.generation_recovery import (
 from apps.msp_marketplace_reports.versioned_archive import (
     import_csv_versioned, read_csv_versioned, verify_versioned_scope,
 )
-from tests.test_msp_marketplace_generations import wb_files, ozon_final_files
+from test_msp_marketplace_generations import wb_files
 
 
 def source(path, fields, rows):
