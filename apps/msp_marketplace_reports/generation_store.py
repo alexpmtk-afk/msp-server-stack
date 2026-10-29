@@ -387,8 +387,12 @@ def publish_batch(root, dataset, cabinet, period, files, *,
         generation = uuid.uuid4().hex
         stage = scope / "generations" / generation
         _require_plain(stage)
-        stage.mkdir(parents=True, exist_ok=False)
+        # The first generation also introduces the "generations" directory:
+        # fsync its name in scope, then the stage name in generations.
+        _ensure_scope_durable(stage.parent)
+        stage.mkdir(exist_ok=False)
         _sync_dir(stage.parent)
+        _sync_dir(stage)
         checkpoint("after_stage_dir")
         for filename in sorted(files):
             _safe_write(stage / filename, files[filename])
