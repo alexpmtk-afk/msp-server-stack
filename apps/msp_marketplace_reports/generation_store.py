@@ -264,7 +264,21 @@ def _sync_dir(path):
         os.close(fd)
 
 
-def _orphans(scope, active_id):
+def _lineage(scope, active):
+    """Verify the committed parent chain, without treating ancestors as orphan."""
+    accepted = set()
+    item = active
+    while item is not None:
+        name = item["generation"]
+        if name in accepted:
+            raise GenerationError("cyclic generation parent chain")
+        accepted.add(name)
+        parent = item["parent"]
+        item = _read_generation(scope, parent) if parent is not None else None
+    return accepted
+
+
+def _orphans(scope, committed):
     folder = scope / "generations"
     if not folder.exists():
         return []
@@ -274,9 +288,7 @@ def _orphans(scope, active_id):
         _require_plain(child)
         if not child.is_dir() or not _ID_RE.fullmatch(child.name):
             raise GenerationError("unknown entry in generation store")
-        if child.name != active_id:
-            # Old committed generations remain retained for pinned readers.
-            # The distinction between old and orphan requires parent-chain walk.
+        if child.name not in committed:
             ids.append(child.name)
     return sorted(ids)
 
@@ -296,6 +308,10 @@ def publish_batch(root, dataset, cabinet, period, files, *,
     with _write_lock(scope):
         active = _read_active_at(scope)
         old_id = active["generation"] if active else None
+        # An interrupted, uncommitted generation is evidence requiring an
+        # explicit recovery decision, not a candidate to silently overwrite.
+        if _orphans(scope, _lineage(scope, active)):
+            raise GenerationError("pending generation requires reviewed recovery")
         if active and active["files"] == files:
             return {"changed": False, "generation": old_id, "status": "COMMITTED"}
         if old_id != expected_generation:
@@ -340,11 +356,13 @@ def reconcile(root, dataset, cabinet, period):
     with _write_lock(scope):
         try:
             active = _read_active_at(scope)
-            generations = _orphans(scope, active["generation"] if active else None)
+            generations = _orphans(scope, _lineage(scope, active))
         except (OSError, ValueError) as exc:
             return {"status": "RECOVERY_REQUIRED", "error": str(exc)}
         if active is None:
             return {"status": "EMPTY" if not generations else "PENDING",
-                    "unreferenced_generations": generations}
-        return {"status": "ACTIVE_VERIFIED", "generation": active["generation"],
-                "other_retained_generations": generations}
+                    "uncommitted_generations": generations}
+        if generations:
+            return {"status": "RECOVERY_REQUIRED", "generation": active["generation"],
+                    "uncommitted_generations": generations}
+        return {"status": "ACTIVE_VERIFIED", "generation": active["generation"]}
