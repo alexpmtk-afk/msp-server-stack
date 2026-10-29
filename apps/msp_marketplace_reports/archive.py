@@ -227,30 +227,70 @@ def _import_snapshot(root, path, dataset, cabinet, period, fields, incoming):
     return {"changed": changed, "rows": len(incoming), "path": str(path)}
 
 
-def _rebuild_ozon_annual(root, cabinet, year):
-    base = root / "База данных" / "Ozon" / cabinet / year / "FINAL"
-    source = base / "monthly_source"
+def _ozon_annual_path(root: Path, cabinet: str, year: str):
+    return (root / "База данных" / "Ozon" / cabinet / year / "FINAL" / "annual"
+            / (cabinet + "__realization__" + year + ".csv"))
+
+
+def _verified_ozon_months(root: Path, cabinet: str, year: str):
+    """Check every existing month and orphaned manifest with EXPECTED identity.
+
+    Called before publication and again during annual reconstruction. This
+    protects dependencies not explicitly part of the incoming monthly import.
+    Provider coverage/inventory is a separate, still-unsolved concern (B8).
+    """
+    source = root / "База данных" / "Ozon" / cabinet / year / "FINAL" / "monthly_source"
+    prefix = cabinet + "__realization__" + year + "-"
+    csv_paths = set(source.glob(prefix + "*.csv"))
+    meta_paths = set(source.glob(prefix + "*.csv.meta.json"))
+    paths = csv_paths | {
+        meta.with_name(meta.name[:-len(".meta.json")]) for meta in meta_paths
+    }
+    expected_name = re.compile(
+        r"^" + re.escape(prefix) + r"(0[1-9]|1[0-2])\.csv$"
+    )
     all_rows = {}
     fields = []
-    for file in sorted(source.glob(cabinet + "__realization__" + year + "-??.csv")):
-        meta_file = file.with_name(file.name + ".meta.json")
-        if not meta_file.is_file():
-            raise ValueError("unverified Ozon monthly source: " + file.name)
-        meta = json.loads(meta_file.read_text("utf-8"))
-        raw = file.read_bytes()
-        if meta.get("sha256") != _sha(raw) or meta.get("status") != "LOCAL_VERIFIED":
-            raise ValueError("monthly source checksum/manifest mismatch: " + file.name)
-        names, rows = _rows(raw, DATASETS["ozon_final_realization"][1])
-        if len(rows) != meta.get("rows"):
-            raise ValueError("monthly source count mismatch")
-        for k, row in rows.items():
-            if k in all_rows:
-                raise ValueError("duplicate Ozon annual stable key")
-            all_rows[k] = row
+    for file in sorted(paths):
+        match = expected_name.fullmatch(file.name)
+        if not match:
+            raise ValueError("unrecognized Ozon monthly source name: " + file.name)
+        month = year + "-" + match.group(1)
+        names, rows = _verify_previous(
+            file, "ozon_final_realization", cabinet, month,
+            DATASETS["ozon_final_realization"][1],
+        )
+        if any(row["report_year"] != year or row["report_month"] != month
+               for row in rows.values()):
+            raise ValueError("Ozon monthly row period mismatch: " + file.name)
+        if any(key in all_rows for key in rows):
+            raise ValueError("duplicate Ozon annual stable key")
+        all_rows.update(rows)
         fields = list(dict.fromkeys([*fields, *names]))
-    if not all_rows:
+    return fields, all_rows, len(paths)
+
+
+def _preflight_ozon_group(root: Path, cabinet: str, year: str):
+    """Reject unsafe existing year/month state before the first mutation."""
+    annual = _ozon_annual_path(root, cabinet, year)
+    annual_present = annual.exists() or annual.with_name(annual.name + ".meta.json").exists()
+    _, old_annual = _verify_previous(
+        annual, "ozon_final_realization", cabinet, year,
+        DATASETS["ozon_final_realization"][1],
+    )
+    _, month_rows, count = _verified_ozon_months(root, cabinet, year)
+    if annual_present != bool(count):
+        raise ValueError("Ozon monthly/annual pair incomplete; verified recovery required")
+    if annual_present and old_annual != month_rows:
+        # A clean SHA is not enough if the old annual and its months disagree.
+        raise ValueError("Ozon annual differs from verified monthly sources")
+
+
+def _rebuild_ozon_annual(root, cabinet, year):
+    fields, all_rows, count = _verified_ozon_months(root, cabinet, year)
+    if not count or not all_rows:
         raise ValueError("no verified Ozon months")
-    annual = base / "annual" / (cabinet + "__realization__" + year + ".csv")
+    annual = _ozon_annual_path(root, cabinet, year)
     data = _encode(fields, all_rows)
     changed = _publish(root, annual, data, len(all_rows), "ozon_final_realization", cabinet, year)
     return {"annual_path": str(annual), "annual_rows": len(all_rows), "annual_changed": changed}
@@ -272,6 +312,10 @@ def import_csv(root: Path, dataset: str, cabinet: str, period: str, source: Path
         raise ValueError("WB finance period outside selected annual partition")
     path = _location(root, dataset, cabinet, period)
     with _lock(root, cabinet, dataset):
+        if dataset == "ozon_final_realization":
+            # The old annual and *all* monthly dependencies must be sound
+            # before writing the new month's CSV, manifest or backups.
+            _preflight_ozon_group(root, cabinet, period[:4])
         if dataset.startswith("wb_weekly_finance_"):
             result = _import_wb(root, path, dataset, cabinet, period, fields, incoming, keys)
         else:
