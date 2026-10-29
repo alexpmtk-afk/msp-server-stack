@@ -319,7 +319,28 @@ class GenerationTests(unittest.TestCase):
                           "parent directory not fsynced after mkdir")
             self.assertIn(directory, calls,
                           "new directory itself not fsynced")
+        generations = scope / "generations"
+        self.assertIn(scope, calls, "scope not fsynced after generations mkdir")
+        self.assertIn(generations, calls, "generations directory not fsynced")
         self.assertEqual(reconcile(*self.args)["status"], "ACTIVE_VERIFIED")
+
+    def test_g4_generation_parent_fsync_failure_prevents_commit(self):
+        import unittest.mock
+        import apps.msp_marketplace_reports.generation_store as gs
+        original = gs._sync_dir
+        generation_dir = (self.root / ".b7-generations" /
+                          "wb_weekly_finance_main" / "wb_laser_master" /
+                          "2026" / "generations")
+        def fail(path):
+            if Path(path) == generation_dir:
+                raise OSError("generation hierarchy fsync failed")
+            return original(path)
+        with unittest.mock.patch.object(gs, "_sync_dir", side_effect=fail):
+            with self.assertRaisesRegex(OSError, "generation hierarchy fsync failed"):
+                publish_batch(*self.args, wb_files())
+        ptr = generation_dir.parent / "CURRENT.json"
+        self.assertFalse(ptr.exists())
+        self.assertIn(reconcile(*self.args)["status"], ("EMPTY", "RECOVERY_REQUIRED"))
 
     def test_g4_failure_during_new_parent_fsync_has_no_commit(self):
         import unittest.mock
