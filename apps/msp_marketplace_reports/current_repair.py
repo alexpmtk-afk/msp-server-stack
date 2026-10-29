@@ -178,6 +178,21 @@ def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
                 # to equal the postcommit CURRENT.
                 if not already_new and record.get("previous_b64") != old_b64:
                     raise GenerationError("restore journal preimage differs")
+                # Existing PREPARED journal is evidence of the *original*
+                # preimage; never erase it on a post-CURRENT retry.
+                preserved_b64 = record.get("previous_b64")
+                if preserved_b64 is not None:
+                    if type(preserved_b64) is not str:
+                        raise GenerationError("restore preimage must be encoded bytes")
+                    try:
+                        preserved_raw = base64.b64decode(preserved_b64, validate=True)
+                    except (ValueError, base64.binascii.Error) as exc:
+                        raise GenerationError("invalid journal preimage encoding") from exc
+                    if _sha(preserved_raw) != expected_current_sha256:
+                        raise GenerationError("journal preimage hash mismatch")
+                elif expected_current_sha256 is not None:
+                    raise GenerationError("missing original CURRENT evidence")
+                expected_record["previous_b64"] = preserved_b64
                 if already_new and (record["state"] == "VERIFIED"):
                     return {"status": "CURRENT_VERIFIED", "generation": generation,
                             "manifest_sha256": expected_digest,
