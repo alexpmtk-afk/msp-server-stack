@@ -121,6 +121,13 @@ def feedback_record(c,key,sids,text,at,actor=None,chat=REMOTE,mid=None):
   event(c,key+':'+str(sid),'feedback',{'text':text,'legacy_time_unknown':at is None},sid,at,actor,chat,mid)
   c.execute('INSERT INTO feedback(chat_id,message_id,at,observed_at,actor_id,text,signal_id,match_state,candidates_json,method) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(chat_id,message_id) DO UPDATE SET at=COALESCE(feedback.at,excluded.at),actor_id=COALESCE(feedback.actor_id,excluded.actor_id)',(str(chat),(str(mid) if mid is not None and key.startswith(('workflow_reply:','direct:')) else key+':'+str(sid)),at,now(),str(actor) if actor else None,text,sid,'linked',js([sid]),'executor_receipt'))
 def unpack(v):return v.get('data',v) if isinstance(v,dict) else {}
+def evidence_error(value):
+ if isinstance(value,dict):
+  if value.get('success') is False or value.get('isError') is True:return True
+  if any(value.get(k) for k in ('error','errors','error_text')):return True
+  return any(evidence_error(x) for x in value.values())
+ if isinstance(value,list):return any(evidence_error(x) for x in value)
+ return False
 def result(c,key,sids,offer,payload,at=None,expected_jobs=None):
  v=unpack(payload);job=v.get('job_id')
  if not job:return
@@ -129,7 +136,7 @@ def result(c,key,sids,offer,payload,at=None,expected_jobs=None):
   if item.get('offer_id',offer)!=offer:continue
   error=item.get('error') or v.get('error') or v.get('errors') or v.get('error_text')
   status='unknown';vendor=item.get('status')
-  if v.get('status')=='completed' and not error and vendor in ('OK','NOT'):
+  if v.get('status')=='completed' and not evidence_error({k:x for k,x in payload.items() if k not in ('data','results')}) and not evidence_error({k:x for k,x in v.items() if k!='results'}) and not evidence_error(item) and vendor in ('OK','NOT'):
    status='updated' if vendor=='OK' else 'already_equal'
   elif vendor=='ERR' or v.get('status')=='failed':status='failed'
   elif v.get('status') in ('queued','processing','waiting_vendor'):status='pending'

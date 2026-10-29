@@ -82,4 +82,10 @@ class LedgerTests(unittest.TestCase):
   sid=self.signal();self.message();self.message('Да',chat=r.GROUP,mid='5',reply='4')
   self.assertEqual([x[0] for x in self.c.execute('select signal_id from feedback')],[sid,sid])
 
+ def test_false_success_and_nested_error_never_confirm_action(self):
+  sid=self.signal()
+  for i,payload in enumerate([{'job_id':'j','status':'completed','success':False,'results':[{'status':'OK'}]},{'job_id':'k','status':'completed','results':[{'status':'OK','details':{'success':False}}]}]):
+   r.result(self.c,str(i),[sid],'TEST.0270',payload)
+  self.assertEqual([x[0] for x in self.c.execute('select status from actions')],['unknown','unknown'])
+
 if __name__=='__main__':unittest.main()
