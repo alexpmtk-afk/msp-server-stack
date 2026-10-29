@@ -101,6 +101,84 @@ class LocalArchiveTests(unittest.TestCase):
             for path in self.root.rglob("*") if path.is_file()
         }
 
+    def test_r3_json_integer_fields_reject_bool_float_and_string_before_noop(self):
+        sample(self.source, ["posting_number", "status"], [
+            {"posting_number": "A", "status": "delivered"}])
+        result = import_csv(self.root, "ozon_current_orders_fbo",
+                            "ozon_dmitrieva", "2026-10", self.source)
+        csv_path = Path(result["path"])
+        manifest = csv_path.with_name(csv_path.name + ".meta.json")
+        clean = manifest.read_bytes()
+        original = json.loads(clean.decode("utf-8"))
+        changes = [
+            ("schema", True), ("schema", 1.0), ("schema", "1"), ("schema", None),
+            ("rows", True), ("rows", 1.0), ("rows", "1"), ("rows", None),
+            ("bytes", float(original["bytes"])),
+            ("bytes", str(original["bytes"])), ("bytes", False),
+        ]
+        for field, bad_value in changes:
+            with self.subTest(field=field, bad=repr(bad_value)):
+                tampered = dict(original)
+                tampered[field] = bad_value
+                manifest.write_text(json.dumps(tampered), encoding="utf-8")
+                baseline = self._archive_file_snapshot()
+                self.assertFalse(verify(self.root)["ok"])
+                with self.assertRaisesRegex(ValueError, "manifest integer type mismatch"):
+                    import_csv(self.root, "ozon_current_orders_fbo",
+                               "ozon_dmitrieva", "2026-10", self.source)
+                self.assertEqual(self._archive_file_snapshot(), baseline)
+                manifest.write_bytes(clean)
+        self.assertTrue(verify(self.root)["ok"])
+        no_change = import_csv(self.root, "ozon_current_orders_fbo",
+                               "ozon_dmitrieva", "2026-10", self.source)
+        self.assertFalse(no_change["changed"])
+
+    def test_r3_corrupt_other_month_schema_bool_blocks_ozon_annual_build(self):
+        sample(self.source, ["report_year", "report_month", "row_number"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1"}])
+        first = import_csv(self.root, "ozon_final_realization",
+                           "ozon_laser_master", "2026-01", self.source)
+        monthly = (Path(first["annual_path"]).parent.parent / "monthly_source"
+                   / "ozon_laser_master__realization__2026-01.csv")
+        meta = monthly.with_name(monthly.name + ".meta.json")
+        clean = meta.read_bytes()
+        for field in ("schema", "rows"):
+            with self.subTest(field=field):
+                altered = json.loads(clean.decode("utf-8"))
+                altered[field] = True
+                meta.write_text(json.dumps(altered), encoding="utf-8")
+                baseline = self._archive_file_snapshot()
+                sample(self.source, ["report_year", "report_month", "row_number"], [
+                    {"report_year": "2026", "report_month": "2026-02", "row_number": "2"}])
+                with self.assertRaisesRegex(ValueError, "manifest integer type mismatch"):
+                    import_csv(self.root, "ozon_final_realization",
+                               "ozon_laser_master", "2026-02", self.source)
+                self.assertEqual(self._archive_file_snapshot(), baseline)
+                self.assertFalse(verify(self.root)["ok"])
+                meta.write_bytes(clean)
+        self.assertTrue(verify(self.root)["ok"])
+
+    def test_r3_corrupt_annual_rows_bool_blocks_before_month_change(self):
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01",
+             "row_number": "1", "qty": "5"}])
+        result = import_csv(self.root, "ozon_final_realization",
+                            "ozon_laser_master", "2026-01", self.source)
+        annual = Path(result["annual_path"])
+        meta = annual.with_name(annual.name + ".meta.json")
+        altered = json.loads(meta.read_text("utf-8"))
+        altered["rows"] = True
+        meta.write_text(json.dumps(altered), encoding="utf-8")
+        baseline = self._archive_file_snapshot()
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01",
+             "row_number": "1", "qty": "7"}])
+        with self.assertRaisesRegex(ValueError, "manifest integer type mismatch"):
+            import_csv(self.root, "ozon_final_realization",
+                       "ozon_laser_master", "2026-01", self.source)
+        self.assertEqual(self._archive_file_snapshot(), baseline)
+        self.assertFalse(verify(self.root)["ok"])
+
     def test_r1_ozon_rejects_corrupt_other_month_manifest_before_february(self):
         sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
             {"report_year": "2026", "report_month": "2026-01", "row_number": "1", "qty": "5"}])
