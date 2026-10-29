@@ -208,6 +208,26 @@ def _location(root: Path, dataset: str, cabinet: str, period: str):
     return base / "CURRENT" / period / (cabinet + "__" + token + "__" + period + ".csv")
 
 
+def _reject_versioned_scope(root: Path, dataset: str, cabinet: str, period: str):
+    """Legacy writer admission: same lock as versioned adapter, no dual truth.
+
+    The versioned scope is claimed as soon as its directory exists, including
+    a failed first publication. A migrated/abandoned scope requires an
+    explicit reviewed transition; never silently write legacy beside it.
+    """
+    year_or_period = period[:4] if dataset == "ozon_final_realization" else period
+    base = root / ".b7-generations"
+    candidate = base
+    for component in (dataset, cabinet, year_or_period):
+        if candidate.is_symlink():
+            raise ValueError("versioned store path is a symbolic link")
+        candidate = candidate / component
+    if candidate.is_symlink():
+        raise ValueError("versioned store path is a symbolic link")
+    if candidate.exists():
+        raise ValueError("versioned scope exists; legacy import forbidden")
+
+
 def _import_wb(root, path, dataset, cabinet, period, fields, incoming, keys):
     existing_fields, existing = _verify_previous(path, dataset, cabinet, period, keys)
     merged = dict(existing)
@@ -325,6 +345,9 @@ def import_csv(root: Path, dataset: str, cabinet: str, period: str, source: Path
         raise ValueError("WB finance period outside selected annual partition")
     path = _location(root, dataset, cabinet, period)
     with _lock(root, cabinet, dataset):
+        # Shared admission protocol with versioned import. This must run
+        # under the same legacy writer lock before any CSV or backup changes.
+        _reject_versioned_scope(root, dataset, cabinet, period)
         if dataset == "ozon_final_realization":
             # The old annual and *all* monthly dependencies must be sound
             # before writing the new month's CSV, manifest or backups.
@@ -361,6 +384,7 @@ def verify(root: Path):
             )
             if file != expected_path:
                 raise ValueError("archive manifest identity/path mismatch")
+            _reject_versioned_scope(root, dataset, cabinet, period)
             _, rows = _verify_previous(file, dataset, cabinet, period, keys)
             # Existing manifests were historically checked only for
             # checksum/count: schema/status and identity must also be audited.
