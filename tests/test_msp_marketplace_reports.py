@@ -94,7 +94,7 @@ class LocalArchiveTests(unittest.TestCase):
                               "2026", self.source)
         path = Path(original["path"])
         meta_path = path.with_name(path.name + ".meta.json")
-        corrupted = path.read_bytes().replace(b";1\\n", b";2\\n")
+        corrupted = path.read_bytes().replace(b";1", b";2")
         self.assertNotEqual(corrupted, path.read_bytes())
         path.write_bytes(corrupted)
         meta = json.loads(meta_path.read_text("utf-8"))
@@ -111,7 +111,7 @@ class LocalArchiveTests(unittest.TestCase):
                               "2026", self.source)
         path = Path(original["path"])
         original_csv = path.read_bytes()
-        path.write_bytes(original_csv.replace(b";1\\n", b";2\\n"))
+        path.write_bytes(original_csv.replace(b";1", b";2"))
         bad_csv = path.read_bytes()
         sample(self.source, ["reportId", "rrdId", "reportType"], [
             {"reportId": "101", "rrdId": "21", "reportType": "1"}])
