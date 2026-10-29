@@ -1,0 +1,39 @@
+name: Bitrix OneC Phase B offline acceptance
+on:
+  push:
+    branches:
+      - feat/bitrix-onec-gateway-phase-b-20261029
+    paths:
+      - apps/bitrix_onec_gateway/**
+      - .github/workflows/bitrix-onec-gateway-phase-b-offline.yml
+  pull_request:
+    paths:
+      - apps/bitrix_onec_gateway/**
+      - .github/workflows/bitrix-onec-gateway-phase-b-offline.yml
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check Python syntax and unit tests (synthetic inputs only)
+        working-directory: apps/bitrix_onec_gateway
+        run: |
+          python3 -m py_compile gateway.py test_gateway.py
+          python3 -m unittest -v test_gateway.py
+      - name: Reject 1C side effects in phase B transport
+        working-directory: apps/bitrix_onec_gateway
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          txt=Path('gateway.py').read_text()
+          forbidden=('Document_ЗаказПокупателя', '/odata/', 'crm.deal.update',
+                     'Post()', 'MCP_OData_ReadOnly', 'sqlite3.connect(":memory:")')
+          assert all(s not in txt for s in forbidden)
+          assert '127.0.0.1' in txt
+          print('RESULT=PASS;NO_ONEC_CALLS=YES;NO_DEPLOYMENT=YES')
+          PY
