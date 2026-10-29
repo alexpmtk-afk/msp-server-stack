@@ -5,6 +5,7 @@ import os
 import signal
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from apps.msp_marketplace_reports.archive import _sha
@@ -157,6 +158,78 @@ class WitnessedCurrentRepairTests(unittest.TestCase):
             self._repair(fault=fault)
         self.assertEqual(self._journal()["state"], "VERIFIED")
         self.assertFalse(self._repair()["changed_in_attempt"])
+
+    def test_after_journal_prepare_fsync_uncertain_does_not_switch_until_retry(self):
+        import apps.msp_marketplace_reports.current_repair as cr
+        self.current.unlink()
+        original = cr._safe_write
+        injected = []
+        def fail_after_persist(path, data):
+            original(path, data)
+            if Path(path).parent.name == "restore-journal" and not injected:
+                injected.append(True)
+                raise OSError("journal fsync return lost")
+        with mock.patch.object(cr, "_safe_write", side_effect=fail_after_persist):
+            with self.assertRaisesRegex(RestoreUncertainError, "preparation uncertain"):
+                self._repair()
+        self.assertTrue(injected)
+        self.assertFalse(self.current.exists())
+        self.assertEqual(self._journal()["state"], "PREPARED")
+        self.assertEqual(self._repair()["status"], "CURRENT_VERIFIED")
+        self.assertEqual(self._journal()["state"], "VERIFIED")
+
+    def test_current_replace_completed_but_fsync_error_is_uncertain_and_retryable(self):
+        import apps.msp_marketplace_reports.current_repair as cr
+        previous = b'{"bad":true}'
+        self.current.write_bytes(previous)
+        original = cr._safe_write
+        injected = []
+        def fail_after_replace(path, data):
+            original(path, data)
+            if Path(path).name == "CURRENT.json" and not injected:
+                injected.append(True)
+                raise OSError("CURRENT fsync response lost")
+        with mock.patch.object(cr, "_safe_write", side_effect=fail_after_replace):
+            with self.assertRaisesRegex(RestoreUncertainError, "switch uncertain"):
+                self._repair(expected_current_sha256=_sha(previous))
+        self.assertEqual(read_active(*self.args)["generation"], self.b["generation"])
+        self.assertEqual(self._journal()["state"], "PREPARED")
+        self.assertFalse(self._repair(
+            expected_current_sha256=_sha(previous))["changed_in_attempt"])
+        self.assertEqual(base64.b64decode(self._journal()["previous_b64"]), previous)
+
+    def test_tampered_prepared_journal_and_unrelated_pending_journal_rejected(self):
+        previous = b'{broken-pointer}'
+        self.current.write_bytes(previous)
+        def stop(where):
+            if where == "after_prepare":
+                raise OSError("interrupted")
+        with self.assertRaises(RestoreUncertainError):
+            self._repair(expected_current_sha256=_sha(previous), fault=stop)
+        folder = self.scope / "restore-journal"
+        document = next(folder.glob("*.json"))
+        original = document.read_bytes()
+        altered = json.loads(original)
+        altered["previous_b64"] = base64.b64encode(b"fabricated").decode()
+        document.write_text(json.dumps(altered))
+        with self.assertRaisesRegex(GenerationError, "preimage"):
+            self._repair(expected_current_sha256=_sha(previous))
+        document.write_bytes(original)
+        foreign = folder / ("f" * 32 + ".json")
+        foreign.write_text('{"state":"PREPARED"}')
+        with self.assertRaisesRegex(GenerationError, "unfinished restore journal"):
+            self._repair(expected_current_sha256=_sha(previous))
+        self.assertEqual(self.current.read_bytes(), previous)
+
+    def test_untrusted_current_symlink_never_writes_outside(self):
+        outside = Path(self.root.parent) / "outside-current"
+        outside.write_bytes(b"SENTINEL")
+        self.current.unlink()
+        self.current.symlink_to(outside)
+        with self.assertRaisesRegex(GenerationError, "symbolic link forbidden"):
+            self._repair()
+        self.assertEqual(outside.read_bytes(), b"SENTINEL")
+        self.assertFalse((self.scope / "restore-journal").exists())
 
     @unittest.skipUnless(hasattr(os, "fork"), "requires Linux fork")
     def test_real_sigkill_after_current_switch_replays_same_transaction(self):
