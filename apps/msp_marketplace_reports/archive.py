@@ -115,8 +115,38 @@ def _metadata(data: bytes, rows: int, dataset: str, cabinet: str, period: str):
     }
 
 
+
+def _verify_previous(path: Path, dataset: str, cabinet: str, period: str, keys: tuple[str, ...]):
+    """Verify old CSV *and* its manifest before using or replacing either.
+
+    An orphan CSV/manifest or a corrupt old file must never be 'repaired' by
+    calculating a new checksum over damaged data. Do not mutate on failure.
+    """
+    meta_path = path.with_name(path.name + ".meta.json")
+    if not path.exists() and not meta_path.exists():
+        return [], {}
+    if not path.is_file() or not meta_path.is_file():
+        raise ValueError("existing archive is incomplete: CSV/manifest pair required")
+    try:
+        raw = path.read_bytes()
+        meta = json.loads(meta_path.read_text("utf-8"))
+        if not isinstance(meta, dict):
+            raise ValueError("manifest must be an object")
+        fields, rows = _rows(raw, keys)
+    except (OSError, UnicodeError, ValueError, TypeError) as exc:
+        raise ValueError("existing archive verification failed") from exc
+    expected = {"schema": 1, "dataset": dataset, "cabinet": cabinet,
+                "period": period, "status": "LOCAL_VERIFIED",
+                "bytes": len(raw), "rows": len(rows), "sha256": _sha(raw)}
+    if any(meta.get(key) != value for key, value in expected.items()):
+        raise ValueError("existing archive integrity/identity mismatch; restore before import")
+    return fields, rows
+
+
 def _publish(root: Path, path: Path, data: bytes, count: int, dataset: str, cabinet: str, period: str):
     manifest = path.with_name(path.name + ".meta.json")
+    # Independent preflight even for no-op imports and Ozon rebuilds.
+    _verify_previous(path, dataset, cabinet, period, DATASETS[dataset][1])
     if path.exists() and path.read_bytes() == data:
         if manifest.is_file():
             try:
@@ -174,7 +204,7 @@ def _location(root: Path, dataset: str, cabinet: str, period: str):
 
 
 def _import_wb(root, path, dataset, cabinet, period, fields, incoming, keys):
-    existing_fields, existing = _rows(path.read_bytes(), keys) if path.is_file() else ([], {})
+    existing_fields, existing = _verify_previous(path, dataset, cabinet, period, keys)
     merged = dict(existing)
     for k, value in incoming.items():
         if k in merged:
