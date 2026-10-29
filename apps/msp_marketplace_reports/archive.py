@@ -115,8 +115,43 @@ def _metadata(data: bytes, rows: int, dataset: str, cabinet: str, period: str):
     }
 
 
+
+def _verify_previous(path: Path, dataset: str, cabinet: str, period: str, keys: tuple[str, ...]):
+    """Verify old CSV *and* its manifest before using or replacing either.
+
+    An orphan CSV/manifest or a corrupt old file must never be 'repaired' by
+    calculating a new checksum over damaged data. Do not mutate on failure.
+    """
+    meta_path = path.with_name(path.name + ".meta.json")
+    if not path.exists() and not meta_path.exists():
+        return [], {}
+    if not path.is_file() or not meta_path.is_file():
+        raise ValueError("existing archive is incomplete: CSV/manifest pair required")
+    try:
+        raw = path.read_bytes()
+        meta = json.loads(meta_path.read_text("utf-8"))
+        if not isinstance(meta, dict):
+            raise ValueError("manifest must be an object")
+        fields, rows = _rows(raw, keys)
+    except (OSError, UnicodeError, ValueError, TypeError) as exc:
+        raise ValueError("existing archive verification failed") from exc
+    expected = {"schema": 1, "dataset": dataset, "cabinet": cabinet,
+                "period": period, "status": "LOCAL_VERIFIED",
+                "bytes": len(raw), "rows": len(rows), "sha256": _sha(raw)}
+    # JSON booleans compare equal to Python integers (True == 1). A valid
+    # manifest must use actual JSON integer tokens, never true/false, 1.0,
+    # strings or null for the schema and numeric integrity fields.
+    if any(type(meta.get(field)) is not int for field in ("schema", "rows", "bytes")):
+        raise ValueError("existing archive manifest integer type mismatch")
+    if any(meta.get(key) != value for key, value in expected.items()):
+        raise ValueError("existing archive integrity/identity mismatch; restore before import")
+    return fields, rows
+
+
 def _publish(root: Path, path: Path, data: bytes, count: int, dataset: str, cabinet: str, period: str):
     manifest = path.with_name(path.name + ".meta.json")
+    # Independent preflight even for no-op imports and Ozon rebuilds.
+    _verify_previous(path, dataset, cabinet, period, DATASETS[dataset][1])
     if path.exists() and path.read_bytes() == data:
         if manifest.is_file():
             try:
@@ -174,7 +209,7 @@ def _location(root: Path, dataset: str, cabinet: str, period: str):
 
 
 def _import_wb(root, path, dataset, cabinet, period, fields, incoming, keys):
-    existing_fields, existing = _rows(path.read_bytes(), keys) if path.is_file() else ([], {})
+    existing_fields, existing = _verify_previous(path, dataset, cabinet, period, keys)
     merged = dict(existing)
     for k, value in incoming.items():
         if k in merged:
@@ -197,30 +232,78 @@ def _import_snapshot(root, path, dataset, cabinet, period, fields, incoming):
     return {"changed": changed, "rows": len(incoming), "path": str(path)}
 
 
-def _rebuild_ozon_annual(root, cabinet, year):
-    base = root / "База данных" / "Ozon" / cabinet / year / "FINAL"
-    source = base / "monthly_source"
+def _ozon_annual_path(root: Path, cabinet: str, year: str):
+    return (root / "База данных" / "Ozon" / cabinet / year / "FINAL" / "annual"
+            / (cabinet + "__realization__" + year + ".csv"))
+
+
+def _verified_ozon_months(root: Path, cabinet: str, year: str):
+    """Check every existing month and orphaned manifest with EXPECTED identity.
+
+    Called before publication and again during annual reconstruction. This
+    protects dependencies not explicitly part of the incoming monthly import.
+    Provider coverage/inventory is a separate, still-unsolved concern (B8).
+    """
+    source = root / "База данных" / "Ozon" / cabinet / year / "FINAL" / "monthly_source"
+    prefix = cabinet + "__realization__" + year + "-"
+    csv_paths = set(source.glob(prefix + "*.csv"))
+    meta_paths = set(source.glob(prefix + "*.csv.meta.json"))
+    paths = csv_paths | {
+        meta.with_name(meta.name[:-len(".meta.json")]) for meta in meta_paths
+    }
+    expected_name = re.compile(
+        r"^" + re.escape(prefix) + r"(0[1-9]|1[0-2])\.csv$"
+    )
     all_rows = {}
     fields = []
-    for file in sorted(source.glob(cabinet + "__realization__" + year + "-??.csv")):
-        meta_file = file.with_name(file.name + ".meta.json")
-        if not meta_file.is_file():
-            raise ValueError("unverified Ozon monthly source: " + file.name)
-        meta = json.loads(meta_file.read_text("utf-8"))
-        raw = file.read_bytes()
-        if meta.get("sha256") != _sha(raw) or meta.get("status") != "LOCAL_VERIFIED":
-            raise ValueError("monthly source checksum/manifest mismatch: " + file.name)
-        names, rows = _rows(raw, DATASETS["ozon_final_realization"][1])
-        if len(rows) != meta.get("rows"):
-            raise ValueError("monthly source count mismatch")
-        for k, row in rows.items():
-            if k in all_rows:
-                raise ValueError("duplicate Ozon annual stable key")
-            all_rows[k] = row
+    for file in sorted(paths):
+        match = expected_name.fullmatch(file.name)
+        if not match:
+            raise ValueError("unrecognized Ozon monthly source name: " + file.name)
+        month = year + "-" + match.group(1)
+        names, rows = _verify_previous(
+            file, "ozon_final_realization", cabinet, month,
+            DATASETS["ozon_final_realization"][1],
+        )
+        if any(row["report_year"] != year or row["report_month"] != month
+               for row in rows.values()):
+            raise ValueError("Ozon monthly row period mismatch: " + file.name)
+        if any(key in all_rows for key in rows):
+            raise ValueError("duplicate Ozon annual stable key")
+        all_rows.update(rows)
         fields = list(dict.fromkeys([*fields, *names]))
-    if not all_rows:
+    return fields, all_rows, len(paths)
+
+
+def _preflight_ozon_group(root: Path, cabinet: str, year: str):
+    """Reject unsafe existing year/month state before the first mutation."""
+    annual = _ozon_annual_path(root, cabinet, year)
+    annual_present = annual.exists() or annual.with_name(annual.name + ".meta.json").exists()
+    _, old_annual = _verify_previous(
+        annual, "ozon_final_realization", cabinet, year,
+        DATASETS["ozon_final_realization"][1],
+    )
+    _, month_rows, count = _verified_ozon_months(root, cabinet, year)
+    if annual_present != bool(count):
+        raise ValueError("Ozon monthly/annual pair incomplete; verified recovery required")
+    if annual_present and (
+        set(old_annual) != set(month_rows)
+        or any(
+            any(old_annual[key].get(field, "") != row.get(field, "")
+                for field in set(old_annual[key]) | set(row))
+            for key, row in month_rows.items()
+        )
+    ):
+        # Different months may have different columns; compare missing fields
+        # as empty, exactly as verify() does.
+        raise ValueError("Ozon annual differs from verified monthly sources")
+
+
+def _rebuild_ozon_annual(root, cabinet, year):
+    fields, all_rows, count = _verified_ozon_months(root, cabinet, year)
+    if not count or not all_rows:
         raise ValueError("no verified Ozon months")
-    annual = base / "annual" / (cabinet + "__realization__" + year + ".csv")
+    annual = _ozon_annual_path(root, cabinet, year)
     data = _encode(fields, all_rows)
     changed = _publish(root, annual, data, len(all_rows), "ozon_final_realization", cabinet, year)
     return {"annual_path": str(annual), "annual_rows": len(all_rows), "annual_changed": changed}
@@ -242,6 +325,10 @@ def import_csv(root: Path, dataset: str, cabinet: str, period: str, source: Path
         raise ValueError("WB finance period outside selected annual partition")
     path = _location(root, dataset, cabinet, period)
     with _lock(root, cabinet, dataset):
+        if dataset == "ozon_final_realization":
+            # The old annual and *all* monthly dependencies must be sound
+            # before writing the new month's CSV, manifest or backups.
+            _preflight_ozon_group(root, cabinet, period[:4])
         if dataset.startswith("wb_weekly_finance_"):
             result = _import_wb(root, path, dataset, cabinet, period, fields, incoming, keys)
         else:
@@ -268,10 +355,15 @@ def verify(root: Path):
             dataset, cabinet, period = meta["dataset"], meta["cabinet"], meta["period"]
             is_annual = dataset == "ozon_final_realization" and file.parent.name == "annual"
             _, keys = _validate(dataset, cabinet, period + "-01" if is_annual else period)
-            raw = file.read_bytes()
-            _, rows = _rows(raw, keys)
-            if _sha(raw) != meta["sha256"] or len(rows) != meta["rows"] or len(raw) != meta["bytes"]:
-                raise ValueError("manifest/CSV mismatch")
+            expected_path = (
+                _ozon_annual_path(root, cabinet, period) if is_annual
+                else _location(root, dataset, cabinet, period)
+            )
+            if file != expected_path:
+                raise ValueError("archive manifest identity/path mismatch")
+            _, rows = _verify_previous(file, dataset, cabinet, period, keys)
+            # Existing manifests were historically checked only for
+            # checksum/count: schema/status and identity must also be audited.
             if dataset == "ozon_final_realization":
                 if file.parent.name == "monthly_source":
                     if any(row["report_month"] != period or row["report_year"] != period[:4] for row in rows.values()):
