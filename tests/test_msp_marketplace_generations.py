@@ -80,9 +80,12 @@ class GenerationTests(unittest.TestCase):
                           expected_generation=prior["generation"], fault=fail)
         self.assertEqual(read_active(*self.args)["files"], wb_files())
         result = reconcile(*self.args)
-        self.assertEqual(result["status"], "ACTIVE_VERIFIED")
+        self.assertEqual(result["status"], "RECOVERY_REQUIRED")
         self.assertEqual(result["generation"], prior["generation"])
-        self.assertEqual(len(result["other_retained_generations"]), 1)
+        self.assertEqual(len(result["uncommitted_generations"]), 1)
+        with self.assertRaisesRegex(GenerationError, "pending generation"):
+            publish_batch(*self.args, wb_files("50"),
+                          expected_generation=prior["generation"])
 
     def test_before_commit_crash_on_first_import_is_pending(self):
         def fail(stage):
@@ -183,6 +186,27 @@ class GenerationTests(unittest.TestCase):
         files = wb_files(dataset="wb_weekly_finance_buyout")
         with self.assertRaises(GenerationError):
             publish_batch(*self.args, files)
+
+    def test_completed_previous_generations_are_not_false_orphans(self):
+        one = publish_batch(*self.args, wb_files())
+        two = publish_batch(*self.args, wb_files("20"),
+                            expected_generation=one["generation"])
+        three = publish_batch(*self.args, wb_files("30"),
+                              expected_generation=two["generation"])
+        self.assertEqual(reconcile(*self.args),
+                         {"status": "ACTIVE_VERIFIED", "generation": three["generation"]})
+        self.assertEqual(read_generation(*self.args, one["generation"])["files"],
+                         wb_files())
+
+    def test_uncommitted_first_generation_blocks_new_publish(self):
+        def fail(stage):
+            if stage == "before_commit":
+                raise OSError("test interruption")
+        with self.assertRaises(OSError):
+            publish_batch(*self.args, wb_files(), fault=fail)
+        self.assertEqual(reconcile(*self.args)["status"], "PENDING")
+        with self.assertRaisesRegex(GenerationError, "pending generation"):
+            publish_batch(*self.args, wb_files("99"))
 
     def test_symlink_scope_is_rejected_before_directory_creation(self):
         outside = Path(self.root.parent) / "outside"
