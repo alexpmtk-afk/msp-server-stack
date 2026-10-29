@@ -230,3 +230,8 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Это не доказывает отсутствия произвольно названного контейнера, Unix socket или удалённого Redis. На `127.0.0.1:6379` ранее `REDIS_LOCAL=CLOSED`.
 - Не устанавливать/запускать новый Redis и не включать `MSP_REPORTS_SHARED_QUEUE_VERIFIED`: до общей очереди неизвестна совместимость со старой инфраструктурой. Запросы WB/Ozon архиватором остаются запрещены.
 - Следующее действие: локальная диагностика только чтением `systemctl`/`ps`/`command -v` для возможного Marketplace MCP, Docker/Podman и Redis, без раскрытия окружения, секретов или запросов к API.
+
+## 2026-10-29: повторная read-only инвентаризация VPS, Marketplace MCP не найден
+- Оператор выполнил проверку `command -v docker podman`, `systemctl list-units --all --type=service` с отбором по `redis|valkey|marketplace|mcp`, `ps -eo comm=` с отбором по `redis|valkey|marketplace`.
+- Вывод: `docker=NOT_FOUND`, `podman=NOT_FOUND`, пустые списки SERVICES и PROCESSES. Совместно с прежним `REDIS_LOCAL=CLOSED` и отсутствующими `redis-server/valkey-server/redis-cli` — нет признаков локальной общей очереди на этом VPS, но не исключён сторонний сервер или произвольно названный процесс.
+- Запрет загрузки WB/Ozon через новый архиватор остаётся. Следующая безопасная проверка: список unit-файлов по `hermes|gateway|marketplace|mcp|redis|valkey` и названия подкаталогов `/opt/mcp`, без чтения секретов и изменения инфраструктуры. Не устанавливать Redis и не предполагать, что очереди уже общие.
