@@ -11,6 +11,7 @@ import secrets
 import shutil
 import socket
 import subprocess
+import time
 from pathlib import Path
 
 UNIT = "bitrix-onec-gateway-staging.service"
@@ -141,10 +142,17 @@ WantedBy=default.target
     run("systemctl", "--user", "enable", "--now", UNIT)
     # Prevent false claims: verify the unit is active and responds only on loopback.
     run("systemctl", "--user", "is-active", "--quiet", UNIT)
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.settimeout(2)
-        if sock.connect_ex(("127.0.0.1", PORT)) != 0:
-            raise RuntimeError("STAGING_LISTENER_NOT_READY")
+    # systemd can report ActiveState=active before Python finishes binding.
+    listener_ready = False
+    for _ in range(40):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1)
+            if sock.connect_ex(("127.0.0.1", PORT)) == 0:
+                listener_ready = True
+                break
+        time.sleep(0.25)
+    if not listener_ready:
+        raise RuntimeError("STAGING_LISTENER_NOT_READY")
     print("B24_GATEWAY_STAGING_INSTALL")
     print("MEMBER_SCOPE=STAGING_ONLY")
     print("SYSTEMD_USER_SERVICE=ACTIVE")
