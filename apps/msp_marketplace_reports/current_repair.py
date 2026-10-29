@@ -10,13 +10,15 @@ from __future__ import annotations
 
 import base64
 import json
+import os
+import stat
 from pathlib import Path
 
 from .archive import _lock, _safe_write, _sha
 from .generation_store import (
     GenerationError, _HASH_RE, _identifier, _ensure_scope_durable,
     _lineage, _orphans, _read_active_at, _read_generation, _require_plain,
-    _scope, _strict_json, _write_lock,
+    _scope, _strict_json, _sync_dir, _write_lock,
 )
 from .versioned_archive import _assert_no_legacy
 
@@ -65,6 +67,37 @@ def _verify_witness(dataset, cabinet, period, generation, digest, reference):
     return {"dataset": dataset, "cabinet": cabinet, "period": period,
             "generation": generation, "descriptor_sha256": digest,
             "witness_reference": reference}
+
+
+def _validate_journal_schema(record):
+    # Python bool and float compare equal to int (True == 1, 1.0 == 1).
+    # Reject before comparison, rewrite, or successful VERIFIED return.
+    if type(record.get("schema")) is not int or record["schema"] != 1:
+        raise GenerationError("invalid restore journal schema type/value")
+
+
+def _resync_verified_journal(journal_dir: Path, journal: Path, transaction: str):
+    """Finish possibly interrupted fsync after VERIFIED rename, even on retry.
+
+    A visible VERIFIED is NOT evidence that the journal's parent directory
+    was durably synced. Keep journal bytes untouched and retry both file and
+    directory fsync; any failure is uncertain, never a successful return.
+    """
+    try:
+        _ensure_scope_durable(journal_dir)
+        fd = os.open(str(journal), os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                raise GenerationError("restore journal must be regular file")
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        _sync_dir(journal_dir)
+    except Exception as exc:
+        raise RestoreUncertainError(
+            "VERIFIED journal sync uncertain; retry identical transaction",
+            transaction,
+        ) from exc
 
 
 def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
@@ -156,6 +189,7 @@ def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
                     if not item.is_file() or not item.name.endswith(".json"):
                         raise GenerationError("unexpected restore journal entry")
                     record = _strict_json(item.read_bytes())
+                    _validate_journal_schema(record)
                     if record.get("state") != "VERIFIED":
                         raise GenerationError("another unfinished restore journal")
             old_b64 = None if already_new else (
@@ -169,6 +203,7 @@ def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
             record = None
             if journal.exists():
                 record = _strict_json(journal.read_bytes())
+                _validate_journal_schema(record)
                 if set(record) != set(expected_record) | {"state"} or any(
                     record.get(k) != v for k, v in expected_record.items()
                     if k != "previous_b64"
@@ -196,6 +231,7 @@ def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
                     raise GenerationError("missing original CURRENT evidence")
                 expected_record["previous_b64"] = preserved_b64
                 if already_new and (record["state"] == "VERIFIED"):
+                    _resync_verified_journal(journal_dir, journal, transaction)
                     return {"status": "CURRENT_VERIFIED", "generation": generation,
                             "manifest_sha256": expected_digest,
                             "transaction": transaction, "changed_in_attempt": False,
