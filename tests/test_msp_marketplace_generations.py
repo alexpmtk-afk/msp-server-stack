@@ -1,6 +1,7 @@
 """B7 opt-in generation experiments: synthetic fixtures, no network or VPS."""
 import json
 import os
+import signal
 import tempfile
 import threading
 import unittest
@@ -29,12 +30,11 @@ def wb_files(amount="10", *, dataset="wb_weekly_finance_main"):
         _fixture_meta(raw, 1, dataset, "wb_laser_master", "2026")).encode()}
 
 
-def ozon_final_files(january="5", february=None):
-    year = "2026"
+def ozon_final_files(january="5", february=None, *, year="2026"):
     cabinet = "ozon_laser_master"
     source = {}
     all_rows = {}
-    for month, qty in [("2026-01", january), ("2026-02", february)]:
+    for month, qty in [(year + "-01", january), (year + "-02", february)]:
         if qty is None:
             continue
         row = {"report_year": year, "report_month": month, "row_number": month[-2:],
@@ -323,6 +323,121 @@ class GenerationTests(unittest.TestCase):
         self.assertIn(scope, calls, "scope not fsynced after generations mkdir")
         self.assertIn(generations, calls, "generations directory not fsynced")
         self.assertEqual(reconcile(*self.args)["status"], "ACTIVE_VERIFIED")
+
+    def test_g4_r1_retry_fsyncs_previously_created_names_at_all_levels(self):
+        """A failed parent fsync after mkdir MUST be retried for existing dirs."""
+        import unittest.mock
+        import apps.msp_marketplace_reports.generation_store as gs
+        actual = gs._sync_dir
+        for depth in range(6):
+            with self.subTest(directory_level=depth):
+                root = self.root.parent / ("g4-retry-" + str(depth))
+                args = (root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+                scope = (root / ".b7-generations" / "wb_weekly_finance_main" /
+                         "wb_laser_master" / "2026")
+                target = (root, root / ".b7-generations",
+                          scope.parent.parent, scope.parent, scope,
+                          scope / "generations")[depth]
+                failed = []
+                def once(path):
+                    if (Path(path) == target.parent and target.is_dir()
+                            and not failed):
+                        failed.append(str(path))
+                        raise OSError("synthetic lost parent fsync")
+                    return actual(path)
+                with unittest.mock.patch.object(gs, "_sync_dir", side_effect=once):
+                    with self.assertRaisesRegex(OSError, "synthetic lost parent fsync"):
+                        publish_batch(*args, wb_files())
+                self.assertTrue(failed, "target parent fsync was not injected")
+                self.assertTrue(target.is_dir())
+                self.assertFalse((scope / "CURRENT.json").exists())
+                trace = []
+                def resumed(path):
+                    trace.append(Path(path))
+                    return actual(path)
+                with unittest.mock.patch.object(gs, "_sync_dir", side_effect=resumed):
+                    result = publish_batch(*args, wb_files())
+                self.assertEqual(result["status"], "COMMITTED")
+                self.assertIn(target.parent, trace,
+                              "retry silently skipped previously failed fsync")
+                self.assertIn(target, trace,
+                              "retry must also fsync existing child")
+                self.assertEqual(read_active(*args)["files"], wb_files())
+                self.assertEqual(reconcile(*args)["status"], "ACTIVE_VERIFIED")
+
+    def test_g4_r1_new_year_retries_parent_sync_after_prior_history(self):
+        import unittest.mock
+        import apps.msp_marketplace_reports.generation_store as gs
+        old_args = (self.root, "ozon_final_realization", "ozon_laser_master", "2026")
+        first = publish_batch(*old_args, ozon_final_files())
+        second = publish_batch(*old_args, ozon_final_files(january="6"),
+                               expected_generation=first["generation"])
+        publish_batch(*old_args, ozon_final_files(january="7"),
+                      expected_generation=second["generation"])
+        new_args = (self.root, "ozon_final_realization", "ozon_laser_master", "2027")
+        new_scope = (self.root / ".b7-generations" / "ozon_final_realization" /
+                     "ozon_laser_master" / "2027")
+        parent = new_scope.parent
+        actual = gs._sync_dir
+        injected = []
+        def fail(path):
+            if Path(path) == parent and new_scope.is_dir() and not injected:
+                injected.append(True)
+                raise OSError("2027-parent-fsync")
+            return actual(path)
+        with unittest.mock.patch.object(gs, "_sync_dir", side_effect=fail):
+            with self.assertRaisesRegex(OSError, "2027-parent-fsync"):
+                publish_batch(*new_args, ozon_final_files(year="2027"))
+        self.assertTrue(injected)
+        self.assertFalse((new_scope / "CURRENT.json").exists())
+        trace = []
+        def retry(path):
+            trace.append(Path(path))
+            return actual(path)
+        with unittest.mock.patch.object(gs, "_sync_dir", side_effect=retry):
+            publish_batch(*new_args, ozon_final_files(year="2027"))
+        self.assertIn(parent, trace)
+        self.assertIn(new_scope, trace)
+        self.assertEqual(read_active(*new_args)["files"], ozon_final_files(year="2027"))
+        self.assertEqual(reconcile(*old_args)["status"], "ACTIVE_VERIFIED")
+
+    @unittest.skipUnless(hasattr(os, "fork"), "requires fork on Linux")
+    def test_g4_r1_sigkill_after_mkdir_before_parent_sync_is_retried(self):
+        """Separate child is killed at the exact mkdir/fsync gap."""
+        import unittest.mock
+        import apps.msp_marketplace_reports.generation_store as gs
+        scope = (self.root / ".b7-generations" / "wb_weekly_finance_main" /
+                 "wb_laser_master" / "2026")
+        target = self.root
+        pid = os.fork()
+        if pid == 0:
+            try:
+                actual = gs._sync_dir
+                def terminate(path):
+                    if Path(path) == target.parent and target.is_dir():
+                        os.kill(os.getpid(), signal.SIGKILL)
+                    return actual(path)
+                with unittest.mock.patch.object(gs, "_sync_dir",
+                                                 side_effect=terminate):
+                    publish_batch(*self.args, wb_files())
+            finally:
+                os._exit(81)
+        _, status = os.waitpid(pid, 0)
+        self.assertTrue(os.WIFSIGNALED(status))
+        self.assertEqual(os.WTERMSIG(status), signal.SIGKILL)
+        self.assertTrue(target.exists())
+        self.assertFalse((scope / "CURRENT.json").exists())
+        actual = gs._sync_dir
+        trace = []
+        def audit(path):
+            trace.append(Path(path))
+            return actual(path)
+        with unittest.mock.patch.object(gs, "_sync_dir", side_effect=audit):
+            published = publish_batch(*self.args, wb_files())
+        self.assertIn(target.parent, trace,
+                      "retry did not repeat fsync interrupted by SIGKILL")
+        self.assertEqual(read_active(*self.args)["generation"],
+                         published["generation"])
 
     def test_g4_generation_parent_fsync_failure_prevents_commit(self):
         import unittest.mock
