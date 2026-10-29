@@ -1,0 +1,5 @@
+name: msp-signal-registry
+version: 1.0.0
+description: Passive six-signal SQL registry, feedback across Remote Server and Hermes Group.
+author: Local owner-authorized integration
+kind: standalone
