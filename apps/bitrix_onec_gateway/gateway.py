@@ -104,6 +104,8 @@ def validate_command(body, member):
     if any(type(body[k]) is not int or not 1 <= body[k] <= 2147483647
            for k in ("deal_id", "requested_by_user_id")):
         raise ValueError("Invalid identifiers")
+    if not isinstance(body["request_id"], str):
+        raise ValueError("Invalid request ID type")
     rid = str(uuid.UUID(body["request_id"]))
     if rid != body["request_id"] or rid == str(uuid.UUID(int=0)):
         raise ValueError("Invalid request id")
@@ -153,7 +155,7 @@ def handler_factory(cfg):
             stamp = self.headers.get("X-B24-Timestamp", "")
             nonce = self.headers.get("X-B24-Nonce", "")
             signature = self.headers.get("X-B24-Signature", "")
-            if not stamp.isdecimal() or not NONCE_RE.fullmatch(nonce) or not SIGNATURE_RE.fullmatch(signature):
+            if not (1 <= len(stamp) <= 11 and stamp.isascii() and stamp.isdecimal()) or not NONCE_RE.fullmatch(nonce) or not SIGNATURE_RE.fullmatch(signature):
                 return False
             if abs(time.time() - int(stamp)) > 300:
                 return False
