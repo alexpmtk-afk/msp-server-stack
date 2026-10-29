@@ -353,6 +353,11 @@ def reconcile(root, dataset, cabinet, period):
     yet an automatic restore or full B7 recovery mechanism.
     """
     scope = _scope(root, dataset, cabinet, period)
+    _require_plain(scope)
+    if not scope.exists():
+        return {"status": "EMPTY", "uncommitted_generations": []}
+    if not (scope / ".writer.lock").is_file():
+        return {"status": "RECOVERY_REQUIRED", "error": "missing scope lock"}
     with _write_lock(scope):
         try:
             active = _read_active_at(scope)
