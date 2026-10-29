@@ -23,7 +23,7 @@ jobs:
       - name: Check Python syntax and unit tests (synthetic inputs only)
         working-directory: apps/bitrix_onec_gateway
         run: |
-          python3 -m py_compile gateway.py test_gateway.py
+          python3 -m py_compile gateway.py test_gateway.py staging_install.py staging_smoke.py
           python3 -m unittest -v test_gateway.py
       - name: Reject 1C side effects in phase B transport
         working-directory: apps/bitrix_onec_gateway
