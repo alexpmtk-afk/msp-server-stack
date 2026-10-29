@@ -231,6 +231,132 @@ class WitnessedCurrentRepairTests(unittest.TestCase):
         self.assertEqual(outside.read_bytes(), b"SENTINEL")
         self.assertFalse((self.scope / "restore-journal").exists())
 
+    def test_r97_2_strict_schema_prepared_and_verified_without_mutation(self):
+        """Reject wrong JSON schema tokens in BOTH states before any rewrite."""
+        previous = b'{"broken":"initial CURRENT"}'
+        self.current.write_bytes(previous)
+        previous_sha = _sha(previous)
+        def fail(where):
+            if where == "after_prepare":
+                raise OSError("planned stop")
+        with self.assertRaises(RestoreUncertainError):
+            self._repair(expected_current_sha256=previous_sha, fault=fail)
+        path = next((self.scope / "restore-journal").glob("*.json"))
+        prepared = json.loads(path.read_bytes())
+        variants = (True, 1.0, False, 0.0, "1", None, [], {})
+        for variant in variants:
+            with self.subTest(state="PREPARED", schema=repr(variant)):
+                corrupt = dict(prepared, schema=variant)
+                exact = json.dumps(corrupt).encode()
+                path.write_bytes(exact)
+                with self.assertRaisesRegex(GenerationError, "journal schema"):
+                    self._repair(expected_current_sha256=previous_sha)
+                self.assertEqual(path.read_bytes(), exact)
+                self.assertEqual(self.current.read_bytes(), previous)
+        path.write_bytes(json.dumps(prepared).encode())
+        completed = self._repair(expected_current_sha256=previous_sha)
+        self.assertEqual(completed["status"], "CURRENT_VERIFIED")
+        verified = json.loads(path.read_bytes())
+        self.assertEqual(verified["state"], "VERIFIED")
+        new_pointer = self.current.read_bytes()
+        for variant in variants:
+            with self.subTest(state="VERIFIED", schema=repr(variant)):
+                corrupt = dict(verified, schema=variant)
+                exact = json.dumps(corrupt).encode()
+                path.write_bytes(exact)
+                with self.assertRaisesRegex(GenerationError, "journal schema"):
+                    self._repair(expected_current_sha256=previous_sha)
+                self.assertEqual(path.read_bytes(), exact)
+                self.assertEqual(self.current.read_bytes(), new_pointer)
+
+    @unittest.skipUnless(Path("/proc/self/fd").is_dir(), "Linux fd inspection required")
+    def test_r97_1_verified_rename_dir_fsync_failure_retries_even_when_visible(self):
+        """Simulate fsync(directory) fail after VERIFIED os.replace, then retry."""
+        import apps.msp_marketplace_reports.current_repair as cr
+        self.current.unlink()
+        journal_dir = self.scope / "restore-journal"
+        real_fsync = os.fsync
+        injected = []
+        def fail_fsync(fd):
+            try:
+                name = Path(os.readlink("/proc/self/fd/" + str(fd)))
+            except OSError:
+                name = None
+            journal = next(journal_dir.glob("*.json"), None) if journal_dir.exists() else None
+            if (name == journal_dir and journal is not None and
+                    json.loads(journal.read_bytes()).get("state") == "VERIFIED"
+                    and not injected):
+                injected.append(True)
+                raise OSError("R97-1 synthetic final journal directory fsync")
+            return real_fsync(fd)
+        with mock.patch.object(os, "fsync", side_effect=fail_fsync):
+            with self.assertRaisesRegex(RestoreUncertainError, "post-switch"):
+                self._repair()
+        self.assertTrue(injected)
+        self.assertEqual(self._journal()["state"], "VERIFIED")
+        self.assertEqual(read_active(*self.args)["generation"], self.b["generation"])
+        journal = next(journal_dir.glob("*.json"))
+        exact_before = journal.read_bytes()
+        real_sync = cr._sync_dir
+        observed = []
+        def reject_once(path):
+            observed.append(Path(path))
+            if Path(path) == journal_dir:
+                raise OSError("R97-1 repeated fsync failed")
+            return real_sync(path)
+        with mock.patch.object(cr, "_sync_dir", side_effect=reject_once):
+            with self.assertRaisesRegex(RestoreUncertainError, "VERIFIED journal sync uncertain"):
+                self._repair()
+        self.assertIn(journal_dir, observed)
+        self.assertEqual(journal.read_bytes(), exact_before)
+        observed.clear()
+        def pass_sync(path):
+            observed.append(Path(path))
+            return real_sync(path)
+        with mock.patch.object(cr, "_sync_dir", side_effect=pass_sync):
+            answer = self._repair()
+        self.assertEqual(answer["status"], "CURRENT_VERIFIED")
+        self.assertFalse(answer["changed_in_attempt"])
+        self.assertIn(journal_dir, observed)
+        self.assertEqual(journal.read_bytes(), exact_before)
+
+    @unittest.skipUnless(hasattr(os, "fork") and Path("/proc/self/fd").is_dir(),
+                         "Linux fork and fd inspection required")
+    def test_r97_1_sigkill_after_verified_rename_retries_file_and_dir_fsync(self):
+        import apps.msp_marketplace_reports.current_repair as cr
+        self.current.unlink()
+        journal_dir = self.scope / "restore-journal"
+        pid = os.fork()
+        if pid == 0:
+            try:
+                real_fsync = os.fsync
+                def die_before_dir_fsync(fd):
+                    name = Path(os.readlink("/proc/self/fd/" + str(fd)))
+                    journal = next(journal_dir.glob("*.json"), None) if journal_dir.exists() else None
+                    if (name == journal_dir and journal is not None and
+                            json.loads(journal.read_bytes()).get("state") == "VERIFIED"):
+                        os.kill(os.getpid(), signal.SIGKILL)
+                    return real_fsync(fd)
+                with mock.patch.object(os, "fsync", side_effect=die_before_dir_fsync):
+                    self._repair()
+            finally:
+                os._exit(96)
+        _, code = os.waitpid(pid, 0)
+        self.assertTrue(os.WIFSIGNALED(code))
+        self.assertEqual(os.WTERMSIG(code), signal.SIGKILL)
+        self.assertEqual(self._journal()["state"], "VERIFIED")
+        trace = []
+        actual_sync = cr._sync_dir
+        def trace_sync(path):
+            trace.append(Path(path))
+            return actual_sync(path)
+        with mock.patch.object(cr, "_sync_dir", side_effect=trace_sync):
+            receipt = self._repair()
+        self.assertFalse(receipt["changed_in_attempt"])
+        self.assertEqual(receipt["status"], "CURRENT_VERIFIED")
+        self.assertIn(journal_dir, trace)
+        self.assertEqual(self._journal()["state"], "VERIFIED")
+
     @unittest.skipUnless(hasattr(os, "fork"), "requires Linux fork")
     def test_real_sigkill_after_current_switch_replays_same_transaction(self):
         original = b"{corrupted before repair}"
