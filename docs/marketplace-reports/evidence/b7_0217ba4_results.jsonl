@@ -1,0 +1,12 @@
+{"check": "ALL_CHECKPOINT_CRASHES", "exception_points": 32, "io_failures": 0, "sigkill_points": 32, "validation_negative": 0}
+{"check": "IO_OPERATION_FAILURES", "operation": "replace", "points": 4}
+{"check": "IO_OPERATION_FAILURES", "operation": "fsync", "points": 10}
+{"check": "MULTIPROCESS_STALE_WRITER", "returncodes": [0, 1], "status": "PASS"}
+{"check": "CONCURRENT_READER", "reads": 40, "status": "PASS"}
+{"candidate_accepted": true, "check": "G1_UNCOMMITTED_PUBLIC_READER", "current_still_old": true, "reconcile_status": "RECOVERY_REQUIRED"}
+{"check": "G2_MISSING_POINTER_CLASSIFICATION", "known_committed_ids": ["4dc75c4049ae44d4a2985c2853fc6527", "8e63297fdaba4f959d7c340e547dbd59"], "reconcile": {"status": "PENDING", "uncommitted_generations": ["4dc75c4049ae44d4a2985c2853fc6527", "8e63297fdaba4f959d7c340e547dbd59"]}}
+{"check": "G3_UNANCHORED_PARENT", "current_is_new": true, "old_pinned_changed": true, "reconcile": {"generation": "87dbeea06a5246dca7bd472eee285c1e", "status": "ACTIVE_VERIFIED"}}
+{"check": "G4_FIRST_SCOPE_FSYNC", "missing_parent_directory_fsync": [".", "86", "86/.b7-generations", "86/.b7-generations/wb_weekly_finance_main", "86/.b7-generations/wb_weekly_finance_main/wb_laser_master"], "synced_paths": [".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations/e451b762cc3c40ac9cb085514f4fbe59/.incoming-qaxjje9t", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations/e451b762cc3c40ac9cb085514f4fbe59", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations/e451b762cc3c40ac9cb085514f4fbe59/.incoming-_rwdc64r", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations/e451b762cc3c40ac9cb085514f4fbe59", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations/e451b762cc3c40ac9cb085514f4fbe59/.incoming-ndwa3oqe", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations/e451b762cc3c40ac9cb085514f4fbe59", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations/e451b762cc3c40ac9cb085514f4fbe59", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/.incoming-ip4pam4x", ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026"]}
+{"check": "VALIDATION_NEGATIVE", "passed": 21}
+{"accepted": true, "check": "ROOT_SYMLINK_POLICY", "outside_contains_store": true}
+{"check": "COMPLETE", "exception_points": 32, "io_failures": 14, "sigkill_points": 32, "validation_negative": 21}

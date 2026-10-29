@@ -317,3 +317,11 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - [Полный отчёт и harness](REVIEW_R3_2F1C9427.md); новых блокирующих регрессий нет. Унаследованная неоднозначность повторных JSON keys J1 описана отдельно, не R3 FAIL.
 - [B7_FAULT_TEST_PLAN_20261029.md](B7_FAULT_TEST_PLAN_20261029.md): 24 категории будущих аварийных испытаний, читатели/commit point/recovery/проверка поколений. Сейчас только анализ и план, не B7 acceptance и не реализация. ChatGPT программирует, Hermes проверяет точный будущий SHA.
 - P01=NOT VERIFIED; офлайн-работа разрешена. Защитный API block не менялся. Код коллеги, службы и рабочий архив не трогались; merge/deploy/API/Redis/Actions execution отсутствуют.
+
+## 2026-10-29 — Hermes: независимая ревизия первого B7 core PR №95
+
+**FIRST BLOCK=FAIL**, точный `0217ba4edd2503a0998d7bae531873e4bb1a6f9c`. 82 штатных tests PASS; дополнительно 32 exception checkpoints, 32 SIGKILL checkpoints, 14 replace/fsync отказы, два процесса stale writers, 40 concurrent reads и 21 negative validation. В проверенных окнах активный snapshot целый и прежние bytes сохранены.
+
+[Контрпримеры и обязательные доработки](REVIEW_B7_CORE_0217BA4.md): G1 публичное read_generation читает неподтверждённый candidate; G2 потеря CURRENT классифицирует прежние commits как uncommitted; G3 старые snapshots/parent chain не anchored ожидаемым digest; G4 отсутствуют parent-directory fsync новой scope chain (power-loss не воспроизводился). Root symlink policy отдельно уточнить. Код коллеги не менялся.
+
+Полная B7 OPEN, legacy/recovery честно ещё не реализованы — FAIL относится к reader/evidence/durability контракту первого core, не к отсутствию следующего блока. До интеграции нужны commit/pin proof и parent digest, безопасный UNKNOWN commit status, durable initialization; затем snapshot-aware migration/readers и crash-idempotent explicit recovery под CAS/lock. P01 NOT VERIFIED, API block сохранён; нет merge/deploy/Actions/Redis/API.
