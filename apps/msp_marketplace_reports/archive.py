@@ -13,6 +13,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -170,16 +171,85 @@ def _publish(root: Path, path: Path, data: bytes, count: int, dataset: str, cabi
     return True
 
 
+def _open_admission_directory(parent_fd: int, name: str, *, create: bool):
+    """Open a single directory by FD without following symlinks.
+
+    A missing *archive root* or .locks can be created, but symlinked
+    ancestors, root, and .locks must fail before any external lock file write.
+    """
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    try:
+        return os.open(name, flags, dir_fd=parent_fd)
+    except FileNotFoundError:
+        if not create:
+            raise ValueError("missing parent of archive root")
+        try:
+            os.mkdir(name, mode=0o700, dir_fd=parent_fd)
+        except FileExistsError:
+            pass  # another creator may have raced; no-follow open below
+        try:
+            return os.open(name, flags, dir_fd=parent_fd)
+        except OSError as exc:
+            raise ValueError("unsafe archive admission directory") from exc
+    except OSError as exc:
+        raise ValueError("unsafe archive admission directory") from exc
+
+
 @contextmanager
 def _lock(root: Path, cabinet: str, dataset: str):
-    folder = root / ".locks"
-    folder.mkdir(parents=True, exist_ok=True)
-    with (folder / (cabinet + "__" + dataset + ".lock")).open("a+b") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+    """Shared legacy/versioned admission lock; no symlink traversal.
+
+    Open ancestors and the lock via dirfd with O_NOFOLLOW. No resolve() or
+    path-based a+b open: a symlinked root/.locks/lock must not redirect even
+    creation of an auxiliary lock file to a different directory.
+
+    Parents above archive root must already exist. This deliberately refuses
+    to create unknown external parent paths. The directory FD remains open
+    for the whole lock lifetime; the caller's root path is never trusted as
+    a prevalidated descriptor for other external writers.
+    """
+    root = Path(root).expanduser()
+    if ".." in root.parts:
+        raise ValueError("archive root path contains parent traversal")
+    absolute = Path(os.path.abspath(os.fspath(root)))
+    if absolute == Path("/"):
+        raise ValueError("archive root must not be filesystem root")
+    if not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY"):
+        raise ValueError("secure admission lock requires POSIX no-follow support")
+    file_name = cabinet + "__" + dataset + ".lock"
+    if "/" in file_name or file_name.startswith("."):
+        raise ValueError("invalid admission lock name")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    fd = os.open("/", flags)
+    root_fd = None
+    locks_fd = None
+    lock_fd = None
+    try:
+        # Inspect lexical ancestors before touching the new archive root.
+        for component in absolute.parts[1:-1]:
+            other = _open_admission_directory(fd, component, create=False)
+            os.close(fd)
+            fd = other
+        root_fd = _open_admission_directory(fd, absolute.name, create=True)
+        locks_fd = _open_admission_directory(root_fd, ".locks", create=True)
+        try:
+            lock_fd = os.open(file_name,
+                              os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW,
+                              0o600, dir_fd=locks_fd)
+        except OSError as exc:
+            raise ValueError("unsafe archive admission lock file") from exc
+        identity = os.fstat(lock_fd)
+        if not stat.S_ISREG(identity.st_mode) or identity.st_nlink != 1:
+            raise ValueError("unsafe archive admission lock inode")
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
         try:
             yield
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+    finally:
+        for opened in (lock_fd, locks_fd, root_fd, fd):
+            if opened is not None:
+                os.close(opened)
 
 
 def _validate(dataset: str, cabinet: str, period: str):
@@ -331,7 +401,9 @@ def _rebuild_ozon_annual(root, cabinet, year):
 
 def import_csv(root: Path, dataset: str, cabinet: str, period: str, source: Path):
     """Offline import. Caller must establish source provenance separately."""
-    root = Path(root).expanduser().resolve()
+    # Keep the lexical root intact for _lock's no-follow traversal.
+    # Resolving before admission would hide a symlinked archive root.
+    root = Path(root).expanduser()
     _, keys = _validate(dataset, cabinet, period)
     raw = Path(source).read_bytes()
     fields, incoming = _rows(raw, keys)
