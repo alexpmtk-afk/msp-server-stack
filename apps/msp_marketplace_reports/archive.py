@@ -281,8 +281,16 @@ def _preflight_ozon_group(root: Path, cabinet: str, year: str):
     _, month_rows, count = _verified_ozon_months(root, cabinet, year)
     if annual_present != bool(count):
         raise ValueError("Ozon monthly/annual pair incomplete; verified recovery required")
-    if annual_present and old_annual != month_rows:
-        # A clean SHA is not enough if the old annual and its months disagree.
+    if annual_present and (
+        set(old_annual) != set(month_rows)
+        or any(
+            any(old_annual[key].get(field, "") != row.get(field, "")
+                for field in set(old_annual[key]) | set(row))
+            for key, row in month_rows.items()
+        )
+    ):
+        # Different months may have different columns; compare missing fields
+        # as empty, exactly as verify() does.
         raise ValueError("Ozon annual differs from verified monthly sources")
 
 
@@ -342,10 +350,15 @@ def verify(root: Path):
             dataset, cabinet, period = meta["dataset"], meta["cabinet"], meta["period"]
             is_annual = dataset == "ozon_final_realization" and file.parent.name == "annual"
             _, keys = _validate(dataset, cabinet, period + "-01" if is_annual else period)
-            raw = file.read_bytes()
-            _, rows = _rows(raw, keys)
-            if _sha(raw) != meta["sha256"] or len(rows) != meta["rows"] or len(raw) != meta["bytes"]:
-                raise ValueError("manifest/CSV mismatch")
+            expected_path = (
+                _ozon_annual_path(root, cabinet, period) if is_annual
+                else _location(root, dataset, cabinet, period)
+            )
+            if file != expected_path:
+                raise ValueError("archive manifest identity/path mismatch")
+            _, rows = _verify_previous(file, dataset, cabinet, period, keys)
+            # Existing manifests were historically checked only for
+            # checksum/count: schema/status and identity must also be audited.
             if dataset == "ozon_final_realization":
                 if file.parent.name == "monthly_source":
                     if any(row["report_month"] != period or row["report_year"] != period[:4] for row in rows.values()):
