@@ -353,3 +353,9 @@ CAS двух отдельных versioned importers WB/Ozon прошёл; пос
 **Новая R96-4, stage2 overall FAIL:** unsafe common admission-lock path. 3 текущих path probes (+ baseline отдельно) показали external lock-file creation при root/.locks/lock-file symlinks; root symlink отказывает только после внешнего side effect, два других возвращают COMMITTED. Финансовые CSV outside не писались. [Отчёт и воспроизведение](REVIEW_B7_R96_A0DF0D5.md). Всего 71 текущий независимый сценарий, не «71 PASS».
 
 Core G1–G4 PASS сохраняется; исправление R96-4 за коллегой, Hermes проверяет следующий SHA. B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED; нет merge/deploy/Redis/API/Actions execution, чужая ветка не менялась.
+
+## 2026-10-29 — Hermes: R96-4 PASS, второй opt-in блок B7 принят на ceec4fe
+
+Точный `ceec4fe6a9649ea547c0900d5e45b667868bec7f`: **R96-4 PASS, STAGE2 SCOPED PASS**. 120 локальных stock tests и 143 независимых сценария PASS (71 admission/path, 68 stage2 regressions, 4 core controls). Три прежних counterexample закрыты у обоих импортёров; nested/dangling/hardlink/open/mkdir failure cases, FD cleanup, 8 pre-open FS swaps и pin `.locks` FD проверены. Обе mixed races реальными процессами, quarantine SIGKILL и partial retries проходят; R96-1–R96-3/G1–G4 сохранены.
+
+[Итоговый отчёт и воспроизводимые артефакты](REVIEW_B7_R96_4_CEEC4FE.md). Защита относится к no-follow lock open/кооперирующим writers, не ко всем последующим финансовым path operations при hostile external tree replacement. Предки root должны существовать, no-follow не обходить resolve. Можно продолжать офлайн-разработку следующих частей B7, не merge/deploy/API. B7 OPEN, P01/power-loss NOT VERIFIED. Чужой код/ветка/службы не менялись.

@@ -70,3 +70,7 @@ R3 принят ранее; первый opt-in блок B7 **G1–G4 PASS**, в
 ### B7 stage 2 — актуализация a0df0d5
 
 R96-1/R96-2/R96-3 независимо PASS на `a0df0d5d4266392853330dc414d50fbf31bf314e`. Второй блок пока overall FAIL из-за новой [R96-4 admission-lock path regression](REVIEW_B7_R96_A0DF0D5.md). 118 stock tests и 71 текущий независимый сценарий, включая дефектные probes. Scoped core G1–G4 PASS не отменяется. Полная B7 OPEN, P01/power-loss NOT VERIFIED; merge/deployment/API не допущены.
+
+### Актуальный статус второго блока — ceec4fe
+
+R96-4 и второй офлайн opt-in блок PR №96 независимо **PASS** на `ceec4fe6a9649ea547c0900d5e45b667868bec7f`: 120 stock tests + 143 независимых сценария, [итоговый review](REVIEW_B7_R96_4_CEEC4FE.md). Прежние FAIL R96-1–R96-4 — исторические. Приняты отдельный versioned import/reader и ограниченный quarantine при исправном CURRENT, не полная migration/restore/retention. B7 OPEN, P01/power-loss NOT VERIFIED; следующий блок разрабатывается и принимается отдельно, без автоматического merge/deploy/API.
