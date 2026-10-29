@@ -97,6 +97,23 @@ def _rows(data: bytes, keys: tuple[str, ...]):
     return list(fields), result
 
 
+
+def _validate_wb_report_type(dataset: str, fields, rows):
+    """Never certify or combine WB finance types 1 and 2 in one ledger.
+
+    A missing field is ambiguous, so offline imports with no reportType are
+    refused; a caller must obtain the type from a verified report inventory.
+    This is intentionally strict for both import and local verify.
+    """
+    if dataset not in ("wb_weekly_finance_main", "wb_weekly_finance_buyout"):
+        return
+    expected = "1" if dataset == "wb_weekly_finance_main" else "2"
+    if "reportType" not in fields:
+        raise ValueError("WB finance reportType column required")
+    if any(row.get("reportType") != expected for row in rows.values()):
+        raise ValueError("WB finance reportType mismatches destination dataset")
+
+
 def _encode(fields, mapping):
     out = io.StringIO(newline="")
     writer = csv.DictWriter(out, fieldnames=fields, delimiter=";", lineterminator="\n")
@@ -175,6 +192,8 @@ def _location(root: Path, dataset: str, cabinet: str, period: str):
 
 def _import_wb(root, path, dataset, cabinet, period, fields, incoming, keys):
     existing_fields, existing = _rows(path.read_bytes(), keys) if path.is_file() else ([], {})
+    if existing_fields:
+        _validate_wb_report_type(dataset, existing_fields, existing)
     merged = dict(existing)
     for k, value in incoming.items():
         if k in merged:
@@ -232,6 +251,7 @@ def import_csv(root: Path, dataset: str, cabinet: str, period: str, source: Path
     _, keys = _validate(dataset, cabinet, period)
     raw = Path(source).read_bytes()
     fields, incoming = _rows(raw, keys)
+    _validate_wb_report_type(dataset, fields, incoming)
     if dataset == "ozon_final_realization":
         if any(row["report_year"] != period[:4] or row["report_month"] != period for row in incoming.values()):
             raise ValueError("Ozon FINAL rows must match report year/month")
@@ -269,7 +289,8 @@ def verify(root: Path):
             is_annual = dataset == "ozon_final_realization" and file.parent.name == "annual"
             _, keys = _validate(dataset, cabinet, period + "-01" if is_annual else period)
             raw = file.read_bytes()
-            _, rows = _rows(raw, keys)
+            fields, rows = _rows(raw, keys)
+            _validate_wb_report_type(dataset, fields, rows)
             if _sha(raw) != meta["sha256"] or len(rows) != meta["rows"] or len(raw) != meta["bytes"]:
                 raise ValueError("manifest/CSV mismatch")
             if dataset == "ozon_final_realization":
