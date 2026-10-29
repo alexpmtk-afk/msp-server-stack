@@ -138,6 +138,11 @@ def _verify_previous(path: Path, dataset: str, cabinet: str, period: str, keys: 
     expected = {"schema": 1, "dataset": dataset, "cabinet": cabinet,
                 "period": period, "status": "LOCAL_VERIFIED",
                 "bytes": len(raw), "rows": len(rows), "sha256": _sha(raw)}
+    # JSON booleans compare equal to Python integers (True == 1). A valid
+    # manifest must use actual JSON integer tokens, never true/false, 1.0,
+    # strings or null for the schema and numeric integrity fields.
+    if any(type(meta.get(field)) is not int for field in ("schema", "rows", "bytes")):
+        raise ValueError("existing archive manifest integer type mismatch")
     if any(meta.get(key) != value for key, value in expected.items()):
         raise ValueError("existing archive integrity/identity mismatch; restore before import")
     return fields, rows
