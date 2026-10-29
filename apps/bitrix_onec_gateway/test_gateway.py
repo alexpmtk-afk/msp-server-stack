@@ -130,6 +130,20 @@ class GatewayTest(unittest.TestCase):
         self.assertIsNone(self.call(CLAIM_PATH, {"worker_id": "SRV", "max_jobs": 1}, role="srv")[1]["job"])
         self.assertEqual(self.call(CREATE_PATH + "/" + command["request_id"])[1]["status"], "FAILED_DELIVERY")
 
+    def test_malformed_inputs_fail_closed(self):
+        original = self.command(deal=40)
+        self.assertEqual(self.call(CREATE_PATH, dict(original, request_id=123))[0], 400)
+        self.assertEqual(self.call(CREATE_PATH, dict(original, request_id=[]))[0], 400)
+        self.assertEqual(self.call(CREATE_PATH, original, stamp="9" * 200)[0], 401)
+        invalid_member = dict(original, portal_member_id="fake_member_98765432")
+        self.assertEqual(self.call(CREATE_PATH, invalid_member)[0], 400)
+        self.assertEqual(self.call(CREATE_PATH, original)[0], 202)
+        self.assertEqual(self.call(CREATE_PATH, original, role="srv")[0], 401)
+        status_path = CREATE_PATH + "/" + original["request_id"]
+        self.assertEqual(self.call(status_path, role="none")[0], 401)
+        with connect(self.cfg["db"]) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM commands").fetchone()[0], 1)
+
     def test_concurrent_requests_one_logical_job(self):
         def submit(_):
             return self.call(CREATE_PATH, self.command(deal=27))
