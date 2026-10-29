@@ -282,18 +282,28 @@ def read_generation(root, dataset, cabinet, period, generation, *,
 
 
 def _ensure_scope_durable(scope):
-    """fsync each newly introduced name in its parent, root through scope."""
+    """Resumable durable directory initialization for the entire scope chain.
+
+    Existing directories are *not* evidence of completed fsync. A previous
+    mkdir can succeed while its parent fsync fails (or the process dies).
+    Re-sync the name in its parent and the directory itself on EVERY attempt,
+    including retrying existing levels, before any CURRENT commit.
+    """
     _require_plain(scope)
-    missing = []
-    current = scope
-    while not current.exists():
-        missing.append(current)
-        if current == current.parent:
-            raise GenerationError("no existing filesystem ancestor")
-        current = current.parent
-    for folder in reversed(missing):
+    scope = Path(scope)
+    directories = list(reversed((scope, *scope.parents)))
+    for folder in directories[1:]:  # anchor itself has no parent in this path
         _require_plain(folder)
-        folder.mkdir()  # no parents=True: sync every new directory's parent
+        if not folder.exists():
+            try:
+                folder.mkdir()  # never implicitly create unverified ancestors
+            except FileExistsError:
+                # Cooperating initializers may race before acquiring flock;
+                # still validate and fsync the directory on this attempt.
+                pass
+        if not folder.is_dir():
+            raise GenerationError("non-directory component in generation store")
+        # Neither call may be skipped just because folder already exists.
         _sync_dir(folder.parent)
         _sync_dir(folder)
 
