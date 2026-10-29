@@ -1,0 +1,11 @@
+{"both_synced": true, "check": "R96_1_SYNC_RETRY", "repeated_failure_uncertain": true, "status": "EVIDENCE_RETAINED", "target": "source"}
+{"both_synced": true, "check": "R96_1_SYNC_RETRY", "repeated_failure_uncertain": true, "status": "EVIDENCE_RETAINED", "target": "target"}
+{"both_synced": true, "bytes_preserved": true, "check": "R96_1_SIGKILL", "point": "before_evidence_rename"}
+{"both_synced": true, "bytes_preserved": true, "check": "R96_1_SIGKILL", "point": "after_rename"}
+{"both_synced": true, "bytes_preserved": true, "check": "R96_1_SIGKILL", "point": "before_source_sync"}
+{"both_synced": true, "bytes_preserved": true, "check": "R96_1_SIGKILL", "point": "after_evidence_fsync"}
+{"check": "R96_2_SEQUENTIAL_STATIC_MIXED", "mixed_detection_passed": 6, "normal_controls": 6, "sequential_passed": 12, "static_passed": 24}
+{"check": "R96_2_MULTIPROCESS_RACES", "passed": 6}
+{"check": "VERSIONED_IMPORTERS_SERIALIZED", "passed": 2}
+{"check": "R96_3_BATCH_VALIDATION_AND_PARTIAL", "partial_retry_passed": 3, "preflight_passed": 3}
+{"check": "COMPLETE", "controls": 6, "mixed_cases": 6, "partial_cases": 3, "preflight_cases": 3, "race_cases": 6, "sequential_cases": 12, "sigkill_cases": 4, "static_cases": 24, "sync_retry_cases": 2, "versioned_parallel": 2}

@@ -345,3 +345,11 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 CAS двух отдельных versioned importers WB/Ozon прошёл; после явного retry все 3 строки/месяца сохранены. Известное автору ограничение внешнего rollback CURRENT повторено: ранее committed вне активной ancestry может быть перемещено при acknowledgment, bytes не удалены. Это не полный исторический commit proof.
 
 Ранее принятый core G1–G4 не отменяется; полная B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED. Ветку/код коллеги не меняли; нет merge/deploy/Redis/API/Actions execution. Автор исправляет, Hermes проверяет новый SHA.
+
+## 2026-10-29 — Hermes: повтор R96 на a0df0d5, три исправления приняты, новая R96-4
+
+Точный `a0df0d5d4266392853330dc414d50fbf31bf314e`: **R96-1 PASS, R96-2 PASS, R96-3 PASS** по первоначальным контрпримерам. 118 stock tests PASS; 68 собственных regression/control сценариев прошли, включая обе mixed races реальными процессами, повтор source/evidence sync и 4 quarantine SIGKILL окна.
+
+**Новая R96-4, stage2 overall FAIL:** unsafe common admission-lock path. 3 текущих path probes (+ baseline отдельно) показали external lock-file creation при root/.locks/lock-file symlinks; root symlink отказывает только после внешнего side effect, два других возвращают COMMITTED. Финансовые CSV outside не писались. [Отчёт и воспроизведение](REVIEW_B7_R96_A0DF0D5.md). Всего 71 текущий независимый сценарий, не «71 PASS».
+
+Core G1–G4 PASS сохраняется; исправление R96-4 за коллегой, Hermes проверяет следующий SHA. B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED; нет merge/deploy/Redis/API/Actions execution, чужая ветка не менялась.

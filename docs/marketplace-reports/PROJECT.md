@@ -66,3 +66,7 @@ R3 принят ранее; первый opt-in блок B7 **G1–G4 PASS**, в
 ### B7 второй блок — ревизия 5eb1985
 
 Первый core G1–G4 PASS сохраняется. Новый adapter/quarantine PR №96 на `5eb19855b1aa9bc48eb6c3157987a557a411aee6` независимо **FAIL**: [R96-1/R96-2/R96-3](REVIEW_B7_STAGE2_5EB1985.md), требуется доработка. 108 stock tests не закрывают crash-retry fsync, mixed-layout admission и full-batch preflight. Полная B7 OPEN, миграция/restore не приняты; API и deployment не допущены, P01 NOT VERIFIED.
+
+### B7 stage 2 — актуализация a0df0d5
+
+R96-1/R96-2/R96-3 независимо PASS на `a0df0d5d4266392853330dc414d50fbf31bf314e`. Второй блок пока overall FAIL из-за новой [R96-4 admission-lock path regression](REVIEW_B7_R96_A0DF0D5.md). 118 stock tests и 71 текущий независимый сценарий, включая дефектные probes. Scoped core G1–G4 PASS не отменяется. Полная B7 OPEN, P01/power-loss NOT VERIFIED; merge/deployment/API не допущены.
