@@ -12,12 +12,20 @@ from apps.msp_marketplace_reports.generation_store import (
 )
 
 
+def _fixture_meta(raw, count, dataset, cabinet, period):
+    result = _metadata(raw, count, dataset, cabinet, period)
+    # Deterministic synthetic inputs across clock boundaries: metadata time
+    # must not affect comparison of otherwise identical file snapshots.
+    result["updated_at_utc"] = "2026-10-29T00:00:00+00:00"
+    return result
+
+
 def wb_files(amount="10", *, dataset="wb_weekly_finance_main"):
     row = {"reportId": "11", "rrdId": "1", "reportType": "1"
            if dataset.endswith("_main") else "2", "amount": amount}
     raw = _encode(list(row), {("11", "1"): row})
     return {"data.csv": raw, "data.csv.meta.json": json.dumps(
-        _metadata(raw, 1, dataset, "wb_laser_master", "2026")).encode()}
+        _fixture_meta(raw, 1, dataset, "wb_laser_master", "2026")).encode()}
 
 
 def ozon_final_files(january="5", february=None):
@@ -35,11 +43,11 @@ def ozon_final_files(january="5", february=None):
         name = "monthly/" + month + ".csv"
         source[name] = raw
         source[name + ".meta.json"] = json.dumps(
-            _metadata(raw, 1, "ozon_final_realization", cabinet, month)).encode()
+            _fixture_meta(raw, 1, "ozon_final_realization", cabinet, month)).encode()
     annual_raw = _encode(["report_year", "report_month", "row_number", "qty"], all_rows)
     source["annual.csv"] = annual_raw
     source["annual.csv.meta.json"] = json.dumps(
-        _metadata(annual_raw, len(all_rows), "ozon_final_realization", cabinet, year)
+        _fixture_meta(annual_raw, len(all_rows), "ozon_final_realization", cabinet, year)
     ).encode()
     return source
 
