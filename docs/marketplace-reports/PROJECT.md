@@ -78,3 +78,8 @@ R96-4 и второй офлайн opt-in блок PR №96 независимо
 ### B7 третий блок — ba46528
 
 current_repair PR №97 на `ba465288406f68dacb4a2557019a488716d55ba6` независимо **FAIL**: [R97-1 final journal sync replay, R97-2 journal schema types](REVIEW_B7_STAGE3_BA46528.md). 137 stock tests не заменяют 61 независимый сценарий с найденными дефектами. Прежние core/stage2 PASS сохранены; B7 OPEN. Operator witness не аутентифицирован кодом: даже после локального исправления нужен независимый proof до production. P01/power-loss NOT VERIFIED, внедрение/API не допущены.
+
+
+### Актуальный итог третьего блока — 9b2c3bd
+
+R97-1/R97-2 и третий офлайн opt-in блок PR №97 **SCOPED PASS** на `9b2c3bdf608e5e1c8526f8a2cb36dd999642d3fe`: [независимый итог](REVIEW_B7_R97_9B2C3BD.md), 140 штатных tests PASS + 252 собственных сценария, 59 baseline отдельно. Повтор VERIFIED завершает journal durability без перезаписи evidence; неверные типы schema отклоняются без изменений. Старый ba46528 FAIL сохраняется как история; core/stage2 acceptance не отменена. Можно продолжать отдельно принимаемые офлайн части B7. Полная B7 OPEN; подлинность operator witness, P01 и power-loss NOT VERIFIED. Никакого допуска merge/deploy/API или рабочего восстановления этим результатом не выдано.

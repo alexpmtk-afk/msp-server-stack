@@ -365,3 +365,10 @@ Core G1–G4 PASS сохраняется; исправление R96-4 за ко
 Точный `ba465288406f68dacb4a2557019a488716d55ba6`: **STAGE3 FAIL**. 137 локальных stock tests PASS; 61 собственный сценарий, включая 21 реальный SIGKILL. [Полный отчёт и evidence](REVIEW_B7_STAGE3_BA46528.md). R97-1: после VERIFIED journal rename и отказа его parent fsync replay early-return CURRENT_VERIFIED без resync (также SIGKILL). R97-2: schema:true/1.0 journal принимаются как 1 в PREPARED/VERIFIED. Код коллеги не менялся.
 
 Preimage и поколения сохранены в проверенных окнах, rollback/extra-generation/CAS/pin guards и порядок locks прошли. Выбор никогда не committed candidate по выдуманному operator witness воспроизвёл документированное ограничение, authenticity flag=false, не новый скрытый дефект. Нужен независимый commit proof перед рабочим применением. Core/stage2 PASS сохраняются; B7 OPEN, P01/power-loss NOT VERIFIED, merge/deploy/API/Redis/Actions NO.
+
+
+## 2026-10-29 — Hermes: R97-1/R97-2 PASS, третий офлайн блок принят на 9b2c3bd
+
+На точном `9b2c3bdf608e5e1c8526f8a2cb36dd999642d3fe` **R97-1 PASS, R97-2 PASS, STAGE3 SCOPED PASS**. 140 штатных тестов PASS; 252 дополнительных независимых сценария, в том числе 21 настоящий SIGKILL CURRENT repair и 48 усиленных retry/type/open проверок. 59 baseline-сценариев на ba46528 воспроизводят старые дефекты. [Итог и артефакты](REVIEW_B7_R97_9B2C3BD.md). Повтор VERIFIED синхронизирует file/parent без перезаписи preimage, повторные ошибки снова uncertain; strict schema проверяется и у чужих журналов. Прежние core/stage2 принятые гарантии сохранены, новых блокирующих дефектов не найдено.
+
+Предыдущий FAIL ba46528 — исторический. Подтверждено завершение только третьего отдельного офлайн программного блока, не всей B7. B7 OPEN, P01/power-loss/authenticity внешнего witness NOT VERIFIED. Следующие integration/attestation/migration этапы принимаются отдельно. Нет merge/deploy/API/Redis/изменения ветки коллеги; CI прочитан, Actions не запускались вручную.

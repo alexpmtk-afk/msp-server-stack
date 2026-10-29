@@ -1,0 +1,14 @@
+{
+  "reviewed_sha": "9b2c3bdf608e5e1c8526f8a2cb36dd999642d3fe",
+  "counts": {
+    "stage3": 61,
+    "extra": 48,
+    "admission": 71,
+    "stage2_regression": 68,
+    "core": 4
+  },
+  "total_new_commit": 252,
+  "stock_tests": 140,
+  "baseline_cases": 59,
+  "verdict": "R97-1 PASS; R97-2 PASS; STAGE3 SCOPED PASS"
+}
