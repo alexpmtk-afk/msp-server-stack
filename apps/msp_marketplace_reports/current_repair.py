@@ -112,11 +112,6 @@ def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
             _assert_no_legacy(Path(root).expanduser(), dataset, cabinet, sample_period)
             candidate = _read_generation(scope, generation, expected_digest)
             trusted = _lineage(scope, candidate)
-            extra = _orphans(scope, trusted)
-            if extra:
-                raise GenerationError(
-                    "UNRESOLVED_HEAD: non-ancestral generations need independent decision"
-                )
             old = _preimage(scope)
             observed_sha = _sha(old) if old is not None else None
             desired = _pointer_bytes(generation, expected_digest)
@@ -134,6 +129,13 @@ def repair_current_with_witness(root: Path, dataset: str, cabinet: str,
                 or healthy["manifest_sha256"] != expected_digest
             ):
                 raise GenerationError("healthy divergent CURRENT must not be rolled back")
+            # A verified different CURRENT is a clear no-rollback refusal;
+            # only then evaluate unaccounted generations for unknown history.
+            extra = _orphans(scope, trusted)
+            if extra:
+                raise GenerationError(
+                    "UNRESOLVED_HEAD: non-ancestral generations need independent decision"
+                )
             already_new = (old == desired and healthy is not None)
             if not already_new and observed_sha != expected_current_sha256:
                 raise GenerationError("stale CURRENT byte CAS; do not alter evidence")
