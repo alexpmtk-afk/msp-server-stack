@@ -282,3 +282,12 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Коллеге передаётся результат в PR №90. Чужие исходники/ветки, старые службы, Redis, конфигурация авторизации и текущие финансовые данные не менялись; никаких merge/install/маркетплейс API/запусков mutating workflow.
 
 - Skill reference дополнен разделением Contents/Actions/execution и проверкой актуальности DNS/TLS/historical workflows; публичная каноническая guide-копия совпадает с установленной reference, SHA256 `1c1ab518289cb3695eef29c9caa67c27caa8e9b25bcdce0f8cc49679a8bc1132`. Приватные locator-данные в Skill не записывались.
+
+## 2026-10-29 — Hermes: диагноз различий GitHub-подключений
+
+- PASS: действующий fine-grained PAT и ожидаемый account проверены через /user; REST/GraphQL подтвердили недоступность GPT repo именно этому подключению, не его отсутствие. Marketplace и MSP private controls: Contents 200, Actions 403 с явным отказом PAT. Состояние выбора repo/permissions в настройках не читалось и не менялось.
+- Исправлена прежняя неточность рекомендаций: Actions read — workflow/run/job history; Administration read — API списка self-hosted runners, не обязательный первый шаг. Public Actions 200 не доказывает PAT permission.
+- Документированный WORK executor найден только в старом pointer; текущие main README/policy GPT repo недоступны. Bridge-v2 учитывается как историческая по уточнению коллеги. Online Windows, разрешённый read-only operation, конечный host и Redis NOT VERIFIED; ничего не исполнялось.
+- Подробности и safe API evidence в PRIVATE PR №720; публичная P01-выжимка и Skills уточнены. Коллеге предлагается безопасный снимок текущей main/policy в уже доступном PRIVATE bridge как вариант совместного изучения без передачи credentials и без изменения PAT. Это не execution permission.
+
+- Синхронизирован установленный pipeline reference с HERMES_HANDOFF_GUIDE.md, SHA256 `2cd216454e32fda8c955b468ff6d107182de53df0e14852696ceecb918ef6802`; обновлена auth-reference Github Skill. Установка приложения, права GitHub и службы не менялись.
