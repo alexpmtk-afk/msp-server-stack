@@ -278,6 +278,48 @@ class VersionedImportTests(unittest.TestCase):
         self.assertIn("versioned scope exists", str(result["legacy_error"]))
         self.assertFalse((self.root / "База данных").exists())
 
+    def test_r96_2_shared_admission_lock_legacy_wins_race(self):
+        import apps.msp_marketplace_reports.archive as legacy_module
+        args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        path = self._wb()
+        entered, release = threading.Event(), threading.Event()
+        original = legacy_module._reject_versioned_scope
+        results = {}
+        def pause(root, dataset, cabinet, period):
+            entered.set()
+            if not release.wait(10):
+                raise RuntimeError("legacy admission test timed out")
+            return original(root, dataset, cabinet, period)
+        def legacy():
+            try:
+                results["legacy"] = import_legacy_csv(*args, path)
+            except Exception as error:
+                results["legacy_error"] = error
+        def new():
+            try:
+                results["new"] = import_csv_versioned(*args, path)
+            except Exception as error:
+                results["new_error"] = error
+        with mock.patch.object(legacy_module, "_reject_versioned_scope",
+                               side_effect=pause):
+            a = threading.Thread(target=legacy)
+            b = threading.Thread(target=new)
+            a.start()
+            try:
+                self.assertTrue(entered.wait(10))
+                b.start()
+            finally:
+                release.set()
+                a.join(10)
+                if b.ident is not None:
+                    b.join(10)
+        self.assertFalse(a.is_alive())
+        self.assertFalse(b.is_alive())
+        self.assertIn("legacy", results, results)
+        self.assertIn("new_error", results, results)
+        self.assertIn("legacy CSV scope", str(results["new_error"]))
+        self.assertFalse((self.root / ".b7-generations").exists())
+
     def test_readonly_verify_does_not_create_empty_root(self):
         args = (self.root, "ozon_current_orders_fbo", "ozon_dmitrieva", "2026-10")
         self.assertFalse(verify_versioned_scope(*args)["ok"])
@@ -399,6 +441,32 @@ class EvidenceQuarantineTests(unittest.TestCase):
         self.assertEqual(report["status"], "EVIDENCE_RETAINED")
         self.assertEqual(report["moved_in_this_attempt"], [])
         self.assertIn(candidate, report["resynced_candidates"])
+
+    def test_r96_1_evidence_dir_fsync_failure_resynced_on_retry(self):
+        import apps.msp_marketplace_reports.generation_recovery as gr
+        candidate = self._orphan()
+        source_parent = self.scope / "generations"
+        evidence = self.scope / "evidence"
+        original = gr._sync_dir
+        injected = []
+        def fail(path):
+            if Path(path) == evidence and not injected:
+                injected.append(True)
+                raise OSError("evidence fsync interrupted")
+            return original(path)
+        with mock.patch.object(gr, "_sync_dir", side_effect=fail):
+            with self.assertRaises(RecoveryUncertainError):
+                self._quarantine([candidate])
+        self.assertTrue((evidence / candidate).exists())
+        trace = []
+        def audit(path):
+            trace.append(Path(path))
+            return original(path)
+        with mock.patch.object(gr, "_sync_dir", side_effect=audit):
+            result = self._quarantine([candidate])
+        self.assertEqual(result["status"], "EVIDENCE_RETAINED")
+        self.assertIn(source_parent, trace)
+        self.assertIn(evidence, trace)
 
     @unittest.skipUnless(hasattr(os, "fork"), "Linux fork required")
     def test_r96_1_sigkill_after_evidence_rename_requires_retry_sync(self):
