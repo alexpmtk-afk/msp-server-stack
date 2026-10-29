@@ -144,6 +144,26 @@ class GatewayTest(unittest.TestCase):
         with connect(self.cfg["db"]) as db:
             self.assertEqual(db.execute("SELECT COUNT(*) FROM commands").fetchone()[0], 1)
 
+    def test_expired_lease_recovery_and_idempotent_ack(self):
+        cmd = self.command(deal=77)
+        self.assertEqual(self.call(CREATE_PATH, cmd)[0], 202)
+        request = {"worker_id": "SRV", "max_jobs": 1}
+        first = self.call(CLAIM_PATH, request, role="srv")[1]["job"]
+        with connect(self.cfg["db"]) as db:
+            db.execute("UPDATE commands SET lease_until=0 WHERE request_id=?",
+                       (cmd["request_id"],))
+        second = self.call(CLAIM_PATH, request, role="srv")[1]["job"]
+        self.assertEqual(second["request_id"], first["request_id"])
+        self.assertNotEqual(second["lease_token"], first["lease_token"])
+        ack = CREATE_PATH + "/" + cmd["request_id"] + "/ack"
+        self.assertEqual(self.call(ack, {"lease_token": first["lease_token"]}, role="srv")[0], 409)
+        self.assertEqual(self.call(ack, {"lease_token": second["lease_token"]}, role="srv")[0], 200)
+        self.assertEqual(self.call(ack, {"lease_token": second["lease_token"]}, role="srv")[0], 200)
+        status = CREATE_PATH + "/" + cmd["request_id"]
+        nonce = uuid.uuid4().hex
+        self.assertEqual(self.call(status, nonce=nonce)[0], 200)
+        self.assertEqual(self.call(status, nonce=nonce)[0], 409)
+
     def test_concurrent_requests_one_logical_job(self):
         def submit(_):
             return self.call(CREATE_PATH, self.command(deal=27))
