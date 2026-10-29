@@ -278,6 +278,70 @@ class VersionedImportTests(unittest.TestCase):
         self.assertIn("versioned scope exists", str(result["legacy_error"]))
         self.assertFalse((self.root / "База данных").exists())
 
+    def test_r96_4_symlinked_root_locks_and_lockfile_never_escape_root(self):
+        """Both import entrypoints reject all three Hermes R96-4 probes."""
+        imports = (("versioned", import_csv_versioned),
+                   ("legacy", import_legacy_csv))
+        for importer_name, importer in imports:
+            for case in ("root", "locks", "lockfile", "dangling_lockfile",
+                         "dangling_locks", "ancestor"):
+                with self.subTest(importer=importer_name, case=case):
+                    base = Path(self.source.parent) / ("r96-4-" + importer_name
+                                                       + "-" + case)
+                    base.mkdir()
+                    outside = base / "outside"
+                    outside.mkdir()
+                    root = base / "archive"
+                    lockname = "wb_laser_master__wb_weekly_finance_main.lock"
+                    if case == "root":
+                        root.symlink_to(outside, target_is_directory=True)
+                    elif case == "ancestor":
+                        alias = base / "alias"
+                        alias.symlink_to(outside, target_is_directory=True)
+                        root = alias / "archive"
+                    else:
+                        root.mkdir()
+                        if case in ("locks", "dangling_locks"):
+                            target = (outside if case == "locks"
+                                      else base / "not-existing-lock-folder")
+                            (root / ".locks").symlink_to(
+                                target, target_is_directory=True)
+                        else:
+                            folder = root / ".locks"
+                            folder.mkdir()
+                            (folder / lockname).symlink_to(outside / "injected.lock")
+                    src = self._wb()
+                    before = [(p.relative_to(outside).as_posix(), p.is_symlink())
+                              for p in outside.rglob("*")]
+                    with self.assertRaisesRegex(ValueError, "unsafe archive admission"):
+                        importer(root, "wb_weekly_finance_main",
+                                 "wb_laser_master", "2026", src)
+                    after = [(p.relative_to(outside).as_posix(), p.is_symlink())
+                             for p in outside.rglob("*")]
+                    self.assertEqual(before, after)
+                    self.assertFalse((outside / "injected.lock").exists())
+                    self.assertFalse((outside / ".locks").exists())
+
+    def test_r96_4_existing_lock_regular_file_allowed_but_hardlink_refused(self):
+        root = Path(self.source.parent) / "r96-4-regular"
+        root.mkdir()
+        folder = root / ".locks"
+        folder.mkdir()
+        name = "wb_laser_master__wb_weekly_finance_main.lock"
+        (folder / name).write_bytes(b"")
+        receipt = import_csv_versioned(root, "wb_weekly_finance_main",
+                                       "wb_laser_master", "2026", self._wb())
+        self.assertEqual(receipt["status"], "COMMITTED")
+        other = Path(self.source.parent) / "outside-hardlink"
+        os.link(folder / name, other)
+        with self.assertRaisesRegex(ValueError, "unsafe archive admission lock inode"):
+            import_csv_versioned(root, "wb_weekly_finance_main",
+                                 "wb_laser_master", "2026", self._wb("12"))
+        self.assertEqual(other.read_bytes(), b"")
+        self.assertEqual(read_active(root, "wb_weekly_finance_main",
+                                     "wb_laser_master", "2026")["generation"],
+                         receipt["generation"])
+
     def test_r96_2_shared_admission_lock_legacy_wins_race(self):
         import apps.msp_marketplace_reports.archive as legacy_module
         args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
