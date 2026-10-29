@@ -1,5 +1,6 @@
 """No network, no production paths, no credentials required."""
 import csv
+import hashlib
 import json
 import tempfile
 import unittest
@@ -23,15 +24,15 @@ class LocalArchiveTests(unittest.TestCase):
         self.source = Path(self.temp.name) / "source.csv"
 
     def test_wb_import_idempotent_and_merge(self):
-        sample(self.source, ["reportId", "rrdId", "dateTo", "amount"], [
-            {"reportId": "11", "rrdId": "1", "dateTo": "2026-09-13", "amount": "42"}])
+        sample(self.source, ["reportId", "rrdId", "reportType", "dateTo", "amount"], [
+            {"reportId": "11", "rrdId": "1", "reportType": "1", "dateTo": "2026-09-13", "amount": "42"}])
         r1 = import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
         self.assertTrue(r1["changed"])
         r2 = import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
         self.assertFalse(r2["changed"])
-        sample(self.source, ["reportId", "rrdId", "dateTo", "amount"], [
-            {"reportId": "11", "rrdId": "1", "dateTo": "2026-09-13", "amount": "42"},
-            {"reportId": "12", "rrdId": "2", "dateTo": "2026-09-20", "amount": "30"}])
+        sample(self.source, ["reportId", "rrdId", "reportType", "dateTo", "amount"], [
+            {"reportId": "11", "rrdId": "1", "reportType": "1", "dateTo": "2026-09-13", "amount": "42"},
+            {"reportId": "12", "rrdId": "2", "reportType": "1", "dateTo": "2026-09-20", "amount": "30"}])
         r3 = import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
         self.assertEqual(r3["new_rows"], 1)
         self.assertTrue(verify(self.root)["ok"])
@@ -51,13 +52,73 @@ class LocalArchiveTests(unittest.TestCase):
         self.assertTrue(verify(self.root)["ok"])
 
     def test_wb_conflict_rejected(self):
-        sample(self.source, ["reportId", "rrdId", "amount"], [{"reportId": "11", "rrdId": "1", "amount": "42"}])
+        sample(self.source, ["reportId", "rrdId", "reportType", "amount"], [{"reportId": "11", "rrdId": "1", "reportType": "1", "amount": "42"}])
         first = import_csv(self.root, "wb_weekly_finance_main", "wb_dmitrieva", "2026", self.source)
         old = Path(first["path"]).read_bytes()
-        sample(self.source, ["reportId", "rrdId", "amount"], [{"reportId": "11", "rrdId": "1", "amount": "43"}])
+        sample(self.source, ["reportId", "rrdId", "reportType", "amount"], [{"reportId": "11", "rrdId": "1", "reportType": "1", "amount": "43"}])
         with self.assertRaises(ValueError):
             import_csv(self.root, "wb_weekly_finance_main", "wb_dmitrieva", "2026", self.source)
         self.assertEqual(Path(first["path"]).read_bytes(), old)
+
+    def test_b9_wb_mismatched_type_is_rejected_without_write(self):
+        for dataset, wrong_type in (
+            ("wb_weekly_finance_main", "2"),
+            ("wb_weekly_finance_buyout", "1"),
+        ):
+            with self.subTest(dataset=dataset):
+                sample(self.source, ["reportId", "rrdId", "reportType", "dateTo"], [
+                    {"reportId": "100", "rrdId": "20", "reportType": wrong_type,
+                     "dateTo": "2026-10-11"}])
+                with self.assertRaisesRegex(ValueError, "reportType mismatches"):
+                    import_csv(self.root, dataset, "wb_laser_master", "2026", self.source)
+        self.assertEqual(list(self.root.rglob("*.csv")), [])
+
+    def test_b9_wb_missing_or_ambiguous_type_is_rejected(self):
+        for raw_type in (None, "", "01", "1.0", "2", " 1 "):
+            with self.subTest(raw_type=raw_type):
+                row = {"reportId": "100", "rrdId": "20"}
+                fields = ["reportId", "rrdId"]
+                if raw_type is not None:
+                    row["reportType"] = raw_type
+                    fields.append("reportType")
+                sample(self.source, fields, [row])
+                with self.assertRaisesRegex(ValueError, "reportType"):
+                    import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master",
+                               "2026", self.source)
+        self.assertEqual(list(self.root.rglob("*.csv")), [])
+
+    def test_b9_verify_detects_cross_type_even_with_recomputed_manifest(self):
+        sample(self.source, ["reportId", "rrdId", "reportType"], [
+            {"reportId": "100", "rrdId": "20", "reportType": "1"}])
+        original = import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master",
+                              "2026", self.source)
+        path = Path(original["path"])
+        meta_path = path.with_name(path.name + ".meta.json")
+        corrupted = path.read_bytes().replace(b";1\\n", b";2\\n")
+        self.assertNotEqual(corrupted, path.read_bytes())
+        path.write_bytes(corrupted)
+        meta = json.loads(meta_path.read_text("utf-8"))
+        meta["sha256"] = hashlib.sha256(corrupted).hexdigest()
+        meta_path.write_text(json.dumps(meta), encoding="utf-8")
+        audit = verify(self.root)
+        self.assertFalse(audit["ok"])
+        self.assertTrue(any("reportType" in str(entry) for entry in audit["failures"]))
+
+    def test_b9_existing_wrong_type_blocks_incremental_merge(self):
+        sample(self.source, ["reportId", "rrdId", "reportType"], [
+            {"reportId": "100", "rrdId": "20", "reportType": "1"}])
+        original = import_csv(self.root, "wb_weekly_finance_main", "wb_dmitrieva",
+                              "2026", self.source)
+        path = Path(original["path"])
+        original_csv = path.read_bytes()
+        path.write_bytes(original_csv.replace(b";1\\n", b";2\\n"))
+        bad_csv = path.read_bytes()
+        sample(self.source, ["reportId", "rrdId", "reportType"], [
+            {"reportId": "101", "rrdId": "21", "reportType": "1"}])
+        with self.assertRaisesRegex(ValueError, "reportType mismatches"):
+            import_csv(self.root, "wb_weekly_finance_main", "wb_dmitrieva", "2026",
+                       self.source)
+        self.assertEqual(path.read_bytes(), bad_csv)
 
     def test_ozon_final_rebuild_annual(self):
         for period, number in [("2026-01", "1"), ("2026-02", "2")]:
