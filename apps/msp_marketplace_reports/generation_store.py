@@ -240,6 +240,9 @@ def read_generation(root, dataset, cabinet, period, generation):
 
 @contextmanager
 def _write_lock(scope):
+    # Check *before* mkdir: an attacker-controlled symlink in an ancestor
+    # must not cause our mkdir to create subdirectories outside archive root.
+    _require_plain(scope)
     scope.mkdir(parents=True, exist_ok=True)
     _require_plain(scope)
     lock = scope / ".writer.lock"
