@@ -325,3 +325,9 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 [Контрпримеры и обязательные доработки](REVIEW_B7_CORE_0217BA4.md): G1 публичное read_generation читает неподтверждённый candidate; G2 потеря CURRENT классифицирует прежние commits как uncommitted; G3 старые snapshots/parent chain не anchored ожидаемым digest; G4 отсутствуют parent-directory fsync новой scope chain (power-loss не воспроизводился). Root symlink policy отдельно уточнить. Код коллеги не менялся.
 
 Полная B7 OPEN, legacy/recovery честно ещё не реализованы — FAIL относится к reader/evidence/durability контракту первого core, не к отсутствию следующего блока. До интеграции нужны commit/pin proof и parent digest, безопасный UNKNOWN commit status, durable initialization; затем snapshot-aware migration/readers и crash-idempotent explicit recovery под CAS/lock. P01 NOT VERIFIED, API block сохранён; нет merge/deploy/Actions/Redis/API.
+
+## 2026-10-29 — Hermes: повторная проверка G1–G4 на 97decf8
+
+Точный `97decf831a2499d1dc0d4d93395a46a1626cbaaa`: **G1 PASS, G2 PASS, G3 PASS, G4 FAIL**. 89 штатных tests PASS; исходные before/after контрпримеры повторены, 24 pin negatives, 8 pointer corruptions, 13 fsync faults после трёх commits и 32 SIGKILL checkpoints. Новый G4-R1: 5 parent-sync failure→retry случаев, новый год после трёх commits и дополнительный SIGKILL initializer→retry возвращают COMMITTED без повторного ранее пропущенного parent fsync. Нормальный first-init trace исправлен, повтор после сбоя — нет. Физический power-loss не проверен.
+
+[Полный отчёт, воспроизведение и evidence](REVIEW_B7_G1_G4_97DECF8.md). Private candidate validator не равен public committed reader; это не обход G1. Общая B7 OPEN, first block ещё FAIL только по оставшемуся G4; разработчик исправляет самостоятельно. Код коллеги/ветка, серверы, API, Redis не менялись; merge/deploy/Actions NO, P01 NOT VERIFIED.
