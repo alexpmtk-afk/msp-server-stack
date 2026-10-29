@@ -95,6 +95,84 @@ class LocalArchiveTests(unittest.TestCase):
             import_csv(self.root, "wb_weekly_finance_main", "wb_laser_master", "2026", self.source)
         self.assertEqual(verify(self.root)["files"], 0)
 
+    def _archive_file_snapshot(self):
+        return {
+            str(path.relative_to(self.root)): path.read_bytes()
+            for path in self.root.rglob("*") if path.is_file()
+        }
+
+    def test_r1_ozon_rejects_corrupt_other_month_manifest_before_february(self):
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1", "qty": "5"}])
+        first = import_csv(self.root, "ozon_final_realization", "ozon_laser_master", "2026-01", self.source)
+        month = Path(first["annual_path"]).parent.parent / "monthly_source" / "ozon_laser_master__realization__2026-01.csv"
+        manifest = month.with_name(month.name + ".meta.json")
+        original = manifest.read_bytes()
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-02", "row_number": "2", "qty": "8"}])
+        for key, changed_value in [
+            ("schema", 2), ("dataset", "ozon_current_orders_fbo"),
+            ("cabinet", "ozon_novokshenov"), ("period", "2026-02"),
+            ("bytes", 1234567), ("rows", 99), ("sha256", "0" * 64),
+            ("status", "UNVERIFIED"),
+        ]:
+            with self.subTest(key=key):
+                changed = json.loads(original.decode("utf-8"))
+                changed[key] = changed_value
+                manifest.write_text(json.dumps(changed), encoding="utf-8")
+                baseline = self._archive_file_snapshot()
+                self.assertFalse(verify(self.root)["ok"])
+                with self.assertRaisesRegex(ValueError, "integrity/identity mismatch"):
+                    import_csv(self.root, "ozon_final_realization", "ozon_laser_master",
+                               "2026-02", self.source)
+                self.assertEqual(self._archive_file_snapshot(), baseline)
+                manifest.write_bytes(original)
+        self.assertTrue(verify(self.root)["ok"])
+
+    def test_r2_corrupt_annual_rejected_before_changing_month_or_backups(self):
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1", "qty": "5"}])
+        first = import_csv(self.root, "ozon_final_realization", "ozon_laser_master", "2026-01", self.source)
+        annual = Path(first["annual_path"])
+        annual.write_bytes(annual.read_bytes().replace(b";5", b";9"))
+        baseline = self._archive_file_snapshot()
+        sample(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1", "qty": "6"}])
+        with self.assertRaisesRegex(ValueError, "integrity/identity mismatch"):
+            import_csv(self.root, "ozon_final_realization", "ozon_laser_master", "2026-01", self.source)
+        self.assertEqual(self._archive_file_snapshot(), baseline)
+        self.assertFalse(verify(self.root)["ok"])
+
+    def test_ozon_preflight_compares_union_of_monthly_columns(self):
+        monthly = [
+            ("2026-01", "1", ["report_year", "report_month", "row_number", "qty"], "5"),
+            ("2026-02", "2", ["report_year", "report_month", "row_number", "qty", "extra"], "8"),
+            ("2026-03", "3", ["report_year", "report_month", "row_number", "qty"], "9"),
+        ]
+        for period, number, fields, qty in monthly:
+            row = {"report_year": "2026", "report_month": period, "row_number": number, "qty": qty}
+            if "extra" in fields:
+                row["extra"] = "value"
+            sample(self.source, fields, [row])
+            result = import_csv(self.root, "ozon_final_realization", "ozon_laser_master",
+                                period, self.source)
+        self.assertEqual(result["annual_rows"], 3)
+        self.assertTrue(verify(self.root)["ok"])
+
+    def test_ozon_orphan_other_month_manifest_blocks_new_month(self):
+        sample(self.source, ["report_year", "report_month", "row_number"], [
+            {"report_year": "2026", "report_month": "2026-01", "row_number": "1"}])
+        first = import_csv(self.root, "ozon_final_realization", "ozon_laser_master", "2026-01", self.source)
+        month = Path(first["annual_path"]).parent.parent / "monthly_source" / "ozon_laser_master__realization__2026-01.csv"
+        month.unlink()
+        baseline = self._archive_file_snapshot()
+        sample(self.source, ["report_year", "report_month", "row_number"], [
+            {"report_year": "2026", "report_month": "2026-02", "row_number": "2"}])
+        with self.assertRaisesRegex(ValueError, "pair required"):
+            import_csv(self.root, "ozon_final_realization", "ozon_laser_master",
+                       "2026-02", self.source)
+        self.assertEqual(self._archive_file_snapshot(), baseline)
+
     def test_b5_corrupt_wb_cannot_be_recertified_on_merge(self):
         sample(self.source, ["reportId", "rrdId", "dateTo", "amount"], [
             {"reportId": "11", "rrdId": "1", "dateTo": "2026-10-11", "amount": "10"}])
