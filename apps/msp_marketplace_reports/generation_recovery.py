@@ -72,6 +72,8 @@ def quarantine_uncommitted(root: Path, dataset: str, cabinet: str,
         pending = set(_orphans(scope, trusted))
         if set(candidates) & set(trusted):
             raise GenerationError("cannot quarantine committed generation")
+        if pending - set(candidates):
+            raise GenerationError("unlisted uncommitted generations; refuse partial selection")
         evidence = scope / "evidence"
         _require_plain(evidence)
         # Full-plan preflight: reject *every* source/target conflict before
@@ -91,8 +93,6 @@ def quarantine_uncommitted(root: Path, dataset: str, cabinet: str,
                 state[candidate] = "to_move"
             else:
                 raise GenerationError("candidate ID missing from pending/evidence inventory")
-        if pending - set(candidates):
-            raise GenerationError("unlisted uncommitted generations; refuse partial selection")
         if set(candidates) != pending | {c for c, kind in state.items()
                                          if kind == "already_retained"}:
             raise GenerationError("candidate ID missing from pending/evidence inventory")
