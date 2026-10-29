@@ -19,8 +19,14 @@ MEMBER = "STAGING_ONLY_20261029"
 
 
 def run(*args):
-    result = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                            timeout=25, check=False)
+    env = os.environ.copy()
+    runtime = Path("/run/user") / str(os.getuid())
+    bus = runtime / "bus"
+    if bus.is_socket():
+        env["XDG_RUNTIME_DIR"] = str(runtime)
+        env["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=" + str(bus)
+    result = subprocess.run(args, env=env, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL, timeout=25, check=False)
     if result.returncode != 0:
         action = "UNKNOWN"
         if "daemon-reload" in args:
