@@ -51,6 +51,11 @@ class GenerationTests(unittest.TestCase):
         self.root = Path(temp.name) / "archive"
         self.args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
 
+    def test_empty_reconcile_has_no_filesystem_side_effect(self):
+        self.assertEqual(reconcile(*self.args),
+                         {"status": "EMPTY", "uncommitted_generations": []})
+        self.assertFalse(self.root.exists())
+
     def test_first_publish_and_pinned_reader(self):
         first = publish_batch(*self.args, wb_files())
         self.assertEqual(first["status"], "COMMITTED")
