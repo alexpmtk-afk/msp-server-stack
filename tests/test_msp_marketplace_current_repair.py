@@ -216,7 +216,7 @@ class WitnessedCurrentRepairTests(unittest.TestCase):
             self._repair(expected_current_sha256=_sha(previous))
         document.write_bytes(original)
         foreign = folder / ("f" * 32 + ".json")
-        foreign.write_text('{"state":"PREPARED"}')
+        foreign.write_text('{"schema":1,"state":"PREPARED"}')
         with self.assertRaisesRegex(GenerationError, "unfinished restore journal"):
             self._repair(expected_current_sha256=_sha(previous))
         self.assertEqual(self.current.read_bytes(), previous)
