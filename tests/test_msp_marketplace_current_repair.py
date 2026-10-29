@@ -1,0 +1,213 @@
+"""B7 phase 3: explicit witnessed pointer repair, synthetic inputs only."""
+import base64
+import json
+import os
+import signal
+import tempfile
+import unittest
+from pathlib import Path
+
+from apps.msp_marketplace_reports.archive import _sha
+from apps.msp_marketplace_reports.generation_store import (
+    GenerationError, publish_batch, read_active, reconcile,
+)
+from apps.msp_marketplace_reports.current_repair import (
+    RestoreUncertainError, repair_current_with_witness,
+)
+from test_msp_marketplace_generations import wb_files, ozon_final_files
+
+
+class WitnessedCurrentRepairTests(unittest.TestCase):
+    def setUp(self):
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        self.root = Path(holder.name) / "archive"
+        self.args = (self.root, "wb_weekly_finance_main", "wb_laser_master", "2026")
+        self.a = publish_batch(*self.args, wb_files("10"))
+        self.b = publish_batch(*self.args, wb_files("20"),
+                               expected_generation=self.a["generation"])
+        self.scope = (self.root / ".b7-generations" /
+                      "wb_weekly_finance_main" / "wb_laser_master" / "2026")
+        self.current = self.scope / "CURRENT.json"
+
+    def _repair(self, *, expected_current_sha256=None, generation=None,
+                expected_digest=None, acknowledged=True, reference="external-test-receipt",
+                fault=None):
+        return repair_current_with_witness(
+            *self.args, generation=generation or self.b["generation"],
+            expected_digest=expected_digest or self.b["manifest_sha256"],
+            expected_current_sha256=expected_current_sha256,
+            witness_reference=reference, acknowledged=acknowledged,
+            fault=fault)
+
+    def _journal(self):
+        docs = list((self.scope / "restore-journal").glob("*.json"))
+        self.assertEqual(len(docs), 1)
+        return json.loads(docs[0].read_text("utf-8"))
+
+    def test_missing_current_two_commits_requires_witness_and_restores_b(self):
+        self.current.unlink()
+        self.assertEqual(reconcile(*self.args)["status"], "UNKNOWN_COMMIT_STATE")
+        outcome = self._repair()
+        self.assertEqual(outcome["status"], "CURRENT_VERIFIED")
+        self.assertFalse(outcome["external_witness_authenticated_by_code"])
+        self.assertEqual(read_active(*self.args)["generation"], self.b["generation"])
+        self.assertEqual(reconcile(*self.args)["status"], "ACTIVE_VERIFIED")
+        record = self._journal()
+        self.assertEqual(record["state"], "VERIFIED")
+        self.assertIsNone(record["previous_b64"])
+        again = self._repair()
+        self.assertFalse(again["changed_in_attempt"])
+
+    def test_corrupt_current_preimage_is_preserved_unchanged(self):
+        original = b'{broken CURRENT, not JSON}\n'
+        self.current.write_bytes(original)
+        receipt = self._repair(expected_current_sha256=_sha(original))
+        self.assertEqual(receipt["status"], "CURRENT_VERIFIED")
+        doc = self._journal()
+        self.assertEqual(base64.b64decode(doc["previous_b64"]), original)
+        self.assertEqual(doc["expected_previous_sha256"], _sha(original))
+        self.assertEqual(read_active(*self.args)["files"], wb_files("20"))
+
+    def test_no_ack_missing_witness_and_bad_pin_refused_before_journal(self):
+        self.current.unlink()
+        with self.assertRaisesRegex(GenerationError, "acknowledgment"):
+            self._repair(acknowledged=False)
+        with self.assertRaisesRegex(GenerationError, "independent witness reference"):
+            self._repair(reference="")
+        with self.assertRaisesRegex(GenerationError, "descriptor hash mismatch"):
+            self._repair(expected_digest="0" * 64)
+        self.assertFalse((self.scope / "restore-journal").exists())
+
+    def test_stale_current_cas_does_not_publish_or_save_recovery_evidence(self):
+        original = b'{"state":"broken"}'
+        self.current.write_bytes(original)
+        with self.assertRaisesRegex(GenerationError, "stale CURRENT byte CAS"):
+            self._repair(expected_current_sha256="0" * 64)
+        self.assertEqual(self.current.read_bytes(), original)
+        self.assertFalse((self.scope / "restore-journal").exists())
+
+    def test_healthy_divergent_head_cannot_be_rolled_back(self):
+        before = self.current.read_bytes()
+        with self.assertRaisesRegex(GenerationError, "healthy divergent"):
+            self._repair(generation=self.a["generation"],
+                         expected_digest=self.a["manifest_sha256"],
+                         expected_current_sha256=_sha(before))
+        self.assertEqual(self.current.read_bytes(), before)
+        self.assertFalse((self.scope / "restore-journal").exists())
+
+    def test_extra_staged_generation_blocks_unknown_last_commit(self):
+        def interrupt(where):
+            if where == "before_commit":
+                raise OSError("uncommitted C")
+        with self.assertRaises(OSError):
+            publish_batch(*self.args, wb_files("30"),
+                          expected_generation=self.b["generation"], fault=interrupt)
+        self.current.unlink()
+        with self.assertRaisesRegex(GenerationError, "UNRESOLVED_HEAD"):
+            self._repair()
+        self.assertFalse((self.scope / "restore-journal").exists())
+        self.assertEqual(reconcile(*self.args)["status"], "UNKNOWN_COMMIT_STATE")
+
+    def test_repacked_old_ancestor_blocked_by_parent_hash(self):
+        old = self.scope / "generations" / self.a["generation"]
+        corrupted = old / "data.csv"
+        corrupted.write_bytes(corrupted.read_bytes() + b"repacked")
+        self.current.unlink()
+        with self.assertRaises(GenerationError):
+            self._repair()
+        self.assertFalse((self.scope / "restore-journal").exists())
+
+    def test_interrupted_before_switch_retries_with_original_witness(self):
+        old = b'{"invalid":"before"}'
+        self.current.write_bytes(old)
+        def fault(where):
+            if where == "after_prepare":
+                raise OSError("lost response after evidence fsync")
+        with self.assertRaisesRegex(RestoreUncertainError, "evidence preparation"):
+            self._repair(expected_current_sha256=_sha(old), fault=fault)
+        self.assertEqual(self._journal()["state"], "PREPARED")
+        self.assertEqual(self.current.read_bytes(), old)
+        result = self._repair(expected_current_sha256=_sha(old))
+        self.assertTrue(result["changed_in_attempt"])
+        self.assertEqual(self._journal()["state"], "VERIFIED")
+
+    def test_interrupted_after_switch_retries_and_preserves_old_pointer(self):
+        old = b'{"schema":true,"generation":"bad"}'
+        self.current.write_bytes(old)
+        def fault(where):
+            if where == "after_switch":
+                raise OSError("lost reply after atomic CURRENT replace")
+        with self.assertRaisesRegex(RestoreUncertainError, "CURRENT switch uncertain"):
+            self._repair(expected_current_sha256=_sha(old), fault=fault)
+        self.assertEqual(read_active(*self.args)["generation"], self.b["generation"])
+        self.assertEqual(self._journal()["state"], "PREPARED")
+        outcome = self._repair(expected_current_sha256=_sha(old))
+        self.assertFalse(outcome["changed_in_attempt"])
+        journal = self._journal()
+        self.assertEqual(journal["state"], "VERIFIED")
+        self.assertEqual(base64.b64decode(journal["previous_b64"]), old)
+
+    def test_interrupted_after_verify_does_not_lose_journal(self):
+        self.current.unlink()
+        def fault(where):
+            if where == "after_journal_verified":
+                raise OSError("lost completion reply")
+        with self.assertRaises(RestoreUncertainError):
+            self._repair(fault=fault)
+        self.assertEqual(self._journal()["state"], "VERIFIED")
+        self.assertFalse(self._repair()["changed_in_attempt"])
+
+    @unittest.skipUnless(hasattr(os, "fork"), "requires Linux fork")
+    def test_real_sigkill_after_current_switch_replays_same_transaction(self):
+        original = b"{corrupted before repair}"
+        self.current.write_bytes(original)
+        pid = os.fork()
+        if pid == 0:
+            try:
+                def kill(where):
+                    if where == "after_switch":
+                        os.kill(os.getpid(), signal.SIGKILL)
+                self._repair(expected_current_sha256=_sha(original), fault=kill)
+            finally:
+                os._exit(95)
+        _, status = os.waitpid(pid, 0)
+        self.assertTrue(os.WIFSIGNALED(status))
+        self.assertEqual(os.WTERMSIG(status), signal.SIGKILL)
+        result = self._repair(expected_current_sha256=_sha(original))
+        self.assertFalse(result["changed_in_attempt"])
+        self.assertEqual(self._journal()["state"], "VERIFIED")
+        self.assertEqual(read_active(*self.args)["generation"], self.b["generation"])
+
+    def test_same_scope_legacy_is_refused_without_new_pointer(self):
+        self.current.unlink()
+        legacy = (self.root / "База данных" / "WB" / "wb_laser_master" /
+                  "2026" / "finance" / "weekly" / "main" /
+                  "wb_laser_master__weekly_main__2026.csv")
+        legacy.parent.mkdir(parents=True)
+        legacy.write_bytes(b"old")
+        with self.assertRaisesRegex(GenerationError, "legacy CSV scope exists"):
+            self._repair()
+        self.assertFalse((self.scope / "restore-journal").exists())
+
+    def test_missing_and_corrupt_current_ozon_final_year(self):
+        scope_args = (self.root, "ozon_final_realization", "ozon_laser_master", "2026")
+        first = publish_batch(*scope_args, ozon_final_files())
+        second = publish_batch(*scope_args, ozon_final_files(january="6", february="7"),
+                               expected_generation=first["generation"])
+        current = (self.root / ".b7-generations" / "ozon_final_realization" /
+                   "ozon_laser_master" / "2026" / "CURRENT.json")
+        corrupt = b'{"schema":false}\n'
+        current.write_bytes(corrupt)
+        outcome = repair_current_with_witness(
+            *scope_args, generation=second["generation"],
+            expected_digest=second["manifest_sha256"],
+            expected_current_sha256=_sha(corrupt),
+            witness_reference="synthetic-independent-yearly-receipt",
+            acknowledged=True)
+        self.assertEqual(outcome["status"], "CURRENT_VERIFIED")
+        self.assertEqual(len(read_active(*scope_args)["files"]), 6)
+
+
+if __name__ == "__main__":
+    unittest.main()
