@@ -22,7 +22,14 @@ def run(*args):
     result = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                             timeout=25, check=False)
     if result.returncode != 0:
-        raise RuntimeError("SYSTEMD_COMMAND_FAILED")
+        action = "UNKNOWN"
+        if "daemon-reload" in args:
+            action = "RELOAD"
+        elif "enable" in args:
+            action = "ENABLE"
+        elif "is-active" in args:
+            action = "ACTIVE"
+        raise RuntimeError("SYSTEMD_" + action + "_FAILED")
     return result
 
 
@@ -150,4 +157,25 @@ if __name__ == "__main__":
         print("B24_GATEWAY_STAGING_INSTALL")
         print("RESULT=FAIL")
         print("ERROR_TYPE=" + type(exc).__name__)
+        allowed = {"NOT_UNPRIVILEGED_HOME","GATEWAY_SOURCE_MISSING",
+                   "UNRECOGNIZED_EXISTING_UNIT","USER_SYSTEMD_NOT_WRITABLE",
+                   "STAGING_PORT_ALREADY_USED","SYMLINK_DIRECTORY",
+                   "SYMLINK_GATEWAY","SYMLINK_SECRETS","INVALID_ENV_FILE",
+                   "NOT_STAGING_CREDENTIALS","WRONG_STAGING_DATABASE",
+                   "INVALID_CREDENTIALS","STAGING_LISTENER_NOT_READY",
+                   "SYSTEMD_RELOAD_FAILED","SYSTEMD_ENABLE_FAILED",
+                   "SYSTEMD_ACTIVE_FAILED","SYSTEMD_UNKNOWN_FAILED"}
+        print("ERROR_CODE=" + (str(exc) if str(exc) in allowed else "UNCLASSIFIED"))
+        try:
+            proc = subprocess.run(["systemctl","--user","show",UNIT,
+                    "-p","LoadState","-p","ActiveState","-p","Result",
+                    "-p","ExecMainStatus","--no-pager"],capture_output=True,
+                    text=True,timeout=5)
+            if proc.returncode == 0:
+                for item in proc.stdout.splitlines():
+                    key, _, val = item.partition("=")
+                    if key in ("LoadState","ActiveState","Result","ExecMainStatus") and re.fullmatch(r"[A-Za-z0-9_-]{1,60}",val):
+                        print("SERVICE_"+key.upper()+"="+val)
+        except Exception:
+            pass
         raise SystemExit(1)
