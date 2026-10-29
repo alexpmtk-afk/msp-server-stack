@@ -337,3 +337,11 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 **G4-R1 PASS; G1/G2/G3/G4 PASS** для точного PR №95 `407d14470db1ccb073a3278067be142a3dbd339b`. 92 локальных stock tests и 201 независимый сценарий: 6 parent failure→retry, new-year и initializer SIGKILL→retry, 24 pin negatives, 8 pointer faults, 63 first-init + 63 existing-update fsync faults, 32 checkpoint SIGKILL, 2 multiprocess writer cases и 1 deterministic reader across commit. Старые snapshots сохранены; прежние пропущенные parent sync повторяются.
 
 [Полный отчёт и воспроизводимые артефакты](REVIEW_B7_G4R1_407D144.md). Новых блокирующих замечаний не найдено. Можно продолжать офлайн-разработку интеграции/recovery, не считать legacy/полную B7 принятыми. **B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED.** Нет merge/deploy/API/Redis/Actions execution; ветка коллеги не менялась. Ошибка sync после pointer replacement остаётся CommitUncertain, не гарантией rollback.
+
+## 2026-10-29 — Hermes: B7 stage 2 PR №96, независимый FAIL
+
+Точный `5eb19855b1aa9bc48eb6c3157987a557a411aee6`: **STAGE2 FAIL** при 108 штатных tests PASS и 32 независимых сценариях (включая контрпримеры, не «32 PASS»). [Полный отчёт и harness](REVIEW_B7_STAGE2_5EB1985.md). R96-1: retry после evidence rename не повторяет проваленный source-parent fsync, подтверждено SIGKILL. R96-2: coexistence разных исправных legacy/versioned snapshots и TOCTOU guard; dangling meta symlink bypass. R96-3: поздняя проверка batch collision после переноса первого candidate, без partial/uncertain classification.
+
+CAS двух отдельных versioned importers WB/Ozon прошёл; после явного retry все 3 строки/месяца сохранены. Известное автору ограничение внешнего rollback CURRENT повторено: ранее committed вне активной ancestry может быть перемещено при acknowledgment, bytes не удалены. Это не полный исторический commit proof.
+
+Ранее принятый core G1–G4 не отменяется; полная B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED. Ветку/код коллеги не меняли; нет merge/deploy/Redis/API/Actions execution. Автор исправляет, Hermes проверяет новый SHA.

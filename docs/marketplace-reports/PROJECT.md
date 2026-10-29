@@ -62,3 +62,7 @@ ID сохраняются при ротации ключа.
 ### Актуальная независимая приёмка — 407d144 (29.10.2026)
 
 R3 принят ранее; первый opt-in блок B7 **G1–G4 PASS**, включая устранённый G4-R1, на точном `407d14470db1ccb073a3278067be142a3dbd339b`. [Итоговый review](REVIEW_B7_G4R1_407D144.md): 92 stock tests + 201 независимый сценарий. Предыдущие FAIL на 0217ba4/97decf8 — исторические. **Полная B7 OPEN**: legacy integration, migration, explicit crash recovery и remaining F01–F24 ещё не приняты. P01 и физический power-loss NOT VERIFIED. Следующий этап — разработка/отдельная приёмка интеграции и recovery без API, merge или deployment.
+
+### B7 второй блок — ревизия 5eb1985
+
+Первый core G1–G4 PASS сохраняется. Новый adapter/quarantine PR №96 на `5eb19855b1aa9bc48eb6c3157987a557a411aee6` независимо **FAIL**: [R96-1/R96-2/R96-3](REVIEW_B7_STAGE2_5EB1985.md), требуется доработка. 108 stock tests не закрывают crash-retry fsync, mixed-layout admission и full-batch preflight. Полная B7 OPEN, миграция/restore не приняты; API и deployment не допущены, P01 NOT VERIFIED.
