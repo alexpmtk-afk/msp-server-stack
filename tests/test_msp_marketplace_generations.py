@@ -1,5 +1,6 @@
 """B7 opt-in generation experiments: synthetic fixtures, no network or VPS."""
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -73,7 +74,7 @@ class GenerationTests(unittest.TestCase):
         second = publish_batch(*self.args, wb_files("20"),
                                expected_generation=first["generation"])
         self.assertNotEqual(first["generation"], second["generation"])
-        self.assertEqual(read_generation(*self.args, first["generation"])["files"],
+        self.assertEqual(read_generation(*self.args, first["generation"], expected_digest=first["manifest_sha256"])["files"],
                          wb_files())
         self.assertEqual(read_active(*self.args)["files"], wb_files("20"))
 
@@ -106,8 +107,9 @@ class GenerationTests(unittest.TestCase):
                 raise OSError("NO_COMMIT")
         with self.assertRaises(OSError):
             publish_batch(*self.args, wb_files(), fault=fail)
-        self.assertIsNone(read_active(*self.args))
-        self.assertEqual(reconcile(*self.args)["status"], "PENDING")
+        with self.assertRaisesRegex(GenerationError, "UNKNOWN_COMMIT_STATE"):
+            read_active(*self.args)
+        self.assertEqual(reconcile(*self.args)["status"], "UNKNOWN_COMMIT_STATE")
 
     def test_after_commit_lost_response_can_be_reconciled(self):
         first = publish_batch(*self.args, wb_files())
@@ -140,7 +142,7 @@ class GenerationTests(unittest.TestCase):
         second = publish_batch(*args, ozon_final_files(january="9", february="7"),
                                expected_generation=first["generation"])
         self.assertEqual(len(read_active(*args)["files"]), 6)
-        self.assertEqual(read_generation(*args, first["generation"])["files"],
+        self.assertEqual(read_generation(*args, first["generation"], expected_digest=first["manifest_sha256"])["files"],
                          ozon_final_files())
         self.assertEqual(read_active(*args)["generation"], second["generation"])
 
@@ -208,7 +210,7 @@ class GenerationTests(unittest.TestCase):
                               expected_generation=two["generation"])
         self.assertEqual(reconcile(*self.args),
                          {"status": "ACTIVE_VERIFIED", "generation": three["generation"]})
-        self.assertEqual(read_generation(*self.args, one["generation"])["files"],
+        self.assertEqual(read_generation(*self.args, one["generation"], expected_digest=one["manifest_sha256"])["files"],
                          wb_files())
 
     def test_uncommitted_first_generation_blocks_new_publish(self):
@@ -217,9 +219,125 @@ class GenerationTests(unittest.TestCase):
                 raise OSError("test interruption")
         with self.assertRaises(OSError):
             publish_batch(*self.args, wb_files(), fault=fail)
-        self.assertEqual(reconcile(*self.args)["status"], "PENDING")
-        with self.assertRaisesRegex(GenerationError, "pending generation"):
+        self.assertEqual(reconcile(*self.args)["status"], "UNKNOWN_COMMIT_STATE")
+        with self.assertRaisesRegex(GenerationError, "UNKNOWN_COMMIT_STATE"):
             publish_batch(*self.args, wb_files("99"))
+
+    def test_g1_uncommitted_complete_generation_not_readable_publicly(self):
+        a = publish_batch(*self.args, wb_files())
+        pending = None
+        def stop(where):
+            nonlocal pending
+            if where == "before_commit":
+                store = (self.root / ".b7-generations" /
+                         "wb_weekly_finance_main" / "wb_laser_master" / "2026" /
+                         "generations")
+                pending = next(x.name for x in store.iterdir()
+                               if x.name != a["generation"])
+                raise OSError("before_commit")
+        with self.assertRaises(OSError):
+            publish_batch(*self.args, wb_files("21"),
+                          expected_generation=a["generation"], fault=stop)
+        self.assertIsNotNone(pending)
+        scope = (self.root / ".b7-generations" /
+                 "wb_weekly_finance_main" / "wb_laser_master" / "2026")
+        stage = scope / "generations" / pending / "generation.json"
+        from apps.msp_marketplace_reports.generation_store import _sha
+        with self.assertRaisesRegex(GenerationError, "not in committed"):
+            read_generation(*self.args, pending, expected_digest=_sha(stage.read_bytes()))
+        self.assertEqual(read_active(*self.args)["generation"], a["generation"])
+        self.assertEqual(reconcile(*self.args)["status"], "RECOVERY_REQUIRED")
+
+    def test_g2_missing_current_after_commits_is_unknown_not_pending(self):
+        a = publish_batch(*self.args, wb_files())
+        b = publish_batch(*self.args, wb_files("21"),
+                          expected_generation=a["generation"])
+        current = (self.root / ".b7-generations" /
+                   "wb_weekly_finance_main" / "wb_laser_master" / "2026" /
+                   "CURRENT.json")
+        current.unlink()
+        with self.assertRaisesRegex(GenerationError, "UNKNOWN_COMMIT_STATE"):
+            read_active(*self.args)
+        with self.assertRaisesRegex(GenerationError, "UNKNOWN_COMMIT_STATE"):
+            read_generation(*self.args, b["generation"],
+                            expected_digest=b["manifest_sha256"])
+        self.assertEqual(reconcile(*self.args)["status"], "UNKNOWN_COMMIT_STATE")
+        with self.assertRaisesRegex(GenerationError, "UNKNOWN_COMMIT_STATE"):
+            publish_batch(*self.args, wb_files("30"),
+                          expected_generation=b["generation"])
+
+    def test_g3_old_generation_repack_blocked_by_trusted_parent_hash(self):
+        a = publish_batch(*self.args, wb_files())
+        b = publish_batch(*self.args, wb_files("21"),
+                          expected_generation=a["generation"])
+        scope = (self.root / ".b7-generations" / "wb_weekly_finance_main"
+                 / "wb_laser_master" / "2026")
+        old = scope / "generations" / a["generation"]
+        modified = wb_files("999")
+        for name, raw in modified.items():
+            (old / name).write_bytes(raw)
+        descriptor = json.loads((old / "generation.json").read_text("utf-8"))
+        from apps.msp_marketplace_reports.generation_store import _sha
+        for item in descriptor["files"]:
+            raw = (old / item["path"]).read_bytes()
+            item["sha256"] = _sha(raw)
+            item["bytes"] = len(raw)
+        (old / "generation.json").write_text(json.dumps(descriptor), encoding="utf-8")
+        with self.assertRaisesRegex(GenerationError, "descriptor hash mismatch"):
+            read_active(*self.args)
+        with self.assertRaisesRegex(GenerationError, "descriptor hash mismatch"):
+            read_generation(*self.args, a["generation"],
+                            expected_digest=a["manifest_sha256"])
+        self.assertEqual(reconcile(*self.args)["status"], "RECOVERY_REQUIRED")
+
+    def test_g3_wrong_or_missing_pin_refused(self):
+        a = publish_batch(*self.args, wb_files())
+        with self.assertRaisesRegex(GenerationError, "requires expected descriptor"):
+            read_generation(*self.args, a["generation"], expected_digest=None)
+        with self.assertRaisesRegex(GenerationError, "pinned generation digest mismatch"):
+            read_generation(*self.args, a["generation"], expected_digest="0" * 64)
+        self.assertEqual(read_generation(*self.args, a["generation"],
+                         expected_digest=a["manifest_sha256"])["files"], wb_files())
+
+    def test_g4_first_scope_creation_fsyncs_each_new_parent(self):
+        import unittest.mock
+        import apps.msp_marketplace_reports.generation_store as gs
+        calls = []
+        original = gs._sync_dir
+        def record(path):
+            calls.append(Path(path))
+            return original(path)
+        with unittest.mock.patch.object(gs, "_sync_dir", side_effect=record):
+            publish_batch(*self.args, wb_files())
+        scope = (self.root / ".b7-generations" / "wb_weekly_finance_main" /
+                 "wb_laser_master" / "2026")
+        chain = [self.root, self.root / ".b7-generations",
+                 self.root / ".b7-generations" / "wb_weekly_finance_main",
+                 scope.parent, scope]
+        for directory in chain:
+            self.assertIn(directory.parent, calls,
+                          "parent directory not fsynced after mkdir")
+            self.assertIn(directory, calls,
+                          "new directory itself not fsynced")
+        self.assertEqual(reconcile(*self.args)["status"], "ACTIVE_VERIFIED")
+
+    def test_g4_failure_during_new_parent_fsync_has_no_commit(self):
+        import unittest.mock
+        import apps.msp_marketplace_reports.generation_store as gs
+        original = gs._sync_dir
+        target = self.root / ".b7-generations"
+        def fail(path):
+            if Path(path) == target:
+                raise OSError("fsync parent failed")
+            return original(path)
+        with unittest.mock.patch.object(gs, "_sync_dir", side_effect=fail):
+            with self.assertRaisesRegex(OSError, "fsync parent failed"):
+                publish_batch(*self.args, wb_files())
+        scope = (self.root / ".b7-generations" / "wb_weekly_finance_main" /
+                 "wb_laser_master" / "2026")
+        self.assertFalse((scope / "CURRENT.json").exists())
+        # The failure may leave directories but cannot certify a generation.
+        self.assertIsNone(read_active(*self.args))
 
     def test_symlink_scope_is_rejected_before_directory_creation(self):
         outside = Path(self.root.parent) / "outside"
@@ -287,7 +405,8 @@ class GenerationTests(unittest.TestCase):
         with self.assertRaises(OSError):
             publish_batch(*self.args, wb_files(), fault=fail)
         self.assertEqual(list((self.root / "База данных").rglob("*.csv")), before)
-        self.assertIsNone(read_active(*self.args))
+        with self.assertRaisesRegex(GenerationError, "UNKNOWN_COMMIT_STATE"):
+            read_active(*self.args)
 
 
 if __name__ == "__main__":
