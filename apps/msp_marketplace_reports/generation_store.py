@@ -17,7 +17,8 @@ from pathlib import Path
 
 from .archive import DATASETS, _rows, _safe_write, _sha, _validate
 
-_VERSION = 1
+_VERSION = 2  # New opt-in store; no production generations exist yet.
+_HASH_RE = re.compile(r"^[0-9a-f]{64}$")
 _ID_RE = re.compile(r"^[0-9a-f]{32}$")
 _MONTH_RE = re.compile(r"^monthly/(20\d{2}-(?:0[1-9]|1[0-2]))\.csv$")
 
@@ -72,7 +73,10 @@ def _scope(root, dataset, cabinet, period):
         _validate(dataset, cabinet, period + "-01")
     else:
         _validate(dataset, cabinet, period)
-    return Path(root).expanduser().resolve() / ".b7-generations" / dataset / cabinet / period
+    expanded = Path(root).expanduser()
+    # Do not silently resolve the configured root through a symlink.
+    _require_plain(expanded)
+    return expanded.resolve() / ".b7-generations" / dataset / cabinet / period
 
 
 def _require_plain(path):
@@ -158,9 +162,13 @@ def _payload_pairs(dataset, cabinet, period, files):
     return verified
 
 
-def _descriptor(scope_name, generation, parent, files):
+def _descriptor(scope_name, generation, parent, parent_sha256, files):
+    if (parent is None) != (parent_sha256 is None):
+        raise GenerationError("parent identity/digest must occur together")
+    if parent_sha256 is not None and not _HASH_RE.fullmatch(parent_sha256):
+        raise GenerationError("invalid parent descriptor digest")
     return {"schema": _VERSION, "scope": scope_name, "generation": generation,
-            "parent": parent,
+            "parent": parent, "parent_sha256": parent_sha256,
             "files": [{"path": k, "sha256": _sha(files[k]), "bytes": len(files[k])}
                       for k in sorted(files)]}
 
@@ -176,11 +184,18 @@ def _read_generation(scope, generation, expected_digest=None):
         raise GenerationError("generation descriptor hash mismatch")
     descriptor = _strict_json(descriptor_raw)
     _integer(descriptor, "schema", _VERSION)
+    if set(descriptor) != {"schema", "scope", "generation", "parent", "parent_sha256", "files"}:
+        raise GenerationError("invalid generation descriptor fields")
     if descriptor.get("generation") != generation or descriptor.get("scope") != scope.name:
         raise GenerationError("generation scope/identity mismatch")
     parent = descriptor.get("parent")
+    digest = descriptor.get("parent_sha256")
     if parent is not None:
         _identifier(parent)
+        if type(digest) is not str or not _HASH_RE.fullmatch(digest):
+            raise GenerationError("invalid parent digest")
+    elif digest is not None:
+        raise GenerationError("parent digest without parent")
     entries = descriptor.get("files")
     if not isinstance(entries, list) or not entries:
         raise GenerationError("invalid generation file index")
@@ -207,7 +222,8 @@ def _read_generation(scope, generation, expected_digest=None):
         files[name] = raw
     dataset, cabinet, period = scope.parts[-3:]
     _payload_pairs(dataset, cabinet, period, files)
-    return {"generation": generation, "parent": parent, "files": files,
+    return {"generation": generation, "parent": parent,
+            "parent_sha256": digest, "files": files,
             "manifest_sha256": _sha(descriptor_raw)}
 
 
@@ -215,40 +231,84 @@ def _read_active_at(scope):
     current = scope / "CURRENT.json"
     _require_plain(current)
     if not current.exists():
+        # A missing pointer is distinguishable from pristine scope only if
+        # no generation evidence exists. Never classify missing CURRENT
+        # and existing generations as uncommitted.
+        folder = scope / "generations"
+        _require_plain(folder)
+        if folder.exists() and any(folder.iterdir()):
+            raise GenerationError("UNKNOWN_COMMIT_STATE: CURRENT missing with generation evidence")
         return None
     pointer = _strict_json(current.read_bytes())
     _integer(pointer, "schema", _VERSION)
     if set(pointer) != {"schema", "generation", "sha256"}:
         raise GenerationError("invalid CURRENT pointer")
     generation = _identifier(pointer["generation"])
-    if type(pointer.get("sha256")) is not str:
-        raise GenerationError("CURRENT digest must be string")
+    if type(pointer.get("sha256")) is not str or not _HASH_RE.fullmatch(pointer["sha256"]):
+        raise GenerationError("CURRENT digest must be SHA256 hex")
     return _read_generation(scope, generation, pointer["sha256"])
 
 
 def read_active(root, dataset, cabinet, period):
-    """Reader pins one immutable generation by reading CURRENT exactly once."""
+    """Read the CURRENT-anchored complete committed chain as a pinned snapshot."""
     scope = _scope(root, dataset, cabinet, period)
-    return _read_active_at(scope)
+    active = _read_active_at(scope)
+    if active is not None:
+        _lineage(scope, active)
+    return active
 
 
-def read_generation(root, dataset, cabinet, period, generation):
-    """Read an older pinned generation without consulting CURRENT."""
+def read_generation(root, dataset, cabinet, period, generation, *,
+                    expected_digest):
+    """Read only a CURRENT-anchored committed ancestor using caller's pin.
+
+    A staged candidate is never public, even if its generation.json is valid.
+    A pin must be obtained from a previous trusted read/commit receipt; this
+    digest is an integrity assertion, not a signature or secret capability.
+    """
+    if type(expected_digest) is not str or not _HASH_RE.fullmatch(expected_digest):
+        raise GenerationError("committed reader requires expected descriptor SHA256 pin")
     scope = _scope(root, dataset, cabinet, period)
-    return _read_generation(scope, generation)
+    active = _read_active_at(scope)
+    if active is None:
+        raise GenerationError("no committed CURRENT generation")
+    trusted = _lineage(scope, active)
+    if generation not in trusted:
+        raise GenerationError("generation not in committed CURRENT ancestry")
+    expected = trusted[generation]
+    if expected != expected_digest:
+        raise GenerationError("pinned generation digest mismatch")
+    return _read_generation(scope, generation, expected_digest)
+
+
+def _ensure_scope_durable(scope):
+    """fsync each newly introduced name in its parent, root through scope."""
+    _require_plain(scope)
+    missing = []
+    current = scope
+    while not current.exists():
+        missing.append(current)
+        if current == current.parent:
+            raise GenerationError("no existing filesystem ancestor")
+        current = current.parent
+    for folder in reversed(missing):
+        _require_plain(folder)
+        folder.mkdir()  # no parents=True: sync every new directory's parent
+        _sync_dir(folder.parent)
+        _sync_dir(folder)
 
 
 @contextmanager
 def _write_lock(scope):
-    # Check *before* mkdir: an attacker-controlled symlink in an ancestor
-    # must not cause our mkdir to create subdirectories outside archive root.
-    _require_plain(scope)
-    scope.mkdir(parents=True, exist_ok=True)
-    _require_plain(scope)
+    _ensure_scope_durable(scope)
     lock = scope / ".writer.lock"
     _require_plain(lock)
-    fd = os.open(str(lock), os.O_CREAT | os.O_RDWR, 0o600)
+    if lock.exists() and not lock.is_file():
+        raise GenerationError("invalid writer lock")
+    fd = os.open(str(lock), os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
     try:
+        os.fsync(fd)
+        _sync_dir(scope)  # durability of the newly created lock name
         fcntl.flock(fd, fcntl.LOCK_EX)
         yield
     finally:
@@ -265,16 +325,22 @@ def _sync_dir(path):
 
 
 def _lineage(scope, active):
-    """Verify the committed parent chain, without treating ancestors as orphan."""
-    accepted = set()
+    """Return CURRENT-anchored {generation:descriptor_sha256} for each ancestor.
+
+    Parent links are bound by the child descriptor digest. Repacking an
+    apparently consistent old CSV/metadata/descriptor cannot silently
+    rewrite previously committed history while CURRENT remains unchanged.
+    """
+    accepted = {}
     item = active
     while item is not None:
         name = item["generation"]
         if name in accepted:
             raise GenerationError("cyclic generation parent chain")
-        accepted.add(name)
+        accepted[name] = item["manifest_sha256"]
         parent = item["parent"]
-        item = _read_generation(scope, parent) if parent is not None else None
+        item = (_read_generation(scope, parent, item["parent_sha256"])
+                if parent is not None else None)
     return accepted
 
 
@@ -308,12 +374,14 @@ def publish_batch(root, dataset, cabinet, period, files, *,
     with _write_lock(scope):
         active = _read_active_at(scope)
         old_id = active["generation"] if active else None
+        old_digest = active["manifest_sha256"] if active else None
         # An interrupted, uncommitted generation is evidence requiring an
         # explicit recovery decision, not a candidate to silently overwrite.
         if _orphans(scope, _lineage(scope, active)):
             raise GenerationError("pending generation requires reviewed recovery")
         if active and active["files"] == files:
-            return {"changed": False, "generation": old_id, "status": "COMMITTED"}
+            return {"changed": False, "generation": old_id,
+                    "manifest_sha256": old_digest, "status": "COMMITTED"}
         if old_id != expected_generation:
             raise GenerationError("stale expected generation; re-read current")
         generation = uuid.uuid4().hex
@@ -325,7 +393,7 @@ def publish_batch(root, dataset, cabinet, period, files, *,
         for filename in sorted(files):
             _safe_write(stage / filename, files[filename])
             checkpoint("after_file:" + filename)
-        descriptor = _descriptor(scope.name, generation, old_id, files)
+        descriptor = _descriptor(scope.name, generation, old_id, old_digest, files)
         descriptor_raw = (json.dumps(descriptor, ensure_ascii=False, sort_keys=True,
                                      separators=(",", ":")) + "\n").encode("utf-8")
         _safe_write(stage / "generation.json", descriptor_raw)
@@ -343,7 +411,7 @@ def publish_batch(root, dataset, cabinet, period, files, *,
         except Exception as exc:
             raise CommitUncertainError("commit result uncertain; reconcile current") from exc
         return {"changed": True, "generation": generation, "parent": old_id,
-                "status": "COMMITTED"}
+                "manifest_sha256": _sha(descriptor_raw), "status": "COMMITTED"}
 
 
 def reconcile(root, dataset, cabinet, period):
@@ -363,7 +431,9 @@ def reconcile(root, dataset, cabinet, period):
             active = _read_active_at(scope)
             generations = _orphans(scope, _lineage(scope, active))
         except (OSError, ValueError) as exc:
-            return {"status": "RECOVERY_REQUIRED", "error": str(exc)}
+            return {"status": ("UNKNOWN_COMMIT_STATE" if
+                    "UNKNOWN_COMMIT_STATE" in str(exc) else "RECOVERY_REQUIRED"),
+                    "error": str(exc)}
         if active is None:
             return {"status": "EMPTY" if not generations else "PENDING",
                     "uncommitted_generations": generations}
