@@ -1,6 +1,7 @@
 """B7 opt-in generation experiments: synthetic fixtures, no network or VPS."""
 import json
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 
@@ -182,6 +183,64 @@ class GenerationTests(unittest.TestCase):
         files = wb_files(dataset="wb_weekly_finance_buyout")
         with self.assertRaises(GenerationError):
             publish_batch(*self.args, files)
+
+    def test_symlink_scope_is_rejected_before_directory_creation(self):
+        outside = Path(self.root.parent) / "outside"
+        outside.mkdir()
+        self.root.mkdir()
+        (self.root / ".b7-generations").symlink_to(outside,
+                                                    target_is_directory=True)
+        with self.assertRaisesRegex(GenerationError, "symbolic link forbidden"):
+            publish_batch(*self.args, wb_files())
+        self.assertEqual(list(outside.rglob("*")), [])
+
+    def test_two_writers_same_generation_cannot_lose_update(self):
+        first = publish_batch(*self.args, wb_files())
+        stage_reached = threading.Event()
+        proceed = threading.Event()
+        second_started = threading.Event()
+        outcomes = []
+
+        def slow_writer():
+            def barrier(where):
+                if where == "before_commit":
+                    stage_reached.set()
+                    if not proceed.wait(10):
+                        raise RuntimeError("test barrier expired")
+            try:
+                outcomes.append(("first", publish_batch(
+                    *self.args, wb_files("20"),
+                    expected_generation=first["generation"], fault=barrier)))
+            except Exception as exc:
+                outcomes.append(("first_error", str(exc)))
+
+        def stale_writer():
+            second_started.set()
+            try:
+                outcomes.append(("second", publish_batch(
+                    *self.args, wb_files("30"),
+                    expected_generation=first["generation"])))
+            except GenerationError as exc:
+                outcomes.append(("second_error", str(exc)))
+
+        a = threading.Thread(target=slow_writer)
+        b = threading.Thread(target=stale_writer)
+        a.start()
+        try:
+            self.assertTrue(stage_reached.wait(10))
+            b.start()
+            self.assertTrue(second_started.wait(10))
+        finally:
+            proceed.set()
+            a.join(10)
+            if b.ident is not None:
+                b.join(10)
+        self.assertFalse(a.is_alive())
+        self.assertFalse(b.is_alive())
+        self.assertEqual({x[0] for x in outcomes}, {"first", "second_error"})
+        self.assertIn("stale expected generation", outcomes[1][1]
+                      if outcomes[1][0] == "second_error" else outcomes[0][1])
+        self.assertEqual(read_active(*self.args)["files"], wb_files("20"))
 
     def test_failing_precommit_does_not_mutate_legacy_canonical_paths(self):
         before = list((self.root / "База данных").rglob("*.csv"))
