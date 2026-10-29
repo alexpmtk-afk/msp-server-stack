@@ -1,0 +1,7 @@
+................................................................
+----------------------------------------------------------------------
+Ran 64 tests in 0.704s
+
+OK
+PROJECT_IMPORTS_PINNED {'apps.msp_marketplace_reports': '/home/hermes/.hermes/cache/scratch/marketplace-r3-review-2f1c9427/apps/msp_marketplace_reports/__init__.py', 'apps.msp_marketplace_reports.archive': '/home/hermes/.hermes/cache/scratch/marketplace-r3-review-2f1c9427/apps/msp_marketplace_reports/archive.py', 'apps.msp_marketplace_reports.providers': '/home/hermes/.hermes/cache/scratch/marketplace-r3-review-2f1c9427/apps/msp_marketplace_reports/providers.py', 'apps.msp_marketplace_reports.shared_rate_limit': '/home/hermes/.hermes/cache/scratch/marketplace-r3-review-2f1c9427/apps/msp_marketplace_reports/shared_rate_limit.py', 'apps.msp_marketplace_reports.quota': '/home/hermes/.hermes/cache/scratch/marketplace-r3-review-2f1c9427/apps/msp_marketplace_reports/quota.py', 'apps.msp_marketplace_reports.runtime': '/home/hermes/.hermes/cache/scratch/marketplace-r3-review-2f1c9427/apps/msp_marketplace_reports/runtime.py', 'apps.msp_marketplace_reports.ingest': '/home/hermes/.hermes/cache/scratch/marketplace-r3-review-2f1c9427/apps/msp_marketplace_reports/ingest.py'}
+STOCK_TESTS 64 PASS
