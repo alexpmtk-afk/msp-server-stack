@@ -1,0 +1,14 @@
+{"cases": 14, "check": "CALENDAR_AND_SIX_CABINETS", "status": "PASS"}
+{"cases": 2, "check": "WB_BOTH_TYPES_LAYOUTS", "status": "PASS"}
+{"check": "MISSING_CURRENT_FAIL_CLOSED", "kind": "wb", "planned_actions": ["REVIEW_ARCHIVE"], "planned_statuses": ["VERIFY_FAILED"], "reconcile": "UNKNOWN_COMMIT_STATE"}
+{"check": "MISSING_CURRENT_FAIL_CLOSED", "kind": "ozon", "planned_actions": ["REVIEW_ARCHIVE"], "planned_statuses": ["VERIFY_FAILED"], "reconcile": "UNKNOWN_COMMIT_STATE"}
+{"check": "R98_1_DANGLING_FINAL", "file": "csv", "importer_blocks": true, "planner_state": "LOCAL_VERIFIED"}
+{"check": "R98_1_DANGLING_FINAL", "file": "manifest", "importer_blocks": true, "planner_state": "LOCAL_VERIFIED"}
+{"check": "R98_1_EMPTY_LEGACY_DIRECTORY", "importer_blocks": false, "planner_state": "MIXED_UNSAFE"}
+{"check": "LIVE_BLOCKER_63_VS_65", "elapsed": 63.0, "error": "API DOWNLOAD PAUSED: synthetic shared quota busy", "local_wait": 63.0, "requests_sent": 1, "shared_safety": 65.0}
+{"check": "LIVE_BLOCKER_NO_CHECKPOINT", "requested_cursors": [0, 1, 0, 1]}
+{"check": "WB_BOUNDARY_DISCOVERY", "new_start": "2026-01-01", "old_documented_start": "2025-12-29", "provider_boundary_semantics": "NOT_VERIFIED"}
+{"check": "P01_WB_KEYS", "common_keys": [], "new": [{"interval": 60.0, "key": "marketplace-rate:v1:wb:a8f14ff6c05213f99103648346ff4c092be6797d341234b9c05e0a382225f7c6:catalog:bbffd06d184fc75fef50"}, {"interval": 65.0, "key": "marketplace-rate:v1:wb:a8f14ff6c05213f99103648346ff4c092be6797d341234b9c05e0a382225f7c6:msp-finance-safety"}], "old": [{"interval": 60.0, "key": "marketplace-rate:v1:wb:a8f14ff6c05213f99103648346ff4c092be6797d341234b9c05e0a382225f7c6:catalog:8e3edef7324d018a05b2"}], "owner_equal": true}
+{"blocked_paths": ["/v1/finance/realization/posting", "/v3/posting/fbo/list", "/v4/posting/fbs/list", "/v1/finance/accrual/by-day"], "check": "P01_OZON_IDENTITY_AND_DENIAL", "owner_equal": true}
+{"check": "P01_CONTROLLER_SOURCE", "exact_copy": true, "legacy_sha": "0510a409ab589c639930fbca35afb3e68d874f81"}
+{"check": "COMPLETE", "synthetic_only": true}

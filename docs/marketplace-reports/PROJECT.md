@@ -83,3 +83,8 @@ current_repair PR №97 на `ba465288406f68dacb4a2557019a488716d55ba6` неза
 ### Актуальный итог третьего блока — 9b2c3bd
 
 R97-1/R97-2 и третий офлайн opt-in блок PR №97 **SCOPED PASS** на `9b2c3bdf608e5e1c8526f8a2cb36dd999642d3fe`: [независимый итог](REVIEW_B7_R97_9B2C3BD.md), 140 штатных tests PASS + 252 собственных сценария, 59 baseline отдельно. Повтор VERIFIED завершает journal durability без перезаписи evidence; неверные типы schema отклоняются без изменений. Старый ba46528 FAIL сохраняется как история; core/stage2 acceptance не отменена. Можно продолжать отдельно принимаемые офлайн части B7. Полная B7 OPEN; подлинность operator witness, P01 и power-loss NOT VERIFIED. Никакого допуска merge/deploy/API или рабочего восстановления этим результатом не выдано.
+
+
+### Приоритет 30.10.2026 — загрузка истории, комплексная ревизия PR98
+
+Цель — первые проверенные отчёты и gap-only backfill 2026, не ожидание завершения всех B7 возможностей. [Итог 7a5f60c](REVIEW_DOWNLOAD_READINESS_PR98_7A5F60C.md): 147 tests PASS, 27 независимых сценариев, PR98 FAIL по ограниченному inventory R98-1. Готовые старые cursor/staging/registry и Ozon adapters найдены. Блокеры первой загрузки: несовпадающий WB scope finance/msp_finance_reports, 63/65 pacing, отсутствующее persisted page-resume, Ozon allowlist/contracts, фактическое P01 и отдельный live release gate. WB и Ozon можно готовить параллельно, B7 full OPEN не запрещает отдельный чистый pilot после этих проверок и разрешения. Фактическое состояние VPS, старая полнота/скорость, P01 runtime и свежие полные Ozon method schemas NOT VERIFIED; ключи не читались, API/Redis/установка не выполнялись.

@@ -1,0 +1,9 @@
+{
+  "reviewed_sha": "7a5f60c47e909c5e1c49310a82f3b3980b54a320",
+  "stock_tests": 147,
+  "independent_scenarios": 27,
+  "legacy_main": "0510a409ab589c639930fbca35afb3e68d874f81",
+  "cloud_infra_main": "20ecc256ba9644cb0b5e8e7bdf7bef7c65fa196c",
+  "pr98_verdict": "FAIL: R98-1 legacy FINAL inventory mismatch",
+  "runtime_readiness": "NOT READY; no production connections attempted"
+}
