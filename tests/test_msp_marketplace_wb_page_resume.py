@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from apps.msp_marketplace_reports.generation_store import GenerationError
 from apps.msp_marketplace_reports.providers import ProviderError
@@ -78,6 +79,65 @@ class WBPageResumeTests(unittest.TestCase):
         self.assertEqual(replay["provider_calls"], 0)
         self.assertEqual(sent, [0])
         self.assertEqual(self.step(lambda req: (204, None))["status"], "STAGED_COMPLETE")
+
+    def test_pending_page_tamper_rejected_before_cursor_ack(self):
+        def crash(_):
+            raise OSError("interrupted before state commit")
+        with self.assertRaises(OSError):
+            self.step(lambda _: (200, [{"reportId": 555, "rrdId": 10,
+                                        "reportType": 1, "amount": "10"}]), fault=crash)
+        staged = self.folder() / "page-0.json"
+        value = json.loads(staged.read_bytes())
+        self.assertEqual(value["rows"][0]["amount"], "10")
+        self.assertEqual(len(value["payload_sha256"]), 64)
+        value["rows"][0]["amount"] = "99"
+        staged.write_text(json.dumps(value), encoding="utf-8")
+        state = self.folder() / "state.json"
+        saved = state.read_bytes()
+        with self.assertRaisesRegex(GenerationError, "payload checksum mismatch"):
+            self.step(lambda _: (_ for _ in ()).throw(AssertionError("no HTTP on corrupt page")))
+        self.assertEqual(state.read_bytes(), saved)
+        self.assertEqual(json.loads(state.read_bytes())["current_rrd_id"], 0)
+
+    def test_pending_page_whitespace_replay_uses_raw_file_hash(self):
+        def crash(_):
+            raise OSError("interrupted before state commit")
+        with self.assertRaises(OSError):
+            self.step(lambda _: (200, [{"reportId": 555, "rrdId": 10,
+                                        "reportType": 1}]), fault=crash)
+        staged = self.folder() / "page-0.json"
+        staged.write_bytes(b"  " + staged.read_bytes())
+        resumed = self.step(lambda _: (_ for _ in ()).throw(
+            AssertionError("pending page must replay without HTTP")))
+        self.assertTrue(resumed["replayed_after_interruption"])
+        self.assertEqual(self.step(lambda _: (204, None))["status"], "STAGED_COMPLETE")
+        pages = list(read_completed_wb_pages(self.root, self.cabinet,
+                                             self.year, self.report_id, self.kind))
+        self.assertEqual(pages[0][0]["rrdId"], 10)
+
+    def test_oversize_serialized_page_rejected_before_stage_write(self):
+        with patch("apps.msp_marketplace_reports.wb_page_resume.MAX_STAGE_BYTES", 4096):
+            with self.assertRaisesRegex(ProviderError, "staging size limit"):
+                self.step(lambda request: (200, [{
+                    "reportId": 555, "rrdId": 10, "reportType": 1,
+                    "amount": "x" * 5000,
+                }]))
+            self.assertFalse((self.folder() / "page-0.json").exists())
+            state = json.loads((self.folder() / "state.json").read_bytes())
+            self.assertEqual(state["current_rrd_id"], 0)
+            result = self.step(lambda request: (200, [{
+                "reportId": 555, "rrdId": 10, "reportType": 1,
+            }]))
+            self.assertEqual(result["cursor"], 10)
+            self.assertFalse(result["replayed_after_interruption"])
+
+    def test_page_request_uses_bounded_provider_batch(self):
+        requests = []
+        def send(request):
+            requests.append(request.body)
+            return 200, [{"reportId": 555, "rrdId": 1, "reportType": 1}]
+        self.step(send)
+        self.assertEqual(requests, [{"limit": 1000, "rrdId": 0}])
 
     def test_busy_error_leaves_cursor_unchanged_and_persisted(self):
         self.step(lambda _: (200, [{"reportId": 555, "rrdId": 10, "reportType": 1}]))
