@@ -121,6 +121,52 @@ class BackfillPlanTests(unittest.TestCase):
         self.assertEqual(len(self.plan({"wb_laser_master": data})["tasks"]), 40)
         self.assertFalse(self.root.exists())
 
+    def test_r98_1_dangling_annual_and_meta_symlink_are_mixed_unsafe(self):
+        # Exact Hermes bug: a dangling annual CSV or manifest is an artifact.
+        from apps.msp_marketplace_reports.archive import _ozon_annual_path
+        from apps.msp_marketplace_reports.versioned_archive import import_csv_versioned
+        for suffix in ("", ".meta.json"):
+            with self.subTest(suffix=suffix):
+                root = self.root.parent / ("r98-link-" + (suffix or "csv").replace(".", ""))
+                csv_file(self.source, ["report_year", "report_month", "row_number", "qty"], [
+                    {"report_year": "2026", "report_month": "2026-01",
+                     "row_number": "1", "qty": "7"}])
+                import_csv_versioned(root, "ozon_final_realization",
+                                     "ozon_dmitrieva", "2026-01", self.source)
+                path = _ozon_annual_path(root, "ozon_dmitrieva", "2026")
+                link = path.with_name(path.name + suffix)
+                link.parent.mkdir(parents=True, exist_ok=True)
+                link.symlink_to(root.parent / "missing-target")
+                data = build_backfill_plan(root, year=2026, as_of=self.asof)
+                jan = next(t for t in data["tasks"] if t.get("dataset") ==
+                           "ozon_final_realization" and t["cabinet"] == "ozon_dmitrieva"
+                           and t["period"] == "2026-01")
+                self.assertEqual(jan["status"], "MIXED_UNSAFE")
+                self.assertEqual(jan["action"], "REVIEW_ARCHIVE")
+                with self.assertRaises(ValueError):
+                    import_csv_versioned(root, "ozon_final_realization",
+                                         "ozon_dmitrieva", "2026-01", self.source)
+
+    def test_r98_1_empty_legacy_monthly_source_is_not_mixed(self):
+        from apps.msp_marketplace_reports.archive import _location
+        root = self.root.parent / "r98-empty-container"
+        csv_file(self.source, ["report_year", "report_month", "row_number", "qty"], [
+            {"report_year": "2026", "report_month": "2026-01",
+             "row_number": "1", "qty": "5"}])
+        import_csv_versioned(root, "ozon_final_realization",
+                             "ozon_dmitrieva", "2026-01", self.source)
+        directory = _location(root, "ozon_final_realization",
+                              "ozon_dmitrieva", "2026-01").parent
+        directory.mkdir(parents=True, exist_ok=True)
+        result = build_backfill_plan(root, year=2026, as_of=self.asof)
+        jan = next(t for t in result["tasks"] if t.get("dataset") ==
+                   "ozon_final_realization" and t["cabinet"] == "ozon_dmitrieva"
+                   and t["period"] == "2026-01")
+        self.assertEqual(jan["status"], "LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE")
+        same = import_csv_versioned(root, "ozon_final_realization",
+                                    "ozon_dmitrieva", "2026-01", self.source)
+        self.assertFalse(same["changed"])
+
     def test_open_month_is_not_mislabeled_closed_final(self):
         data = self.plan()
         closed = [t for t in data["tasks"] if t.get("dataset") == "ozon_final_realization"]
