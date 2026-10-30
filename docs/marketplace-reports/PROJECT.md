@@ -93,3 +93,8 @@ R97-1/R97-2 и третий офлайн opt-in блок PR №97 **SCOPED PASS*
 ### Актуальная комплексная проверка PR98 — e6dd960
 
 [Повторный итог](REVIEW_PR98_E6DD960.md): PR98 FAIL из-за новых R98-2 pending-page integrity, R98-3 write/read size mismatch, R98-4 Ozon shared cooldown. Прежние R98-1/WB keys/66s pacing/preflight приняты;161 stock PASS и213 дополнительных сценариев, включая контрпримеры. Требуются ограниченные исправления и thin integration со старым worker, не новая B7 подсистема. P01 runtime/полные Ozon method schemas NOT VERIFIED, общие50RPS подтверждены. Приоритет — разрешённый малый pilot после gate, не ожидание полного auto-repair. B7 OPEN, нет deployment/API/Redis/чтения секретов.
+
+
+### Актуальный итог — d6ab584, R98-2/3/4 приняты
+
+[Комплексная приёмка и письмо](REVIEW_PR98_D6AB584_AND_HANDOFF.md): PR98 SCOPED OFFLINE PASS,167 штатных и79 дополнительных сценариев. Прежние R98-2/3/4 устранены; новых блокирующих дефектов не найдено. Hermes подготовил рабочий synthetic vertical slice и [конкретное wiring решение](COLLABORATION_AND_WB_WIRING_20261030.md), актуализировал installed instructions без app deployment. Предстоят thin adapter одного старого scheduler к local page/CSV/generation/coverage, placement, structured retry и owner-approved P01. Ozon exact schemas/history/special limits NOT VERIFIED. Полная B7 OPEN не prerequisite чистого fail-stop pilot; merge/deploy/live API не разрешены. Стандартная production-копия не содержит этих feature-модулей по проверенному пути, другие копии не инвентаризированы.

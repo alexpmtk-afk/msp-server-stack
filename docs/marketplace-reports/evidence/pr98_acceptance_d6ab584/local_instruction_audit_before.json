@@ -1,0 +1,32 @@
+{
+  "standard_checkout_sha": "08ff37b158ae367789b00c36d8f4706cd107fbcc",
+  "paths": [
+    {
+      "path": "/opt/mcp/projects/msp-server-stack/apps/msp_marketplace_reports",
+      "status": "NOT_PRESENT_AT_THIS_PATH"
+    },
+    {
+      "path": "/opt/mcp/projects/msp-server-stack/docs/marketplace-reports",
+      "status": "NOT_PRESENT_AT_THIS_PATH"
+    },
+    {
+      "path": "/home/hermes/.hermes/skills/productivity/data-pipeline-operations/SKILL.md",
+      "status": "PRESENT",
+      "kind": "file",
+      "sha256": "e2e69ae080d4d56a95973f5ff3ea890876ef132770a9b94be22d00564fcc1bad"
+    },
+    {
+      "path": "/home/hermes/.hermes/skills/productivity/data-pipeline-operations/references/msp-marketplace-report-archive.md",
+      "status": "PRESENT",
+      "kind": "file",
+      "sha256": "4741a93b9df8d20fe9826e77d615b907154cc8110229267122d400816f4dd3d1"
+    },
+    {
+      "path": "/home/hermes/.hermes/skills/productivity/data-pipeline-operations/references/financial-archive-audits.md",
+      "status": "PRESENT",
+      "kind": "file",
+      "sha256": "d331cd24fd974b921c12109a708d9d2dda876f3fc86bf622792be8ec4fe377a1"
+    }
+  ],
+  "scope": "Only standard checkout and default-profile instructions; no credentials, environment secrets, Redis, processes or services read. Other installed copies NOT VERIFIED."
+}

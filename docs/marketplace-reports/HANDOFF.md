@@ -390,3 +390,12 @@ PR98 scoped FAIL только по R98-1: FINAL legacy inventory пропуск�
 Новые дефекты: R98-2 pending page до state не имеет закреплённого digest, replay благословляет changed amount новым SHA; whitespace даёт cursor advance с неверным raw hash. R98-3 write больше64MiB допускается при read cap64MiB (воспроизведение scaled4096/5162), собственный pending file блокирует retry. R98-4 Ozon safety добавлен к global, но defer отбрасывает global при specific: Retry-After120 записывается только в msp-finance-safety на всех4 путях. Флаги/окружение production не менялись, fake backend/no network. Код исправляет автор; review не новый этап B7.
 
 Стандартный page/cursor crash replay работает, но модуль не ready drop-in до целостности pending/размерной правки и thin async worker/writer adapter. Ozon официальные версии/назначение подтверждены частично, полные свежие schemas и special limits всех4 NOT VERIFIED; общий50RPS подтверждён. P01 runtime NOT VERIFIED, B7 full OPEN. Нет VPS/Redis/API/secrets/merge/deploy; результаты и evidence опубликованы только в своей ветке.
+
+
+## 2026-10-30 — Hermes: R98-2/3/4 PASS и совместный этап A–Г на d6ab584
+
+[Единое письмо](REVIEW_PR98_D6AB584_AND_HANDOFF.md): точный d6ab584b7bc66c94911bece097e1e3e7c3e302be, code a7f55bee6fa8a54147b9242f4810c3141eec040f; R98-2 PASS, R98-3 PASS, R98-4 PASS, PR98 SCOPED OFFLINE PASS.167 stock и79 независимых сценариев;8 actual SIGKILL,12 fsync EIO/retry. Новых блокирующих дефектов не найдено; прежние FAIL своих SHA сохранены как история.
+
+Hermes самостоятельно подготовил runnable WB vertical slice (main/buyout→page/state→CSV→generation pin→synthetic coverage;6 cases), [схему и список файлов wiring](COLLABORATION_AND_WB_WIRING_20261030.md), [P01 evidence contract](P01_PILOT_EVIDENCE_REQUEST_20261030.md), [Ozon method matrix](OZON_METHOD_EVIDENCE_MATRIX_20261030.json), минимальный CI quota path patch. Реальный старый worker не подключён; один scheduler/один cursor/structured not_before, без двойного резервирования, с проверкой host placement.
+
+Локальные default-profile project/audit Skills обновлены и зеркалированы; source hashes и standard-checkout metadata сохранены. В стандартном checkout08ff37b архивных модулей/доков и целевого data root нет по проверенным путям; другие копии NOT VERIFIED. Credentials/Redis/services/processes не читались/не менялись. P01 runtime и4 полных Ozon specs/special quotas NOT VERIFIED, B7 OPEN. Следующий этап: ChatGPT thin wiring+public specs; Hermes independent review и только отдельно разрешённый VPS preflight, затем owner-approved pilot. Не fullB7.
