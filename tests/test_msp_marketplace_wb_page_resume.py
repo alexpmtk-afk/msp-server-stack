@@ -28,7 +28,7 @@ class WBPageResumeTests(unittest.TestCase):
 
     def folder(self):
         return (self.root / ".wb-report-stage" / self.cabinet /
-                str(self.year) / str(self.report_id))
+                str(self.year) / (str(self.report_id) + "-type-" + str(self.kind)))
 
     def test_two_pages_busy_and_resume_from_last_saved_cursor(self):
         calls = []

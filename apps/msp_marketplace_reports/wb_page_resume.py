@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .archive import _lock, _safe_write, _sha, _validate
 from .generation_store import GenerationError, _ensure_scope_durable, _require_plain
 from .providers import ProviderError, Request, WB_DETAIL, _positive_id
+from .quota import QuotaBusy
 
 MAX_STAGE_BYTES = 64 * 1024 * 1024
 
@@ -52,8 +54,13 @@ def _read_json(path, *, required=False, with_bytes=False):
     return (value, data) if with_bytes else value
 
 
-def _dir(root, cabinet, year, report_id):
-    return Path(root).expanduser() / ".wb-report-stage" / cabinet / str(year) / str(report_id)
+def _dir(root, cabinet, year, report_id, report_type):
+    # The same numerical report ID can appear in different report families.
+    # A distinct durable page state/cursor per report type is mandatory.
+    if type(report_type) is not int or report_type not in (1, 2):
+        raise ValueError("invalid WB stage report type")
+    return (Path(root).expanduser() / ".wb-report-stage" / cabinet / str(year) /
+            (str(report_id) + "-type-" + str(report_type)))
 
 
 def _validate_state(state, cabinet, year, report_id, report_type):
@@ -134,6 +141,18 @@ def _replay_or_advance(folder, state, report_id, report_type):
             "replayed_after_interruption": True}
 
 
+def _waiting(state, path, delay, attempts):
+    delay = max(66.0, float(delay))
+    state["status"] = "WAITING_RATE_LIMIT"
+    _safe_write(path, _canonical(state))
+    return {"status": "WAITING_RATE_LIMIT",
+            "current_rrd_id": state["current_rrd_id"],
+            "pages": len(state["pages"]), "provider_calls": attempts,
+            "retry_after_seconds": delay,
+            "not_before_utc": (datetime.now(timezone.utc) +
+                                timedelta(seconds=delay)).isoformat()}
+
+
 def step_wb_detail(root, cabinet: str, year: int, report_id: int,
                    report_type: int, send, *, fault=None):
     """One durable step per invocation; never mark COMPLETE without HTTP 204."""
@@ -143,7 +162,7 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
         raise ValueError("invalid WB report identifier/type")
     dataset = "wb_weekly_finance_main" if report_type == 1 else "wb_weekly_finance_buyout"
     _validate(dataset, cabinet, str(year))
-    folder = _dir(root, cabinet, year, report_id)
+    folder = _dir(root, cabinet, year, report_id, report_type)
     with _lock(root, cabinet, dataset):
         _checked(folder)
         _ensure_scope_durable(folder)
@@ -180,22 +199,14 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
                           {"limit": 1000, "rrdId": state["current_rrd_id"]})
         try:
             status, rows = send(request)
+        except QuotaBusy as exc:
+            return _waiting(state, path, exc.retry_after_seconds, exc.provider_calls)
         except ProviderError as exc:
             if "quota busy" not in str(exc) and "rate limit" not in str(exc):
                 raise
-            state["status"] = "WAITING_RATE_LIMIT"
-            _safe_write(path, _canonical(state))
-            return {"status": "WAITING_RATE_LIMIT",
-                    "current_rrd_id": state["current_rrd_id"],
-                    "pages": len(state["pages"]), "provider_calls": 0,
-                    "reason": "shared quota busy"}
+            return _waiting(state, path, 66.0, 0)
         if status == 429:
-            state["status"] = "WAITING_RATE_LIMIT"
-            _safe_write(path, _canonical(state))
-            return {"status": "WAITING_RATE_LIMIT",
-                    "current_rrd_id": state["current_rrd_id"],
-                    "pages": len(state["pages"]), "provider_calls": 1,
-                    "reason": "provider rate limited"}
+            return _waiting(state, path, 66.0, 1)
         if status == 204:
             _verify_pages(folder, state, report_id, report_type)
             if not state["pages"]:
@@ -257,7 +268,7 @@ def read_completed_wb_pages(root, cabinet: str, year: int, report_id: int,
     """Return verified page iterator data after provider 204; no archive write."""
     dataset = "wb_weekly_finance_main" if report_type == 1 else "wb_weekly_finance_buyout"
     _validate(dataset, cabinet, str(year))
-    folder = _dir(root, cabinet, year, report_id)
+    folder = _dir(root, cabinet, year, report_id, report_type)
     with _lock(root, cabinet, dataset):
         state = _read_json(folder / "state.json", required=True)
         _validate_state(state, cabinet, year, report_id, report_type)

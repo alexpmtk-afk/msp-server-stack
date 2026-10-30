@@ -89,6 +89,13 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
     wb.add_argument("--year", type=int, default=2026)
     wb.add_argument("--report-id", type=int, required=True)
     wb.add_argument("--report-type", type=int, choices=(1, 2), required=True, help="confirmed WB report type from report list")
+    versioned_wb = actions.add_parser(
+        "wb-versioned-step",
+        help="explicit one-step WB durable resume/versioned archive; needs approved quota")
+    versioned_wb.add_argument("--cabinet", required=True)
+    versioned_wb.add_argument("--year", type=int, default=2026)
+    versioned_wb.add_argument("--report-id", type=int, required=True)
+    versioned_wb.add_argument("--report-type", type=int, choices=(1, 2), required=True)
     final = actions.add_parser("ozon-final-one", help="read one closed month and import")
     final.add_argument("--cabinet", required=True)
     final.add_argument("--period", required=True)
@@ -137,6 +144,12 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
             result["report_type"] = report_type
             result["report_id"] = args.report_id
             result["status"] = "LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE"
+        elif args.action == "wb-versioned-step":
+            # Explicit opt-in only, never silent replacement of legacy wb-one.
+            # No scheduler, no retry loop, no API call without shared Redis gate.
+            from .wb_worker_adapter import run_one_step
+            result = run_one_step(args.root, args.cabinet, args.year,
+                                  args.report_id, args.report_type, sender)
         elif args.action == "ozon-final-one":
             target = _closed_month(args.period)
             _reject_versioned_scope(Path(args.root).expanduser(),

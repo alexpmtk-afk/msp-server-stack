@@ -46,6 +46,15 @@ OZON_APPROVED_PATHS = frozenset((
 REQUIRED_APPROVAL_ENV = "MSP_REPORTS_SHARED_QUEUE_VERIFIED"
 
 
+class QuotaBusy(ProviderError):
+    """Typed, redacted shared quota wait for an external durable scheduler."""
+
+    def __init__(self, wait_seconds: float, reason="shared quota busy", *, provider_calls=0):
+        self.retry_after_seconds = max(0.0, float(wait_seconds))
+        self.provider_calls = provider_calls
+        super().__init__("API DOWNLOAD PAUSED: " + reason)
+
+
 def stable_owner_key(marketplace: str, credentials: Mapping[str, str]) -> str:
     """Use the exact account-derived hash as the legacy core/client.py.
 
@@ -174,7 +183,7 @@ class SharedQuota:
         except (RateLimitUnavailable, OSError, RuntimeError):
             raise ProviderError("API DOWNLOAD BLOCKED: shared queue reservation failed") from None
         if not granted:
-            raise ProviderError("API DOWNLOAD PAUSED: shared quota busy; retry later")
+            raise QuotaBusy(wait, "shared quota busy; retry later")
         return rules
 
     def cooldown(self, rules, headers):
@@ -200,3 +209,4 @@ class SharedQuota:
             asyncio.run(_with_controller(url, execute))
         except (RateLimitUnavailable, OSError, RuntimeError):
             raise ProviderError("API DOWNLOAD BLOCKED: shared cooldown storage failed") from None
+        return delay

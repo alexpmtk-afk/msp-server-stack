@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from .archive import CABINETS
-from .quota import SharedQuota
+from .quota import SharedQuota, QuotaBusy
 from .providers import (
     ProviderError, Request, WB_LIST, WB_DETAIL, OZON_FINAL, OZON_FBO, OZON_FBS, OZON_ACCRUAL,
 )
@@ -183,7 +183,8 @@ class ReadOnlyHTTP:
                 # Record a global shared provider cooldown; do not retry or
                 # expose response body, headers or the request containing keys.
                 if int(e.code) == 429:
-                    self.quota.cooldown(rules, e.headers)
+                    delay = self.quota.cooldown(rules, e.headers)
+                    raise QuotaBusy(delay, "provider rate limit after shared cooldown", provider_calls=1) from None
                 return int(e.code), None
             except (urllib.error.URLError, TimeoutError, OSError):
                 raise ProviderError("provider transport unavailable; retry with saved cursor") from None
