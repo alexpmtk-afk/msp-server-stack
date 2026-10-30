@@ -21,9 +21,16 @@ DB = Path("/opt/mcp/data/msp/msp_data.sqlite3")
 CONFIG = Path("/home/hermes/.codex/config.toml")
 SKILL_SCRIPTS = Path("/home/hermes/.hermes/skills/productivity/msp-self-purchases/scripts")
 MAX_READS = 24
+ROOT = Path(__file__).resolve().parents[2]
+if (ROOT / 'apps/msp_self_analytics').is_dir():
+    sys.path.insert(0, str(ROOT))
 
 
 def _modules():
+    if (ROOT / 'apps/msp_self_analytics').is_dir():
+        from apps.msp_self_analytics.sku_request import plan_requested_sku, resolve_catalog_listing
+        from apps.msp_self_analytics.self_purchase_analysis import build_observational_case
+        return plan_requested_sku, resolve_catalog_listing, build_observational_case
     if not SKILL_SCRIPTS.is_dir():
         raise RuntimeError("SKILL_SCRIPTS_UNAVAILABLE")
     sys.path.insert(0, str(SKILL_SCRIPTS))
@@ -247,15 +254,19 @@ def _report_ozon_ratings(store,sku,day,provider_factory):
                 'mpstats_calls':0,'history_checkpoint_count':len(checkpoints),
                 'causal_effect_proven':False,'marketplace_actions_allowed':False}
     client=provider_factory()
-    collected=collect_rating_evidence(client,marketplace='oz',sku=sku,checkpoints=checkpoints,max_reads=MAX_READS)
+    collected=collect_rating_evidence(client,marketplace='oz',sku=sku,checkpoints=checkpoints,max_reads=MAX_READS,as_of=day)
     text=['OZON; магазин '+store+'. История оценок и отзывов по отдельным датам реестра.']
     for cp in checkpoints:
+        stars=collected['star_summaries'].get(cp['checkpoint_number'])
+        if stars:
+            from apps.msp_self_analytics.rating_history_query import format_review_date_summary_ru
+            text.append(format_review_date_summary_ru(stars))
         e=collected['evidence'].get(cp['checkpoint_number'])
         if e:text.append(format_review_source_evidence_ru(e))
         else:text.append('Контроль '+str(cp['checkpoint_number'])+': завершённое окно ещё недоступно.')
     text.append('Заказы, выручка и цены Ozon этим исследованием источников не подтверждены; значения WB не подставлялись. Полные новые 4–5★ неизвестны, независимые покупатели и причинный эффект не установлены. Денежная окупаемость отложена.')
     return {'status':'OBSERVATIONAL_REPORT_PARTIAL','marketplace':'oz','text':'\n'.join(text),
-            'review_source_evidence':collected['evidence'],'mpstats_calls':client.calls,
+            'review_source_evidence':collected['evidence'],'star_summaries':collected['star_summaries'],'mpstats_calls':client.calls,
             'history_checkpoint_count':len(checkpoints),'order_history_status':'OZON_FULL_METRICS_NOT_VERIFIED',
             'causal_effect_proven':False,'marketplace_actions_allowed':False}
 
@@ -273,6 +284,24 @@ def report_card(marketplace, store, sku, *, as_of=None,
     marketplace, store, sku = (
         match["marketplace"], match["store"], match["marketplace_sku"])
     day = as_of or dt.datetime.now(ZoneInfo("Europe/Moscow")).date().isoformat()
+    from apps.msp_self_analytics.sku_request import load_existing_series
+    try:
+        registered=load_existing_series(DB,marketplace=marketplace,store=store,sku=sku)
+    except ValueError as exc:
+        if str(exc)!='SKU_HAS_NO_RECORDED_PURCHASES':raise
+        registered=[]
+    if not any(row.get('review_date') for row in registered):
+        from apps.msp_self_analytics.rating_history_query import query_history, format_history_ru
+        client=provider_factory()
+        last=dt.date.fromisoformat(day)-dt.timedelta(days=1)
+        history=query_history(client,marketplace=marketplace,sku=sku,
+            d1=(last-dt.timedelta(days=89)).isoformat(),d2=last.isoformat(),as_of=day)
+        return {'status':'NO_REGISTERED_REVIEW_DATES','marketplace':marketplace,'store':store,
+            'text':('Карточка '+sku+'; магазин '+store+'. В реестре нет зарегистрированной даты '
+                    'собственного отзыва. Сравнение до/после не выполнено; дата покупки не подставляется. '
+                    'Укажите дату отзыва для сравнения. Ниже только история оценок за последние 90 завершённых дней.\n'+format_history_ru(history)),
+            'rating_history':history,'mpstats_calls':client.calls,'causal_effect_proven':False,
+            'marketplace_actions_allowed':False}
     if marketplace=="oz":
         return _report_ozon_ratings(store,sku,day,provider_factory)
     selected = planner(DB, marketplace=marketplace, store=store, sku=sku,
@@ -289,6 +318,12 @@ def report_card(marketplace, store, sku, *, as_of=None,
     if plan["provider_read_count"] > MAX_READS:
         raise RuntimeError("PROVIDER_CALL_LIMIT_EXCEEDED")
     client = provider_factory()
+    from apps.msp_self_analytics.marketplace_rating_sources import collect_rating_evidence
+    preliminary=builder(selected["rows_for_local_analysis_only"], {}, as_of=day, requested_days=90)
+    # Ratings are mandatory; optional full/keyword metrics use the remaining
+    # shared budget, not the other way around.
+    collected=collect_rating_evidence(client,marketplace='wb',sku=sku,
+        checkpoints=preliminary['history']['checkpoints'],max_reads=MAX_READS,as_of=day)
     observations = {}
     passed = 0
     for request in plan["requests"]:
@@ -307,15 +342,7 @@ def report_card(marketplace, store, sku, *, as_of=None,
                 "lost_profit")})
         if state in ("PASS_JSON", "PASS_STRUCTURED") and stats:
             passed += 1
-    # Marketplace-specific source extraction; common formulas and windows.
-    try:
-        from apps.msp_self_analytics.marketplace_rating_sources import collect_rating_evidence
-    except ModuleNotFoundError:
-        from marketplace_rating_sources import collect_rating_evidence
-    from own_order_reconciliation import fetch_own_wb_orders, format_own_orders_ru
-    preliminary=builder(selected["rows_for_local_analysis_only"], observations, as_of=day, requested_days=90)
-    collected=collect_rating_evidence(client,marketplace='wb',sku=sku,
-        checkpoints=preliminary['history']['checkpoints'],max_reads=MAX_READS)
+    from apps.msp_self_analytics.own_order_reconciliation import fetch_own_wb_orders, format_own_orders_ru
     review_sources=collected['evidence'];dated_ratings=collected['dated_rating_sources']
     dated_activity={number:{'status':'UNAVAILABLE','reason':'WB_DAILY_NEW_REVIEWS_NOT_VERIFIED'} for number in review_sources}
     own_sources={};own_text=[]
@@ -340,7 +367,7 @@ def report_card(marketplace, store, sku, *, as_of=None,
     provider_keyword_rows = {}
     extra_price_status = "NOT_READ_CALL_BUDGET"
     if client.calls + len(plan["requests"]) <= MAX_READS:
-        import external_visibility_evidence as _mpstats_external
+        from apps.msp_self_analytics import external_visibility_evidence as _mpstats_external
         extra_price_status = "CHECKED_PROVIDER_SPARSE_HISTORY"
         for request in plan["requests"]:
             content, state = client.call("wb_sku", {
@@ -374,11 +401,14 @@ def report_card(marketplace, store, sku, *, as_of=None,
             "Внешний ряд MPSTATS client_price: не запрашивался из-за "+
             "ограничения количества вызовов; неизвестно не означает постоянную цену.")
     conclusions=[format_checkpoint_conclusion(cp,review_sources.get(cp["checkpoint_number"],{})) for cp in assembled["history"]["checkpoints"]]
+    from apps.msp_self_analytics.rating_history_query import format_review_date_summary_ru
+    star_text='\n'.join(format_review_date_summary_ru(s) for s in collected['star_summaries'].values())
     return {
         "status": assembled["status"],
-        "text": ("Карточка определена по каталогу: " + marketplace.upper() +
+        "text": ('ОЦЕНКИ ПО ЗВЁЗДАМ\n'+star_text+'\n'+"Карточка определена по каталогу: " + marketplace.upper() +
                  "; магазин " + store + ".\n" + assembled["human_readable_ru"] + "\n" + "\n".join(price_observations_text)+"\n"+"\n".join(own_text)+"\n"+"\n".join(conclusions)+"\nЕдиный итог: оценка заказов MPSTATS описательна, внешние независимые заказы после очистки и сверки не установлены. Найденные положительные отзывы не доказывают независимый спрос или причинный эффект. Денежная окупаемость отложена."),
         "review_source_evidence":assembled["review_source_evidence"],
+        "star_summaries":collected['star_summaries'],
         "nonfinancial_outcome":assembled["nonfinancial_outcome"],
         "own_order_sources":own_sources,
         "provider_windows": len(plan["requests"]),

@@ -32,7 +32,7 @@ def _sku(value):
     return int(value)
 
 
-def collect_rating_evidence(reader,*,marketplace,sku,checkpoints,max_reads=24):
+def collect_rating_evidence(reader,*,marketplace,sku,checkpoints,max_reads=24,as_of=None):
     """Fetch only this marketplace, then reuse the existing formulas for both sides."""
     adapter=source_adapter(marketplace);numeric=_sku(sku)
     if type(max_reads) is not int or not 1<=max_reads<=24:
@@ -50,7 +50,13 @@ def collect_rating_evidence(reader,*,marketplace,sku,checkpoints,max_reads=24):
         return reader.call(adapter.TOOL,{'sku':numeric,**args})
     comments,cs=read({'report':'comments'}) if active else (None,'NO_COMPLETED_WINDOWS')
     if cs not in PASS:comments=None
-    evidence={};sources={};cache={}
+    evidence={};sources={};cache={};star_summaries={}
+    latest=[]
+    if as_of:
+        last=(date.fromisoformat(as_of)-timedelta(days=1)).isoformat()
+        latest_start=(date.fromisoformat(last)-timedelta(days=89)).isoformat()
+        latest_payload,latest_state=read({'report':'by_period','d1':latest_start,'d2':last})
+        if latest_state in PASS and isinstance(latest_payload,list):latest=latest_payload
     for cp in active:
         w=cp['windows'];combined=[];prior_tokens=set();states=[]
         for side in ('before','after'):
@@ -79,8 +85,30 @@ def collect_rating_evidence(reader,*,marketplace,sku,checkpoints,max_reads=24):
             event_date=cp['review_date'],before_start=w['before']['d1'],before_end=w['before']['d2'],
             after_start=w['after']['d1'],after_end=w['after']['d2'])
         evidence[number]=e
+        if as_of:
+            # Import lazily: history queries use this adapter module too.
+            from apps.msp_self_analytics.rating_history_query import summarize_history, review_date_summary
+            history=summarize_history(marketplace=marketplace,sku=sku,
+                d1=w['before']['d1'],d2=w['after']['d2'],comments=comments,period=combined)
+            summary=review_date_summary(history,review_date=cp['review_date'],
+                own_review_dates=[c['review_date'] for c in checkpoints])
+            # Series checkpoints can have a gap between the shared BEFORE
+            # baseline and current event. Never count that gap as BEFORE.
+            for side in ('before','after'):
+                sample=summary[side+'_received_ratings']
+                if sample is None:continue
+                rows=[r for r in sample['records'] if w[side]['d1']<=r['date']<=w[side]['d2']]
+                sample.update(received_count=len(rows),records=rows,
+                    stars={str(s):sum(r['valuation']==s for r in rows) for s in range(1,6)},
+                    mean_received_rating=sum(r['valuation'] for r in rows)/len(rows) if rows else None)
+            current=summarize_history(marketplace=marketplace,sku=sku,d1=latest_start,d2=last,
+                comments=None,period=latest)
+            summary['latest_available_card_snapshot']=current['last_available_snapshot']
+            summary['comparison_windows']=w
+            star_summaries[number]=summary
     return {'marketplace':marketplace,'tool':adapter.TOOL,'evidence':evidence,
             'dated_rating_sources':sources,'mpstats_calls':reader.calls,
+            'star_summaries':star_summaries,
             'four_counters_verified':False,'complete_publication_history':False}
 
 
