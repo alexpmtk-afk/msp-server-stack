@@ -28,6 +28,21 @@ from .shared_rate_limit import (
 WB_CONTRACT = "1 req/min"
 WB_EXTRA_INTERVAL = 65.0
 WB_HOST = "finance-api.wildberries.ru"
+# Same public Redis catalog identity as Marketplace MCP legacy finance group.
+# This keeps the old 60-second group and adds a stricter local safety rule;
+# it does NOT prove that the deployed clients share the same Redis DB.
+WB_LEGACY_FINANCE_SCOPE = "finance"
+# Ozon official general limit: 50/s per Client-Id across methods. Exact
+# per-method caps must be verified before the explicit runtime approval.
+OZON_FINANCE_EXTRA_INTERVAL = 5.0
+OZON_FINANCE_HOST = "api-seller.ozon.ru"
+OZON_REQUIRED_METHOD_APPROVAL = "MSP_REPORTS_OZON_FINANCE_METHODS_VERIFIED"
+OZON_APPROVED_PATHS = frozenset((
+    "/v1/finance/realization/posting",
+    "/v3/posting/fbo/list",
+    "/v4/posting/fbs/list",
+    "/v1/finance/accrual/by-day",
+))
 REQUIRED_APPROVAL_ENV = "MSP_REPORTS_SHARED_QUEUE_VERIFIED"
 
 
@@ -74,11 +89,23 @@ def request_rules(marketplace: str, credentials: Mapping[str, str], request: Req
         # the same WB seller, plus a separate 65-second buffer bucket.
         rules = build_rules(service="wb", cabinet_key=owner,
                             host=WB_HOST, operation_id="wb_finance",
-                            scope="msp_finance_reports", catalog_rate_limit=WB_CONTRACT)
+                            scope=WB_LEGACY_FINANCE_SCOPE, catalog_rate_limit=WB_CONTRACT)
         rules.append(RateRule(key_prefix("wb", owner) + ":msp-finance-safety", WB_EXTRA_INTERVAL))
         return rules
-    # Ozon: no verified method-specific quota contract has been approved for
-    # these finance feeds. Global Client-Id limit alone is not enough.
+    if marketplace == "ozon" and request.path in OZON_APPROVED_PATHS:
+        # Exact method schema, permission and any method-specific rate limit
+        # are NOT established merely by the 50RPS general Client-Id quota.
+        # Disabled until a human verifies the exact current four contracts.
+        if os.environ.get(OZON_REQUIRED_METHOD_APPROVAL) != "YES":
+            raise ProviderError("Ozon finance method-specific approval not verified")
+        rules = build_rules(service="ozon", cabinet_key=owner,
+                            host=OZON_FINANCE_HOST,
+                            operation_id="ozon_finance",
+                            scope="finance")
+        rules.append(RateRule(
+            key_prefix("ozon", owner) + ":msp-finance-safety",
+            OZON_FINANCE_EXTRA_INTERVAL))
+        return rules
     raise ProviderError("finance endpoint rate contract not yet approved")
 
 
