@@ -25,7 +25,9 @@ from .providers import (
 )
 
 MAX_RESPONSE_BYTES = 128 * 1024 * 1024
-WB_WAIT_SECONDS = 63.0
+# Local file gate deliberately exceeds the Redis safety bucket (65 sec).
+# Otherwise a fast first response makes the next request self-block at 63 sec.
+WB_WAIT_SECONDS = 66.0
 OZON_WAIT_SECONDS = 5.0
 ALLOWED_OZON = frozenset({OZON_FINAL, OZON_FBO, OZON_FBS, OZON_ACCRUAL})
 

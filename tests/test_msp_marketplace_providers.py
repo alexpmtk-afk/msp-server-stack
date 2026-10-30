@@ -141,6 +141,49 @@ class WBOneIngestTests(unittest.TestCase):
             self.assertEqual(list(Path(temp).rglob("*.csv")), [])
 
 
+class EarlyWriterPreflightTests(unittest.TestCase):
+    def test_legacy_wb_preflight_before_http_when_generation_scope_exists(self):
+        from apps.msp_marketplace_reports.generation_store import publish_batch
+        from test_msp_marketplace_generations import wb_files
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "archive"
+            publish_batch(root, "wb_weekly_finance_main", "wb_laser_master",
+                          "2026", wb_files())
+            calls = []
+            def factory(**kwargs):
+                def send(request):
+                    calls.append(request)
+                    raise AssertionError("provider should never be called")
+                return send
+            with redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ValueError, "versioned scope exists"):
+                    ingest_run(["--root", str(root), "--creds-file", "/fake",
+                                "wb-one", "--cabinet", "wb_laser_master",
+                                "--year", "2026", "--report-id", "42",
+                                "--report-type", "1"], factory=factory)
+            self.assertEqual(calls, [])
+
+    def test_legacy_ozon_final_preflight_before_http_when_generation_scope_exists(self):
+        from apps.msp_marketplace_reports.generation_store import publish_batch
+        from test_msp_marketplace_generations import ozon_final_files
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "archive"
+            publish_batch(root, "ozon_final_realization", "ozon_laser_master",
+                          "2026", ozon_final_files())
+            calls = []
+            def factory(**kwargs):
+                def send(request):
+                    calls.append(request)
+                    raise AssertionError("provider should never be called")
+                return send
+            with redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ValueError, "versioned scope exists"):
+                    ingest_run(["--root", str(root), "--creds-file", "/fake",
+                                "ozon-final-one", "--cabinet", "ozon_laser_master",
+                                "--period", "2026-09"], factory=factory)
+            self.assertEqual(calls, [])
+
+
 class OzonContractTests(unittest.TestCase):
     def test_final_closed_month(self):
         send, calls = scripted([(200, {"rows": [{"row_number": 2, "item": {"sku": 42}}]})])
