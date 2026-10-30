@@ -182,7 +182,19 @@ class SharedQuota:
         delay = retry_delay(headers, rules)
 
         async def execute(ctl):
-            await ctl.defer(rules, delay)
+            if self.marketplace == "ozon":
+                # The legacy controller intentionally prefers method/specific
+                # rules when both kinds are passed to defer(). Call it twice:
+                # first the shared Client-Id global key (old clients observe
+                # the 429), then our additional local safety key.
+                global_rules = [r for r in rules if r.key.endswith(":global")]
+                safety_rules = [r for r in rules if r.key.endswith(":msp-finance-safety")]
+                if len(global_rules) != 1 or len(safety_rules) != 1 or len(rules) != 2:
+                    raise RateLimitUnavailable("Ozon finance cooldown rules invalid")
+                await ctl.defer(global_rules, delay)
+                await ctl.defer(safety_rules, delay)
+            else:
+                await ctl.defer(rules, delay)
 
         try:
             asyncio.run(_with_controller(url, execute))
