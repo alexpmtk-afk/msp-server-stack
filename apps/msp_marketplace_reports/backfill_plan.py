@@ -18,6 +18,7 @@ from .archive import (
     _verify_previous, _preflight_ozon_group,
 )
 from .generation_store import GenerationError, read_active
+from .versioned_archive import _legacy_scope_occupied
 
 
 def _scope(root, dataset, cabinet, period):
@@ -30,12 +31,11 @@ def _archived(root, dataset, cabinet, period):
     new = _scope(root, dataset, cabinet, scope_period)
     old = _location(root, dataset, cabinet, period)
     old_meta = old.with_name(old.name + ".meta.json")
-    if dataset == "ozon_final_realization":
-        annual = _ozon_annual_path(root, cabinet, period[:4])
-        legacy_exists = (old.parent.exists() or annual.exists()
-                         or annual.with_name(annual.name + ".meta.json").exists())
-    else:
-        legacy_exists = old.exists() or old.is_symlink() or old_meta.exists() or old_meta.is_symlink()
+    try:
+        legacy_exists = _legacy_scope_occupied(root, dataset, cabinet, period)
+    except (OSError, ValueError):
+        return ("MIXED_UNSAFE" if new.exists() or new.is_symlink()
+                else "VERIFY_FAILED"), set()
     if new.exists() or new.is_symlink():
         if legacy_exists:
             return "MIXED_UNSAFE", set()
