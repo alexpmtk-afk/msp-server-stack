@@ -32,7 +32,7 @@ def _dataset(report_type):
 
 
 def _stage_record(root, cabinet, year, report_id, report_type):
-    folder = _dir(root, cabinet, year, report_id)
+    folder = _dir(root, cabinet, year, report_id, report_type)
     state = _read_json(folder / "state.json", required=True)
     _validate_state(state, cabinet, year, report_id, report_type)
     if state["status"] != "STAGED_COMPLETE":
@@ -185,7 +185,7 @@ def run_one_step(root, cabinet, year, report_id, report_type, send, *, fault=Non
     dataset = _dataset(report_type)
     _validate(dataset, cabinet, str(year))
     _assert_no_legacy(Path(root).expanduser(), dataset, cabinet, str(year))
-    folder = _dir(root, cabinet, year, report_id)
+    folder = _dir(root, cabinet, year, report_id, report_type)
     if _read_coverage(folder) is not None:
         return finalize_staged_report(root, cabinet, year, report_id, report_type)
     result = step_wb_detail(root, cabinet, year, report_id, report_type, send,
