@@ -184,7 +184,7 @@ class ReadOnlyHTTP:
                 # expose response body, headers or the request containing keys.
                 if int(e.code) == 429:
                     delay = self.quota.cooldown(rules, e.headers)
-                    raise QuotaBusy(delay, "provider rate limit after shared cooldown") from None
+                    raise QuotaBusy(delay, "provider rate limit after shared cooldown", provider_calls=1) from None
                 return int(e.code), None
             except (urllib.error.URLError, TimeoutError, OSError):
                 raise ProviderError("provider transport unavailable; retry with saved cursor") from None
