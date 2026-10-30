@@ -1,0 +1,49 @@
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": false, "mode": "file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": false, "mode": "journal_dir_early", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": false, "mode": "journal_dir_final", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": false, "mode": "scope", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": false, "mode": "open_file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": false, "mode": "wrong_file_type", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": false, "mode": "symlink_swap", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": true, "mode": "file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": true, "mode": "journal_dir_early", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": true, "mode": "journal_dir_final", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": true, "mode": "scope", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": true, "mode": "open_file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": true, "mode": "wrong_file_type", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "wb", "missing": true, "mode": "symlink_swap", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": false, "mode": "file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": false, "mode": "journal_dir_early", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": false, "mode": "journal_dir_final", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": false, "mode": "scope", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": false, "mode": "open_file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": false, "mode": "wrong_file_type", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": false, "mode": "symlink_swap", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": true, "mode": "file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": true, "mode": "journal_dir_early", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": true, "mode": "journal_dir_final", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": true, "mode": "scope", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": true, "mode": "open_file", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": true, "mode": "wrong_file_type", "status": "PASS"}
+{"check": "RETRY_FAILURE", "kind": "ozon", "missing": true, "mode": "symlink_swap", "status": "PASS"}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": true}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": 1.0}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": false}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": "1"}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": null}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": []}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": {}}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": 2}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": 0}
+{"check": "FOREIGN_SCHEMA", "phase": "PREPARED", "status": "PASS", "value": -1}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": true}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": 1.0}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": false}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": "1"}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": null}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": []}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": {}}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": 2}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": 0}
+{"check": "FOREIGN_SCHEMA", "phase": "VERIFIED", "status": "PASS", "value": -1}
+{"cases": 48, "check": "COMPLETE"}

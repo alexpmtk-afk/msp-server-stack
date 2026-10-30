@@ -1,0 +1,15 @@
+{"check": "DATASET_CONTROLS", "passed": 6}
+{"cases": [{"blocked": true, "kind": "csv", "link_preserved": null}, {"blocked": true, "kind": "meta", "link_preserved": null}, {"blocked": true, "kind": "csv_link", "link_preserved": true}, {"blocked": false, "kind": "meta_dangling_link", "link_preserved": true}], "check": "LEGACY_STATIC_GUARD"}
+{"check": "R96_2_SEQUENTIAL_MIX", "different_bytes": true, "legacy_verify": true, "versioned_verify": true}
+{"check": "R96_2_LEGACY_GUARD_RACE", "legacy_exists": true, "legacy_verify": true, "versioned_status": "COMMITTED"}
+{"check": "CONCURRENT_IMPORTERS", "codes": [2, 0], "dataset": "wb_weekly_finance_main", "rows_after_explicit_retry": 3, "status": "PASS"}
+{"check": "CONCURRENT_IMPORTERS", "codes": [0, 2], "dataset": "ozon_final_realization", "rows_after_explicit_retry": 3, "status": "PASS"}
+{"check": "R96_1_RETRY_SKIPS_SOURCE_PARENT_SYNC", "evidence_bytes_preserved": true, "first_uncertain": true, "retry_status": "EVIDENCE_RETAINED", "source_parent_synced_on_retry": false}
+{"bytes_preserved": true, "check": "QUARANTINE_SIGKILL", "point": "before_evidence_rename", "source_parent_synced_on_retry": true, "status": "EVIDENCE_RETAINED"}
+{"bytes_preserved": true, "check": "QUARANTINE_SIGKILL", "point": "after_rename", "source_parent_synced_on_retry": false, "status": "EVIDENCE_RETAINED"}
+{"bytes_preserved": true, "check": "QUARANTINE_SIGKILL", "point": "before_source_sync", "source_parent_synced_on_retry": false, "status": "EVIDENCE_RETAINED"}
+{"bytes_preserved": true, "check": "QUARANTINE_SIGKILL", "point": "after_evidence_fsync", "source_parent_synced_on_retry": false, "status": "EVIDENCE_RETAINED"}
+{"all_files_unchanged": false, "check": "R96_3_LATE_BATCH_VALIDATION", "earlier_candidate_already_moved": true, "error": "GenerationError:candidate present in both stage and evidence"}
+{"bytes_not_deleted": true, "check": "DOCUMENTED_ROLLBACK_LIMIT", "known_committed_moved": true, "operator_acknowledged": true}
+{"check": "RECOVERY_PRECONDITIONS", "passed": 11}
+{"check": "COMPLETE", "concurrent_importer_cases": 2, "dataset_controls": 6, "legacy_static_cases": 4, "quarantine_sigkill_cases": 4, "recovery_negative_cases": 11}

@@ -1,0 +1,5 @@
+{"check": "G1_ORIGINAL", "private_validator_accepts_candidate": true, "public_candidate_blocked": true, "version": "after"}
+{"check": "G2_ORIGINAL", "committed_mislabeled_as_uncommitted": false, "status": "UNKNOWN_COMMIT_STATE", "version": "after"}
+{"check": "G3_ORIGINAL", "forged_pin_also_blocked": true, "old_read_blocked": true, "reconcile_status": "RECOVERY_REQUIRED", "version": "after"}
+{"check": "G4_ORIGINAL_NORMAL_TRACE", "missing_parent_sync_count": 0, "version": "after"}
+{"check": "COMPLETE", "core_cases": 4}

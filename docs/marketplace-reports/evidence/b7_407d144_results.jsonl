@@ -1,0 +1,17 @@
+{"check": "G1_ORIGINAL", "private_validator_accepts_candidate": true, "public_candidate_blocked": false, "version": "before"}
+{"check": "G2_ORIGINAL", "committed_mislabeled_as_uncommitted": true, "status": "PENDING", "version": "before"}
+{"check": "G3_ORIGINAL", "forged_pin_also_blocked": null, "old_read_blocked": false, "reconcile_status": "ACTIVE_VERIFIED", "version": "before"}
+{"check": "G4_ORIGINAL_NORMAL_TRACE", "missing_parent_sync_count": 5, "version": "before"}
+{"check": "G1_ORIGINAL", "private_validator_accepts_candidate": true, "public_candidate_blocked": true, "version": "after"}
+{"check": "G2_ORIGINAL", "committed_mislabeled_as_uncommitted": false, "status": "UNKNOWN_COMMIT_STATE", "version": "after"}
+{"check": "G3_ORIGINAL", "forged_pin_also_blocked": true, "old_read_blocked": true, "reconcile_status": "RECOVERY_REQUIRED", "version": "after"}
+{"check": "G4_ORIGINAL_NORMAL_TRACE", "missing_parent_sync_count": 0, "version": "after"}
+{"check": "PIN_NEGATIVE_CASES", "passed": 24}
+{"check": "POINTER_CASES", "passed": 8}
+{"cases": [{"created": ".", "level": 0, "previously_failed_parent_retried": true, "retry_status": "COMMITTED"}, {"created": ".b7-generations", "level": 1, "previously_failed_parent_retried": true, "retry_status": "COMMITTED"}, {"created": ".b7-generations/wb_weekly_finance_main", "level": 2, "previously_failed_parent_retried": true, "retry_status": "COMMITTED"}, {"created": ".b7-generations/wb_weekly_finance_main/wb_laser_master", "level": 3, "previously_failed_parent_retried": true, "retry_status": "COMMITTED"}, {"created": ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026", "level": 4, "previously_failed_parent_retried": true, "retry_status": "COMMITTED"}, {"created": ".b7-generations/wb_weekly_finance_main/wb_laser_master/2026/generations", "level": 5, "previously_failed_parent_retried": true, "retry_status": "COMMITTED"}], "check": "G4_RETRY_AFTER_FAILED_PARENT_SYNC"}
+{"check": "G4_NEW_YEAR_RETRY", "failed_parent_retried": true, "previous_year_unchanged": true, "retry_status": "COMMITTED"}
+{"check": "G4_SIGKILL_INIT_RETRY", "missing_parent_retried": true, "retry_status": "COMMITTED", "returncode": -9}
+{"check": "EXISTING_STORE_FSYNC_FAILURES", "passed": 63}
+{"check": "FIRST_INIT_ALL_FSYNC_FAILURES", "passed": 63}
+{"check": "SIGKILL_CASES", "passed": 32}
+{"check": "COMPLETE", "existing_store_fsync_cases": 63, "initial_fsync_cases": 63, "initializer_sigkill_cases": 1, "new_year_retry_cases": 1, "pin_negative": 24, "pointer_cases": 8, "retry_parent_cases": 6, "sigkill_cases": 32}

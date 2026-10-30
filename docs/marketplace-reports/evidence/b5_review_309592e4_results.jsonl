@@ -1,0 +1,14 @@
+{"blocked": false, "check": "ORIGINAL_B5", "unchanged": false, "verify_ok": true, "version": "old"}
+{"blocked": true, "check": "ORIGINAL_B5", "unchanged": true, "verify_ok": false, "version": "new"}
+{"cases": 132, "check": "TARGET_CORRUPTION_MATRIX", "failures": [], "passed": 132}
+{"cases": 6, "check": "CORRUPT_NOOP", "passed": 6}
+{"annual_changed": false, "blocked": true, "check": "OZON_OTHER_MONTH_MANIFEST", "field": "schema", "verify_ok": false}
+{"annual_changed": false, "blocked": true, "check": "OZON_OTHER_MONTH_MANIFEST", "field": "dataset", "verify_ok": false}
+{"annual_changed": false, "blocked": true, "check": "OZON_OTHER_MONTH_MANIFEST", "field": "cabinet", "verify_ok": false}
+{"annual_changed": false, "blocked": true, "check": "OZON_OTHER_MONTH_MANIFEST", "field": "period", "verify_ok": false}
+{"annual_changed": false, "blocked": true, "check": "OZON_OTHER_MONTH_MANIFEST", "field": "bytes", "verify_ok": false}
+{"blocked": true, "check": "CORRUPT_ANNUAL_SIDE_EFFECT", "month_changed": false}
+{"check": "B7_CRASH_RETRY", "retry_blocked": false, "verify_ok": true, "version": "old"}
+{"check": "B7_CRASH_RETRY", "retry_blocked": true, "verify_ok": false, "version": "new"}
+{"check": "B7_OZON_ANNUAL_CRASH_RETRY", "retry_blocked": false, "verify_ok": true, "version": "old"}
+{"check": "B7_OZON_ANNUAL_CRASH_RETRY", "retry_blocked": true, "verify_ok": false, "version": "new"}

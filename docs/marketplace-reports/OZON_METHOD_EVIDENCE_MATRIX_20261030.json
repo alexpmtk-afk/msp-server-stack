@@ -1,0 +1,73 @@
+{
+  "scope": "public-source research only; no credentials/API calls",
+  "general_quota_source": "https://dev.ozon.ru/news/584-Vnedriaem-novye-limity-v-Seller-API-s-19-maia/",
+  "no_special_rule_source": "https://dev.ozon.ru/community/2373-HTTP-429-na-finansovykh-metodakh-Seller-API-pri-redkikh-zaprosakh/",
+  "versions_source": "https://dev.ozon.ru/news/734-Otkliuchenie-starykh-metodov-Seller-API-dlia-raboty-s-postingami/",
+  "accrual_source": "https://dev.ozon.ru/news/699-Novye-metody-dlia-finansovykh-otchetov-v-Seller-API/",
+  "methods": [
+    {
+      "path": "/v1/finance/realization/posting",
+      "method": "POST",
+      "implementation_request_NOT_official_schema": {
+        "year": "int",
+        "month": "int"
+      },
+      "implementation_response_NOT_official_schema": "top-level rows; no pagination",
+      "official_evidence": "official moderator 2025-12-01 confirms report purpose, not complete current spec",
+      "full_current_schema": "NOT VERIFIED",
+      "special_method_quota": "NOT VERIFIED; do not invent one",
+      "general_quota": "50 RPS aggregate Client-Id; any documented stricter rule still applies",
+      "history_window_and_publication_delay": "NOT VERIFIED",
+      "approval": false
+    },
+    {
+      "path": "/v3/posting/fbo/list",
+      "method": "POST",
+      "implementation_request_NOT_official_schema": {
+        "filter": "since/to UTC",
+        "limit": "implementation100",
+        "cursor": "string",
+        "with": "analytics/financial/legal"
+      },
+      "implementation_response_NOT_official_schema": "top-level postings, has_next and cursor",
+      "official_evidence": "official versions announcement 2026-06-01",
+      "full_current_schema": "NOT VERIFIED",
+      "special_method_quota": "NOT VERIFIED; do not invent one",
+      "general_quota": "50 RPS aggregate Client-Id; any documented stricter rule still applies",
+      "history_window_and_publication_delay": "NOT VERIFIED",
+      "approval": false
+    },
+    {
+      "path": "/v4/posting/fbs/list",
+      "method": "POST",
+      "implementation_request_NOT_official_schema": {
+        "filter": "since/to UTC",
+        "limit": "implementation100",
+        "cursor": "string",
+        "with": "analytics/financial/legal"
+      },
+      "implementation_response_NOT_official_schema": "top-level postings, has_next and cursor",
+      "official_evidence": "official versions announcement 2026-06-01",
+      "full_current_schema": "NOT VERIFIED",
+      "special_method_quota": "NOT VERIFIED; do not invent one",
+      "general_quota": "50 RPS aggregate Client-Id; any documented stricter rule still applies",
+      "history_window_and_publication_delay": "NOT VERIFIED",
+      "approval": false
+    },
+    {
+      "path": "/v1/finance/accrual/by-day",
+      "method": "POST",
+      "implementation_request_NOT_official_schema": {
+        "date": "YYYY-MM-DD",
+        "last_id": "string; no limit"
+      },
+      "implementation_response_NOT_official_schema": "top-level accruals/last_id; empty cursor is terminal",
+      "official_evidence": "official new finance methods announcement 2026-05-06",
+      "full_current_schema": "NOT VERIFIED",
+      "special_method_quota": "NOT VERIFIED; do not invent one",
+      "general_quota": "50 RPS aggregate Client-Id; any documented stricter rule still applies",
+      "history_window_and_publication_delay": "NOT VERIFIED",
+      "approval": false
+    }
+  ]
+}

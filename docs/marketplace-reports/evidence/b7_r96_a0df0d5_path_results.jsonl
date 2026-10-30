@@ -1,0 +1,3 @@
+{"case": "root_symlink", "status": null, "error": "GenerationError:symbolic link forbidden in generation store", "outside_files": [".locks/wb_laser_master__wb_weekly_finance_main.lock"]}
+{"case": "lock_dir_symlink", "status": "COMMITTED", "error": null, "outside_files": ["wb_laser_master__wb_weekly_finance_main.lock"]}
+{"case": "lock_file_symlink", "status": "COMMITTED", "error": null, "outside_files": ["injected.lock"]}

@@ -1,0 +1,14 @@
+{"blocked": false, "check": "ORIGINAL_R3", "field": "schema", "unchanged": false, "verify_ok": true, "version": "before"}
+{"blocked": false, "check": "ORIGINAL_R3", "field": "rows", "unchanged": false, "verify_ok": true, "version": "before"}
+{"blocked": false, "check": "ORIGINAL_R3", "field": "bytes", "unchanged": false, "verify_ok": true, "version": "before"}
+{"blocked": true, "check": "ORIGINAL_R3", "field": "schema", "unchanged": true, "verify_ok": false, "version": "after"}
+{"blocked": true, "check": "ORIGINAL_R3", "field": "rows", "unchanged": true, "verify_ok": false, "version": "after"}
+{"blocked": true, "check": "ORIGINAL_R3", "field": "bytes", "unchanged": true, "verify_ok": false, "version": "after"}
+{"cases": 1008, "check": "STRICT_FIELDS_MATRIX", "failures": [], "passed": 1008, "routes": 24}
+{"cases": 72, "check": "MALFORMED_JSON_MATRIX", "failures": [], "passed": 72}
+{"check": "VALID_CONTROLS", "passed": ["wb_weekly_finance_main", "wb_weekly_finance_buyout", "ozon_final_realization", "ozon_current_orders_fbo", "ozon_current_orders_fbs", "ozon_current_accruals"]}
+{"case": "duplicate_schema", "check": "PARSER_BOUNDARY", "import_exception": null, "unchanged": true, "verify_exception": null, "verify_ok": true, "version": "before"}
+{"case": "deep_json", "check": "PARSER_BOUNDARY", "import_exception": "ValueError", "unchanged": true, "verify_exception": null, "verify_ok": false, "version": "before"}
+{"case": "duplicate_schema", "check": "PARSER_BOUNDARY", "import_exception": null, "unchanged": true, "verify_exception": null, "verify_ok": true, "version": "after"}
+{"case": "deep_json", "check": "PARSER_BOUNDARY", "import_exception": "ValueError", "unchanged": true, "verify_exception": null, "verify_ok": false, "version": "after"}
+{"check": "COMPLETE", "fixture_directories": 1096}

@@ -1,0 +1,7 @@
+{"check": "VERTICAL_SLICE", "failure": "none", "kind": 1, "no_repeat_provider": true, "pinned_publication_verified": true, "requests": [0, 10, 10, 20], "rows": 2, "status": "PASS"}
+{"check": "VERTICAL_SLICE", "failure": "after_archive_commit", "kind": 1, "no_repeat_provider": true, "pinned_publication_verified": true, "requests": [0, 10, 10, 20], "rows": 2, "status": "PASS"}
+{"check": "VERTICAL_SLICE", "failure": "before_coverage", "kind": 1, "no_repeat_provider": true, "pinned_publication_verified": true, "requests": [0, 10, 10, 20], "rows": 2, "status": "PASS"}
+{"check": "VERTICAL_SLICE", "failure": "none", "kind": 2, "no_repeat_provider": true, "pinned_publication_verified": true, "requests": [0, 10, 10, 20], "rows": 2, "status": "PASS"}
+{"check": "VERTICAL_SLICE", "failure": "after_archive_commit", "kind": 2, "no_repeat_provider": true, "pinned_publication_verified": true, "requests": [0, 10, 10, 20], "rows": 2, "status": "PASS"}
+{"check": "VERTICAL_SLICE", "failure": "before_coverage", "kind": 2, "no_repeat_provider": true, "pinned_publication_verified": true, "requests": [0, 10, 10, 20], "rows": 2, "status": "PASS"}
+{"cases": 6, "check": "COMPLETE", "production_wiring": false}

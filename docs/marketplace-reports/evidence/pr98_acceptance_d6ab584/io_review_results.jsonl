@@ -1,0 +1,14 @@
+{"check": "FSYNC_FAILURE_RETRY", "kind": 1, "mode": "page_file", "requests": [0, 10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 1, "mode": "page_dir", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 1, "mode": "advance_file", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 1, "mode": "advance_dir", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 1, "mode": "complete_file", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 1, "mode": "complete_dir", "requests": [], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 2, "mode": "page_file", "requests": [0, 10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 2, "mode": "page_dir", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 2, "mode": "advance_file", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 2, "mode": "advance_dir", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 2, "mode": "complete_file", "requests": [10], "status": "PASS"}
+{"check": "FSYNC_FAILURE_RETRY", "kind": 2, "mode": "complete_dir", "requests": [], "status": "PASS"}
+{"cases": 6, "check": "PREFLIGHT_ALL_FAMILIES", "status": "PASS"}
+{"check": "COMPLETE", "fsync_cases": 12, "preflight_cases": 6}

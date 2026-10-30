@@ -1,0 +1,13 @@
+{
+  "reviewed_sha": "d6ab584b7bc66c94911bece097e1e3e7c3e302be",
+  "code_sha": "a7f55bee6fa8a54147b9242f4810c3141eec040f",
+  "stock_tests": 167,
+  "independent_counts": {
+    "readiness_regressions_results.jsonl": 27,
+    "resume_results.jsonl": 28,
+    "io_review_results.jsonl": 18,
+    "bridge_results.jsonl": 6
+  },
+  "independent_total": 79,
+  "verdict": "PASS scoped offline PR98 fixes; runtime and integration NOT VERIFIED"
+}

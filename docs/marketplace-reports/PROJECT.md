@@ -46,3 +46,55 @@ ID сохраняются при ротации ключа.
 - После исправления ввода секретов все 9 реквизитов успешно прошли локальную проверку формата и прав.
 - `wb_laser_master`: `GET /api/v1/account/balance` → HTTP 200 JSON; `POST /api/finance/v1/sales-reports/list` за 01–27.10.2026 → HTTP 200 JSON, 8 документов: четыре `reportType=1`, четыре `reportType=2` на отчётные периоды 01–04, 05–11, 12–18 и 19–25 октября.
 - Данные отчётов пока **не загружались и не сохранялись**. Проверка списка — не подтверждение корректной детализации. Новая ветка научилась раздельно архивировать оба типа, запуск на VPS только по отдельной команде.
+
+## Рабочий план завершения — 29.10.2026
+
+Текущая независимая ревизия и полный [план P01–P12](ACTION_PLAN_20261029.md) подготовлены в отдельном PR №90 (база — открытый PR №89). План различает проверенный код, установленную версию и реальные API-испытания. Ошибки B1–B9 остаются открытыми до подтверждённых исправлений; блокировка API не снята. Перед новым этапом читать последние HANDOFF и remote SHA. После каждого подтверждённого действия обновлять документы/семантику, канонический Skill и применимые установленные инструкции, фиксировать commit/PR и проверять публикацию. Наличие плана не является разрешением на merge, установку, массовые запросы или расписание.
+
+### Независимая проверка B5 и P01 — 29.10.2026
+
+В [ревизии PR №91](REVIEW_B5_PR91_20261029.md) исходная B5 заблокирована, но приёмка всего исправления FAIL: неполный preflight месячных зависимостей Ozon и запись monthly до выявления повреждённого annual. Автору переданы R1/R2; B7/recovery остаётся открытой. [P01](P01_QUEUE_DISCOVERY_20261029.md) = NOT VERIFIED: отрицательная локальная инвентаризация подтверждена, фактическая старая очередь/канал доступа не установлены. Ни API, ни установка не допущены.
+
+### Повторная проверка R1/R2, точный SHA 309592e4
+
+[Независимая повторная проверка](REVIEW_R1_R2_309592E4.md): R1/R2 PASS, первоначальные контрпримеры устранены без регрессии обычного импорта в выполненных тестах. Предыдущий FAIL относится к e98000b и сохранён как история, не как текущий результат 309592e4. B7/recovery остаётся OPEN; R3 строгих типов manifest — отдельное унаследованное замечание. P01 NOT VERIFIED; допуск API/установки/merge не изменён.
+
+### Актуальная независимая приёмка — 407d144 (29.10.2026)
+
+R3 принят ранее; первый opt-in блок B7 **G1–G4 PASS**, включая устранённый G4-R1, на точном `407d14470db1ccb073a3278067be142a3dbd339b`. [Итоговый review](REVIEW_B7_G4R1_407D144.md): 92 stock tests + 201 независимый сценарий. Предыдущие FAIL на 0217ba4/97decf8 — исторические. **Полная B7 OPEN**: legacy integration, migration, explicit crash recovery и remaining F01–F24 ещё не приняты. P01 и физический power-loss NOT VERIFIED. Следующий этап — разработка/отдельная приёмка интеграции и recovery без API, merge или deployment.
+
+### B7 второй блок — ревизия 5eb1985
+
+Первый core G1–G4 PASS сохраняется. Новый adapter/quarantine PR №96 на `5eb19855b1aa9bc48eb6c3157987a557a411aee6` независимо **FAIL**: [R96-1/R96-2/R96-3](REVIEW_B7_STAGE2_5EB1985.md), требуется доработка. 108 stock tests не закрывают crash-retry fsync, mixed-layout admission и full-batch preflight. Полная B7 OPEN, миграция/restore не приняты; API и deployment не допущены, P01 NOT VERIFIED.
+
+### B7 stage 2 — актуализация a0df0d5
+
+R96-1/R96-2/R96-3 независимо PASS на `a0df0d5d4266392853330dc414d50fbf31bf314e`. Второй блок пока overall FAIL из-за новой [R96-4 admission-lock path regression](REVIEW_B7_R96_A0DF0D5.md). 118 stock tests и 71 текущий независимый сценарий, включая дефектные probes. Scoped core G1–G4 PASS не отменяется. Полная B7 OPEN, P01/power-loss NOT VERIFIED; merge/deployment/API не допущены.
+
+### Актуальный статус второго блока — ceec4fe
+
+R96-4 и второй офлайн opt-in блок PR №96 независимо **PASS** на `ceec4fe6a9649ea547c0900d5e45b667868bec7f`: 120 stock tests + 143 независимых сценария, [итоговый review](REVIEW_B7_R96_4_CEEC4FE.md). Прежние FAIL R96-1–R96-4 — исторические. Приняты отдельный versioned import/reader и ограниченный quarantine при исправном CURRENT, не полная migration/restore/retention. B7 OPEN, P01/power-loss NOT VERIFIED; следующий блок разрабатывается и принимается отдельно, без автоматического merge/deploy/API.
+
+### B7 третий блок — ba46528
+
+current_repair PR №97 на `ba465288406f68dacb4a2557019a488716d55ba6` независимо **FAIL**: [R97-1 final journal sync replay, R97-2 journal schema types](REVIEW_B7_STAGE3_BA46528.md). 137 stock tests не заменяют 61 независимый сценарий с найденными дефектами. Прежние core/stage2 PASS сохранены; B7 OPEN. Operator witness не аутентифицирован кодом: даже после локального исправления нужен независимый proof до production. P01/power-loss NOT VERIFIED, внедрение/API не допущены.
+
+
+### Актуальный итог третьего блока — 9b2c3bd
+
+R97-1/R97-2 и третий офлайн opt-in блок PR №97 **SCOPED PASS** на `9b2c3bdf608e5e1c8526f8a2cb36dd999642d3fe`: [независимый итог](REVIEW_B7_R97_9B2C3BD.md), 140 штатных tests PASS + 252 собственных сценария, 59 baseline отдельно. Повтор VERIFIED завершает journal durability без перезаписи evidence; неверные типы schema отклоняются без изменений. Старый ba46528 FAIL сохраняется как история; core/stage2 acceptance не отменена. Можно продолжать отдельно принимаемые офлайн части B7. Полная B7 OPEN; подлинность operator witness, P01 и power-loss NOT VERIFIED. Никакого допуска merge/deploy/API или рабочего восстановления этим результатом не выдано.
+
+
+### Приоритет 30.10.2026 — загрузка истории, комплексная ревизия PR98
+
+Цель — первые проверенные отчёты и gap-only backfill 2026, не ожидание завершения всех B7 возможностей. [Итог 7a5f60c](REVIEW_DOWNLOAD_READINESS_PR98_7A5F60C.md): 147 tests PASS, 27 независимых сценариев, PR98 FAIL по ограниченному inventory R98-1. Готовые старые cursor/staging/registry и Ozon adapters найдены. Блокеры первой загрузки: несовпадающий WB scope finance/msp_finance_reports, 63/65 pacing, отсутствующее persisted page-resume, Ozon allowlist/contracts, фактическое P01 и отдельный live release gate. WB и Ozon можно готовить параллельно, B7 full OPEN не запрещает отдельный чистый pilot после этих проверок и разрешения. Фактическое состояние VPS, старая полнота/скорость, P01 runtime и свежие полные Ozon method schemas NOT VERIFIED; ключи не читались, API/Redis/установка не выполнялись.
+
+
+### Актуальная комплексная проверка PR98 — e6dd960
+
+[Повторный итог](REVIEW_PR98_E6DD960.md): PR98 FAIL из-за новых R98-2 pending-page integrity, R98-3 write/read size mismatch, R98-4 Ozon shared cooldown. Прежние R98-1/WB keys/66s pacing/preflight приняты;161 stock PASS и213 дополнительных сценариев, включая контрпримеры. Требуются ограниченные исправления и thin integration со старым worker, не новая B7 подсистема. P01 runtime/полные Ozon method schemas NOT VERIFIED, общие50RPS подтверждены. Приоритет — разрешённый малый pilot после gate, не ожидание полного auto-repair. B7 OPEN, нет deployment/API/Redis/чтения секретов.
+
+
+### Актуальный итог — d6ab584, R98-2/3/4 приняты
+
+[Комплексная приёмка и письмо](REVIEW_PR98_D6AB584_AND_HANDOFF.md): PR98 SCOPED OFFLINE PASS,167 штатных и79 дополнительных сценариев. Прежние R98-2/3/4 устранены; новых блокирующих дефектов не найдено. Hermes подготовил рабочий synthetic vertical slice и [конкретное wiring решение](COLLABORATION_AND_WB_WIRING_20261030.md), актуализировал installed instructions без app deployment. Предстоят thin adapter одного старого scheduler к local page/CSV/generation/coverage, placement, structured retry и owner-approved P01. Ozon exact schemas/history/special limits NOT VERIFIED. Полная B7 OPEN не prerequisite чистого fail-stop pilot; merge/deploy/live API не разрешены. Стандартная production-копия не содержит этих feature-модулей по проверенному пути, другие копии не инвентаризированы.

@@ -1,0 +1,14 @@
+{"cases": 8, "check": "REAL_SIGKILL_REPLAY", "status": "PASS"}
+{"cases": 6, "check": "BUSY_TRANSPORT_COMPLETION", "status": "PASS"}
+{"cases": 4, "check": "INDEXED_PAGE_STATE_CORRUPTION", "status": "PASS"}
+{"blocked": true, "check": "R98_2_ORPHAN_REHASH", "status": "PASS", "unchanged": true}
+{"check": "R98_2_ORPHAN_CANONICAL_HASH", "cursor_after_replay": 10, "raw_hash_correct": true, "status": "PASS"}
+{"check": "R98_3_SIZE_MISMATCH", "rejected_before_write": true, "request_limit": 1000, "retry_succeeds": true, "status": "PASS"}
+{"backend_calls": 2, "check": "R98_4_SHARED_COOLDOWN", "fail_index": null, "failure_blocked": false, "market": "ozon", "path": "/v1/finance/accrual/by-day", "status": "PASS"}
+{"backend_calls": 2, "check": "R98_4_SHARED_COOLDOWN", "fail_index": null, "failure_blocked": false, "market": "ozon", "path": "/v1/finance/realization/posting", "status": "PASS"}
+{"backend_calls": 2, "check": "R98_4_SHARED_COOLDOWN", "fail_index": null, "failure_blocked": false, "market": "ozon", "path": "/v3/posting/fbo/list", "status": "PASS"}
+{"backend_calls": 2, "check": "R98_4_SHARED_COOLDOWN", "fail_index": null, "failure_blocked": false, "market": "ozon", "path": "/v4/posting/fbs/list", "status": "PASS"}
+{"backend_calls": 1, "check": "R98_4_SHARED_COOLDOWN", "fail_index": 0, "failure_blocked": true, "market": "ozon", "path": "/v1/finance/accrual/by-day", "status": "PASS"}
+{"backend_calls": 2, "check": "R98_4_SHARED_COOLDOWN", "fail_index": 1, "failure_blocked": true, "market": "ozon", "path": "/v1/finance/accrual/by-day", "status": "PASS"}
+{"backend_calls": 1, "check": "R98_4_SHARED_COOLDOWN", "fail_index": null, "failure_blocked": false, "market": "wb", "path": "/api/finance/v1/sales-reports/detailed/555", "status": "PASS"}
+{"check": "COMPLETE", "cooldown_cases": 7, "corruption_cases": 4, "orphan_cases": 2, "positive_cases": 6, "sigkill_cases": 8, "size_cases": 1}

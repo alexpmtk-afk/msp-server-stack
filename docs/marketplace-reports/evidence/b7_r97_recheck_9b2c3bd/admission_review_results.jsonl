@@ -1,0 +1,9 @@
+{"check": "STATIC_PATH_NEGATIVES", "importer": "legacy", "modes": ["root_link", "root_dangling", "ancestor_link", "nested_ancestor_link", "locks_link", "locks_dangling", "file_link", "file_dangling", "hardlink", "fifo", "lock_is_dir", "locks_is_file", "root_is_file", "missing_parent", "traversal", "filesystem_root"], "passed": 16}
+{"check": "STATIC_PATH_NEGATIVES", "importer": "versioned", "modes": ["root_link", "root_dangling", "ancestor_link", "nested_ancestor_link", "locks_link", "locks_dangling", "file_link", "file_dangling", "hardlink", "fifo", "lock_is_dir", "locks_is_file", "root_is_file", "missing_parent", "traversal", "filesystem_root"], "passed": 16}
+{"check": "REGULAR_LOCK_REUSE", "importer": "legacy", "status": "PASS"}
+{"check": "REGULAR_LOCK_REUSE", "importer": "versioned", "status": "PASS"}
+{"check": "OPEN_FAILURES", "importers": 2, "open_points": 12, "passed": 24}
+{"check": "MKDIR_FAILURES", "passed": 4}
+{"check": "SWAP_BEFORE_OPEN", "passed": 8}
+{"check": "PINNED_LOCK_DIRECTORY", "outside_files": 0, "status": "PASS"}
+{"check": "COMPLETE", "mkdir_cases": 4, "open_failure_cases": 24, "pinned_dir_cases": 1, "reuse_cases": 2, "static_cases": 32, "swap_cases": 8}

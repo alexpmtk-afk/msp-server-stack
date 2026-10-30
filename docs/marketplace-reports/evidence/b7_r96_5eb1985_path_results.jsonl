@@ -1,0 +1,3 @@
+{"case": "root_symlink", "status": null, "error": "GenerationError:symbolic link forbidden in generation store", "outside_files": []}
+{"case": "lock_dir_symlink", "status": "COMMITTED", "error": null, "outside_files": []}
+{"case": "lock_file_symlink", "status": "COMMITTED", "error": null, "outside_files": []}

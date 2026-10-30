@@ -1,0 +1,16 @@
+{"blocked": false, "check": "R1_EXACT", "files_unchanged": false, "verify_ok": true, "version": "before"}
+{"blocked": true, "check": "R2_EXACT", "files_unchanged": false, "version": "before"}
+{"blocked": true, "check": "R1_EXACT", "files_unchanged": true, "verify_ok": false, "version": "after"}
+{"blocked": true, "check": "R2_EXACT", "files_unchanged": true, "version": "after"}
+{"cases": 132, "check": "GROUP_CORRUPTION_MATRIX", "failures": [], "passed": 132}
+{"check": "GROUP_CONSISTENCY", "results": [{"blocked": true, "files_unchanged": true, "kind": "missing_both_month"}, {"blocked": true, "files_unchanged": true, "kind": "missing_both_annual"}, {"blocked": true, "files_unchanged": true, "kind": "divergent_annual_valid_pair"}, {"blocked": true, "files_unchanged": true, "kind": "divergent_month_valid_pair"}, {"blocked": true, "files_unchanged": true, "kind": "row_period_wrong_valid_pair"}, {"blocked": true, "files_unchanged": true, "kind": "bad_month_name"}]}
+{"annual_rows": 3, "backup_files": 8, "check": "NORMAL_IMPORT", "correction_changed": true, "months": 3, "repeat_all_files_unchanged": true, "repeat_changed": false, "verify_ok": true}
+{"check": "B7_FAILPOINT", "point": "monthly_manifest", "retry_blocked": true, "retry_files_unchanged": true, "verify_ok": false}
+{"check": "B7_FAILPOINT", "point": "annual_before_publish", "retry_blocked": true, "retry_files_unchanged": true, "verify_ok": false}
+{"check": "B7_FAILPOINT", "point": "annual_manifest", "retry_blocked": true, "retry_files_unchanged": true, "verify_ok": false}
+{"blocked": false, "check": "STRICT_METADATA_TYPES", "field": "schema", "verify_ok": true, "version": "before"}
+{"blocked": false, "check": "STRICT_METADATA_TYPES", "field": "rows", "verify_ok": true, "version": "before"}
+{"blocked": false, "check": "STRICT_METADATA_TYPES", "field": "bytes", "verify_ok": true, "version": "before"}
+{"blocked": false, "check": "STRICT_METADATA_TYPES", "field": "schema", "verify_ok": true, "version": "after"}
+{"blocked": false, "check": "STRICT_METADATA_TYPES", "field": "rows", "verify_ok": true, "version": "after"}
+{"blocked": false, "check": "STRICT_METADATA_TYPES", "field": "bytes", "verify_ok": true, "version": "after"}

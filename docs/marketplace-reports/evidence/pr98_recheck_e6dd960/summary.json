@@ -1,0 +1,25 @@
+{
+  "reviewed_sha": "e6dd9608eeb13ff6b1ec268aff86df8d6865ee82",
+  "stock_tests": 161,
+  "independent_counts": {
+    "readiness": 27,
+    "resume": 25,
+    "io_preflight": 18,
+    "admission": 71,
+    "stage2": 68,
+    "core": 4
+  },
+  "independent_total": 213,
+  "verdict": "FAIL",
+  "accepted_fixes": [
+    "R98-1",
+    "WB key compatibility offline",
+    "66/65 pacing",
+    "known B7 preflight"
+  ],
+  "findings": [
+    "R98-2 orphan checksum adoption",
+    "R98-3 stage write/read size mismatch",
+    "R98-4 Ozon global cooldown omitted"
+  ]
+}

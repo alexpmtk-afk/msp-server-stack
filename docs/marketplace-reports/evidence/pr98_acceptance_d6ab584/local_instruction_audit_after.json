@@ -1,0 +1,21 @@
+{
+  "standard_checkout_sha": "08ff37b158ae367789b00c36d8f4706cd107fbcc",
+  "scope": "standard checkout/default-profile instructions only; no services, Redis, credentials or other installs checked",
+  "instruction_files": [
+    {
+      "local_path": "/home/hermes/.hermes/skills/productivity/data-pipeline-operations/references/msp-marketplace-report-archive.md",
+      "source_in_review_branch": "docs/marketplace-reports/HERMES_HANDOFF_GUIDE.md",
+      "sha256": "7fb8075a61b4d8e2bfea5de33be7a107b424ad6f59bc6a3a9ca201f6034c73a8",
+      "kind": "instructions ONLY; not application install"
+    },
+    {
+      "local_path": "/home/hermes/.hermes/skills/productivity/data-pipeline-operations/references/financial-archive-audits.md",
+      "source_in_review_branch": "docs/marketplace-reports/HERMES_FINANCIAL_ARCHIVE_AUDITS.md",
+      "sha256": "52d19e95380c2506a4a970d670b9fa6ffa756f467456ef740b69882d371fbb9f",
+      "kind": "instructions ONLY; not application install"
+    }
+  ],
+  "archive_root_metadata": {
+    "status": "NOT_PRESENT_AT_THIS_PATH"
+  }
+}

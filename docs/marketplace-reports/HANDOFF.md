@@ -235,3 +235,167 @@ Hermes/ChatGPT могут разрабатывать, проверять, ком
 - Оператор выполнил проверку `command -v docker podman`, `systemctl list-units --all --type=service` с отбором по `redis|valkey|marketplace|mcp`, `ps -eo comm=` с отбором по `redis|valkey|marketplace`.
 - Вывод: `docker=NOT_FOUND`, `podman=NOT_FOUND`, пустые списки SERVICES и PROCESSES. Совместно с прежним `REDIS_LOCAL=CLOSED` и отсутствующими `redis-server/valkey-server/redis-cli` — нет признаков локальной общей очереди на этом VPS, но не исключён сторонний сервер или произвольно названный процесс.
 - Запрет загрузки WB/Ozon через новый архиватор остаётся. Следующая безопасная проверка: список unit-файлов по `hermes|gateway|marketplace|mcp|redis|valkey` и названия подкаталогов `/opt/mcp`, без чтения секретов и изменения инфраструктуры. Не устанавливать Redis и не предполагать, что очереди уже общие.
+
+## 2026-10-28 — независимая ревизия Hermes (без допуска к API)
+
+- База ревизии: `b6935eb16e29e73a931af45ab0abdccc38a46f49`; старый проект `0510a409ab589c639930fbca35afb3e68d874f81`. Полный результат: [REVIEW_HERMES_20261028.md](REVIEW_HERMES_20261028.md), собственная ветка `review/hermes-marketplace-archive-20261028`; не изменяет чужую feature-ветку.
+- PASS: изучены текущие документы/программы и поздняя хронология; 54 изолированных теста OK, CI исходной версии прочитан. Свежая read-only диагностика VM-817589 подтвердила CLOSED на локальном Redis 6379, отсутствие корня архива, root:root 0700 у каталога реквизитов. Закрытый cabinets.json не читался: его состояние и root trial-копия независимо NOT VERIFIED.
+- FAIL: новый `scope=msp_finance_reports` не совпадает со старым `finance`: даже общий Redis не объединит эти buckets. Отдельные тесты показали перезапуск WB с rrdId=0 после ошибки и при повторе завершённого wb-one, повторное заверение повреждённого WB CSV, пропуск удаления всех monthly_source при сохранённом Ozon annual. Исправления WB блокируются конфликтом вместо управляемого версионирования; multi-file recovery/checkpoint отсутствуют. Детали, точные файлы и способы исправления — в ревизии.
+- NOT VERIFIED: реальный Redis старого сервера и конфигурация общей очереди, её конкуренция/отказы, актуальные Ozon-контракты, полный WB отчёт и остальные кабинеты. Исторические результаты владельца не объявлены повторно выполненными.
+- Следующее безопасное действие: определить фактическую очередь Marketplace MCP на VM-684381 через разрешённый read-only канал; не устанавливать независимую очередь на новом VPS. Approval не включать, WB/Ozon не вызывать. Никаких развёртываний, изменений служб/данных/секретов/расписаний или слияния PR №89 ревизия не выполняет.
+
+## 2026-10-29 — полный план завершения и обязательная фиксация знаний
+
+- По поручению владельца подготовлен [ACTION_PLAN_20261029.md](ACTION_PLAN_20261029.md): P01–P12, все ошибки B1–B9, безопасность реквизитов, Ozon-контракты, CI, интеграционные испытания, согласованная установка, пилоты, история шести кабинетов, восстановление и read-only доступ коллег.
+- PASS: перед планированием заново проверены SHA и состояние PR №89/№90; оба открыты и не слиты. Исправления и испытания будущих этапов НЕ объявлены выполненными.
+- Введено обязательное закрытие каждого шага: действие → независимая проверка → безопасное доказательство PASS/FAIL/NOT VERIFIED → HANDOFF/PROJECT/DECISIONS/семантика → канонический и применимый установленный Skill → commit/PR/CI/read-back. GitHub, VPS и установленный Skill учитывать раздельно.
+- План опубликован в собственной ветке ревизии PR №90; первый приоритет — P01 (подтверждение фактической общей очереди). Разрешение на merge, развёртывание, допуск API, массовую историю или расписание этим документом не выдаётся. Production и чужая feature-ветка не менялись.
+
+- PASS: в текущем default-профиле обновлена маршрутизация существующего Skill `data-pipeline-operations` и установлен [проектный справочник Hermes](HERMES_HANDOFF_GUIDE.md), byte-identical локальной reference-копии; SHA256 `166b9e0305b3498f314c3c5f192a925e2edee4018eac04c525347e6633560c54`. Проверены YAML-метаданные и ссылка маршрутизации. Это инструкция планирования/передачи, не новый API-инструмент и не установка приложения. Новый специализированный Skill проекта остаётся задачей плана.
+
+- Сверка в ходе публикации: учтена новая запись коллеги от 29.10 из `40349bc0d5566c6377ad00a824351705561736eb` об отсутствии признаков локального Marketplace MCP/Redis. Это результат оператора, не новый запуск Hermes. Программные файлы не изменились; план и блокеры остаются применимыми. Обе хронологии сохранены в собственной ветке.
+
+## 2026-10-29 — Hermes: независимая проверка PR №91 и отдельная диагностика P01
+
+- Проверены old `40349bc0d5566c6377ad00a824351705561736eb` и PR №91 `e98000b0ae309ea0677bcabcbb39486b31e1cd28`. [Результат B5](REVIEW_B5_PR91_20261029.md), искусственные harness/stdout включены в evidence. PASS: исходная B5 воспроизведена до и заблокирована после; 57 штатных тестов, 132 target-corruption и 6 corrupt-no-op случаев прошли.
+- **B5 acceptance=FAIL:** R1 — остальные месячные Ozon-источники обходят полную проверку metadata (schema=2 → успешный новый annual и verify=True); R2 — заранее повреждённый annual блокирует импорт только после изменения monthly. B7 fault injection подтверждает fail-closed после CSV→manifest crash, но процедуры recovery нет. Код PR №91 не менялся; замечания передаются автору.
+- [P01 отдельный результат](P01_QUEUE_DISCOVERY_20261029.md): **NOT VERIFIED** — на VM-817589 не найдены признаки локальной legacy очереди и настроенного доступа к старому экземпляру; подтверждены TCP refusal=111, отсутствие именованных units/processes/binaries и legacy MCP connections. Контракт старого GitHub не доказывает runtime. Нужен существующий разрешённый read-only маршрут к фактическому legacy runtime; токены и пароли не нужны в чате.
+- Никаких маркетплейс API/реальных отчётов, Redis-записей, изменений чужих веток, merge, установки, перезапуска служб или расписаний. Результаты публикуются в собственной ветке PR №90 и обсуждениях №91/№90, с read-back.
+
+- Инструкции проверки integrity/recovery и поиска очереди дополнены в установленном reference существующего Skill `data-pipeline-operations`; каноническая копия — HERMES_HANDOFF_GUIDE.md, SHA256 `6c455e3e79f547f6708c8cd00d842c25e8d37a142dc3eafe05edadaefcb4c3f1`. Это новые инструкции ревизии, не установка приложения или исправления PR №91.
+
+## 2026-10-29 — Hermes: повторная независимая проверка точного 309592e4
+
+- [Отчёт повторной проверки](REVIEW_R1_R2_309592E4.md): **R1=PASS, R2=PASS** на `309592e4cef5af617ed8e9e07060dce739d6a1f2`. Исходные R1/R2 повторены до/после; новые отказы сохраняют все файлы архива и backups побайтно. 61 штатный тест/CI PASS; 132 group-corruption, 6 consistency, обычный импорт/исправление/no-op и повторная B5-матрица проверены на искусственных данных.
+- **B7=OPEN:** три fault points оставляют неполную публикацию, verify=False, retry блокируется без новых изменений; восстановления/атомарного multi-file commit нет. Унаследованное R3: boolean `true` принимается как schema=1/rows=1 из-за сравнения без строгих JSON-типов; наблюдается до и после, не новая регрессия R1/R2, вынесено отдельно.
+- Заключение: принять выполненность R1/R2 в объёме независимой проверки; это не разрешение merge, установки или API. Код/ветка PR №91 не изменены. Harness и фактический stdout — в evidence; результаты передаются автору PR №91.
+- P01 перепроверена доступными read-only средствами: локальный Redis refusal=111; новые каналы доступа к старому runtime не обнаружены; legacy main по свежему fetch остаётся 0510a409. **NOT VERIFIED**, необходим конкретный разрешённый read-only маршрут к действующему старому экземпляру, не секреты в чате. Никакой Redis не устанавливался.
+
+- В установленном Skill reference закреплён отдельный тест JSON boolean↔integer и разделение scoped acceptance/regression/B7. Каноническая копия HERMES_HANDOFF_GUIDE.md синхронизирована; SHA256 `d3172a3a9204cf59bfe2ac6434d3b9be1a9d539d1f8d630bc8cec7424c80d53f`. Это инструкции проверки, не установка архиватора.
+
+## 2026-10-29 — Hermes: дополнительный GitHub-доступ проверен, P01 продолжена
+
+- **REPOSITORY_ACCESS=PASS:** новые Contents reads Marketplace bridge и infra реально выполнены. Сведения о маршрутах/истории проверены без запуска workflow. Прежнее «нет доступа к дополнительным repo» больше не считается блокером.
+- Найдены конфликт исторических Yandex/REMOTE инструкций и несовпадение свежего DNS с production source map. Публичный legacy TLS вход возвращает WRONG_VERSION_NUMBER до подтверждённого HTTP/MCP; никакой TLS bypass/plaintext fallback не использован.
+- **P01=NOT VERIFIED:** backend/DB/namespace/PING/совместимость bucket не доказаны. Точные недостающие разрешённые источники: gpt-powershell-bridge metadata 404, Marketplace bridge Actions workflows/runners 403. Исторический Windows маршрут требует подтверждения нынешней identity/доступности.
+- Подробный PRIVATE отчёт опубликован в [bridge PR №720](https://github.com/alexpmtk-afk/msp-server-bridge/pull/720), commit `287eaaad0d9a9db4cb652bc90d2a00a5e9419ee2`, содержимое прочитано обратно. Частные SSH locator/key paths в публичный stack не переносились; безопасный итог — P01_QUEUE_DISCOVERY_20261029.md.
+- Коллеге передаётся результат в PR №90. Чужие исходники/ветки, старые службы, Redis, конфигурация авторизации и текущие финансовые данные не менялись; никаких merge/install/маркетплейс API/запусков mutating workflow.
+
+- Skill reference дополнен разделением Contents/Actions/execution и проверкой актуальности DNS/TLS/historical workflows; публичная каноническая guide-копия совпадает с установленной reference, SHA256 `1c1ab518289cb3695eef29c9caa67c27caa8e9b25bcdce0f8cc49679a8bc1132`. Приватные locator-данные в Skill не записывались.
+
+## 2026-10-29 — Hermes: диагноз различий GitHub-подключений
+
+- PASS: действующий fine-grained PAT и ожидаемый account проверены через /user; REST/GraphQL подтвердили недоступность GPT repo именно этому подключению, не его отсутствие. Marketplace и MSP private controls: Contents 200, Actions 403 с явным отказом PAT. Состояние выбора repo/permissions в настройках не читалось и не менялось.
+- Исправлена прежняя неточность рекомендаций: Actions read — workflow/run/job history; Administration read — API списка self-hosted runners, не обязательный первый шаг. Public Actions 200 не доказывает PAT permission.
+- Документированный WORK executor найден только в старом pointer; текущие main README/policy GPT repo недоступны. Bridge-v2 учитывается как историческая по уточнению коллеги. Online Windows, разрешённый read-only operation, конечный host и Redis NOT VERIFIED; ничего не исполнялось.
+- Подробности и safe API evidence в PRIVATE PR №720; публичная P01-выжимка и Skills уточнены. Коллеге предлагается безопасный снимок текущей main/policy в уже доступном PRIVATE bridge как вариант совместного изучения без передачи credentials и без изменения PAT. Это не execution permission.
+
+- Синхронизирован установленный pipeline reference с HERMES_HANDOFF_GUIDE.md, SHA256 `2cd216454e32fda8c955b468ff6d107182de53df0e14852696ceecb918ef6802`; обновлена auth-reference Github Skill. Установка приложения, права GitHub и службы не менялись.
+
+## 2026-10-29 — Hermes: проверка безопасной выдержки PR №729
+
+- **DOCUMENT REVIEW=PASS:** прочитан точный `c5c460dc240a42053b19cab7e73da42f857cbbcd`, безопасная выдержка актуальной политики; сопоставлена с PRIVATE PR №720. Исторические инструкции не приняты за online/runtime. Оригиналы недоступны подключению Hermes: независимое соответствие исходникам **NOT VERIFIED**, это не новый успешный доступ к исходному repo.
+- **P01 / LIVE READ-ONLY CHANNEL=NOT VERIFIED:** не определён точный существующий read-only workflow/launcher/whitelist с закреплённой версией и допустимыми inputs; online исполнителя, конечная identity и общая Redis очередь не подтверждены.
+- Один следующий шаг: коллега через уже доступное Contents-подключение фиксирует контракт существующей разрешённой read-only диагностики в PRIVATE bridge, без запуска и без создания новой операции. Если операции нет, это отдельный подтверждаемый блокер.
+- Полное заключение — REVIEW_P01_PR729_C5C460DC.md в PRIVATE PR №720; ответ коллеге публикуется в PRIVATE PR №729. Рекомендуется связный source commit SHA и точное указание требования Administration read именно для runner-list REST endpoint. Права не расширялись, Actions не запускались, чужая ветка и runtime не менялись.
+
+## 2026-10-29 — Hermes: повторная проверка PR №729 f2ee4980
+
+- DOCUMENT REVIEW=PASS: прочитан точный `f2ee4980a4204adda9fe8b997a77c40bf7814eea`; два MSP workflow непосредственно сверены с `e245a49593c668816825568deecc4676c3f59240`. Они обслуживают новый Linux runner, не старый Marketplace MCP. GPT workflow напрямую остаётся недоступен (404): его описание — результат чтения коллеги, не самостоятельное чтение Hermes.
+- Искусственная shell-проверка подтвердила: `redis-cli`-заглушки с exit 1 + `|| true` не мешают итоговому PASS. Реальный Redis не вызывался. PASS исторического сценария не является доказательством очереди.
+- P01=NOT VERIFIED; иной подходящий разрешённый вход не подтверждён. Bounded поиск в workflow нового моста не доказывает отсутствия каналов вообще. Локально вновь проверены новый host, отсутствие SSH-каталога пользователя и listeners 6379/6380, но это не состояние старой машины.
+- Минимальное действие для отдельного решения владельца: одна фиксированная проверка identity/служебных metadata в уже существующей владельческой SSH/консольной сессии старого сервера. Точная команда и границы в PRIVATE PR №720, REVIEW_P01_PR729_F2EE4980.md. Команда НЕ запускалась и не является разрешением создания нового канала. Redis/PING/совместимость ключей потребуют следующей проверки.
+- Чужие ветки, PAT, службы и очередь не менялись; нет Actions dispatch/rerun, SSH, Redis, маркетплейс API, merge или установки.
+
+## 2026-10-29 — финальная ревизия документации PR №729
+
+**PASS** для точного `65cea51afd7240c454170e087b604ccfc7e3381e`: все замечания предыдущего review закрыты; новых нет. Документация этого этапа завершена по результату проверки, не слита и не установлена. Источники доказательств и границы утверждений разделены; консольная диагностика остаётся несогласованной и невыполненной. **P01=NOT VERIFIED**: текущий исполнитель, старый сервер и общая Redis очередь не подтверждены. Результат фиксируется в PRIVATE PR №720 и комментарии №729; исходники коллеги не менялись. Никаких Actions/SSH/Redis/API, расширения прав, обходных подключений, merge или deployment.
+
+## 2026-10-29 — Hermes: R3 независимо PASS, B7 план приёмки
+
+- Точный PR №91 head `2f1c9427e4245e9af452bcce063c85215016cbbf` проверен против `309592e4...`. R3 воспроизведена на старой версии и устранена на новой. **R3=PASS**; локально 64 штатных tests, 1008 независимых числовых случаев и 72 malformed JSON случая PASS. Все отказные проверки включали побайтовый snapshot файлов/backup и verify; сеть запрещена. CI check-runs точного SHA прочитаны success.
+- [Полный отчёт и harness](REVIEW_R3_2F1C9427.md); новых блокирующих регрессий нет. Унаследованная неоднозначность повторных JSON keys J1 описана отдельно, не R3 FAIL.
+- [B7_FAULT_TEST_PLAN_20261029.md](B7_FAULT_TEST_PLAN_20261029.md): 24 категории будущих аварийных испытаний, читатели/commit point/recovery/проверка поколений. Сейчас только анализ и план, не B7 acceptance и не реализация. ChatGPT программирует, Hermes проверяет точный будущий SHA.
+- P01=NOT VERIFIED; офлайн-работа разрешена. Защитный API block не менялся. Код коллеги, службы и рабочий архив не трогались; merge/deploy/API/Redis/Actions execution отсутствуют.
+
+## 2026-10-29 — Hermes: независимая ревизия первого B7 core PR №95
+
+**FIRST BLOCK=FAIL**, точный `0217ba4edd2503a0998d7bae531873e4bb1a6f9c`. 82 штатных tests PASS; дополнительно 32 exception checkpoints, 32 SIGKILL checkpoints, 14 replace/fsync отказы, два процесса stale writers, 40 concurrent reads и 21 negative validation. В проверенных окнах активный snapshot целый и прежние bytes сохранены.
+
+[Контрпримеры и обязательные доработки](REVIEW_B7_CORE_0217BA4.md): G1 публичное read_generation читает неподтверждённый candidate; G2 потеря CURRENT классифицирует прежние commits как uncommitted; G3 старые snapshots/parent chain не anchored ожидаемым digest; G4 отсутствуют parent-directory fsync новой scope chain (power-loss не воспроизводился). Root symlink policy отдельно уточнить. Код коллеги не менялся.
+
+Полная B7 OPEN, legacy/recovery честно ещё не реализованы — FAIL относится к reader/evidence/durability контракту первого core, не к отсутствию следующего блока. До интеграции нужны commit/pin proof и parent digest, безопасный UNKNOWN commit status, durable initialization; затем snapshot-aware migration/readers и crash-idempotent explicit recovery под CAS/lock. P01 NOT VERIFIED, API block сохранён; нет merge/deploy/Actions/Redis/API.
+
+## 2026-10-29 — Hermes: повторная проверка G1–G4 на 97decf8
+
+Точный `97decf831a2499d1dc0d4d93395a46a1626cbaaa`: **G1 PASS, G2 PASS, G3 PASS, G4 FAIL**. 89 штатных tests PASS; исходные before/after контрпримеры повторены, 24 pin negatives, 8 pointer corruptions, 13 fsync faults после трёх commits и 32 SIGKILL checkpoints. Новый G4-R1: 5 parent-sync failure→retry случаев, новый год после трёх commits и дополнительный SIGKILL initializer→retry возвращают COMMITTED без повторного ранее пропущенного parent fsync. Нормальный first-init trace исправлен, повтор после сбоя — нет. Физический power-loss не проверен.
+
+[Полный отчёт, воспроизведение и evidence](REVIEW_B7_G1_G4_97DECF8.md). Private candidate validator не равен public committed reader; это не обход G1. Общая B7 OPEN, first block ещё FAIL только по оставшемуся G4; разработчик исправляет самостоятельно. Код коллеги/ветка, серверы, API, Redis не менялись; merge/deploy/Actions NO, P01 NOT VERIFIED.
+
+## 2026-10-29 — Hermes: G4-R1 закрыт на 407d144, первый блок G1–G4 принят
+
+**G4-R1 PASS; G1/G2/G3/G4 PASS** для точного PR №95 `407d14470db1ccb073a3278067be142a3dbd339b`. 92 локальных stock tests и 201 независимый сценарий: 6 parent failure→retry, new-year и initializer SIGKILL→retry, 24 pin negatives, 8 pointer faults, 63 first-init + 63 existing-update fsync faults, 32 checkpoint SIGKILL, 2 multiprocess writer cases и 1 deterministic reader across commit. Старые snapshots сохранены; прежние пропущенные parent sync повторяются.
+
+[Полный отчёт и воспроизводимые артефакты](REVIEW_B7_G4R1_407D144.md). Новых блокирующих замечаний не найдено. Можно продолжать офлайн-разработку интеграции/recovery, не считать legacy/полную B7 принятыми. **B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED.** Нет merge/deploy/API/Redis/Actions execution; ветка коллеги не менялась. Ошибка sync после pointer replacement остаётся CommitUncertain, не гарантией rollback.
+
+## 2026-10-29 — Hermes: B7 stage 2 PR №96, независимый FAIL
+
+Точный `5eb19855b1aa9bc48eb6c3157987a557a411aee6`: **STAGE2 FAIL** при 108 штатных tests PASS и 32 независимых сценариях (включая контрпримеры, не «32 PASS»). [Полный отчёт и harness](REVIEW_B7_STAGE2_5EB1985.md). R96-1: retry после evidence rename не повторяет проваленный source-parent fsync, подтверждено SIGKILL. R96-2: coexistence разных исправных legacy/versioned snapshots и TOCTOU guard; dangling meta symlink bypass. R96-3: поздняя проверка batch collision после переноса первого candidate, без partial/uncertain classification.
+
+CAS двух отдельных versioned importers WB/Ozon прошёл; после явного retry все 3 строки/месяца сохранены. Известное автору ограничение внешнего rollback CURRENT повторено: ранее committed вне активной ancestry может быть перемещено при acknowledgment, bytes не удалены. Это не полный исторический commit proof.
+
+Ранее принятый core G1–G4 не отменяется; полная B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED. Ветку/код коллеги не меняли; нет merge/deploy/Redis/API/Actions execution. Автор исправляет, Hermes проверяет новый SHA.
+
+## 2026-10-29 — Hermes: повтор R96 на a0df0d5, три исправления приняты, новая R96-4
+
+Точный `a0df0d5d4266392853330dc414d50fbf31bf314e`: **R96-1 PASS, R96-2 PASS, R96-3 PASS** по первоначальным контрпримерам. 118 stock tests PASS; 68 собственных regression/control сценариев прошли, включая обе mixed races реальными процессами, повтор source/evidence sync и 4 quarantine SIGKILL окна.
+
+**Новая R96-4, stage2 overall FAIL:** unsafe common admission-lock path. 3 текущих path probes (+ baseline отдельно) показали external lock-file creation при root/.locks/lock-file symlinks; root symlink отказывает только после внешнего side effect, два других возвращают COMMITTED. Финансовые CSV outside не писались. [Отчёт и воспроизведение](REVIEW_B7_R96_A0DF0D5.md). Всего 71 текущий независимый сценарий, не «71 PASS».
+
+Core G1–G4 PASS сохраняется; исправление R96-4 за коллегой, Hermes проверяет следующий SHA. B7 OPEN, P01 NOT VERIFIED, power-loss NOT VERIFIED; нет merge/deploy/Redis/API/Actions execution, чужая ветка не менялась.
+
+## 2026-10-29 — Hermes: R96-4 PASS, второй opt-in блок B7 принят на ceec4fe
+
+Точный `ceec4fe6a9649ea547c0900d5e45b667868bec7f`: **R96-4 PASS, STAGE2 SCOPED PASS**. 120 локальных stock tests и 143 независимых сценария PASS (71 admission/path, 68 stage2 regressions, 4 core controls). Три прежних counterexample закрыты у обоих импортёров; nested/dangling/hardlink/open/mkdir failure cases, FD cleanup, 8 pre-open FS swaps и pin `.locks` FD проверены. Обе mixed races реальными процессами, quarantine SIGKILL и partial retries проходят; R96-1–R96-3/G1–G4 сохранены.
+
+[Итоговый отчёт и воспроизводимые артефакты](REVIEW_B7_R96_4_CEEC4FE.md). Защита относится к no-follow lock open/кооперирующим writers, не ко всем последующим финансовым path operations при hostile external tree replacement. Предки root должны существовать, no-follow не обходить resolve. Можно продолжать офлайн-разработку следующих частей B7, не merge/deploy/API. B7 OPEN, P01/power-loss NOT VERIFIED. Чужой код/ветка/службы не менялись.
+
+## 2026-10-29 — Hermes: stage3 PR №97 ba46528, независимый FAIL
+
+Точный `ba465288406f68dacb4a2557019a488716d55ba6`: **STAGE3 FAIL**. 137 локальных stock tests PASS; 61 собственный сценарий, включая 21 реальный SIGKILL. [Полный отчёт и evidence](REVIEW_B7_STAGE3_BA46528.md). R97-1: после VERIFIED journal rename и отказа его parent fsync replay early-return CURRENT_VERIFIED без resync (также SIGKILL). R97-2: schema:true/1.0 journal принимаются как 1 в PREPARED/VERIFIED. Код коллеги не менялся.
+
+Preimage и поколения сохранены в проверенных окнах, rollback/extra-generation/CAS/pin guards и порядок locks прошли. Выбор никогда не committed candidate по выдуманному operator witness воспроизвёл документированное ограничение, authenticity flag=false, не новый скрытый дефект. Нужен независимый commit proof перед рабочим применением. Core/stage2 PASS сохраняются; B7 OPEN, P01/power-loss NOT VERIFIED, merge/deploy/API/Redis/Actions NO.
+
+
+## 2026-10-29 — Hermes: R97-1/R97-2 PASS, третий офлайн блок принят на 9b2c3bd
+
+На точном `9b2c3bdf608e5e1c8526f8a2cb36dd999642d3fe` **R97-1 PASS, R97-2 PASS, STAGE3 SCOPED PASS**. 140 штатных тестов PASS; 252 дополнительных независимых сценария, в том числе 21 настоящий SIGKILL CURRENT repair и 48 усиленных retry/type/open проверок. 59 baseline-сценариев на ba46528 воспроизводят старые дефекты. [Итог и артефакты](REVIEW_B7_R97_9B2C3BD.md). Повтор VERIFIED синхронизирует file/parent без перезаписи preimage, повторные ошибки снова uncertain; strict schema проверяется и у чужих журналов. Прежние core/stage2 принятые гарантии сохранены, новых блокирующих дефектов не найдено.
+
+Предыдущий FAIL ba46528 — исторический. Подтверждено завершение только третьего отдельного офлайн программного блока, не всей B7. B7 OPEN, P01/power-loss/authenticity внешнего witness NOT VERIFIED. Следующие integration/attestation/migration этапы принимаются отдельно. Нет merge/deploy/API/Redis/изменения ветки коллеги; CI прочитан, Actions не запускались вручную.
+
+
+## 2026-10-30 — Hermes: комплексная готовность к загрузке, PR98 7a5f60c
+
+Приоритет — первые официальные данные 2026, не очередной необязательный B7 цикл. [Комплексный итог](REVIEW_DOWNLOAD_READINESS_PR98_7A5F60C.md): 147 tests PASS, 27 дополнительных сценариев. Найдена прежняя durable WB queue (core/archive_queue.py), Ozon FINAL/CURRENT adapters и публичный cloud snapshot. Повторно использовать state/cursor/staging/registry, не переносить Drive/cloud workflow целиком; факт старого полного backfill/двух суток NOT VERIFIED.
+
+Критично: WB quota owner и controller source совпадают, но old scope finance != new msp_finance_reports => WB Redis key sets не пересекаются. runtime local 63 s < safety 65 s воспроизводит отказ второго запроса; providers держит страницы в памяти и повтор начинает rrdId=0. Ozon все 4 пути заблокированы; официальное общее правило 50 RPS/Client-Id подтверждено, конкретные полные свежие method schemas недоступны этому reader, нужны выдержки коллеги и явный allowlist, не выдуманные персональные квоты. P01 runtime NOT VERIFIED, VPS/Redis/API/секреты не трогались.
+
+PR98 scoped FAIL только по R98-1: FINAL legacy inventory пропускает dangling annual CSV/meta symlink и ошибочно считает пустой monthly_source mixed; real importer правильно блокирует ссылки. Calendar/6 cabinets/main-buyout/gaps/missing CURRENT guards PASS. Чужая ветка не менялась; исправляет автор. Общая B7 OPEN, три принятых блока остаются PASS. Можно параллельно готовить WB resume, Ozon month import и P01 release gate без полного автоматического repair. Нет merge/deploy/live calls.
+
+
+## 2026-10-30 — Hermes: комплексный повтор PR98 e6dd960, FAIL с тремя новыми замечаниями
+
+Точный e6dd9608eeb13ff6b1ec268aff86df8d6865ee82: 161 stock PASS, 213 дополнительных сценариев (не все PASS), 8 actual SIGKILL и12 fsync retry. [Итог](REVIEW_PR98_E6DD960.md). R98-1 PASS, WB canonical key OFFLINE PASS, 66/65 pacing PASS, B7-scope preflight PASS; прежние B7 controls без найденной регрессии.
+
+Новые дефекты: R98-2 pending page до state не имеет закреплённого digest, replay благословляет changed amount новым SHA; whitespace даёт cursor advance с неверным raw hash. R98-3 write больше64MiB допускается при read cap64MiB (воспроизведение scaled4096/5162), собственный pending file блокирует retry. R98-4 Ozon safety добавлен к global, но defer отбрасывает global при specific: Retry-After120 записывается только в msp-finance-safety на всех4 путях. Флаги/окружение production не менялись, fake backend/no network. Код исправляет автор; review не новый этап B7.
+
+Стандартный page/cursor crash replay работает, но модуль не ready drop-in до целостности pending/размерной правки и thin async worker/writer adapter. Ozon официальные версии/назначение подтверждены частично, полные свежие schemas и special limits всех4 NOT VERIFIED; общий50RPS подтверждён. P01 runtime NOT VERIFIED, B7 full OPEN. Нет VPS/Redis/API/secrets/merge/deploy; результаты и evidence опубликованы только в своей ветке.
+
+
+## 2026-10-30 — Hermes: R98-2/3/4 PASS и совместный этап A–Г на d6ab584
+
+[Единое письмо](REVIEW_PR98_D6AB584_AND_HANDOFF.md): точный d6ab584b7bc66c94911bece097e1e3e7c3e302be, code a7f55bee6fa8a54147b9242f4810c3141eec040f; R98-2 PASS, R98-3 PASS, R98-4 PASS, PR98 SCOPED OFFLINE PASS.167 stock и79 независимых сценариев;8 actual SIGKILL,12 fsync EIO/retry. Новых блокирующих дефектов не найдено; прежние FAIL своих SHA сохранены как история.
+
+Hermes самостоятельно подготовил runnable WB vertical slice (main/buyout→page/state→CSV→generation pin→synthetic coverage;6 cases), [схему и список файлов wiring](COLLABORATION_AND_WB_WIRING_20261030.md), [P01 evidence contract](P01_PILOT_EVIDENCE_REQUEST_20261030.md), [Ozon method matrix](OZON_METHOD_EVIDENCE_MATRIX_20261030.json), минимальный CI quota path patch. Реальный старый worker не подключён; один scheduler/один cursor/structured not_before, без двойного резервирования, с проверкой host placement.
+
+Локальные default-profile project/audit Skills обновлены и зеркалированы; source hashes и standard-checkout metadata сохранены. В стандартном checkout08ff37b архивных модулей/доков и целевого data root нет по проверенным путям; другие копии NOT VERIFIED. Credentials/Redis/services/processes не читались/не менялись. P01 runtime и4 полных Ozon specs/special quotas NOT VERIFIED, B7 OPEN. Следующий этап: ChatGPT thin wiring+public specs; Hermes independent review и только отдельно разрешённый VPS preflight, затем owner-approved pilot. Не fullB7.
