@@ -106,8 +106,17 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
             if not args.cabinet.startswith("wb_"):
                 raise ValueError("WB cabinet required")
             values = wb_discover_all(sender, args.year)
-            result = {"cabinet": args.cabinet, "year": args.year, "report_ids": [r["reportId"] for r in values],
-                      "reports": len(values), "main": sum(r["reportType"] == 1 for r in values),
+            # The offline backfill planner requires ID/type/dates, not monetary
+            # figures or any provider payload. Include an explicit metadata-only
+            # inventory; this is NOT evidence of complete API coverage.
+            items = [
+                {"reportId": int(r["reportId"]), "reportType": int(r["reportType"]),
+                 "dateFrom": str(r["dateFrom"]), "dateTo": str(r["dateTo"])}
+                for r in values
+            ]
+            result = {"cabinet": args.cabinet, "year": args.year, "report_ids": [r["reportId"] for r in items],
+                      "items": items, "reports": len(values),
+                      "main": sum(r["reportType"] == 1 for r in values),
                       "buyout": sum(r["reportType"] == 2 for r in values),
                       "status": "DISCOVERED_NOT_DOWNLOADED"}
         elif args.action == "wb-one":
