@@ -9,6 +9,8 @@ on:
       - "tests/test_msp_marketplace_current_repair.py"
       - "tests/test_msp_marketplace_backfill_plan.py"
       - "tests/test_msp_marketplace_wb_page_resume.py"
+      - "tests/test_msp_marketplace_wb_worker_adapter.py"
+      - "tests/test_msp_marketplace_quota.py"
       - "tests/test_msp_marketplace_providers.py"
       - "tests/test_msp_marketplace_security.py"
       - "tests/test_msp_marketplace_receiver.py"
