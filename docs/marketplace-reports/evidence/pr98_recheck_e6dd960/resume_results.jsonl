@@ -1,0 +1,11 @@
+{"cases": 8, "check": "REAL_SIGKILL_REPLAY", "status": "PASS"}
+{"cases": 6, "check": "BUSY_TRANSPORT_COMPLETION", "status": "PASS"}
+{"cases": 4, "check": "INDEXED_PAGE_STATE_CORRUPTION", "status": "PASS"}
+{"accepted_modified_amount": "99", "check": "R98_2_ORPHAN_REHASH", "cursor_advanced": 10, "state_hash_matches_changed_file": true}
+{"check": "R98_2_ORPHAN_CANONICAL_HASH", "cursor_after_replay": 10, "next_step_blocked": true}
+{"check": "R98_3_SIZE_MISMATCH", "cursor": 0, "retry_blocked": true, "scaled_read_cap": 4096, "written_bytes": 5162}
+{"check": "R98_4_OZON_COOLDOWN", "deferred_key_suffixes": ["msp-finance-safety"], "global_key_deferred": false, "path": "/v1/finance/accrual/by-day", "seconds": 120.0}
+{"check": "R98_4_OZON_COOLDOWN", "deferred_key_suffixes": ["msp-finance-safety"], "global_key_deferred": false, "path": "/v1/finance/realization/posting", "seconds": 120.0}
+{"check": "R98_4_OZON_COOLDOWN", "deferred_key_suffixes": ["msp-finance-safety"], "global_key_deferred": false, "path": "/v3/posting/fbo/list", "seconds": 120.0}
+{"check": "R98_4_OZON_COOLDOWN", "deferred_key_suffixes": ["msp-finance-safety"], "global_key_deferred": false, "path": "/v4/posting/fbs/list", "seconds": 120.0}
+{"check": "COMPLETE", "corruption_cases": 4, "orphan_cases": 2, "ozon_cooldown_cases": 4, "positive_cases": 6, "sigkill_cases": 8, "size_cases": 1}

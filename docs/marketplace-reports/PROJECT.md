@@ -88,3 +88,8 @@ R97-1/R97-2 и третий офлайн opt-in блок PR №97 **SCOPED PASS*
 ### Приоритет 30.10.2026 — загрузка истории, комплексная ревизия PR98
 
 Цель — первые проверенные отчёты и gap-only backfill 2026, не ожидание завершения всех B7 возможностей. [Итог 7a5f60c](REVIEW_DOWNLOAD_READINESS_PR98_7A5F60C.md): 147 tests PASS, 27 независимых сценариев, PR98 FAIL по ограниченному inventory R98-1. Готовые старые cursor/staging/registry и Ozon adapters найдены. Блокеры первой загрузки: несовпадающий WB scope finance/msp_finance_reports, 63/65 pacing, отсутствующее persisted page-resume, Ozon allowlist/contracts, фактическое P01 и отдельный live release gate. WB и Ozon можно готовить параллельно, B7 full OPEN не запрещает отдельный чистый pilot после этих проверок и разрешения. Фактическое состояние VPS, старая полнота/скорость, P01 runtime и свежие полные Ozon method schemas NOT VERIFIED; ключи не читались, API/Redis/установка не выполнялись.
+
+
+### Актуальная комплексная проверка PR98 — e6dd960
+
+[Повторный итог](REVIEW_PR98_E6DD960.md): PR98 FAIL из-за новых R98-2 pending-page integrity, R98-3 write/read size mismatch, R98-4 Ozon shared cooldown. Прежние R98-1/WB keys/66s pacing/preflight приняты;161 stock PASS и213 дополнительных сценариев, включая контрпримеры. Требуются ограниченные исправления и thin integration со старым worker, не новая B7 подсистема. P01 runtime/полные Ozon method schemas NOT VERIFIED, общие50RPS подтверждены. Приоритет — разрешённый малый pilot после gate, не ожидание полного auto-repair. B7 OPEN, нет deployment/API/Redis/чтения секретов.

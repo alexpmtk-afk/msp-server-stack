@@ -381,3 +381,12 @@ Preimage и поколения сохранены в проверенных ок
 Критично: WB quota owner и controller source совпадают, но old scope finance != new msp_finance_reports => WB Redis key sets не пересекаются. runtime local 63 s < safety 65 s воспроизводит отказ второго запроса; providers держит страницы в памяти и повтор начинает rrdId=0. Ozon все 4 пути заблокированы; официальное общее правило 50 RPS/Client-Id подтверждено, конкретные полные свежие method schemas недоступны этому reader, нужны выдержки коллеги и явный allowlist, не выдуманные персональные квоты. P01 runtime NOT VERIFIED, VPS/Redis/API/секреты не трогались.
 
 PR98 scoped FAIL только по R98-1: FINAL legacy inventory пропускает dangling annual CSV/meta symlink и ошибочно считает пустой monthly_source mixed; real importer правильно блокирует ссылки. Calendar/6 cabinets/main-buyout/gaps/missing CURRENT guards PASS. Чужая ветка не менялась; исправляет автор. Общая B7 OPEN, три принятых блока остаются PASS. Можно параллельно готовить WB resume, Ozon month import и P01 release gate без полного автоматического repair. Нет merge/deploy/live calls.
+
+
+## 2026-10-30 — Hermes: комплексный повтор PR98 e6dd960, FAIL с тремя новыми замечаниями
+
+Точный e6dd9608eeb13ff6b1ec268aff86df8d6865ee82: 161 stock PASS, 213 дополнительных сценариев (не все PASS), 8 actual SIGKILL и12 fsync retry. [Итог](REVIEW_PR98_E6DD960.md). R98-1 PASS, WB canonical key OFFLINE PASS, 66/65 pacing PASS, B7-scope preflight PASS; прежние B7 controls без найденной регрессии.
+
+Новые дефекты: R98-2 pending page до state не имеет закреплённого digest, replay благословляет changed amount новым SHA; whitespace даёт cursor advance с неверным raw hash. R98-3 write больше64MiB допускается при read cap64MiB (воспроизведение scaled4096/5162), собственный pending file блокирует retry. R98-4 Ozon safety добавлен к global, но defer отбрасывает global при specific: Retry-After120 записывается только в msp-finance-safety на всех4 путях. Флаги/окружение production не менялись, fake backend/no network. Код исправляет автор; review не новый этап B7.
+
+Стандартный page/cursor crash replay работает, но модуль не ready drop-in до целостности pending/размерной правки и thin async worker/writer adapter. Ozon официальные версии/назначение подтверждены частично, полные свежие schemas и special limits всех4 NOT VERIFIED; общий50RPS подтверждён. P01 runtime NOT VERIFIED, B7 full OPEN. Нет VPS/Redis/API/secrets/merge/deploy; результаты и evidence опубликованы только в своей ветке.
