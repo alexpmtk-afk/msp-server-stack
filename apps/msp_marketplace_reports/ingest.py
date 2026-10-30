@@ -15,7 +15,7 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from .archive import DEFAULT_ROOT, import_csv
+from .archive import DEFAULT_ROOT, import_csv, _reject_versioned_scope
 from .providers import (
     ProviderError, wb_discover_all, wb_detail, ozon_final_month,
     ozon_current_postings, ozon_accrual_day,
@@ -124,6 +124,12 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
             # The ID/type pairing must first be obtained from the provider's list.
             # Avoid a full-year rediscovery before each individual archive action.
             report_type = args.report_type
+            dataset = "wb_weekly_finance_main" if report_type == 1 else "wb_weekly_finance_buyout"
+            # Early read-only preflight: avoid spending provider quota on a
+            # legacy write that is already known to be disallowed by B7.
+            # The locked import_csv repeats the guard against races.
+            _reject_versioned_scope(Path(args.root).expanduser(), dataset,
+                                    args.cabinet, str(args.year))
             rows = wb_detail(sender, args.report_id, report_type)
             dataset = "wb_weekly_finance_main" if report_type == 1 else "wb_weekly_finance_buyout"
             result = ingest_rows(args.root, dataset, args.cabinet, str(args.year), rows,
@@ -133,6 +139,9 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
             result["status"] = "LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE"
         elif args.action == "ozon-final-one":
             target = _closed_month(args.period)
+            _reject_versioned_scope(Path(args.root).expanduser(),
+                                    "ozon_final_realization",
+                                    args.cabinet, args.period)
             rows = ozon_final_month(sender, target.year, target.month)
             result = ingest_rows(args.root, "ozon_final_realization", args.cabinet, args.period, rows,
                                  ("report_year", "report_month", "row_number"))
@@ -141,6 +150,12 @@ def run(argv=None, *, factory=ReadOnlyHTTP):
             now = datetime.now(MOSCOW).date()
             begin = now.replace(day=1)
             period = begin.strftime("%Y-%m")
+            for candidate_dataset in (
+                "ozon_current_orders_fbo", "ozon_current_orders_fbs",
+                "ozon_current_accruals",
+            ):
+                _reject_versioned_scope(Path(args.root).expanduser(),
+                                        candidate_dataset, args.cabinet, period)
             gathered = [
                 ("ozon_current_orders_fbo", ozon_current_postings(sender, "fbo", begin, now), ("posting_number",)),
                 ("ozon_current_orders_fbs", ozon_current_postings(sender, "fbs", begin, now), ("posting_number",)),
