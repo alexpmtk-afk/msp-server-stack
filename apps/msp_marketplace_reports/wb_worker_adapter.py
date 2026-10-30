@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .archive import _rows, _sha, _validate, DATASETS
-from .generation_store import GenerationError
+from .generation_store import GenerationError, read_active
 from .ingest import _cell
 from .versioned_archive import import_csv_versioned, read_csv_versioned, _assert_no_legacy
 from .wb_page_resume import (
@@ -185,6 +185,9 @@ def run_one_step(root, cabinet, year, report_id, report_type, send, *, fault=Non
     dataset = _dataset(report_type)
     _validate(dataset, cabinet, str(year))
     _assert_no_legacy(Path(root).expanduser(), dataset, cabinet, str(year))
+    # Fail before spending provider quota if the versioned writer cannot
+    # establish an intact CURRENT-anchored scope.
+    read_active(root, dataset, cabinet, str(year))
     folder = _dir(root, cabinet, year, report_id, report_type)
     if _read_coverage(folder) is not None:
         return finalize_staged_report(root, cabinet, year, report_id, report_type)
