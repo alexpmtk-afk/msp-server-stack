@@ -70,6 +70,14 @@ def collect_rating_evidence(reader,*,marketplace,sku,checkpoints,max_reads=24,as
             tokens={json.dumps(row,sort_keys=True,ensure_ascii=False) for row in rows}
             combined.extend(row for row in rows if json.dumps(row,sort_keys=True,ensure_ascii=False) not in prior_tokens)
             prior_tokens.update(tokens)
+        if as_of:
+            eve=(date.fromisoformat(cp['review_date'])-timedelta(days=1)).isoformat()
+            if not any(isinstance(r,dict) and r.get('data')==eve for r in combined):
+                key=(eve,eve)
+                if key not in cache:cache[key]=read({'report':'by_period','d1':eve,'d2':eve})
+                extra,state=cache[key]
+                if state in PASS and isinstance(extra,list):
+                    combined.extend(r for r in extra if isinstance(r,dict) and r.get('data')==eve)
         normalized=adapter.normalize(comments,combined)
         number=cp['checkpoint_number']
         unavailable={'status':'UNAVAILABLE','reason':'FOUR_COUNTERS_NOT_VERIFIED_FOR_'+marketplace.upper()}
