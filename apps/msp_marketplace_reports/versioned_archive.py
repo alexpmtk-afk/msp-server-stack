@@ -26,27 +26,37 @@ def _period_scope(dataset: str, period: str) -> str:
     return period[:4] if dataset == "ozon_final_realization" else period
 
 
-def _assert_no_legacy(root: Path, dataset: str, cabinet: str, period: str):
-    """Fail closed on any pre-existing legacy files in the selected scope."""
+def _legacy_scope_occupied(root: Path, dataset: str, cabinet: str,
+                           period: str) -> bool:
+    """Shared read-only inventory for admission AND offline planner.
+
+    Existing empty monthly_source directory is NOT a financial archive.
+    Any annual CSV/manifest or monthly entry, including a dangling symlink,
+    IS a legacy artifact. Unsafe parent links fail closed.
+    """
     if dataset == "ozon_final_realization":
         year = period[:4]
         annual = _ozon_annual_path(root, cabinet, year)
         month_dir = _location(root, dataset, cabinet, period).parent
-        candidates = [annual, annual.with_name(annual.name + ".meta.json")]
         _require_plain(annual)
+        _require_plain(annual.with_name(annual.name + ".meta.json"))
         _require_plain(month_dir)
-        # Inventory *all* months for the year, including orphan metadata.
+        candidates = [annual, annual.with_name(annual.name + ".meta.json")]
         if month_dir.exists():
             candidates.extend(month_dir.iterdir())
-        if any(path.exists() or path.is_symlink() for path in candidates):
-            raise GenerationError("legacy Ozon FINAL scope exists; migration required")
     else:
         file = _location(root, dataset, cabinet, period)
         manifest = file.with_name(file.name + ".meta.json")
         _require_plain(file)
         _require_plain(manifest)
-        if any(p.exists() or p.is_symlink() for p in (file, manifest)):
-            raise GenerationError("legacy CSV scope exists; migration required")
+        candidates = [file, manifest]
+    return any(path.exists() or path.is_symlink() for path in candidates)
+
+
+def _assert_no_legacy(root: Path, dataset: str, cabinet: str, period: str):
+    """Fail closed when shared inventory sees a legacy financial artifact."""
+    if _legacy_scope_occupied(root, dataset, cabinet, period):
+        raise GenerationError("legacy CSV scope exists; migration required")
 
 
 def _pair(files, name, raw, dataset, cabinet, period, keys):
