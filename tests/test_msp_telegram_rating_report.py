@@ -25,7 +25,8 @@ class Reader:
             return (rows if self.marketplace == 'oz' else {'comments': rows}), 'PASS_JSON'
         return [{'data': d, 'rating': 4.8, 'commentsvaluation': 4.8, 'comments': 9, 'no_data': 0}
                 for d in ('2026-04-13', '2026-04-14', '2026-04-15',
-                          '2026-04-16', '2026-04-17', '2026-10-29')], 'PASS_JSON'
+                          '2026-04-16', '2026-04-17', '2026-10-29')
+                if args.get('d1', '') <= d <= args.get('d2', '9999')], 'PASS_JSON'
 
 
 CP = {'checkpoint_number': 1, 'review_date': '2026-04-15',
@@ -34,6 +35,14 @@ CP = {'checkpoint_number': 1, 'review_date': '2026-04-15',
 
 
 class TelegramRatingReportTests(unittest.TestCase):
+    def test_later_checkpoint_gets_own_eve_not_first_series_baseline(self):
+        second = {'checkpoint_number': 2, 'review_date': '2026-04-17',
+                  'windows': {'before': CP['windows']['before'],
+                              'after': {'d1': '2026-04-18', 'd2': '2026-04-19'}}}
+        got = collect_rating_evidence(Reader(), marketplace='wb', sku='123',
+            checkpoints=[CP, second], as_of='2026-10-30')
+        self.assertEqual(got['star_summaries'][2]['before_card_snapshot']['date'], '2026-04-16')
+
     def test_wb_registered_report_always_contains_new_rating_section(self):
         import tempfile
         import sqlite3
