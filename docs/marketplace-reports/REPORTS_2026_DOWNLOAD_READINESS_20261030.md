@@ -49,3 +49,16 @@ B7_STAGE1=HERMES_PASS; B7_STAGE2=HERMES_PASS; B7_STAGE3=HERMES_PASS; B7_COMPLETE
 **Что дальше:** не строить ещё один собственный scheduler поверх общего Redis. После независимого review PR #98 согласовать интеграцию уже проверенного старого `core/archive_queue.py` с локальной staging записью/новым writer (с учётом buyout, 2026 и точной детализации), проверить actual P01 namespace/DB и разрешения исполнителя; отдельно подтвердить четыре Ozon method contracts и явно разрешить малый live pilot владельцем. Лишь после успешной сверки фактических данных — полный годовой gap backfill, затем автоматическая докачка. Нет автоактивации, merge/deploy/API/Redis.
 
 **Разработчик CI:** на коммите `94ffad3df1139060fe8329d44c8f124f2846ded5`: 161 unittest PASS, Windows PS5.1 parser PASS, Secret scan PASS; runs `41051989198` и `41051989191`. Независимая ревизия Hermes этих изменений PENDING. Полная B7 OPEN, P01 NOT VERIFIED, Ozon detailed contracts NOT VERIFIED, physical power-loss NOT VERIFIED.
+
+## 30.10.2026 — второй отзыв Hermes, устранение R98-2/3/4
+
+Второй независимый review PR #98 для SHA `e6dd9608eeb13ff6b1ec268aff86df8d6865ee82` — **FAIL** по трём новым дефектам при 161 штатном PASS и 213 дополнительных сценариях. Ранее принятые R98-1, WB finance Redis key, 66/65s pacing и B7 preflight остаются PASS. Детали/воспроизводители: комментарий Hermes в PR #98 от 30.10.2026.
+
+ChatGPT исправил:
+- **R98-2:** `payload_sha256` фиксируется в самой durable WB page до cursor state ack; pending replay сверяет исходный digest до продвижения курсора и записывает в state SHA **оригинальных байтов page файла**. Повреждённый amount отвергается без изменения state; whitespace replay сохраняет проверяемость. Это детекция повреждения при crash/replay, не внешняя аутентификация содержимого.
+- **R98-3:** одинаковый 64MiB предел для **записываемого** и читаемого serialised staged page. Проверка перед stage write; превышение не создаёт orphan и не меняет cursor. Лимит запрашиваемых строк WB уменьшен 10000→1000, байтовая граница обязательна независимо от него.
+- **R98-4:** Ozon 429 вызывает две явные legacy defer операции: общий Client-Id `:global` key (наблюдается старым MCP), затем дополнительный `:msp-finance-safety`; WB остаётся с прежней specific-отсрочкой.
+
+На кодовом SHA `a7f55bee6fa8a54147b9242f4810c3141eec040f`: **167/167 штатных Python-тестов PASS**, отдельный Windows PS 5.1 parser PASS, Gitleaks PASS. GitHub Actions offline run `41061673816`, secret scan run `41061673732`.
+
+**Граница подтверждения:** независимый Hermes review *этого нового кода* ещё НЕ получен. WB resume пока офлайн и НЕ подключён к `ingest.py wb-one` / старому `core/archive_queue.py`. Нужны adapter, контролируемый CSV/writer/coverage commit, подтверждение точных Ozon schemas/special limits, отдельно P01 runtime (реальный Redis/DB/installed clients/keys/shared cooldown). Никаких live API/Redis/VPS/deploy/merge/approval flags; первый малый пилот только с разрешения владельца после закрытия этих условий. B7 COMPLETE остаётся OPEN.
