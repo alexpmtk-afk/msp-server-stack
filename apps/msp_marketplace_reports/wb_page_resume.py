@@ -32,7 +32,7 @@ def _checked(path):
     return path
 
 
-def _read_json(path, *, required=False):
+def _read_json(path, *, required=False, with_bytes=False):
     _checked(path)
     if not path.exists():
         if required:
@@ -41,12 +41,15 @@ def _read_json(path, *, required=False):
     if not path.is_file() or path.stat().st_size > MAX_STAGE_BYTES:
         raise GenerationError("staging file is not a bounded regular file")
     try:
-        value = json.loads(path.read_bytes())
+        data = path.read_bytes()
+        if len(data) > MAX_STAGE_BYTES:
+            raise GenerationError("staging file exceeds size limit")
+        value = json.loads(data)
     except (OSError, UnicodeError, ValueError) as exc:
         raise GenerationError("invalid staged JSON") from exc
     if type(value) is not dict:
         raise GenerationError("invalid staged object")
-    return value
+    return (value, data) if with_bytes else value
 
 
 def _dir(root, cabinet, year, report_id):
@@ -79,6 +82,15 @@ def _validate_state(state, cabinet, year, report_id, report_type):
 
 
 def _validate_page(page, report_id, report_type, cursor):
+    # The page carries an independently persisted digest of its payload BEFORE
+    # cursor acknowledgement. Never certify a pending page by re-hashing its
+    # possibly modified contents during replay.
+    digest = page.get("payload_sha256")
+    if (type(digest) is not str or len(digest) != 64 or
+            any(c not in "0123456789abcdef" for c in digest) or
+            digest != _sha(_canonical({k: v for k, v in page.items()
+                                      if k != "payload_sha256"}))):
+        raise GenerationError("WB staged page payload checksum mismatch")
     if (type(page.get("schema")) is not int or page["schema"] != 1 or
             type(page.get("report_id")) is not int or page["report_id"] != report_id or
             type(page.get("report_type")) is not int or page["report_type"] != report_type or
@@ -107,11 +119,11 @@ def _validate_page(page, report_id, report_type, cursor):
 def _replay_or_advance(folder, state, report_id, report_type):
     cursor = state["current_rrd_id"]
     page_path = _checked(folder / ("page-" + str(cursor) + ".json"))
-    payload = _read_json(page_path)
-    if payload is None:
+    staged = _read_json(page_path, with_bytes=True)
+    if staged is None:
         return None
+    payload, data = staged
     next_id = _validate_page(payload, report_id, report_type, cursor)
-    data = _canonical(payload)
     state["pages"].append({"cursor": cursor, "next_rrd_id": next_id,
                            "sha256": _sha(data)})
     state["current_rrd_id"] = next_id
@@ -162,8 +174,10 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
         replay = _replay_or_advance(folder, state, report_id, report_type)
         if replay is not None:
             return {**replay, "pages": len(state["pages"]), "provider_calls": 0}
+        # Smaller provider batches bound operational memory exposure. The
+        # serialized staging cap below still enforces the hard safety limit.
         request = Request("wb", WB_DETAIL + str(report_id),
-                          {"limit": 10000, "rrdId": state["current_rrd_id"]})
+                          {"limit": 1000, "rrdId": state["current_rrd_id"]})
         try:
             status, rows = send(request)
         except ProviderError as exc:
@@ -202,12 +216,18 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
                 "next_rrd_id": 0, "rows": rows}
         page["next_rrd_id"] = _positive_id(rows[-1].get("rrdId") if isinstance(rows[-1], dict) else None,
                                             "rrdId")
+        # Seal the payload in the durable page itself, not in the later state.
+        # A crash after page fsync must leave evidence against modifications.
+        page["payload_sha256"] = _sha(_canonical(page))
         _validate_page(page, report_id, report_type, state["current_rrd_id"])
+        stage_data = _canonical(page)
+        if len(stage_data) > MAX_STAGE_BYTES:
+            raise ProviderError("WB detail page exceeds staging size limit; use smaller provider batches")
         stage_path = folder / ("page-" + str(state["current_rrd_id"]) + ".json")
         _checked(stage_path)
         if stage_path.exists():
             raise GenerationError("staged cursor file already exists")
-        _safe_write(stage_path, _canonical(page))
+        _safe_write(stage_path, stage_data)
         if fault is not None:
             fault("after_page_fsync_before_state")
         result = _replay_or_advance(folder, state, report_id, report_type)
@@ -218,10 +238,9 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
 def _verify_pages(folder, state, report_id, report_type):
     for entry in state["pages"]:
         file = _checked(folder / ("page-" + str(entry["cursor"]) + ".json"))
-        data = file.read_bytes() if file.exists() else None
-        if data is None or _sha(data) != entry["sha256"]:
+        page, data = _read_json(file, required=True, with_bytes=True)
+        if _sha(data) != entry["sha256"]:
             raise GenerationError("WB staged page missing or checksum mismatch")
-        page = _read_json(file, required=True)
         if _validate_page(page, report_id, report_type, entry["cursor"]) != entry["next_rrd_id"]:
             raise GenerationError("WB staged page cursor mismatch")
     # Every uncommitted page must equal the current cursor, never skip orphan
