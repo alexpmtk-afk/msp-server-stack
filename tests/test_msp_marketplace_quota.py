@@ -92,6 +92,53 @@ class SharedQuotaOfflineTests(unittest.TestCase):
             with self.assertRaisesRegex(ProviderError, "not yet approved"):
                 request_rules("ozon", creds, Request("ozon", "/v3/finance/transaction/list", {}))
 
+    def test_ozon_429_cooldown_defers_shared_global_and_extra_safety(self):
+        from apps.msp_marketplace_reports.quota import OZON_REQUIRED_METHOD_APPROVAL
+        calls = []
+
+        async def fake_with_controller(_url, work):
+            class Controller:
+                async def defer(self, subset, seconds):
+                    calls.append(([rule.key for rule in subset], seconds))
+            return await work(Controller())
+
+        creds = {"client_id": "12345", "api_key": "synthetic"}
+        quota = SharedQuota("ozon", creds)
+        with patch.dict(os.environ, {OZON_REQUIRED_METHOD_APPROVAL: "YES"}):
+            rules = request_rules("ozon", creds, Request("ozon", OZON_FINAL, {}))
+            for path in (OZON_FINAL, OZON_FBO, OZON_FBS, OZON_ACCRUAL):
+                self.assertEqual(
+                    request_rules("ozon", creds, Request("ozon", path, {}))[0].key,
+                    rules[0].key,
+                )
+        with patch.object(quota, "_approved_url", return_value="redis://offline"), \
+             patch("apps.msp_marketplace_reports.quota._with_controller",
+                   new=fake_with_controller):
+            quota.cooldown(rules, {"Retry-After": "120"})
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0], ([rules[0].key], 120.0))
+        self.assertEqual(calls[1], ([rules[1].key], 120.0))
+        self.assertTrue(calls[0][0][0].endswith(":global"))
+        self.assertTrue(calls[1][0][0].endswith(":msp-finance-safety"))
+
+    def test_wb_429_retains_existing_specific_bucket_semantics(self):
+        calls = []
+
+        async def fake_with_controller(_url, work):
+            class Controller:
+                async def defer(self, subset, seconds):
+                    calls.append(([rule.key for rule in subset], seconds))
+            return await work(Controller())
+
+        cred = {"token": fake_jwt("seller-1")}
+        rules = request_rules("wb", cred, Request("wb", WB_LIST, {}))
+        quota = SharedQuota("wb", cred)
+        with patch.object(quota, "_approved_url", return_value="redis://offline"), \
+             patch("apps.msp_marketplace_reports.quota._with_controller",
+                   new=fake_with_controller):
+            quota.cooldown(rules, {"Retry-After": "120"})
+        self.assertEqual(calls, [([rule.key for rule in rules], 120.0)])
+
     def test_missing_approval_and_redis_block_network_reservation(self):
         quota = SharedQuota("wb", {"token": fake_jwt("seller-1")})
         with patch.dict(os.environ, {"MSP_REPORTS_SHARED_QUEUE_VERIFIED": "NO",
