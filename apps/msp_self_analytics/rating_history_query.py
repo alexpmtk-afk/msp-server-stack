@@ -156,28 +156,30 @@ def format_history_ru(result):
         if not point:
             return 'нет наблюдения на точную дату'
         rating = str(point['rating']) + '★' if point['rating'] is not None else 'рейтинг неизвестен'
-        return f"{point['date']}: {rating}; счётчик comments={point['provider_comments_counter']}"
-    lines = [f"{result['marketplace'].upper()} {result['sku']}: {result['date_from']} — {result['date_to']}",
-             'Источник: ' + result['source'] + '(by_period/comments).',
+        return f"{point['date']}: {rating}"
+    lines = [f"{'Вайлдберриз' if result['marketplace']=='wb' else 'Озон'} {result['sku']}: {result['date_from']} — {result['date_to']}",
+             'Источник: МПстатс, дневные наблюдения и датированные оценки.',
              'Начало: ' + snap(result['exact_start_snapshot']),
              'Конец: ' + snap(result['exact_end_snapshot']),
+             'Последний доступный рейтинг: ' + snap(result['last_available_snapshot']),
              f"Дней с рейтингом: {result['rating_observed_days']}/{result['calendar_days']}.",
              'Среднее доступных дневных рейтингов: ' + str(result['mean_observed_daily_rating']) + '.',
              'Это не средняя оценка новых отзывов и не формула рейтинга маркетплейса.']
     if result['marketplace'] == 'wb':
-        lines.append('WB rating может быть округлён: не считать его точным дробным рейтингом. '
-                     'Отдельное поле commentsvaluation на границах: ' +
+        lines.append('Рейтинг Вайлдберриз может быть округлён. '
+                     'Отдельный дробный показатель источника на границах: ' +
                      str((result['exact_start_snapshot'] or {}).get('provider_commentsvaluation')) + ' → ' +
                      str((result['exact_end_snapshot'] or {}).get('provider_commentsvaluation')) + '.')
     sample = result['received_review_sample']
     if sample is None:
         lines.append('Выборка отзывов недоступна или конфликтует по ID.')
     else:
+        lines.append('Распределение найденных оценок: '+', '.join(str(s)+'★ — '+str(sample['star_distribution'][str(s)]) for s in range(1,6))+'.')
+        mean=str(round(sample['mean_received_rating'],3)) if sample['mean_received_rating'] is not None else 'не определена'
         lines.append(f"В полученной выборке за период: {sample['records_received_in_period']} записей, "
-                     f"из них 4–5★: {sample['positive_4_5_records']}, с текстом: {sample['text_records']}, "
-                     f"4–5★ с текстом: {sample['positive_text_records']}; средняя: {sample['mean_received_rating']}.")
+                     f"из них 4–5★: {sample['positive_4_5_records']}; средняя — {mean}.")
     lines.append('Полное число оценок и текстовых отзывов отдельно: неизвестно. '
-                 'Выборка неполная; разность comments не доказывает число новых публикаций. '
+                 'Выборка неполная; ноль найденных не означает отсутствие новых оценок. '
                  'Дата выкупа не доказывает дату публикации отзыва или причинный эффект.')
     return '\n'.join(lines)
 
@@ -252,7 +254,12 @@ def format_review_date_summary_ru(result):
         if result['marketplace'] == 'wb':
             lines.append('У Вайлдберриз это значение может быть округлено; отдельное дробное значение источника — ' +
                          str(point.get('provider_commentsvaluation')) + '.')
-    lines.append('Период выборки: ' + result['date_from'] + ' — ' + result['date_to'] + '.')
+    windows=result.get('comparison_windows')
+    if windows:
+        lines.append('Период ДО: '+windows['before']['d1']+' — '+windows['before']['d2']+
+                     '; ПОСЛЕ: '+windows['after']['d1']+' — '+windows['after']['d2']+'.')
+    else:
+        lines.append('Период выборки: ' + result['date_from'] + ' — ' + result['date_to'] + '.')
     for key, label in [('before_received_ratings', 'До даты'), ('after_received_ratings', 'После даты')]:
         sample = result[key]
         if sample is None:
