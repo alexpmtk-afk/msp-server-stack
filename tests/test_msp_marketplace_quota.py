@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from apps.msp_marketplace_reports.providers import (
-    ProviderError, Request, WB_LIST, WB_DETAIL, OZON_FINAL,
+    ProviderError, Request, WB_LIST, WB_DETAIL, OZON_FINAL, OZON_FBO, OZON_FBS, OZON_ACCRUAL,
 )
 from apps.msp_marketplace_reports.quota import (
     SharedQuota, request_rules, retry_delay, stable_owner_key,
@@ -48,12 +48,49 @@ class SharedQuotaOfflineTests(unittest.TestCase):
     def test_bad_wb_and_unknown_ozon_contract_fail_closed(self):
         with self.assertRaisesRegex(ProviderError, "identity unavailable"):
             stable_owner_key("wb", {"token": "bad-value"})
-        with self.assertRaisesRegex(ProviderError, "not yet approved"):
-            request_rules("ozon", {"client_id": "123", "api_key": "fake"},
-                          Request("ozon", OZON_FINAL, {"year": 2026, "month": 9}))
+        with patch.dict(os.environ, {"MSP_REPORTS_OZON_FINANCE_METHODS_VERIFIED": "NO"}):
+            with self.assertRaisesRegex(ProviderError, "approval not verified"):
+                request_rules("ozon", {"client_id": "123", "api_key": "fake"},
+                              Request("ozon", OZON_FINAL, {"year": 2026, "month": 9}))
         with self.assertRaisesRegex(ProviderError, "not yet approved"):
             request_rules("wb", {"token": fake_jwt("seller-1")},
                           Request("wb", "/api/v1/unknown", {}))
+
+    def test_wb_finance_rule_has_exact_legacy_catalog_key_and_stricter_extra(self):
+        from apps.msp_marketplace_reports.shared_rate_limit import build_rules, key_prefix
+        from apps.msp_marketplace_reports.quota import WB_HOST, WB_CONTRACT
+        creds = {"token": fake_jwt("seller-1")}
+        owner = stable_owner_key("wb", creds)
+        legacy = build_rules(service="wb", cabinet_key=owner,
+                             host=WB_HOST, operation_id="wb_finance",
+                             scope="finance", catalog_rate_limit=WB_CONTRACT)
+        new = request_rules("wb", creds, Request("wb", WB_LIST, {}))
+        self.assertEqual(len(legacy), 1)
+        self.assertEqual(legacy[0], new[0])
+        self.assertEqual(legacy[0].interval_seconds, 60.0)
+        self.assertEqual(new[1].interval_seconds, 65.0)
+        self.assertTrue(new[1].key.startswith(key_prefix("wb", owner)))
+
+    def test_ozon_four_exact_paths_only_with_separate_method_approval(self):
+        from apps.msp_marketplace_reports.quota import (
+            OZON_APPROVED_PATHS, OZON_REQUIRED_METHOD_APPROVAL)
+        creds = {"client_id": "12345", "api_key": "synthetic"}
+        self.assertEqual(OZON_APPROVED_PATHS, {
+            OZON_FINAL, OZON_FBO, OZON_FBS, OZON_ACCRUAL})
+        with patch.dict(os.environ, {OZON_REQUIRED_METHOD_APPROVAL: "NO"}):
+            for path in OZON_APPROVED_PATHS:
+                with self.assertRaisesRegex(ProviderError, "approval not verified"):
+                    request_rules("ozon", creds, Request("ozon", path, {}))
+        with patch.dict(os.environ, {OZON_REQUIRED_METHOD_APPROVAL: "YES"}):
+            for path in OZON_APPROVED_PATHS:
+                rules = request_rules("ozon", creds, Request("ozon", path, {}))
+                self.assertEqual(len(rules), 2)
+                self.assertEqual(rules[0].interval_seconds, 0.02)
+                self.assertEqual(rules[1].interval_seconds, 5.0)
+                self.assertTrue(rules[0].key.endswith(":global"))
+                self.assertTrue(rules[1].key.endswith(":msp-finance-safety"))
+            with self.assertRaisesRegex(ProviderError, "not yet approved"):
+                request_rules("ozon", creds, Request("ozon", "/v3/finance/transaction/list", {}))
 
     def test_missing_approval_and_redis_block_network_reservation(self):
         quota = SharedQuota("wb", {"token": fake_jwt("seller-1")})
