@@ -10,6 +10,7 @@ is replayed from the staged page without re-fetching.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from .archive import _lock, _safe_write, _sha, _validate
@@ -134,6 +135,15 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
     with _lock(root, cabinet, dataset):
         _checked(folder)
         _ensure_scope_durable(folder)
+        # Provider page payloads contain financial data: never expose staging
+        # directories through the default 0755 mkdir/umask permissions.
+        root_path = Path(root).expanduser()
+        for directory in (root_path / ".wb-report-stage",
+                          root_path / ".wb-report-stage" / cabinet,
+                          root_path / ".wb-report-stage" / cabinet / str(year),
+                          folder):
+            _checked(directory)
+            os.chmod(directory, 0o700)
         path = folder / "state.json"
         state = _read_json(path)
         if state is None:
@@ -235,7 +245,7 @@ def read_completed_wb_pages(root, cabinet: str, year: int, report_id: int,
         if state["status"] != "STAGED_COMPLETE":
             raise GenerationError("WB detail still incomplete")
         _verify_pages(folder, state, report_id, report_type)
-        # Returns JSON per staged page rather than copying a full report into
-        # the in-memory wb_detail.all_rows aggregate.
-        return [(_read_json(folder / ("page-" + str(entry["cursor"]) + ".json"),
-                            required=True)["rows"]) for entry in state["pages"]]
+        # Lazy page generator: no aggregate of every finance row in memory.
+        for entry in state["pages"]:
+            yield _read_json(folder / ("page-" + str(entry["cursor"]) + ".json"),
+                             required=True)["rows"]
