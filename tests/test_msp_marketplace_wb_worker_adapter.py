@@ -127,6 +127,38 @@ class WBWorkerWiringTests(unittest.TestCase):
         self.assertEqual(first, done["generation"])
         self.assertFalse(done["changed"])
 
+    def test_legacy_scope_blocks_before_any_provider_attempt(self):
+        from apps.msp_marketplace_reports.archive import _location
+        path = _location(self.root, worker._dataset(1), self.cabinet, "2026")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("synthetic legacy collision", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "legacy CSV scope"):
+            self.invoke(1, lambda _: (_ for _ in ()).throw(
+                AssertionError("unexpected provider call before preflight")))
+
+    def test_missing_current_with_generation_evidence_blocks_before_api(self):
+        path = (self.root / ".b7-generations" / worker._dataset(1) /
+                self.cabinet / "2026" / "generations" / "uncommitted")
+        path.mkdir(parents=True)
+        with self.assertRaisesRegex(ValueError, "UNKNOWN_COMMIT_STATE"):
+            self.invoke(1, lambda _: (_ for _ in ()).throw(
+                AssertionError("must fail before quota/API")))
+
+    def test_explicit_cli_one_step_is_not_legacy_wb_one(self):
+        from apps.msp_marketplace_reports.ingest import run
+        sent = []
+        def sender(req):
+            sent.append(req.body["rrdId"])
+            return 200, [self.page(1, 10)]
+        args = ["--root", str(self.root), "--creds-file", "not-used-by-fake-factory",
+                "wb-versioned-step", "--cabinet", self.cabinet,
+                "--year", "2026", "--report-id", "555", "--report-type", "1"]
+        result = run(args, factory=lambda **kwargs: sender)
+        self.assertEqual(result["cursor"], 10)
+        self.assertEqual(sent, [0])
+        self.assertFalse((self.root / ".wb-report-stage" / self.cabinet /
+                          "2026" / "555-type-1" / "coverage.json").exists())
+
     def test_async_worker_thread_calls_only_one_sender_per_step(self):
         kind = 1
         calls = []
