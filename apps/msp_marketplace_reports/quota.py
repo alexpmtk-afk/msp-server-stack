@@ -49,8 +49,9 @@ REQUIRED_APPROVAL_ENV = "MSP_REPORTS_SHARED_QUEUE_VERIFIED"
 class QuotaBusy(ProviderError):
     """Typed, redacted shared quota wait for an external durable scheduler."""
 
-    def __init__(self, wait_seconds: float, reason="shared quota busy"):
+    def __init__(self, wait_seconds: float, reason="shared quota busy", *, provider_calls=0):
         self.retry_after_seconds = max(0.0, float(wait_seconds))
+        self.provider_calls = provider_calls
         super().__init__("API DOWNLOAD PAUSED: " + reason)
 
 
