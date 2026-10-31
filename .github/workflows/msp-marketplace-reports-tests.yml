@@ -1,0 +1,52 @@
+name: MSP Marketplace Reports Offline Tests
+on:
+  pull_request:
+    paths:
+      - "apps/msp_marketplace_reports/**"
+      - "tests/test_msp_marketplace_reports.py"
+      - "tests/test_msp_marketplace_providers.py"
+      - "tests/test_msp_marketplace_security.py"
+      - "tests/test_msp_marketplace_receiver.py"
+      - "scripts/remote/msp_reports_credentials_receiver.py"
+      - "scripts/windows/Send-MspMarketplaceTokens.ps1"
+      - ".github/workflows/msp-marketplace-reports-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check Python syntax
+        run: python -m compileall -q apps/msp_marketplace_reports tests/test_msp_marketplace_reports.py
+      - name: Run isolated tests without API credentials
+        run: python -m unittest discover -s tests -p 'test_msp_marketplace*.py' -v
+
+  windows-ps51-parse:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify UTF-8 BOM and parse on Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $path = 'scripts/windows/Send-MspMarketplaceTokens.ps1'
+          [byte[]]$data = [System.IO.File]::ReadAllBytes((Resolve-Path $path))
+          if ($data.Length -lt 3 -or $data[0] -ne 239 -or $data[1] -ne 187 -or $data[2] -ne 191) {
+            throw 'Windows PowerShell 5.1 requires UTF-8 BOM for Russian labels'
+          }
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$errors)
+          if ($errors.Count -ne 0) {
+            foreach ($issue in $errors) { Write-Host ('LINE=' + $issue.Extent.StartLineNumber + ';COLUMN=' + $issue.Extent.StartColumnNumber + ';MESSAGE=' + $issue.Message) }
+            throw 'PowerShell parse errors found'
+          }
+          Write-Host 'WINDOWS_PS51_PARSER=PASS'
