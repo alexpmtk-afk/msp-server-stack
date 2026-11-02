@@ -1,0 +1,64 @@
+{
+  "base_commit": "2ddf4b3e208f22139a7c25b1a65236474fc64f43",
+  "state": "PREPARED_NOT_INSTALLED",
+  "runtime_python": "/usr/bin/python3 3.12.3; dedicated venv future approval",
+  "runtime_target": "root-owned immutable release directory under /opt/mcp/projects/msp-marketplace-reports-releases/<accepted-sha>",
+  "archive_target": "/opt/mcp/data/msp-marketplace-reports",
+  "archive_executor_uid": "PENDING_OWNER_SELECTION",
+  "approval_target": "/etc/msp-marketplace-reports-executor/approval.json (root-controlled, nonsecret)",
+  "credentials_source": "/etc/msp-marketplace-reports/cabinets.json (unchanged root0600,parent0700)",
+  "code_sha256": "2f78176e83bc77bff92c88635383c8620145691039ba5655b90af224eae988cd",
+  "files": {
+    "apps/msp_marketplace_reports/__init__.py": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
+    "apps/msp_marketplace_reports/archive.py": "a4d2800494da1464ed73ffa338d7fc501d1fce7ce3da5dceb45f0eb7f057a3a2",
+    "apps/msp_marketplace_reports/backfill_plan.py": "b7811e304cebbe8ed3519df2fa82bd132b482690bb81272cce40f80e6ece4384",
+    "apps/msp_marketplace_reports/cli.py": "bdeb1d586ffe01800c236b5687b2fcf060952cc394e213cb16083c8f0b0636e2",
+    "apps/msp_marketplace_reports/current_repair.py": "087fb13de1072f08aaaf49eb71cef7de42c9d804f099d582f963be013077cc44",
+    "apps/msp_marketplace_reports/existing_worker_bridge.py": "8cc5d3ce2454dc1f6c048b0f989f01143ff77dfac32abce0c863877d77f5c2be",
+    "apps/msp_marketplace_reports/generation_recovery.py": "abd05ee172af8c8087af96898b88f430843ed93aab7b8849b242ed09514fe5de",
+    "apps/msp_marketplace_reports/generation_store.py": "1a981685a160031604e18d1aa3bd7728f2fb7b297183229d131fb24a34740fe2",
+    "apps/msp_marketplace_reports/ingest.py": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58",
+    "apps/msp_marketplace_reports/providers.py": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676",
+    "apps/msp_marketplace_reports/quota.py": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422",
+    "apps/msp_marketplace_reports/runtime.py": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5",
+    "apps/msp_marketplace_reports/shared_rate_limit.py": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726",
+    "apps/msp_marketplace_reports/standalone_wb.py": "124bbc567f02050dacb24008f03d3a3f933ddc3f92cd1bbea97a28cdc3602924",
+    "apps/msp_marketplace_reports/versioned_archive.py": "7c49b1cf7c25cead17092d149030d4bc22652e26e66e7c890d96310122f3ad1f",
+    "apps/msp_marketplace_reports/wb_page_resume.py": "a49c30c3725ea69a3dab28b1a5fe181112de1b6ce2740cd8478d7e546af180a8",
+    "apps/msp_marketplace_reports/wb_worker_adapter.py": "d528b557ed8eec20f1ebab22dcab6fc1ba17feee4b8e2d9dd4506ac47a3cb59f"
+  },
+  "dependency_candidate": {
+    "version": "8.1.0",
+    "requires_python": ">=3.10",
+    "requires_dist": [
+      "async-timeout>=4.0.3; python_full_version < \"3.11.3\"",
+      "pybreaker>=1.4.0; extra == \"circuit-breaker\"",
+      "hiredis>=3.2.0; extra == \"hiredis\"",
+      "pyjwt>=2.13.0; extra == \"jwt\"",
+      "cryptography>=36.0.1; extra == \"ocsp\"",
+      "pyopenssl>=20.0.1; extra == \"ocsp\"",
+      "requests>=2.31.0; extra == \"ocsp\"",
+      "opentelemetry-api>=1.39.1; extra == \"otel\"",
+      "opentelemetry-exporter-otlp-proto-http>=1.39.1; extra == \"otel\"",
+      "opentelemetry-sdk>=1.39.1; extra == \"otel\"",
+      "xxhash~=3.6.0; extra == \"xxhash\""
+    ],
+    "wheel": "redis-8.1.0-py3-none-any.whl",
+    "sha256": "a4fe1aac3d3b3cc791d4b3d5931c5a956045dc951ee74d1c913ee3ac4d2ee9fb",
+    "url": "https://files.pythonhosted.org/packages/66/9d/c5731f6e3608663d4d3656fd8d3aecee8b509c3082818f5a13eae925baea/redis-8.1.0-py3-none-any.whl"
+  },
+  "dependency_backend_compatibility": "NOT_VERIFIED",
+  "not_included": [
+    "Redis server",
+    "new Redis job queue",
+    "cron entries",
+    "daemon",
+    "modifications to Hermes workers or existing services"
+  ],
+  "deployment_source_files": {
+    "docs/marketplace-reports/deployment/autonomous-wb/msp-wb-pilot.service.in": "0e418af5034b80d013248fde9676f7c9816ce05337219db77817ac36e8e4b0d6",
+    "docs/marketplace-reports/deployment/autonomous-wb/pilot-plan.json": "38022de99e35af5971c90fe9a3d48e6570c2b542e6688e228a4cfc478114ecce",
+    "docs/marketplace-reports/deployment/autonomous-wb/authorization.BLOCKED.template.json": "bdcbcc6361f21791734bc2cd8d721c03685a08f8dd6ed8823c96df4d4fe382b6",
+    "docs/marketplace-reports/deployment/autonomous-wb/requirements.candidate.lock": "368a9e47c4e851bf0621add10abb0639b9aac7769d2d7749806ce45ba301cba9"
+  }
+}
