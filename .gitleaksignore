@@ -1,0 +1,4 @@
+# Confirmed SHA256 false positive, not a credential; see PR107 review comment6578769605.
+# Exact historical finding only: commit + file + rule + line. No path/rule-wide exclusions.
+# Independently recomputed select_pilot_credential.py hash matches ADMIN_MANIFEST.json.
+9ee4d8ca89542174d0e848baec3d7ef992935b36:docs/marketplace-reports/admin-ready/ADMIN_MANIFEST.json:generic-api-key:11
