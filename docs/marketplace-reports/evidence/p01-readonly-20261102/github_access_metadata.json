@@ -1,0 +1,14 @@
+[
+  {
+    "repo": "marketplace-mcp-bridge",
+    "resource": "actions/runners",
+    "http": 403,
+    "proves_current_old_host": false
+  },
+  {
+    "repo": "marketplace-mcp-bridge",
+    "resource": "actions/runs",
+    "http": 403,
+    "proves_current_old_host": false
+  }
+]

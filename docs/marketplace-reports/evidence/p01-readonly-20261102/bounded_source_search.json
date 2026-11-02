@@ -1,0 +1,25 @@
+{
+  "roots": [
+    "/opt/mcp",
+    "/srv",
+    "/app",
+    "/home/hermes/.local/share"
+  ],
+  "max_depth": 5,
+  "skip_directory_names": [
+    ".cache",
+    ".git",
+    ".venv",
+    "archives",
+    "backups",
+    "cache",
+    "data",
+    "node_modules",
+    "secrets"
+  ],
+  "archive_queue_source_candidates": [],
+  "errors_by_type": {
+    "PermissionError": 1
+  },
+  "runtime_identity_proven": false
+}

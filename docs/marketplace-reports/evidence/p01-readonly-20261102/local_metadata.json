@@ -1,0 +1,179 @@
+{
+  "observed_at_utc": "2026-11-02T09:43:43.955896+00:00",
+  "scope": "local metadata only; network denied; no credential contents, job payloads, environment values or financial rows",
+  "uid": 1001,
+  "expected_vps_label_matches": true,
+  "paths": {
+    "/opt/mcp/projects/msp-server-stack": {
+      "status": "PRESENT",
+      "uid": 1001,
+      "gid": 1001,
+      "mode": "0750",
+      "symlink": false,
+      "readable_by_uid": true,
+      "writable_by_uid": true,
+      "searchable_by_uid": true
+    },
+    "/opt/mcp/data": {
+      "status": "PRESENT",
+      "uid": 0,
+      "gid": 0,
+      "mode": "0755",
+      "symlink": false,
+      "readable_by_uid": true,
+      "writable_by_uid": false,
+      "searchable_by_uid": true
+    },
+    "/opt/mcp/data/msp-marketplace-reports": {
+      "status": "NOT_PRESENT"
+    },
+    "/etc/msp-marketplace-reports": {
+      "status": "PRESENT",
+      "uid": 0,
+      "gid": 0,
+      "mode": "0700",
+      "symlink": false,
+      "readable_by_uid": false,
+      "writable_by_uid": false,
+      "searchable_by_uid": false
+    },
+    "/etc/msp-marketplace-reports/cabinets.json": {
+      "status": "PERMISSION_DENIED"
+    },
+    "/opt/marketplaces-mcp-ru": {
+      "status": "NOT_PRESENT"
+    },
+    "/opt/mcp/marketplaces-mcp-ru": {
+      "status": "NOT_PRESENT"
+    },
+    "/home/hermes/marketplaces-mcp-ru": {
+      "status": "NOT_PRESENT"
+    },
+    "/home/hermes/.marketplace-mcp": {
+      "status": "NOT_PRESENT"
+    },
+    "/home/hermes/.local/share/marketplace-mcp": {
+      "status": "NOT_PRESENT"
+    },
+    "/etc/redis": {
+      "status": "NOT_PRESENT"
+    },
+    "/etc/valkey": {
+      "status": "NOT_PRESENT"
+    },
+    "/run/redis": {
+      "status": "NOT_PRESENT"
+    },
+    "/var/run/docker.sock": {
+      "status": "NOT_PRESENT"
+    },
+    "/home/hermes/.ssh": {
+      "status": "NOT_PRESENT"
+    }
+  },
+  "data_filesystem": {
+    "available_bytes_to_uid": 40047693824,
+    "readonly": false
+  },
+  "current_shell_only": {
+    "redis_related_field_count": 0,
+    "shared_queue_gate_is_enabled": false,
+    "ozon_gate_is_enabled": false
+  },
+  "bounded_process_inventory": {
+    "counts": {
+      "redis_valkey_names": 0,
+      "container_runtime_names": 0,
+      "marketplace_command_candidates": 0
+    },
+    "read_errors": 2,
+    "excludes_probe_ancestors": true,
+    "limitation": "command/cwd heuristic in visible namespace; not proof across hosts or renamed deployments"
+  },
+  "system_units": {
+    "returncode": 0,
+    "matching_count": 0
+  },
+  "user_units": {
+    "returncode": 0,
+    "matching_count": 0
+  },
+  "tcp_listener_metadata": {
+    "returncode": 0,
+    "default_redis_port_listening": false,
+    "named_redis_valkey_listener_count": 0
+  },
+  "tools_available": {
+    "redis-cli": false,
+    "ssh": true,
+    "docker": false,
+    "podman": false
+  },
+  "source_inventory": {
+    "standard_vps_checkout": {
+      "head": "08ff37b158ae367789b00c36d8f4706cd107fbcc",
+      "files": {
+        "apps/msp_marketplace_reports/quota.py": {
+          "status": "NOT_PRESENT"
+        },
+        "apps/msp_marketplace_reports/shared_rate_limit.py": {
+          "status": "NOT_PRESENT"
+        },
+        "apps/msp_marketplace_reports/wb_worker_adapter.py": {
+          "status": "NOT_PRESENT"
+        },
+        "apps/msp_marketplace_reports/existing_worker_bridge.py": {
+          "status": "NOT_PRESENT"
+        }
+      }
+    },
+    "review_checkout_not_installed": {
+      "head": "bd83bda409c1aa80a05be1d5381b00a3a1258bfb",
+      "files": {
+        "apps/msp_marketplace_reports/quota.py": {
+          "status": "PRESENT",
+          "source_sha256": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422"
+        },
+        "apps/msp_marketplace_reports/shared_rate_limit.py": {
+          "status": "PRESENT",
+          "source_sha256": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726"
+        },
+        "apps/msp_marketplace_reports/wb_worker_adapter.py": {
+          "status": "PRESENT",
+          "source_sha256": "d528b557ed8eec20f1ebab22dcab6fc1ba17feee4b8e2d9dd4506ac47a3cb59f"
+        },
+        "apps/msp_marketplace_reports/existing_worker_bridge.py": {
+          "status": "PRESENT",
+          "source_sha256": "8cc5d3ce2454dc1f6c048b0f989f01143ff77dfac32abce0c863877d77f5c2be"
+        }
+      }
+    },
+    "legacy_source_not_installed": {
+      "head": "0510a409ab589c639930fbca35afb3e68d874f81",
+      "files": {
+        "core/archive_queue.py": {
+          "status": "PRESENT",
+          "source_sha256": "d8a58b8d2862b5d674378fc0336d2856c19a157b979979e33e5f85e8fe2b10f6"
+        },
+        "core/archive_tools.py": {
+          "status": "PRESENT",
+          "source_sha256": "2bbbdbd6fef3400a7b18b2e3b0f15f914cf6334c0017024fa92248f9b2256af0"
+        },
+        "core/archive_hybrid.py": {
+          "status": "PRESENT",
+          "source_sha256": "61f22f7f831e108d9973bbd86fbe56cc21ac8afea4869059678f962162d02f4e"
+        },
+        "core/rate_limit.py": {
+          "status": "PRESENT",
+          "source_sha256": "8d1938c3f56c30b7e77667cb4b57c3e5df5b9e7a184bee7778cc9408b44f798b"
+        },
+        "core/client.py": {
+          "status": "PRESENT",
+          "source_sha256": "eb37e0d0fb30961451c1022cb3cd970181be6fbebba4b2221cdea790e40e04de"
+        }
+      }
+    }
+  },
+  "redis_protocol_commands_executed": [],
+  "reason_no_redis_probe": "no verified existing endpoint/config/executor found; localhost default listener absent; do not guess remote locators"
+}
