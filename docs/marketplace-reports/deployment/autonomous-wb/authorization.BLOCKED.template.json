@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "plan_sha256": "8b62939e394acd44615368c55189cc78f13dc29209909ff13f45574d045e70cc",
-  "code_sha256": "2f78176e83bc77bff92c88635383c8620145691039ba5655b90af224eae988cd",
+  "code_sha256": "aac2431671d539d5653379b85b9a214d21e06fee7d1eb3f99361991949f465c5",
   "archive_root": "/opt/mcp/data/msp-marketplace-reports",
   "expires_epoch": 0,
   "owner_api_pilot_authorized": false,

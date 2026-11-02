@@ -148,3 +148,21 @@ class StandaloneTests(unittest.TestCase):
         self.assertEqual(result['status'],'PAGE_STAGED');self.assertEqual(result['send_entries'],1)
         done=self.step(lambda req:(204,None),1167)
         self.assertEqual(done['status'],'DONE');self.assertEqual(done['send_entries'],2)
+
+    def test_bounded_loop_finishes_small_report_without_manual_second_start(self):
+        class Clock:
+            value=1000
+            def now(self):return self.value
+            def sleep(self,delay):self.value+=delay
+        c=Clock();seen=[]
+        def send(req):
+            seen.append(req.body['rrdId'])
+            return (200,[self.row()]) if not req.body['rrdId'] else (204,None)
+        result=s.run_bounded(self.root,self.plan,self.auth,lambda:send,clock=c.now,sleep=c.sleep)
+        self.assertEqual(result['status'],'DONE');self.assertEqual(seen,[0,10])
+        self.assertGreaterEqual(c.value,1066)
+    def test_bounded_loop_returns_long_quota_wait_without_polling(self):
+        def send(req):raise QuotaBusy(3600)
+        def sleep(delay):self.fail('long quota wait must return instead of sleeping')
+        result=s.run_bounded(self.root,self.plan,self.auth,lambda:send,clock=lambda:1000,sleep=sleep)
+        self.assertEqual(result['status'],'WAITING_RATE_LIMIT');self.assertEqual(result['send_entries'],1)

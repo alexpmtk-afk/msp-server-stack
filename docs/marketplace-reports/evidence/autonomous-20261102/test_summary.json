@@ -1,7 +1,7 @@
 {
   "base_tests": 181,
-  "new_unittest_methods": 12,
-  "total": 193,
+  "new_unittest_methods": 14,
+  "total": 195,
   "result": "PASS",
   "network": "socket.connect/getaddrinfo DENIED",
   "new_cases": [
@@ -16,19 +16,21 @@
     "buyout and strict plan",
     "control JSON/root-owner refusal",
     "two real forked processes one sender entry",
-    "SIGKILL after page durable before cursor"
+    "SIGKILL after page durable before cursor",
+    "bounded pilot completes without manual second start",
+    "long quota wait returns without polling"
   ],
   "redis_wheel_import_on_system_python": "PASS with network denied; not installed",
   "runtime_redis_api_power_loss": "NOT_VERIFIED",
   "python_runs": {
     "3.14.9": {
-      "tests": 193,
+      "tests": 195,
       "result": "PASS"
     },
     "3.12.3": {
-      "tests": 193,
+      "tests": 195,
       "result": "PASS"
     }
   },
-  "counts_note": "same suite on two interpreters, not 386 independent tests"
+  "counts_note": "same suite on two interpreters, not 390 independent tests"
 }

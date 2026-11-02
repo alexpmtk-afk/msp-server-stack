@@ -6,7 +6,7 @@
 
 **Офлайн-кандидат WB: PASS. Установка: NOT DONE. Реальный pilot: NO-GO.** В собственной ветке подготовлен bounded deterministic executor `standalone_wb.py`, поверх принятых PR98/99/102. Использует прежние page cursor/checksums, SharedQuota, CSV conversion, B7 pinned publication и coverage. Прежние разработки и cloud-worker bridge не удалялись; старый backend/queue не копируется и не создаётся заново.
 
-Функциональный объём нового кандидата — один явно выбранный финансовый отчёт, один шаг на запуск; не готовая автоматическая загрузка всех кабинетов/всего2026. Это минимальная вертикаль до первого проверенного отчёта, после которой существующий backfill planner даёт gap inventory для расширения.
+Функциональный объём нового кандидата — один явно выбранный финансовый отчёт, ограниченное продолжение в одном запуске (до8 локальных шагов, до300 секунд start/wait budget; max3 durable sender entries); не готовая автоматическая загрузка всех кабинетов/всего2026. Это минимальная вертикаль до первого проверенного отчёта, после которой существующий backfill planner даёт gap inventory для расширения.
 
 ## Что действительно есть на VPS
 
@@ -20,7 +20,7 @@
 
 Роли не подменяются: Telegram-worker запускает модельные задачи и доставку сообщений, не deterministic финансовый pipeline. Devexec — отдельный protected executor; возможность финансового HTTP/credential workflow через его sandbox НЕ проверена и не означает права менять capabilities. Actions runner не даёт root/admin права. Модификация этих работающих процессов для пилота не нужна.
 
-**Повторно используем systemd как supervisor**, без нового scheduler/демона: один ручной oneshot, один durable step, exit. [Подготовлен inert unit template](deployment/autonomous-wb/msp-wb-pilot.service.in). Позже тот же CLI допускает запуск через уже существующий no_agent cron, но создание задания/расписания и runtime acceptance требуют отдельного решения. Никаких cron entries сейчас нет. [Официальная модель no-agent cron](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron).
+**Повторно используем systemd как supervisor**, без нового scheduler/демона: один ручной oneshot: сам продолжает небольшой пилот между durable steps, затем exit/DONE либо paused. Long quota wait возвращает checkpoint сразу, watchdog420 секунд; `--one-step` сохранён для будущего scheduler-вызова. [Подготовлен inert unit template](deployment/autonomous-wb/msp-wb-pilot.service.in). Позже тот же CLI допускает запуск через уже существующий no_agent cron, но создание задания/расписания и runtime acceptance требуют отдельного решения. Никаких cron entries сейчас нет. [Официальная модель no-agent cron](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron).
 
 ## Реализованная цепочка
 
@@ -29,7 +29,7 @@
 - Один root-wide lock для standalone процессов всех WB кабинетов/типов. Проверено двумя настоящими forked processes. Это не cross-host lock и не защита от произвольного стороннего/legacy writer: до API owner должен исключить такие входы.
 - Единственный rrdId — существующий durable page state, не новый journal. Новое `.wb-executor/<plan-hash>.json` хранит только статус/бюджет/ожидание/pin; **не Redis job queue** и не второй отчётный реестр.
 - Монотонный бюджет max3 sender entries сохраняется и fsync до factory/admission/HTTP. Запуск повторно не сбрасывает бюджет. Quota denial или crash до HTTP могут консервативно потратить entry; это не счётчик доказанных HTTP. Нельзя увеличить бюджет новым планом без нового root-controlled разрешения.
-- PAGE_STAGED и typed transport failure требуют минимум66 секунд; длительный quota not-before сохраняется. Ранний повтор ничего не отправляет. Один вызов не спит бесконечно и не крутит polling loop.
+- PAGE_STAGED и typed transport failure требуют минимум66 секунд; длительный quota not-before сохраняется. Ранний повтор ничего не отправляет. Один bounded запуск не спит бесконечно: ожидание за пределами300 секунд возвращает состояние супервизору; при допустимом ожидании sleep до not-before без API polling. Один in-flight step может превысить start deadline — outer watchdog отдельный.
 - Новый `TransportUnavailable` в runtime — подкласс прежнего ProviderError, без изменения endpoint/квот. Он разрешает ограниченный retry с прежнего cursor. Integrity/прочие provider errors удерживают HOLD_ERROR; автоматического снятия hold нет.
 - Ledger имеет checksum и strict JSON/int validation. Повреждение блокирует, не пересоздаёт counter. При повторе существующий journal fsync повторяется, чтобы visible rename не означал преждевременную durability.
 - Авария после durable page до cursor подтверждения: page replay без provider и без нового budget entry. Crash после budget до dispatch: conservatively consumed, не обещание exactly-once HTTP. Ответ, не успевший попасть в durable page, может потребовать повтор того же read; это не повтор уже сохранённой страницы.
@@ -66,11 +66,11 @@ CLI отказывает без root-controlled approval, совпадающег
 
 ## Pilot и минимальный следующий этап
 
-План: wb_laser_master, main883801632, период19–25.10.2026 (из передачи владельца), limit1000 у прежнего модуля, **полный размер NOT VERIFIED**, max3 durable sender entries. Не выбирать buyout/другие кабинеты автоматически. Один step per start; после PAGE_STAGED следующий запуск не раньше not-before. Если204 не достигнут — PAUSED_BUDGET, не «отчёт загружен», бюджет без нового разрешения не увеличивать.
+План: wb_laser_master, main883801632, период19–25.10.2026 (из передачи владельца), limit1000 у прежнего модуля, **полный размер NOT VERIFIED**, max3 durable sender entries. Не выбирать buyout/другие кабинеты автоматически. Default CLI сам продолжает малый пилот с соблюдением not-before; `--one-step` оставлен для будущего существующего scheduler. Если204 не достигнут — PAUSED_BUDGET, не «отчёт загружен», бюджет без нового разрешения не увеличивать.
 
 Проверка результата: число строк/CSV BOM и delimiter, page hashes/cursor terminal204, manifest SHA/bytes/rows, pinned generation, проверенная coverage, повтор без HTTP. Обязателен readback из реального установленного каталога.
 
-Порядок до реального отчёта: review нового PR → owner-approved quota/conflict cutover evidence → admin provisioning/dependency+unit+credential-reader acceptance → отдельный bounded API pilot approval → explicit root-controlled authorization и approved original gate/config → один step и readback. Создание Redis/установка/flags/API сейчас НЕ разрешены и НЕ выполнены. Versioned importer всё ещё материализует годовой набор; bounded pages не доказывают bounded RAM всей годовой публикации — проверить ресурсы до массового backfill. Для следующих кабинетов/всего2026 переиспользовать backfill planner с подтверждённым discovery main+buyout, gaps/corrections и boundary weeks; перед автоматизацией расширить bounded explicit-unit admission и согласовать существующий cron/no_agent. Полной B7/Ozon ждать не требуется.
+Порядок до реального отчёта: review нового PR → owner-approved quota/conflict cutover evidence → admin provisioning/dependency+unit+credential-reader acceptance → отдельный bounded API pilot approval → explicit root-controlled authorization и approved original gate/config → один bounded pilot invocation и readback. Создание Redis/установка/flags/API сейчас НЕ разрешены и НЕ выполнены. Versioned importer всё ещё материализует годовой набор; bounded pages не доказывают bounded RAM всей годовой публикации — проверить ресурсы до массового backfill. Для следующих кабинетов/всего2026 переиспользовать backfill planner с подтверждённым discovery main+buyout, gaps/corrections и boundary weeks; перед автоматизацией расширить bounded explicit-unit admission и согласовать существующий cron/no_agent. Полной B7/Ozon ждать не требуется.
 
 ## Ozon параллельно
 
@@ -85,6 +85,6 @@ CLI отказывает без root-controlled approval, совпадающег
 
 ## Испытания и передача коллеге
 
-193 tests PASS =181 прежних +12 новых методов; одна и та же suite прошла на Python3.14.9 и целевом системном3.12.3, это не386 независимых тестов. Network-deny и pinned imports на собственной ветке, реальные forked writer competition и два SIGKILL checkpoint; не физическое отключение питания. [Результаты](evidence/autonomous-20261102/test_summary.json). Redis driver zip-import отдельно без сетевых команд. Runtime API/Redis/systemd-unit acceptance NOT VERIFIED.
+195 tests PASS =181 прежних +14 новых методов; одна и та же suite прошла на Python3.14.9 и целевом системном3.12.3, это не390 независимых тестов. Network-deny и pinned imports на собственной ветке, реальные forked writer competition и два SIGKILL checkpoint; не физическое отключение питания. [Результаты](evidence/autonomous-20261102/test_summary.json). Redis driver zip-import отдельно без сетевых команд. Runtime API/Redis/systemd-unit acceptance NOT VERIFIED.
 
 Коллеге ChatGPT: независимо проверить новый standalone/root-controlled admission/monotonic budget и transport exception на exact SHA, совместимость17-file release, шаблон unit/LoadCredential и cutover условия. Не переоткрывать уже принятые R99-1/2 и не отправлять владельца искать старую консоль. Результаты собственного source/CI review не выдавать за runtime VPS/Redis PASS. Код находится в собственной ветке feat/hermes-autonomous-wb-pilot-20261102, не в ветке коллеги.

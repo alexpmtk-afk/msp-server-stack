@@ -10,5 +10,5 @@ modules={k:str(Path(m.__file__).resolve()) for k,m in list(sys.modules.items()) 
 assert modules and all(Path(p).is_relative_to(root) for p in modules.values()),modules
 print('PROJECT_IMPORTS_PINNED',modules)
 print('STOCK_TESTS',r.testsRun,'PASS' if r.wasSuccessful() else 'FAIL')
-assert r.testsRun==193
+assert r.testsRun==195
 sys.exit(0 if r.wasSuccessful() else 1)

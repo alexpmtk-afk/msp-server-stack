@@ -199,16 +199,41 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None):
         save()
         return dict(state)
 
+def run_bounded(root, plan, authorization, factory, *, clock=time.time, sleep=time.sleep):
+    """Finish a small pilot autonomously, or return its durable paused state.
+
+    No more than eight local reconciliation steps and 300 seconds of start/
+    wait budget. One in-flight transport can outlast that start deadline;
+    the proposed systemd watchdog is a separate outer bound. Long quota waits
+    return to the supervisor instead of polling or occupying a daemon.
+    """
+    deadline = clock() + 300
+    outcome = None
+    for _ in range(8):
+        if clock() >= deadline:
+            break
+        outcome = run_step(root, plan, authorization, factory, now=clock())
+        if outcome['status'] in ('DONE','HOLD_ERROR','PAUSED_BUDGET'):
+            return outcome
+        until = outcome.get('not_before_epoch', clock())
+        if until >= deadline:
+            return outcome
+        while clock() < until:
+            sleep(min(60.0, until-clock()))
+    return outcome
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--root', type=Path, required=True)
     p.add_argument('--plan', type=Path, required=True)
     p.add_argument('--authorization-file', type=Path, required=True)
     p.add_argument('--creds-file', type=Path, required=True)
+    p.add_argument('--one-step', action='store_true', help='future existing scheduler integration; no loop')
     args = p.parse_args(argv)
     plan = read_control(args.plan)
     auth = read_authorization(args.authorization_file)
-    result = run_step(args.root, plan, auth, lambda: ReadOnlyHTTP(
+    runner = run_step if args.one_step else run_bounded
+    result = runner(args.root, plan, auth, lambda: ReadOnlyHTTP(
         cabinet=plan['cabinet'], credentials_file=args.creds_file, state_root=args.root))
     print(json.dumps(result, sort_keys=True))
     return 0 if result['status']=='DONE' else 2
