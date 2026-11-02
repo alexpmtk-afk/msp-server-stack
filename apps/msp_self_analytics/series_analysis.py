@@ -59,6 +59,7 @@ def analyze_series(
     identity = None
     seen_source_rows = set()
     targets = set()
+    review_targets = set()
     for index, raw in enumerate(rows):
         if not isinstance(raw, dict) or raw.get("purchase_status", "completed") != "completed":
             raise SeriesDataError("NOT_A_COMPLETED_ROW")
@@ -76,6 +77,11 @@ def analyze_series(
             seen_source_rows.add(source_key)
         target = _target(raw.get("quantity"))
         targets.add(target)
+        review_target=raw.get('planned_review_count')
+        if review_target is not None:
+            if isinstance(review_target,bool) or not isinstance(review_target,int) or review_target<0:
+                raise SeriesDataError('INVALID_PLANNED_REVIEW_TOTAL')
+            review_targets.add(review_target)
         purchase = _day(raw.get("purchase_date"))
         review = _day(raw.get("review_date"), nullable=True)
         assert purchase is not None
@@ -91,6 +97,7 @@ def analyze_series(
     reported = len(review_rows)
     different_dates = sorted({r["review"] for r in review_rows})
     target = next(iter(targets)) if len(targets) == 1 else None
+    review_target=next(iter(review_targets)) if len(review_targets)==1 else None
     ids = independently_verified_review_ids
     verified = None
     if ids is not None:
@@ -101,7 +108,13 @@ def analyze_series(
         phase = "TARGET_CONFLICT"
     elif completed > target:
         phase = "MORE_ROWS_THAN_TARGET_REQUIRES_RECONCILIATION"
-    elif reported == target and completed == target:
+    elif len(review_targets)>1:
+        phase = 'REVIEW_TARGET_CONFLICT'
+    elif review_target is not None and reported>review_target:
+        phase = 'MORE_REVIEW_ROWS_THAN_TARGET_REQUIRES_RECONCILIATION'
+    elif completed==target and review_target is None:
+        phase = 'PURCHASE_PLAN_COMPLETE_REVIEW_PLAN_UNKNOWN'
+    elif reported == review_target and completed == target:
         phase = "REPORTED_SERIES_COMPLETE_PUBLICATION_UNVERIFIED"
     else:
         phase = "INTERMEDIATE_SERIES"
@@ -111,6 +124,12 @@ def analyze_series(
         "status": "NO_REVIEW_DATE" if not review_rows else "READY_FOR_DESCRIPTIVE_HISTORY",
         "series_phase": phase,
         "planned_total_per_card": target,
+        'planned_review_total_per_card': review_target,
+        'planned_review_total_values_conflict': sorted(review_targets) if len(review_targets)>1 else [],
+        'remaining_reviews_against_plan': max(0,review_target-reported) if review_target is not None else None,
+        'purchase_plan_complete': completed==target if target is not None else None,
+        'review_plan_complete': reported==review_target if review_target is not None else None,
+        'purchase_plan_is_not_review_plan': True,
         "planned_total_values_conflict": sorted(targets) if target is None else [],
         "recorded_completed_purchase_rows": completed,
         "recorded_purchase_occurrences": completed,

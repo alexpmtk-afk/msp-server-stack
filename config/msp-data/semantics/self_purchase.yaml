@@ -1,4 +1,10 @@
-version: 11
+version: 12
+owner_correction_20261102:
+  authority: docs/self-purchases/SEPARATE_PURCHASE_REVIEW_PLANS_20261102.md
+  purchase_plan: repeated per-card planned own orders; not actual sales or units per row
+  review_plan: independent repeated per-card target; never default to purchase quantity
+  completion: evaluate purchase rows and dated review rows against their own targets
+  missing_review_plan: unknown_not_zero
 catalog: self_purchase
 source_sheet: "самовыкупы"
 upstream_source:
@@ -54,6 +60,12 @@ fields:
     source: "Кол-во выкупов"
     meaning: Общее ПЛАНОВОЕ количество выкупов этой карточки, повторяется в каждой строке; НЕ число единиц в строке, никогда не SUM(quantity).
     validation: positive_integer_when_present
+  planned_review_count:
+    source: "Кол-во отзывов"
+    header_alias: "Количество отзывов"
+    meaning: Отдельный общий ПЛАН отзывов карточки; не обязан равняться quantity, повторения не суммировать.
+    validation: nonnegative_integer_or_null
+    missing: unknown_never_default_to_quantity
   purchase_date:
     source: "Дата выкупа"
     meaning: Только реальная дата совершения выкупа. Отсутствующая дата -> planned; completed требует ISO date.

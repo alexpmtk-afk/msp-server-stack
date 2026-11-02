@@ -82,6 +82,7 @@ def fetch(c,cfg,source):
     # A legacy no-SKU plan requires one reprocessing pass under the new skip policy.
     if source=='self_purchase' and (
         c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone()
+        or not c.execute('select 1 from self_purchase_semantic_state where version=12').fetchone()
         or (c.execute('select count(*) from self_purchase_source_link').fetchone()[0]==0
             and c.execute('select count(*) from self_purchase').fetchone()[0]>0)):
         hd.pop('If-None-Match',None); hd.pop('If-Modified-Since',None)
@@ -140,6 +141,13 @@ def selfbuy(c,rows,run,cfg):
     # Current CSV: explicit store in "магазин". Old CSV: legacy "ЮЛ".
     m=cols(rows[0],{'marketplace':['мп'],'sku':['артикул мп','market_article'],'ia':['артикул наш','артикул_наш_▼'],'name':['название товара','наименование 1с'],'q':['кол-во выкупов'],'pd':['дата выкупа'],'rd':['дата отзыва'],'url':['ссылка на отзыв'],'draft':['черновик отзывов']})
     headers={hdr(v):i for i,v in enumerate(rows[0])}
+    review_col=next((headers[k] for k in ('кол-во отзывов','количество отзывов') if k in headers),None)
+    def save_review_plan(no,market,store,sku_value,value):
+        c.execute('insert into self_purchase_plan_metrics values(?,?,?,?,?,?,?) '
+                  'on conflict(source_row) do update set marketplace=excluded.marketplace,store=excluded.store,'
+                  'marketplace_sku=excluded.marketplace_sku,planned_review_count=excluded.planned_review_count,'
+                  'source_has_review_plan=excluded.source_has_review_plan,updated_at=excluded.updated_at',
+                  (no,market,store,sku_value,value,int(review_col is not None),stamp))
     store_col=headers.get('магазин')
     legal_col=headers.get('юл')
     if store_col is None and legal_col is None:
@@ -174,6 +182,9 @@ def selfbuy(c,rows,run,cfg):
             same_listing=bool(previous_key and previous_key[:3]==(market,store,raw_s))
 
             raw_qty=txt(val(r,m['q']))
+            raw_review_plan=txt(val(r,review_col)) if review_col is not None else ''
+            # Blank/missing is unknown, explicit zero means no reviews planned.
+            review_plan=(0 if raw_review_plan in ('0','0,0','0.0') else qty(raw_review_plan)) if raw_review_plan else None
             raw_review_date=txt(val(r,m['rd']))
             # The upstream registry uses the explicit status note "нет выкупа!"
             # in the review-date cell on an item with an expected future buy date.
@@ -211,6 +222,7 @@ def selfbuy(c,rows,run,cfg):
                 # Rows moved or reordered across SKU/store boundaries are ambiguous;
                 # never retire those prior events without an immutable source event ID.
                 c.execute('delete from self_purchase_source_link where source_row=?',(no,))
+                save_review_plan(no,market,store,planned_sku,review_plan)
                 continue
             # Completed rows require valid SKU, date and quantity plus catalog FK.
             s=sku(raw_s); amount=qty(raw_qty)
@@ -244,6 +256,7 @@ def selfbuy(c,rows,run,cfg):
                 n['promoted']+=1
             c.execute('insert into self_purchase_source_link(source_row,marketplace,store,marketplace_sku,purchase_date,source_ordinal,linked_at,updated_at) values(?,?,?,?,?,?,?,?) on conflict(source_row) do update set marketplace=excluded.marketplace,store=excluded.store,marketplace_sku=excluded.marketplace_sku,purchase_date=excluded.purchase_date,source_ordinal=excluded.source_ordinal,updated_at=excluded.updated_at',
                       (no,market,store,s,purchase_date,ordinal,stamp,stamp))
+            save_review_plan(no,market,store,s,review_plan)
         except Exception as e:
             n['rejected']+=1
             err(c,run,'self_purchase',no,e,r)
@@ -260,6 +273,7 @@ def selfbuy(c,rows,run,cfg):
                   (stamp,*sorted(active_plan_rows)))
     else:
         c.execute('update self_purchase_plan set is_current=0,updated_at=? where is_current=1',(stamp,))
+    c.execute('insert into self_purchase_semantic_state values(12,?) on conflict(version) do update set processed_at=excluded.processed_at',(stamp,))
     return n
 
 def begin_run(c,source):
@@ -290,6 +304,7 @@ def sync(c,cfg,source):
         if (not rows or not rows[0]) and not empty_archive:
             raise ValueError('empty or invalid CSV')
         needs_policy_recheck=(source=='self_purchase' and (
+            not c.execute('select 1 from self_purchase_semantic_state where version=12').fetchone() or
             c.execute('select 1 from self_purchase_plan where is_current=1 and marketplace_sku is null limit 1').fetchone()
             or (c.execute('select count(*) from self_purchase_source_link').fetchone()[0]==0
                 and c.execute('select count(*) from self_purchase').fetchone()[0]>0)))

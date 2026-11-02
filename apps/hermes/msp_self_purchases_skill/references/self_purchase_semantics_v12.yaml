@@ -1,0 +1,355 @@
+version: 12
+owner_correction_20261102:
+  authority: docs/self-purchases/SEPARATE_PURCHASE_REVIEW_PLANS_20261102.md
+  purchase_plan: repeated per-card planned own orders; not actual sales or units per row
+  review_plan: independent repeated per-card target; never default to purchase quantity
+  completion: evaluate purchase rows and dated review rows against their own targets
+  missing_review_plan: unknown_not_zero
+catalog: self_purchase
+source_sheet: "самовыкупы"
+upstream_source:
+  spreadsheet_id: "1-3wfuBW42stIYXlygknKv1fZNuzs-LJTrEvn-_7cKxM"
+  sheet: "Реестр выкупов/отзывов"
+  note: "The REMOTE sync reads the separate public export spreadsheet configured in sync.json, not the upstream workbook directly."
+purpose: >
+  Два разных состояния исходного реестра: planned (товар намечен для будущего самовыкупа,
+  даты ещё нет) и completed (самовыкуп действительно сделан). Для аналитики продаж
+  используются исключительно completed. Planned сохраняются с настоящими NULL в
+  отсутствующих полях, без выдумывания даты или количества. Строки без SKU не загружаются.
+business_key: [marketplace, store, marketplace_sku, purchase_date, source_ordinal]
+fields:
+  marketplace:
+    source: "мп"
+    meaning: Код маркетплейса, где совершён самовыкуп.
+    accepted_codes: [wb, oz]
+    aliases_for_ingestion: {WB: wb, Wildberries: wb, OZ: oz, OZON: oz}
+  store:
+    source: "магазин"
+    meaning: >
+      Прямой код магазина/кабинета маркетплейса в исходном реестре. Это самостоятельный
+      бизнес-атрибут. НЕ трактовать значение как юридическое лицо и НЕ вычислять его из ЮЛ,
+      когда колонка "магазин" присутствует.
+    accepted_codes: [laser, novok, ultra]
+    canonical: true
+    validation: "must match one of the accepted codes and the product_listing key"
+  legal_entity:
+    source: null
+    meaning: >
+      Устаревшее поле локальной SQLite, сохранённое ради совместимости прежней схемы
+      и представления v_self_purchase. Текущий исходный реестр больше НЕ передаёт ЮЛ.
+      При импорте нового формата записывается пустая строка (неизвестно/не передаётся),
+      а не вымышленное юрлицо по коду магазина. Не использовать в новых бизнес-запросах
+      как подтверждённое юридическое лицо.
+    deprecated: true
+    current_source_provides: false
+  marketplace_sku:
+    source: "market_article"
+    legacy_header_alias: "Артикул МП"
+    meaning: Цифровой SKU карточки маркетплейса; соответствует market_article из листа "артикулы".
+    validation: ascii_digits_only_required_for_import
+    empty_value_policy: skip_entire_row_without_error
+  internal_article:
+    source: "артикул_наш_▼"
+    legacy_header_alias: "Артикул наш"
+    meaning: Внутренний артикул товара, не ключ карточки.
+  product_name:
+    source: "наименование 1С"
+    legacy_header_alias: "Название товара"
+    meaning: Наименование в реестре.
+  quantity:
+    source: "Кол-во выкупов"
+    meaning: Общее ПЛАНОВОЕ количество выкупов этой карточки, повторяется в каждой строке; НЕ число единиц в строке, никогда не SUM(quantity).
+    validation: positive_integer_when_present
+  planned_review_count:
+    source: "Кол-во отзывов"
+    header_alias: "Количество отзывов"
+    meaning: Отдельный общий ПЛАН отзывов карточки; не обязан равняться quantity, повторения не суммировать.
+    validation: nonnegative_integer_or_null
+    missing: unknown_never_default_to_quantity
+  purchase_date:
+    source: "Дата выкупа"
+    meaning: Только реальная дата совершения выкупа. Отсутствующая дата -> planned; completed требует ISO date.
+    validation: nullable_in_planned_required_in_completed
+  review_date:
+    source: "Дата отзыва"
+    meaning: >
+      Дата отзыва, указанная в реестре (НЕ дата покупки). Это кандидатная
+      точка начала исследования последствий появления отзыва, но не обязательно
+      независимо подтверждённая дата его видимой публикации.
+  review_url:
+    source: "Ссылка на отзыв"
+    meaning: Ссылка на отзыв, если указана.
+  review_draft:
+    source: "Черновик отзывов"
+    meaning: Текст/черновик отзыва, если указан.
+views:
+  planned: v_self_purchase_plan
+  completed: v_self_purchase
+reporting:
+  planned_count_query: "SELECT count(*) FROM v_self_purchase_plan"
+  completed_count_query: "SELECT count(*) FROM self_purchase -- exactly one recorded completed purchase per source row"
+  never_sum_planned_quantity_into_sales: true
+source_contract:
+  current_headers: ["мп", "магазин", "market_article", "артикул_наш_▼", "наименование 1С", "Кол-во выкупов", "Дата выкупа", "Дата отзыва", "Ссылка на отзыв", "Черновик отзывов"]
+  legacy_headers_accepted: ["Артикул МП", "Артикул наш", "Название товара"]
+  verified_current_headers_date: "2026-10-21"
+  verified_sources: ["самовыкупы (export)", "Реестр выкупов/отзывов (upstream)"]
+  header_matching: case_insensitive_and_trimmed
+  processing_order: "product_catalog before self_purchase"
+  current_store_resolution: "Use explicit source column магазин; no ЮЛ mapping or SKU-only fallback."
+  row_validation: >
+    Для каждой непустой строки СНАЧАЛА проверить значение колонки "Артикул МП".
+    Пустой или содержащий только пробелы SKU означает пропуск всей строки без
+    загрузки в planned или completed, без отклонения и sync_error; не определять
+    SKU по "Артикул наш", названию или другому источнику. Для planned нужны
+    цифровой SKU, код маркетплейса и магазина, а дата и количество могут быть
+    пустыми. Для completed дополнительно обязательны реальная дата и положительное
+    количество, а карточка должна существовать в product_catalog по
+    marketplace + store + marketplace_sku. Непустой, но нецифровой SKU отклонять
+    как ошибку формата.
+  legacy_compatibility: >
+    Только для старых выгрузок, где есть "ЮЛ", но отсутствует "магазин",
+    допустимо определять store через существующий mapping ЛМ->laser / НМБ->novok.
+    Это не правило для текущего источника и не доказательство тождественности ЮЛ и магазина.
+  current_header_alias_fix_2026_10_21: >
+    Утренний импорт самовыкупов 14–21.10.2026 отклонял экспорт из-за изменения заголовков:
+    Артикул МП -> market_article, Артикул наш -> артикул_наш_▼, Название товара -> наименование 1С.
+    Идентичные новые заголовки подтверждены чтением исходного и экспортного листа 21.10.2026.
+    Совместимость восстанавливается расширением списка разрешённых имён столбцов без переименования таблиц.
+  known_correction_2026_10_08: >
+    В исходном реестре 12 записей (строки 68-75, 80-83) имели старое значение ЮЛ "ЛМ",
+    хотя их WB SKU однозначно принадлежат магазину novok. По подтверждённому решению
+    владельца источника значения колонки "магазин" исправлены на novok.
+    Для современных записей приоритет всегда у прямого store, подтверждённого каталогом.
+order_id_policy: "No order_id required; event-level order identification is not guaranteed."
+uniqueness: "business key plus source_ordinal; same-card same-day rows are separate occurrences."
+normalization_rules: "trim; lower-case marketplace/store; validate explicit store against [laser,novok,ultra]; numeric SKU as TEXT"
+update_rules: >
+  При КАЖДОМ изменившемся снимке сверять ВСЕ исходные строки, а не только новые.
+  Planned хранить в self_purchase_plan, с исходным source_row как временным идентификатором;
+  поля quantity и purchase_date могут быть SQL NULL; marketplace_sku обязателен. Изменение заполненных
+  полей planned = update existing, не новая запись. Появление реальной даты совместно
+  с валидными SKU и количеством = атомарно записать completed в self_purchase
+  и убрать текущую planned-запись, не учитывая её дважды. Повторная загрузка идентичного
+  снимка не меняет бизнес-записи. Старые завершённые выкупы не удалять при исчезновении
+  из источника; исчезнувшие планы помечать неактуальными, а не учитывать как действующие.
+  Ранее созданный план без SKU тоже помечать неактуальным после внедрения
+  нового правила; при неизменном снимке принудительно выполнить такую сверку.
+  Пустые SKU учитываются отдельно в skipped_missing_sku, не в rejected.
+lifecycle:
+  statuses: [planned, completed]
+  planned_when: "purchase_date is empty AND Артикул МП is a valid numeric SKU; quantity may be empty"
+  completed_when: "purchase_date + numeric SKU + positive quantity + matching catalog listing"
+  planned_storage: "self_purchase_plan; v_self_purchase_plan exposes only is_current=1"
+  blank_sku_policy: "Skip row irrespective of all other fields; report skipped_missing_sku; no error"
+  prior_plan_without_sku: "Mark inactive in self_purchase_plan audit; exclude from v_self_purchase_plan"
+  filled_sku_policy: "If SKU is later provided, the next changed snapshot can import the row normally"
+  completed_storage: "self_purchase; v_self_purchase; ACTIVE completed only"
+  revision_storage: "self_purchase_revision; v_self_purchase_revisions; old completed event with prior date/quantity retained"
+  source_binding: >
+    self_purchase_source_link maps provisional source_row to last accepted completed
+    event business key (marketplace, store, marketplace_sku, purchase_date, source_ordinal).
+    First source sync after installing new code backfills mappings for current completed rows.
+    Never use a different SKU/store/marketplace row at the same source_row to remove a
+    previous event; there is no immutable event ID.
+  completed_to_planned: >
+    If the SAME source_row still has the SAME marketplace+store+SKU but purchase_date
+    becomes empty, move the formerly completed record into self_purchase_revision and
+    remove it from active completed self_purchase in the same transaction; its source
+    row becomes planned. Old event date and quantity remain fully auditable.
+  rescheduled_date: >
+    If a linked completed source row has the same listing but a new valid date,
+    insert/update new completed event and archive the previously linked event;
+    do not count both old and new dates as completed. Repeat sync must be idempotent.
+  matching_guard: >
+    Reconcile only previously linked source rows and only if the prior event
+    is not present anywhere in the current successful completed rows. Repeated
+    SKU events are independent by source_ordinal; never blanket-delete all dates
+    for matching SKU.
+  missing_source_row: >
+    If a whole source row disappears or changes marketplace/store/SKU, DO NOT
+    automatically retire previous completed events; identity is ambiguous.
+    Preserve existing history and surface ambiguity for further review.
+  existing_legacy_exception_2026_10_08: >
+    Five confirmed stale completed records for source rows 42-46 predate source-row
+    linkage. Owner approved ONE-TIME guarded archival of these exact keys into
+    self_purchase_revision after SQLite backup, not general inference or deletion.
+  effect_on_sales: "Only completed is deducted or reconciled with actual sales; planned is NEVER a sold unit"
+  transition: "planned -> completed upon valid date+SKU+quantity in a later source refresh; no separate user action"
+  error_policy: "Missing date/quantity in planned is normal; blank Артикул МП skips row, does not generate sync_error or partial"
+  resolved_error_policy: "Prior historical sync_error rows stay as audit history; inspect newest sync_run, not lifetime errors"
+  current_upstream_examples_2026_10_08: "planned rows 42-46 and 51-53 (8); row 84 skipped for missing Артикул МП"
+revision_reporting:
+  active_query: "SELECT count(*) FROM self_purchase -- actual recorded occurrences; repeating quantity is NOT additive"
+  prior_states_query: "SELECT * FROM v_self_purchase_revisions"
+  no_double_count_revision: true
+  source_row_binding_is_not_immutable_event_id: true
+source_row_identity_warning: >
+  Исходный лист не имеет постоянного immutable event ID: source_row означает позицию
+  в CSV, а не юридически уникальный ID события. Вставка/сортировка строк может изменить
+  соответствие плана; без отдельного ID нельзя гарантировать непрерывность истории
+  одного плана после произвольной перестановки.
+limitations:
+  - "Строка без значения Артикул МП не загружается ни в planned, ни в completed."
+  - "Не заполнять недостающие даты, SKU и quantity предположениями."
+  - "При переносе даты подтверждённой ранее покупки старое completed переносится в историю ревизий и исключается из действующего учёта."
+  - "Исторические completed при удалении строки из источника автоматически не удаляются."
+  - "Повторные записи одного SKU на одну дату различаются source_ordinal; перестановка может изменить идентичность."
+  - "Планы со строками, удалёнными из текущего источника, остаются в таблице аудита с is_current=0."
+
+mpstats_external_metrics:
+  verified_on: "2026-10-23"
+  source_method: "wb_sku(report=full), period_stats"
+  mode: "external_analytics_stock_parser"
+  no_additional_seller_cabinet_required: true
+  linked_report: "docs/self-purchases/MPSTATS_EXPANDED_FIELDS_REAL_ACCEPTANCE_20261023.md"
+  technical_field_sales:
+    ui_label_since_2026: "Заказы, шт."
+    meaning: "external MPSTATS estimate, including potential recorded self-purchases, not verified paid or organic orders"
+    no_duplicate_add_to_sales_estimated: true
+  technical_field_revenue:
+    ui_label_since_2026: "Заказы, руб."
+    meaning: "external MPSTATS monetary estimate, not payment or realized margin"
+  technical_field_days_in_stock:
+    meaning: "provider's available stock days; compare stock-day rates only if present and >0"
+  optional_fields: [sales_estimated, revenue_estimated, purchase, purchase_after_return, lost_profit]
+  optional_fields_rule: "keep exact provider field names; do not infer unit or interpretation absent provider endpoint evidence"
+  order_count_field_orders_available_in_wb_sku_full_probe: false
+  refund_count_field_available_in_wb_sku_full_probe: false
+  unavailable_means: UNKNOWN
+  NEVER:
+    - "derive refunds as purchase minus purchase_after_return"
+    - "sum sales and sales_estimated"
+    - "call any provider field independently confirmed paid organic orders"
+    - "treat external sum revenue as verified seller profit"
+    - "attribute changes causally to historical self-purchase events"
+  history_windows: "for every dated review checkpoint use equal complete days before first/after current, censor at next event"
+  live_readonly_probes: [573, 574, 575]
+
+review_checkpoint_analytics:
+  policy_approved: "2026-10-23"
+  policy_document: "docs/self-purchases/PER_REVIEW_CHECKPOINT_WINDOWS_20261023.md"
+  precedence: "per-date checkpoint observations have priority over the former sole first-to-last aggregate; keep former only for longitudinal series summary"
+  grouping_key: [marketplace, store, marketplace_sku]
+  target_source_column: "Кол-во выкупов"
+  target_sqlite_field: self_purchase.quantity
+  target_meaning: "repeated total planned event count per card; never sum(quantity)"
+  review_date_source_column: "Дата отзыва"
+  review_date_sqlite_field: self_purchase.review_date
+  review_date_meaning: "each row's registry-recorded review date, not a plan count and not independently verified publication"
+  event_count: "COUNT(completed source rows); no inference from quantity"
+  event_anchor: "each distinct nonnull review_date, chronological order; group multiple same-day recorded reviews into one calendar checkpoint"
+  requested_days_default: 90
+  requested_days_hard_cap: 90
+  requested_days_rule: 'min(90, full completed days after review_date before as_of and days before next distinct review_date where applicable)'
+  historical_30_day_values: 'legacy partial windows; never reuse as final 90-day comparisons'
+  owner_correction: '2026-10-23; symmetric finished-day periods up to 90; review and today excluded'
+  as_of_is_exclusive: true
+  first_baseline_anchor: "strictly before first recorded review_date"
+  checkpoint_post_anchor: "strictly after current checkpoint review_date"
+  checkpoint_day_excluded: true
+  next_checkpoint_censor: "strictly stop before next recorded review_date, never include later review events in earlier checkpoint post-window"
+  effective_days: "min(requested_days, full days since current review before as_of, calendar days before next review)"
+  before_window: "first_review_date - N ... first_review_date - 1"
+  after_window: "checkpoint_review_date + 1 ... checkpoint_review_date + N"
+  short_window: "SHORTER_EQUAL_WINDOW_PRELIMINARY; same N on both sides, not 90 vs fewer"
+  no_finished_post_day: "POST_WINDOW_PENDING; no fabricated metrics"
+  multiperiod_report: "one checkpoint report for first, second, third and all successive dated review groups"
+  historical_final_aggregate: "retained as overall series summary before first and after latest, never a substitute for each checkpoint"
+  provider_data: "query independent exact date-aligned MPSTATS observations for EACH checkpoint"
+  price_journal_required_each_checkpoint: true
+  price_journal_identity: "marketplace,store,marketplace_sku; v_price_history readonly; current + archive"
+  price_history_numeric_reporting: "For each dated event AFTER review: event_date; old_price->new_price in RUB; optional delta and percent, unknown not zero"
+  mpstats_price_validation: "Separate read-only dated provider history only if tool, account scope and chronological field contract confirmed; otherwise UNKNOWN"
+  attribution_guard: "Post-review price changes are independent potential demand confounders, not proof of self-purchase or price effects"
+  effect: "descriptive only; multiple marketing/stock/price changes and event overlap prevent causal attribution"
+  no_marketplace_actions: true
+
+review_outcome_analytics:
+  policy_approved: "2026-10-22"
+  canonical_document: "docs/self-purchases/REVIEW_PUBLICATION_EVENT_MODEL_20261022.md"
+  historical_primary_anchor: review_date
+  historical_primary_anchor_source: "Реестр выкупов/отзывов — Дата отзыва"
+  purchase_date_role: "история покупки, ключ завершённой операции и интервал до отзыва; НЕ начало анализа последствий отзыва"
+  completion_state_meaning: "completed означает подтверждённую покупку, не опубликованный отзыв"
+  review_date_is_publication_proof: false
+  review_url_is_publication_date_proof: false
+  verified_publication_date: "отдельное независимое подтверждение; в текущей SQLite отсутствует отдельное поле"
+  scenarios:
+    - first_reviews
+    - rating_recovery
+    - unknown
+  without_review_date: "REVIEW_DATE_NOT_RECORDED; не запускать анализ последствий отзыва"
+  review_date_before_purchase: "INVALID_DATE_ORDER; не запускать"
+  mismatched_verified_publication_date: "SOURCE_DATE_MISMATCH; не подменять дату автоматически"
+  registry_review_date_only: "READY_REGISTRY_DATE_WITH_UNCERTAINTY; возможен условный анализ с указанием непроверенности фактической публикации"
+  verified_publication: "READY_VERIFIED_PUBLICATION; исследование с датой подтверждённой публикации"
+  windows: "T-14...T-1 и T+1...T+14; T=date of review, дату T исключить; 14 регулируется параметром"
+  monitor: "исторический агрегированный рейтинг и число отзывов, датированные следующие отзывы, заказы/продажи, наличие, цена, реклама, сопоставимые конкуренты"
+  historical_rating_unavailable: "UNKNOWN; не подменять текущим рейтингом"
+  no_causal_attribution_without_control: true
+  legacy_purchase_based_mpstats_pilots: "SUPERSEDED_PURCHASE_ANCHOR: подтверждают только доступность источника MPSTATS, не реакцию после отзыва"
+
+historical_unit_and_review_evidence:
+  superseded_on: "2026-10-22"
+  corrected_canonical_document: "docs/self-purchases/SERIES_TARGET_PER_ROW_CORRECTION_20261022.md"
+  meaning_of_quantity: "card-level planned TOTAL repeated in each row, not purchased units"
+  actual_completed_purchases: "COUNT(completed source rows) grouped by marketplace/store/SKU"
+  review_rows: "COUNT(completed source rows with review_date), not independent proof of publication"
+  target: "single consistent repeated quantity for one card, never SUM(quantity)"
+  when_targets_conflict: "TARGET_CONFLICT; no arbitrary max/min and no fabricated count"
+  series_primary_start: "earliest review_date for the same marketplace/store/SKU"
+  series_primary_end: "latest review_date for the same marketplace/store/SKU"
+  default_window_days: 90
+  windows: "legacy overall-series summary only; each review-date checkpoint uses its own equal pre-first/post-event windows, censored before next event; see review_checkpoint_analytics"
+  interim_allowed: "after any subset of recorded review rows, explicitly INTERMEDIATE_SERIES"
+  full_series_gate: "completed row count reaches target, dated review count reaches target, after window completed; publication evidence separate"
+  incomplete_followup: "use shorter equal observed windows explicitly preliminary, or POST_WINDOW_PENDING"
+  no_assumed_rating: "one recorded review_date per row is not independently confirmed 5-star platform rating"
+  actual_review_evidence: "unique independently verified reviews must be separately dated"
+  legacy_quantity_sums: "SUPERSEDED_NON_ADDITIVE_QUANTITY; do not cite as purchase count"
+  code: ["apps/msp_self_analytics/series_analysis.py", "apps/msp_self_analytics/series_report.py"]
+  no_marketplace_actions: true
+
+stock_normalized_observation:
+  policy_approved: "2026-10-26"
+  source: "MPSTATS wb_sku(full).period_stats.sales and days_in_stock over exact before/after intervals"
+  calculation: "estimated_orders_per_in_stock_day = sales / days_in_stock for each period, days_in_stock > 0"
+  observation_window: "N equal calendar days both sides, 1<=N<=90, review day and unfinished today excluded"
+  required_in_report: ["estimated_orders_before_after", "recorded_in_stock_days_before_after", "stock_coverage_percent_before_after", "orders_per_in_stock_day_before_after", "percent_change_if_baseline_positive", "sample_limitations"]
+  small_estimated_sample_threshold: 10
+  zero_stock_or_missing_values: "UNKNOWN, not 0, no division or fabricated order rate"
+  provider_estimated_orders_not_paid_or_organic: true
+  missing_day_extrapolation_allowed: false
+  causal_effect_allowed: false
+  code: ["apps/msp_self_analytics/stock_normalization.py", "apps/msp_self_analytics/checkpoint_workflow.py", "apps/msp_self_analytics/checkpoint_report_ru.py"]
+  no_marketplace_actions: true
+
+advertising_and_comparator_observations:
+  policy_approved: "2026-10-26"
+  provider: "MPSTATS authorized historical WB read-only only, not an undated snapshot"
+  ad_source_requires: ["same marketplace+store+SKU", "cabinet identity", "exact before/after dates", "currency+unit meanings"]
+  advertising_default_status: "UNVERIFIED_FOR_SKU_AND_WINDOW"
+  no_ad_campaign_rows: "SOURCE_UNAVAILABLE_OR_EMPTY; never infer zero spend, no advertising or zero impact"
+  comparator_default_status: "NO_VERIFIED_COMPARATORS"
+  preliminary_peers: "wb_similar category candidates only, not a verified control group"
+  comparator_acceptance: "same purpose, material features, package, price segment and comparable exposure verified"
+  causal_attribution_prohibited: true
+  reporting: "explicit source gaps in Russian after stock-normalized MPSTATS observations"
+  no_marketplace_actions: true
+
+external_mpstats_client_price_observation:
+  policy_approved: "2026-10-26"
+  method: "MPSTATS wb_sku report=keywords (read-only, no advertising cabinet)"
+  provider_shape: "data.words for keyword observations, data.dates for daily price/visibility"
+  same_exact_before_after_windows_as_orders: true
+  maximum_days: 90
+  mandatory_report: ["observed_price_days_before_after", "observed_positive_price_levels", "dated_pairs_of_changed_observations", "missing_day_warning"]
+  price_semantics: "provider field named client_price; kind/units not independently confirmed"
+  price_change_rule: "difference between observed dates is NOT confirmed seller edit date; source differs from MSP v_price_history"
+  missing_days_interpolated: false
+  advertising_spend_or_paid_orders_inferred: false
+  max_total_mpstats_calls_including_keyword: 24
+  optional_data_when_read_budget_allows: true
+  causal_effect_prohibited: true
+  code: "apps/msp_self_analytics/external_visibility_evidence.py"

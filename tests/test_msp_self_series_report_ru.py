@@ -21,7 +21,7 @@ class TestRussianSeriesReport(unittest.TestCase):
   r=build_series_report(ROWS,metrics("2026-07-06","2026-08-04",0,26),
       metrics("2026-08-19","2026-09-17",3,30),as_of="2026-10-22",requested_days=30)
   t=format_series_report_ru(r,label="Урна 400×300×800")
-  self.assertIn("План 5; записано выкупов 3; дат отзывов 3",t)
+  self.assertIn("План выкупов 5; план отзывов не установлено; записано выкупов 3; дат отзывов 3",t)
   self.assertIn("06.07.2026",t)
   self.assertIn("17.09.2026",t)
   self.assertIn("0 до и 3 после",t)
