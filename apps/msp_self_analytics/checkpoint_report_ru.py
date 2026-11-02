@@ -39,9 +39,10 @@ def format_checkpoint_history_ru(report: dict, *, label: str | None = None) -> s
     if label is not None:
         lines.append("Товар: " + label.strip())
     lines.append(
-        "План по карточке: " + str(series.get("planned_total_per_card")
+        "План выкупов по карточке: " + str(series.get("planned_total_per_card")
                              if series.get("planned_total_per_card") is not None
                              else "противоречив")
+        + '; план отзывов: '+str(series.get('planned_review_total_per_card') if series.get('planned_review_total_per_card') is not None else 'не указан/противоречив')
         + "; зарегистрировано выкупов: " +
         str(series.get("recorded_completed_purchase_rows", "неизвестно"))
         + "; датированных записей отзывов: " +

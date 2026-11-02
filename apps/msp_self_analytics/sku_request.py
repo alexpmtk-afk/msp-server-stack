@@ -59,10 +59,18 @@ def load_existing_series(
         connection.execute("PRAGMA query_only=ON")
         if connection.execute("PRAGMA query_only").fetchone()[0] != 1:
             raise SkuRequestError("SQLITE_NOT_READ_ONLY")
-        cursor = connection.execute("""
+        tables={r[0] for r in connection.execute("select name from sqlite_master where type='table'")}
+        review_plan="NULL"
+        if {'self_purchase_plan_metrics','self_purchase_source_link'}<=tables:
+            review_plan="""(SELECT m.planned_review_count FROM self_purchase_source_link l
+                JOIN self_purchase_plan_metrics m ON m.source_row=l.source_row
+                  AND m.marketplace=l.marketplace AND m.store=l.store AND m.marketplace_sku=l.marketplace_sku
+                WHERE l.marketplace=s.marketplace AND l.store=s.store AND l.marketplace_sku=s.marketplace_sku
+                  AND l.purchase_date=s.purchase_date AND l.source_ordinal=s.source_ordinal LIMIT 1)"""
+        cursor = connection.execute(f"""
             SELECT marketplace, store, marketplace_sku,
-                   purchase_date, review_date, quantity, source_ordinal
-            FROM self_purchase
+                   purchase_date, review_date, quantity, source_ordinal, {review_plan} planned_review_count
+            FROM self_purchase s
             WHERE marketplace = ? AND store = ? AND marketplace_sku = ?
               AND purchase_date IS NOT NULL AND TRIM(purchase_date) <> ''
             ORDER BY purchase_date ASC, source_ordinal ASC
@@ -77,6 +85,7 @@ def load_existing_series(
             {"marketplace": r[0], "store": r[1], "marketplace_sku": r[2],
              "purchase_date": r[3], "review_date": r[4],
              "quantity": r[5], "source_row": str(r[3]) + ":" + str(r[6]),
+             'planned_review_count': r[7],
              "purchase_status": "completed"}
             for r in raw
         ]

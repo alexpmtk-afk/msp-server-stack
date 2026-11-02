@@ -35,7 +35,7 @@ def format_series_report_ru(report: dict, *, label: str | None = None) -> str:
     if not isinstance(plan,int) or plan<1 or not isinstance(bought,int) or bought<0:
         title="Серия с противоречивым или неполным планом"
     else:
-        title=f"План {plan}; записано выкупов {bought}; дат отзывов {reviews}"
+        title=f"План выкупов {plan}; план отзывов {_count(series.get('planned_review_total_per_card'))}; записано выкупов {bought}; дат отзывов {reviews}"
     lines=["ОТЧЁТ ПО ИСТОРИИ КАРТОЧКИ"]
     try:
         from apps.msp_self_analytics.order_evidence import report_guard_ru
@@ -51,7 +51,9 @@ def format_series_report_ru(report: dict, *, label: str | None = None) -> str:
     if phase=="INTERMEDIATE_SERIES":
         lines.append("Этап: промежуточное наблюдение, серия ещё не завершена.")
     elif phase=="REPORTED_SERIES_COMPLETE_PUBLICATION_UNVERIFIED":
-        lines.append("Этап: все плановые строки с датами отзывов учтены; публикация не подтверждена независимо.")
+        lines.append("Этап: план выкупов и отдельный план записанных отзывов выполнены; публикация не подтверждена независимо.")
+    elif phase=='PURCHASE_PLAN_COMPLETE_REVIEW_PLAN_UNKNOWN':
+        lines.append('Этап: план выкупов выполнен; план отзывов не указан, его завершённость неизвестна.')
     elif phase=="TARGET_CONFLICT":
         lines.append("Этап: план противоречит сам себе, требуется проверка записей.")
     else:

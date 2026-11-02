@@ -54,7 +54,7 @@ class PortfolioTest(unittest.TestCase):
         self.assertEqual(result["summary"]["ready_with_both_sources"], 1)
         report = result["cards"][0]
         self.assertEqual(report["status"], "INTERMEDIATE_FULL_WINDOW")
-        self.assertIn("План 5; записано выкупов 3", report["text_ru"])
+        self.assertIn("План выкупов 5; план отзывов не установлено; записано выкупов 3", report["text_ru"])
         self.assertIn("0 до и 3 после", report["text_ru"])
         self.assertIn("не доказано", report["text_ru"])
         self.assertFalse(result["causal_effect_estimated"])

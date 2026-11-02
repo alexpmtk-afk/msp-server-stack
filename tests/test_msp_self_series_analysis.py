@@ -60,6 +60,7 @@ class TestSeries(unittest.TestCase):
         for i,date in enumerate(("2026-08-24","2026-09-01"),1):
             r.append({**r[-1],"source_row":40+i,
                 "purchase_date":date,"review_date":("2026-08-31" if i==1 else "2026-09-08")})
+        for row in r:row['planned_review_count']=5
         a=m.analyze_series(r,as_of="2026-10-22",requested_days=30)
         self.assertEqual(a["series_phase"],"REPORTED_SERIES_COMPLETE_PUBLICATION_UNVERIFIED")
         self.assertEqual(a["latest_review_date"],"2026-09-08")

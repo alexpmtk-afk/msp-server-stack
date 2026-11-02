@@ -1,4 +1,10 @@
 
+    -- Independent repeated review target, keyed to the verified source row.
+    create table if not exists self_purchase_semantic_state(version integer primary key,processed_at text not null);
+    create table if not exists self_purchase_plan_metrics(
+      source_row integer primary key, marketplace text not null, store text not null,
+      marketplace_sku text not null, planned_review_count integer check(planned_review_count is null or planned_review_count>=0),
+      source_has_review_plan integer not null, updated_at text not null);
     create table if not exists product_listing(
       marketplace text not null, store text not null, marketplace_sku text not null,
       marketplace_article text, internal_article text, internal_article_normalized text, product_name text,
