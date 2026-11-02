@@ -271,7 +271,7 @@ def _report_ozon_ratings(store,sku,day,provider_factory):
             'causal_effect_proven':False,'marketplace_actions_allowed':False}
 
 
-def report_card(marketplace, store, sku, *, as_of=None,
+def _report_card(marketplace, store, sku, *, as_of=None,
                 provider_factory=MpstatsReader):
     """Return the owner's Russian report; suitable for an authorized Hermes reply.
 
@@ -421,6 +421,17 @@ def report_card(marketplace, store, sku, *, as_of=None,
         "causal_effect_proven": False,
         "marketplace_actions_allowed": False,
     }
+
+
+def report_card(marketplace, store, sku, *, as_of=None, provider_factory=MpstatsReader):
+    from apps.msp_self_analytics.card_plan_summary import load_card_plan_summary, format_card_plan_summary_ru
+    _,resolve,_=_modules()
+    match=resolve(DB,sku=sku,marketplace=marketplace,store=store)
+    result=_report_card(match['marketplace'],match['store'],sku,as_of=as_of,provider_factory=provider_factory)
+    summary=load_card_plan_summary(DB,marketplace=match['marketplace'],store=match['store'],sku=sku)
+    result['card_plan']=summary
+    result['text']=format_card_plan_summary_ru(summary)+'\n\n'+result['text']
+    return result
 
 
 def main():
