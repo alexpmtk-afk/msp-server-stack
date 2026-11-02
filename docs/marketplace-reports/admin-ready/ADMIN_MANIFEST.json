@@ -1,0 +1,14 @@
+{
+  "state": "PREPARED_NOT_INSTALLED",
+  "accepted_code_sha": "c1fee070e9efa0c925a78f266fdf03cb12a173cf",
+  "accepted_code_digest": "aac2431671d539d5653379b85b9a214d21e06fee7d1eb3f99361991949f465c5",
+  "files": {
+    "docs/marketplace-reports/admin-ready/CHATGPT_HANDOFF.md": "c88c050df583b540cf6c5fb268e0338433380cdedf54ad5467133463676fd86f",
+    "docs/marketplace-reports/admin-ready/README.md": "bd4e185030a65403b903e6e135740a1f355781b93a9374ab6e7a1462bf9854a5",
+    "docs/marketplace-reports/admin-ready/TEST_RESULTS.txt": "8b4873ac9eb4faea18e4b906d3895359c325068366d6b39bfbd7958e01adc9c3",
+    "docs/marketplace-reports/admin-ready/msp-wb-pilot.STAGED.service.in": "a951986b7f1355e3c4806f9a560fc5e7f53c0514fea335786a34fddafdafd906",
+    "docs/marketplace-reports/admin-ready/redis_readonly_probe.py": "4a3a70596e0a5ab1d198b18e862c3bc15319f19d568a6c11b0cf733c62b8e7a1",
+    "docs/marketplace-reports/admin-ready/select_pilot_credential.py": "0ea1424ff45b909e71077c214d6374e5f02082a241e9b65fc7f36a16420ac4ea",
+    "tests/test_msp_wb_admin_tools.py": "660dca6a00c0fb5dbb6b2d71189abdbbbffed9c8a80e2a45981641f941db8b20"
+  }
+}

@@ -1,0 +1,27 @@
+# ADMIN STAGING ONLY: network denied; original PR104 template is unchanged.
+# PREPARED ONLY. Render @RELEASE_SHA@ after owner approval. Do not enable a timer.
+[Unit]
+Description=Bounded explicit MSP WB pilot (no scheduler)
+ConditionPathIsDirectory=/opt/mcp/data/msp-marketplace-reports
+ConditionPathExists=/etc/msp-marketplace-reports-executor/approval.json
+
+[Service]
+Type=oneshot
+User=msp-reports
+Group=msp-reports
+UMask=0077
+WorkingDirectory=/opt/mcp/projects/msp-marketplace-reports-releases/@RELEASE_SHA@
+LoadCredential=cabinets.json:/etc/msp-marketplace-reports-pilot/wb_laser_master.json
+ExecStart=/opt/mcp/projects/msp-marketplace-reports-releases/@RELEASE_SHA@/.venv/bin/python -B -m apps.msp_marketplace_reports.standalone_wb --root /opt/mcp/data/msp-marketplace-reports --plan /opt/mcp/projects/msp-marketplace-reports-releases/@RELEASE_SHA@/pilot-plan.json --authorization-file /etc/msp-marketplace-reports-executor/approval.json --creds-file ${CREDENTIALS_DIRECTORY}/cabinets.json
+IPAddressDeny=any
+CapabilityBoundingSet=
+RestrictSUIDSGID=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/opt/mcp/data/msp-marketplace-reports
+TimeoutStartSec=420
+Restart=no
+# No Environment=...YES, no Redis URL/credentials, no timer, no [Install].
+# Shared controller config is deliberately NOT provisioned by this template.
