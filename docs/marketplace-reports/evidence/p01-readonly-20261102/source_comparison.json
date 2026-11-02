@@ -1,0 +1,13 @@
+{
+  "legacy_source_commit": "0510a409ab589c639930fbca35afb3e68d874f81",
+  "new_source_commit": "bd83bda409c1aa80a05be1d5381b00a3a1258bfb",
+  "controller_python_ast_equal": true,
+  "raw_bytes_equal": false,
+  "difference": "three provenance comment lines only",
+  "runtime_backend_db_tls_overrides": "NOT_VERIFIED",
+  "actual_cabinet_owner_and_bucket_keys": "NOT_VERIFIED",
+  "job_store_factory": "core.combined -> build_hybrid_archive_store_from_env -> register_archive_tools -> WBFinanceArchiveJobQueue(store)",
+  "hybrid_app_jobs_backend_at_source": "Yandex Object Storage when HybridArchiveStore is selected; other factory branches exist",
+  "actual_runtime_store_selection": "NOT_VERIFIED",
+  "redis_commands_executed": []
+}

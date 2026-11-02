@@ -1,0 +1,12 @@
+{
+  "scope": "synthetic fixtures only; no real host probe executed",
+  "cases": [
+    "ACTIVE_PROCESS_REDACTION_PASS",
+    "SOURCE_PERMISSION_DENIED_FAIL_CLOSED_PASS",
+    "ENV_PERMISSION_DENIED_REDACTED_PASS",
+    "NEW_VPS_GUARD_PASS",
+    "MISSING_SERVICE_NO_FALLBACK_PASS"
+  ],
+  "one_physical_line": true,
+  "shell_roundtrip": "PASS"
+}
