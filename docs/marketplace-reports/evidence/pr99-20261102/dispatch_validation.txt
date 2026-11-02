@@ -1,0 +1,5 @@
+Pinned source 0510a409ab589c639930fbca35afb3e68d874f81
+Patch generated from exact source. AST-extracted _download_step:
+unconfigured opt-in: REFUSED before credential/client access
+injected callback: PASS, exact queue and state forwarded
+No old runtime imported or production scheduler executed.

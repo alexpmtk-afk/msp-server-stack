@@ -1,0 +1,6 @@
+{"check": "R99_1_COVERAGE_PIN_VALUES", "kind": 1, "published_amount": "99", "rejected": true, "staged_amount": "10", "unchanged": true}
+{"check": "R99_1_COVERAGE_PIN_VALUES", "kind": 2, "published_amount": "99", "rejected": true, "staged_amount": "10", "unchanged": true}
+{"check": "R99_2_COVERAGE_RETRY", "coverage_bytes_unchanged": true, "file_resynced": true, "first_failed": true, "kind": 1, "parent_resynced": true, "retry_status": "LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE"}
+{"check": "R99_2_COVERAGE_RETRY", "coverage_bytes_unchanged": true, "file_resynced": true, "first_failed": true, "kind": 2, "parent_resynced": true, "retry_status": "LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE"}
+{"check": "R99_2_SIGKILL_COVERAGE_RENAME", "file_resynced": true, "parent_resynced": true}
+{"cases": 5, "check": "COMPLETE"}

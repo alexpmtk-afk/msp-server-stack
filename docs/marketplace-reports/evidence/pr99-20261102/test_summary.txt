@@ -1,0 +1,6 @@
+PR99 source 2d54b6f4a89048ce7c2a604c866a1706d3fff36e: 174 tests PASS.
+Own candidate: 181 tests PASS (174 existing + 3 receipt + 4 scheduler bridge unittest methods).
+Both runs deny socket.connect and socket.getaddrinfo and assert all project imports inside selected checkout.
+Additional source/fix probes: 5 each, including actual SIGKILL after coverage rename.
+Two AST dispatch controls: unconfigured refused; injected callback forwarded.
+Power-loss and runtime API/Redis tests: NOT VERIFIED.
