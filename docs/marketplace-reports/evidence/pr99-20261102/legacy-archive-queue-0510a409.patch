@@ -1,8 +1,6 @@
 --- a/core/archive_queue.py
 +++ b/core/archive_queue.py
-@@ -475,6 +475,13 @@
-         }
- 
+@@ -477,4 +477,11 @@
      async def _download_step(self, state: dict[str, Any]) -> dict[str, Any]:
 +        # Explicit opt-in only; launcher injects the approved root/sender bridge.
 +        # Do NOT call legacy call_spec as well: sender owns shared admission.
