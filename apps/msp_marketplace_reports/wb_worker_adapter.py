@@ -10,12 +10,13 @@ from __future__ import annotations
 import csv
 import json
 import os
+import stat
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
 from .archive import _rows, _sha, _validate, DATASETS
-from .generation_store import GenerationError, read_active
+from .generation_store import GenerationError, read_active, _ensure_scope_durable, _sync_dir
 from .ingest import _cell
 from .versioned_archive import import_csv_versioned, read_csv_versioned, _assert_no_legacy
 from .wb_page_resume import (
@@ -29,6 +30,27 @@ def _dataset(report_type):
         raise ValueError("WB report type must be 1 or 2")
     return ("wb_weekly_finance_main" if report_type == 1
             else "wb_weekly_finance_buyout")
+
+
+class CoverageUncertainError(GenerationError):
+    """Archive may be committed; reconcile the same report, never refetch it."""
+
+
+def _resync_coverage(folder, path):
+    """Finish an interrupted coverage rename/fsync without rewriting evidence."""
+    try:
+        _ensure_scope_durable(folder)
+        _checked(path)
+        fd = os.open(str(path), os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                raise GenerationError("coverage must be a regular file")
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        _sync_dir(folder)
+    except Exception as exc:
+        raise CoverageUncertainError("WB coverage sync uncertain; retry same report") from exc
 
 
 def _stage_record(root, cabinet, year, report_id, report_type):
@@ -131,6 +153,26 @@ def _validate_coverage(root, cabinet, year, report_id, report_type, doc):
     _, actual = _rows(raw, DATASETS[dataset][1])
     if len([key for key in actual if key[0] == str(report_id)]) != doc["rows"]:
         raise GenerationError("WB coverage rows missing from committed publication")
+    # A valid pin with the same row count is not proof of the same report.
+    # Bind every staged value (including preserved raw JSON) to that pin.
+    fields = set(DATASETS[dataset][1]) | {"reportType"}
+    for page in read_completed_wb_pages(root, cabinet, year, report_id, report_type):
+        for row in page:
+            fields.update(row)
+    fields.discard("_raw_json")
+    count = 0
+    for page in read_completed_wb_pages(root, cabinet, year, report_id, report_type):
+        for row in page:
+            expected = {field: _cell(row.get(field)) for field in fields}
+            expected["_raw_json"] = json.dumps(
+                row, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            key = tuple(expected[field] for field in DATASETS[dataset][1])
+            if key not in actual or any(
+                    actual[key].get(field, "") != value for field, value in expected.items()):
+                raise GenerationError("WB coverage pin differs from verified staged rows")
+            count += 1
+    if count != doc["rows"]:
+        raise GenerationError("WB coverage row count differs from staged report")
     return pinned
 
 
@@ -145,6 +187,7 @@ def finalize_staged_report(root, cabinet, year, report_id, report_type, *, fault
     prior = _read_coverage(folder)
     if prior is not None:
         _validate_coverage(root, cabinet, year, report_id, report_type, prior)
+        _resync_coverage(folder, coverage_path)
         return {**prior, "changed": False, "provider_calls": 0}
     # TemporaryDirectory has private mode 0700. CSV is 0600, and its
     # iterator closes BEFORE the writer takes the same admission lock.
@@ -169,9 +212,13 @@ def finalize_staged_report(root, cabinet, year, report_id, report_type, *, fault
         # Coverage is a local receipt only. Never write it before pinned
         # publication verification, and never claim provider completeness.
         from .archive import _safe_write
-        _safe_write(coverage_path, (
-            json.dumps(coverage, ensure_ascii=False, sort_keys=True,
-                       separators=(",", ":")) + "\n").encode("utf-8"))
+        try:
+            _safe_write(coverage_path, (
+                json.dumps(coverage, ensure_ascii=False, sort_keys=True,
+                           separators=(",", ":")) + "\n").encode("utf-8"))
+        except Exception as exc:
+            raise CoverageUncertainError(
+                "WB coverage publication uncertain; retry same report") from exc
         _validate_coverage(root, cabinet, year, report_id, report_type, coverage)
         return {**coverage, "changed": receipt["changed"], "provider_calls": 0}
 

@@ -1,0 +1,37 @@
+{
+  "scope": "passive local metadata only; no process args/environ, SSH, Redis protocol/admission, keys, logs or financial rows",
+  "euid": 1001,
+  "matching_process_names": [],
+  "system_units": [],
+  "unit_list_returncode": 0,
+  "paths": [
+    {
+      "path": "/opt/mcp/projects/msp-server-stack",
+      "status": "PRESENT",
+      "uid": 1001,
+      "gid": 1001,
+      "mode": "0o750",
+      "writable_by_current_user": true
+    },
+    {
+      "path": "/opt/mcp/data/msp-marketplace-reports",
+      "status": "NOT_PRESENT_AT_THIS_PATH"
+    },
+    {
+      "path": "/etc/msp-marketplace-reports",
+      "status": "PRESENT",
+      "uid": 0,
+      "gid": 0,
+      "mode": "0o700",
+      "writable_by_current_user": false
+    },
+    {
+      "path": "/opt/marketplaces-mcp-ru",
+      "status": "NOT_PRESENT_AT_THIS_PATH"
+    },
+    {
+      "path": "/opt/mcp/marketplaces-mcp-ru",
+      "status": "NOT_PRESENT_AT_THIS_PATH"
+    }
+  ]
+}

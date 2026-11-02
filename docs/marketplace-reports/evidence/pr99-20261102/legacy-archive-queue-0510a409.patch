@@ -1,0 +1,14 @@
+--- a/core/archive_queue.py
++++ b/core/archive_queue.py
+@@ -477,4 +477,11 @@
+     async def _download_step(self, state: dict[str, Any]) -> dict[str, Any]:
++        # Explicit opt-in only; launcher injects the approved root/sender bridge.
++        # Do NOT call legacy call_spec as well: sender owns shared admission.
++        if state.get("archive_mode") == "msp-versioned-wb-v1":
++            bridge = getattr(self, "msp_reports_bridge", None)
++            if bridge is None:
++                raise RuntimeError("MSP WB bridge not configured; download blocked")
++            return await bridge(self, state)
+         fragments = state.get("fragments") or []
+         index = int(state.get("report_index", 0) or 0)
+         if index >= len(fragments):
