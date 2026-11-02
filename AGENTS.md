@@ -56,3 +56,8 @@ Instructions for chats, coding agents and automated assistants working with this
 7. After every state-changing action, perform an independent verification and report the result.
 
 If the required REMOTE execution channel is not available, stop at preparation: produce the exact safe task or command for an authorized executor instead of pretending it was executed.
+
+
+## Финансовый архив WB/Ozon — новое решение владельца 02.11.2026
+
+Поиск старого REMOTE прекращён: доступ потерян, это не доказательство его отключения. Не возвращать владельца к WinSCP/старой консоли без нового подтверждённого доступа. Текущий документ — docs/marketplace-reports/AUTONOMOUS_VPS_20261102.md. Подготовлен standalone_wb one-shot поверх PR98/99/102, не новый scheduler/Redis job queue. Реальных установок/Redis writes/API/gate activation нет. До API нужны owner-approved shared quota и исключение конфликтующих клиентов, private root/credential-reader и отдельный bounded pilot approval; новая независимая Redis не доказывает общую квоту. Pilot main883801632 wb_laser_master 19–25.10.2026 имеет неизвестный полный размер и максимум3 durable send entries; повтор не сбрасывает бюджет. Сохранять существующие службы, root0700/0600 секретов и историю PR.

@@ -137,6 +137,10 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
+class TransportUnavailable(ProviderError):
+    """Redacted retryable transport failure; cursor and quota remain authoritative."""
+
+
 class ReadOnlyHTTP:
     def __init__(self, *, cabinet: str, credentials_file: Path, state_root: Path):
         self.cabinet = cabinet
@@ -187,4 +191,4 @@ class ReadOnlyHTTP:
                     raise QuotaBusy(delay, "provider rate limit after shared cooldown", provider_calls=1) from None
                 return int(e.code), None
             except (urllib.error.URLError, TimeoutError, OSError):
-                raise ProviderError("provider transport unavailable; retry with saved cursor") from None
+                raise TransportUnavailable("provider transport unavailable; retry with saved cursor") from None

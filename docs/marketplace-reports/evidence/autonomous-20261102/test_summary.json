@@ -1,0 +1,36 @@
+{
+  "base_tests": 181,
+  "new_unittest_methods": 14,
+  "total": 195,
+  "result": "PASS",
+  "network": "socket.connect/getaddrinfo DENIED",
+  "new_cases": [
+    "terminal CSV/pin/coverage no-refetch",
+    "persistent three-entry budget",
+    "quota wait and cursor",
+    "typed transport retry",
+    "authorization fail-closed",
+    "journal corruption refusal",
+    "budget write failure before factory",
+    "SIGKILL after budget",
+    "buyout and strict plan",
+    "control JSON/root-owner refusal",
+    "two real forked processes one sender entry",
+    "SIGKILL after page durable before cursor",
+    "bounded pilot completes without manual second start",
+    "long quota wait returns without polling"
+  ],
+  "redis_wheel_import_on_system_python": "PASS with network denied; not installed",
+  "runtime_redis_api_power_loss": "NOT_VERIFIED",
+  "python_runs": {
+    "3.14.9": {
+      "tests": 195,
+      "result": "PASS"
+    },
+    "3.12.3": {
+      "tests": 195,
+      "result": "PASS"
+    }
+  },
+  "counts_note": "same suite on two interpreters, not 390 independent tests"
+}

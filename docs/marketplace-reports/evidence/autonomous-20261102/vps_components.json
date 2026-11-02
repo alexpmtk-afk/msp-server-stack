@@ -1,0 +1,44 @@
+{
+  "scope": "read-only component inventory; no schedules/tasks executed",
+  "system": {
+    "hermes-gateway.service": {
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "msp-devexec.service": {
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "msp-devexec-maint.service": {
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "running"
+    }
+  },
+  "user": {
+    "hermes-durable-worker.service": {
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "hermes-telegram-long-tasks.service": {
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "running"
+    }
+  },
+  "source_metadata": {
+    "/home/hermes/.hermes/hermes-agent/cron/jobs.py": "2e1c8d52dafa5e2b2fab77aaf151fdd61756058ef238f5c5634e99c4c7549131",
+    "/home/hermes/.hermes/plugins/telegram_long_tasks/worker.py": "23d862c39ac1db7d16c549423fdf4e5fbe02301142e314b9a51d4396ec9f71dc"
+  },
+  "python_versions": {
+    "hermes_shell": "3.14.9",
+    "system": "3.12.3"
+  },
+  "redis_python_distribution_present": {
+    "hermes_shell": false,
+    "system": false
+  }
+}

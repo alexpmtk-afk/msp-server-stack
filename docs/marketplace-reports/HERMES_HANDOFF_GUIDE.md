@@ -1,5 +1,12 @@
 # MSP official marketplace financial archive — working handoff
 
+## ACTIVE — автономный VPS, решение владельца 02.11.2026
+
+Доступ к старому REMOTE потерян; поиск и просьбы старой консоли прекращены. Исторические operator инструкции ниже superseded, если нет нового подтверждённого доступа. Это не доказательство old shutdown. Новый этап AUTONOMOUS_VPS_20261102.md, branch feat/hermes-autonomous-wb-pilot-20261102, reuse PR98/99/102/103. standalone_wb one-shot под существующим systemd, без второго scheduler/daemon/Redis job queue; future existing cron no_agent только по отдельному решению. CLI bounded continuation до8local steps/300s start-wait budget, long quota возвращает checkpoint, outer watchdog420; --one-step для future existing scheduler. Новый root-wide local flock, checksum ledger с monotonic max3 send entries (не proven HTTP count), persisted not-before, typed transport retry, page replay и B7 coverage. 195 tests PASS на3.14.9 и3.12.3, включая2 SIGKILL и2 concurrent processes; не Redis/API/systemd runtime acceptance. Redis8.1.0 wheel — hash-pinned dependency candidate, zip-import smoke без установки, compatibility с actual backend NOT VERIFIED.
+
+Реальный pilot NO-GO до owner/shared-quota/conflict-exclusion evidence. Root-controlled authorization bound to plan/code/root/expiry — operator attestation, не independent proof old server stopped. Оригинальные gates не включаются кодом. Не создавать Redis автоматически; потеря доступа/новый token не отзывают старые. Proposed dedicated user/private target0700/LoadCredential/immutable release/oneshot template — только owner-approved provisioning plan, не installed. Старые службы/secret permissions не менять. Все существенные результаты/манфесты в GitHub, строгий review коллегой прежде runtime.
+
+
 ## Текущий рабочий контракт — 30.10.2026, d6ab584
 
 - Цель: официальная история2026 шести WB/Ozon кабинетов на VPS, затем gap-only updates; Google Drive не обязательный backend. Путь архива /opt/mcp/data/msp-marketplace-reports — целевой, не доказательство созданного/заполненного архива. Credentials /etc/msp-marketplace-reports/cabinets.json root-protected, не читать/копировать/ослаблять права ради review.
