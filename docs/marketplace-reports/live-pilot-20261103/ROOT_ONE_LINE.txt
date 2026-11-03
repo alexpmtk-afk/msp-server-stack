@@ -1,0 +1,1 @@
+wb_E_stage=$(mktemp -d /var/lib/msp-wb-E-entry.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-wb-E.py "$wb_E_stage/pilot.py" && printf '%s  %s\n' 67e73523c38bfa6049a9fb4ee9fa7dfe3c6ed07ae565a1b1ef6ffac5724b9d93 "$wb_E_stage/pilot.py" | sha256sum -c - && /usr/bin/python3 -I -B "$wb_E_stage/pilot.py"

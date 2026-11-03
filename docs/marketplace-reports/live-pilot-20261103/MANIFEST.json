@@ -1,0 +1,42 @@
+{
+  "code_sha": "c1fee070e9efa0c925a78f266fdf03cb12a173cf",
+  "app_files": {
+    "apps/msp_marketplace_reports/__init__.py": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
+    "apps/msp_marketplace_reports/archive.py": "a4d2800494da1464ed73ffa338d7fc501d1fce7ce3da5dceb45f0eb7f057a3a2",
+    "apps/msp_marketplace_reports/backfill_plan.py": "b7811e304cebbe8ed3519df2fa82bd132b482690bb81272cce40f80e6ece4384",
+    "apps/msp_marketplace_reports/cli.py": "bdeb1d586ffe01800c236b5687b2fcf060952cc394e213cb16083c8f0b0636e2",
+    "apps/msp_marketplace_reports/current_repair.py": "087fb13de1072f08aaaf49eb71cef7de42c9d804f099d582f963be013077cc44",
+    "apps/msp_marketplace_reports/existing_worker_bridge.py": "8cc5d3ce2454dc1f6c048b0f989f01143ff77dfac32abce0c863877d77f5c2be",
+    "apps/msp_marketplace_reports/generation_recovery.py": "abd05ee172af8c8087af96898b88f430843ed93aab7b8849b242ed09514fe5de",
+    "apps/msp_marketplace_reports/generation_store.py": "1a981685a160031604e18d1aa3bd7728f2fb7b297183229d131fb24a34740fe2",
+    "apps/msp_marketplace_reports/ingest.py": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58",
+    "apps/msp_marketplace_reports/providers.py": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676",
+    "apps/msp_marketplace_reports/quota.py": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422",
+    "apps/msp_marketplace_reports/runtime.py": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5",
+    "apps/msp_marketplace_reports/shared_rate_limit.py": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726",
+    "apps/msp_marketplace_reports/standalone_wb.py": "a63d18fd8a4f781357385bde015fb1b06f830e28ece9b1b2b406177778b22266",
+    "apps/msp_marketplace_reports/versioned_archive.py": "7c49b1cf7c25cead17092d149030d4bc22652e26e66e7c890d96310122f3ad1f",
+    "apps/msp_marketplace_reports/wb_page_resume.py": "a49c30c3725ea69a3dab28b1a5fe181112de1b6ce2740cd8478d7e546af180a8",
+    "apps/msp_marketplace_reports/wb_worker_adapter.py": "d528b557ed8eec20f1ebab22dcab6fc1ba17feee4b8e2d9dd4506ac47a3cb59f"
+  },
+  "app_code_sha256": "aac2431671d539d5653379b85b9a214d21e06fee7d1eb3f99361991949f465c5",
+  "runtime_links": {
+    "lib64": "lib",
+    "bin/python": "python3",
+    "bin/python3": "/usr/bin/python3",
+    "bin/python3.12": "python3"
+  },
+  "python_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+  "base_unit_sha256": "bb42eb914e7f0d47e303d99ea2c39d3e0fea5c31152ca1b1e4064659a3897cf4",
+  "plan_file_sha256": "38022de99e35af5971c90fe9a3d48e6570c2b542e6688e228a4cfc478114ecce",
+  "runner_sha256": "ccaec90551d6414808d506661e6b7004e6814fd9d49225e0070762bd433529c2",
+  "synthetic_probe_sha256": "80c1ef163ec5e31c9850232ff180e09decb85cd1e2dbd3c8867962c1e785d187",
+  "launcher_sha256": "67e73523c38bfa6049a9fb4ee9fa7dfe3c6ed07ae565a1b1ef6ffac5724b9d93",
+  "launcher_bytes": 45881,
+  "runtime_regular_files": 130,
+  "prepared_source_sha": "55db8ceaa3cc93210e624243d6384331379bcdd3",
+  "root_execution": "NOT_EXECUTED",
+  "purpose": "OWNER_APPROVED_E_ONE_REPORT_MAX3",
+  "source_expected_outputs": "/opt/mcp/report-run-results/wb-883801632-E.json",
+  "reproducible_build": "MATCH"
+}
