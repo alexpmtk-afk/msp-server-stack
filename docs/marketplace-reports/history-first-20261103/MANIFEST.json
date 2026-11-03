@@ -1,6 +1,6 @@
 {
-  "launcher_sha256": "eee02155b7c3ab19dd7d5ee6964af76e43ba81c3f62574e80feecc4af9de92b3",
-  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/history-0354fb2d791f00d2d7df33a46c7b9ec64b76805b330533e1bd7a774a4df7dac4",
+  "launcher_sha256": "cb1bb6e097c23ab3d42a505076f29ce4d7df4e76a3e30eb20694ed8e0e90c3ee",
+  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/history-3d711e8e83946abaf316ded63a958fb03e9836f2617e87d05ba003da9fd5137b",
   "files": [
     {
       "path": "apps/msp_marketplace_reports/__init__.py",
@@ -92,7 +92,7 @@
     },
     {
       "path": "worker.py",
-      "sha256": "8d9345269fb9bb55791a840aa43902ca1e08ad2947f2a1435a1931444bd94ea4"
+      "sha256": "8690676a620778991c3c7a256b53c67b3187bc000f32b77b0ba01a1e46205121"
     },
     {
       "path": "templates/msp-finance-daily-plan.service.in",

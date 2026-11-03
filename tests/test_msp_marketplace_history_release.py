@@ -128,3 +128,9 @@ class HTTPAudit(unittest.TestCase):
    req=urllib.request.Request('https://finance-api.wildberries.ru/api/finance/v1/sales-reports/detailed/883801632',data=b'{}',method='POST')
    with self.assertRaises(ValueError):opener.open(req,60)
    self.assertEqual(calls,[1])
+
+class EvidenceReconciliation(unittest.TestCase):
+ def test_http_history_without_original_budget_refuses_fresh_execution(self):
+  with tempfile.TemporaryDirectory(dir=os.environ.get('TMPDIR',str(ROOT))) as d:
+   with self.assertRaises(FileNotFoundError):w.reconcile_events(Path(d),[{'event':'HTTP_DISPATCH_ATTEMPT','method_scope':'detail'}])
+   self.assertEqual(list(Path(d).iterdir()),[])

@@ -23,6 +23,7 @@ def install_release(core):
         if p.is_absolute() or '..' in p.parts or not name.startswith(('apps/','worker.py','templates/')):raise ValueError('unsafe release member')
     def verify(folder):
         core.parents(folder)
+        if any(p.is_symlink() for p in folder.rglob('*')):raise ValueError('release symlink forbidden')
         actual={str(p.relative_to(folder)) for p in folder.rglob('*') if not p.is_dir()}
         if actual!=set(files):raise ValueError('existing history release differs; preserve for review')
         for n,raw in files.items():
@@ -40,7 +41,10 @@ def install_release(core):
             if directory==staging.parent:break
             os.chmod(directory,0o755)
         core.write_new(p,raw,0o644)
-    verify(staging);core.syncdir(staging)
+    verify(staging)
+    for directory in sorted((p for p in staging.rglob('*') if p.is_dir()),key=lambda p:len(p.parts),reverse=True):
+        core.syncdir(directory)
+    core.syncdir(staging)
     os.rename(staging,root);core.syncdir(root.parent);verify(root)
 
 def setup():

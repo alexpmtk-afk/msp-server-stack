@@ -48,6 +48,17 @@ def events(path):
     if not path.is_file() or path.stat().st_size>32768 or path.stat().st_nlink!=1 or path.stat().st_uid!=os.geteuid():raise ValueError('unsafe event journal')
     return [json.loads(line) for line in path.read_text().splitlines()]
 
+def reconcile_events(root,observed):
+    from apps.msp_marketplace_reports import standalone_wb as s
+    for kind,plan,prefix in [('list',DISCOVERY,'discovery-'),('detail',DETAIL,'')]:
+        attempts=sum(v.get('event')=='HTTP_DISPATCH_ATTEMPT' and v.get('method_scope')==kind for v in observed)
+        if not attempts:continue
+        path=Path(root)/'.wb-executor'/(prefix+s._digest(plan)+'.json')
+        state=s.read_control(path)  # Missing journal with HTTP evidence MUST NOT initialize a fresh budget.
+        seal=state.pop('state_sha256',None);count=state.get('entries' if kind=='list' else 'send_entries')
+        if seal!=s._digest(state) or state.get('plan_sha256')!=s._digest(plan) or type(count) is not int or not attempts<=count<=plan['max_send_entries']:
+            raise ValueError('HTTP/budget evidence mismatch; never reset')
+
 def execute(root,authorization,make_sender,*,clock=time.time,sleep=time.sleep,max_seconds=330):
     from apps.msp_marketplace_reports import standalone_wb as s
     from apps.msp_marketplace_reports import wb_discovery_resume as discovery
@@ -132,7 +143,7 @@ def main():
         sender.opener=AuditedOpener(sender.opener,journal)
         return sender
     journal=ARCHIVE/'.wb-executor/history-october-first-events.jsonl'
-    previous=len(events(journal))
+    previous_events=events(journal);reconcile_events(ARCHIVE,previous_events);previous=len(previous_events)
     outcome=execute(ARCHIVE,auth,factory)
     observed=events(journal)[previous:]
     outcome.update(http_dispatch_attempts_this_run=sum(v['event']=='HTTP_DISPATCH_ATTEMPT' for v in observed),
