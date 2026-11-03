@@ -2,3 +2,7 @@
 # Exact historical finding only: commit + file + rule + line. No path/rule-wide exclusions.
 # Independently recomputed select_pilot_credential.py hash matches ADMIN_MANIFEST.json.
 9ee4d8ca89542174d0e848baec3d7ef992935b36:docs/marketplace-reports/admin-ready/ADMIN_MANIFEST.json:generic-api-key:11
+
+# Public Ubuntu archive signing-key fingerprint, verified with gpgv; not private key/auth.
+# Exact historical finding only; package bytes and general secret protection unchanged.
+04bffc1c563deee5bd5a26322692a0999c30c5dc:scripts/quota_redis/runtime-lock.json:generic-api-key:68
