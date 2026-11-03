@@ -1,4 +1,4 @@
-{"network": "DENIED", "pass": true, "root": "/home/hermes/.hermes/cache/scratch/wb-redis-package-20261103", "tests": 242}
+{"network": "DENIED", "pass": true, "root": "/home/hermes/.hermes/cache/scratch/wb-redis-package-20261103", "tests": 243}
 test_active_foreign_controls_never_stopped (test_msp_marketplace_live_pilot.Coordinator.test_active_foreign_controls_never_stopped) ... ok
 test_single_start_cleanup_and_completed_repeat_no_http (test_msp_marketplace_live_pilot.Coordinator.test_single_start_cleanup_and_completed_repeat_no_http) ... ok
 test_cleanup_refuses_changed_or_linked_control (test_msp_marketplace_live_pilot.Files.test_cleanup_refuses_changed_or_linked_control) ... ok
@@ -17,6 +17,8 @@ test_response_requires_exact_typed_report_identity (test_msp_marketplace_live_pi
 test_scope_denies_before_any_opener_or_journal (test_msp_marketplace_live_pilot.Pure.test_scope_denies_before_any_opener_or_journal) ... ok
 
 ----------------------------------------------------------------------
-Ran 16 tests in 0.690s
+Ran 16 tests in 1.005s
 
 OK
+
+Additional existing security suite case: wrong pilot UID refuses before credential/code read; PASS in full network-denied suite.

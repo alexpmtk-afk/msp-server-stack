@@ -72,6 +72,16 @@ class SecureTransportTests(unittest.TestCase):
                                            "dateTo": "2026-10-27", "period": "weekly",
                                            "limit": 1, "offset": 0}))
 
+    def test_live_pilot_runner_wrong_identity_cannot_read_credentials(self):
+        import importlib.util
+        from unittest.mock import patch
+        source=Path(__file__).resolve().parents[1]/'scripts/wb_live_pilot/runner.py'
+        spec=importlib.util.spec_from_file_location('pilot_identity_boundary',source)
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        with patch.object(os,'geteuid',return_value=1001), patch.object(Path,'read_bytes',side_effect=AssertionError('no credential/code read')):
+            with self.assertRaisesRegex(ValueError,'msp-reports'):
+                module.main()
+
 
 class StagingTests(unittest.TestCase):
     def setUp(self):
