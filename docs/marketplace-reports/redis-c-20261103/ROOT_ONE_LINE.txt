@@ -1,0 +1,1 @@
+wb_c_stage=$(mktemp -d /var/lib/msp-wb-c.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-wb-stage-c.py "$wb_c_stage/check.py" && printf '%s  %s\n' 057d1526c7b486c2a994da8df44ee15a9a3974122d9c92cbffdf3c2bdeac864b "$wb_c_stage/check.py" | sha256sum -c - && /usr/bin/python3 -I -B "$wb_c_stage/check.py"
