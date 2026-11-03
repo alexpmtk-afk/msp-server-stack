@@ -1,0 +1,20 @@
+# INERT PREPARATION ONLY; not installed. PLAN generation only, not downloads.
+# Same systemd manager; no new financial sender, daemon or Redis job queue.
+[Unit]
+Description=Bounded financial refresh plan (no provider calls)
+ConditionPathExists=/etc/msp-marketplace-reports-executor/daily-plan-approved.json
+[Service]
+Type=oneshot
+User=msp-reports
+Group=msp-reports
+UMask=0077
+WorkingDirectory=@REVIEWED_CANDIDATE_RELEASE@
+ExecStart=@REVIEWED_CANDIDATE_RELEASE@/.venv/bin/python -B -m apps.msp_marketplace_reports.finance_refresh_plan --today-moscow --mode daily --max-actions 12 --discoveries @PRIVATE_VERIFIED_DISCOVERY_JSON@ --evidence @PRIVATE_VERIFIED_RECEIPTS_JSON@ --archive-root /opt/mcp/data/msp-marketplace-reports
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateNetwork=yes
+TimeoutStartSec=30
+Restart=no
+# No Redis EnvFile, WB credential or E approval. No automatic execution of actions.

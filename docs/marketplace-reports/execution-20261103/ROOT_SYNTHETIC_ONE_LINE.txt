@@ -1,0 +1,1 @@
+probe_stage=$(mktemp -d /var/lib/msp-synthetic-entry.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-run-synthetic.py "$probe_stage/run.py" && printf '%s  %s\n' 766aa1a4dbaffe92618e651eefd9197e412f0dd9582b54684965f1b4b57f5fee "$probe_stage/run.py" | sha256sum -c - && /usr/bin/python3 -I -B "$probe_stage/run.py" --synthetic-write-approved

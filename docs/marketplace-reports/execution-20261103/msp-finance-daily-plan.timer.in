@@ -1,0 +1,10 @@
+# INERT: no calendar and no [Install]; no enable/start command.
+# Choose a separate finance time AFTER pilot/backfill acceptance and owner approval.
+# 08:00 Europe/Moscow belongs to reference Sheets; do not copy it here.
+[Unit]
+Description=Prepared daily financial planning timer (disabled)
+[Timer]
+Unit=msp-finance-daily-plan.service
+Persistent=false
+# Required before activation: explicit calendar, fresh inventories/receipts,
+# reviewed bounded dispatch through the sole executor, and separate schedule approval.

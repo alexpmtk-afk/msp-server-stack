@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "cabinet": "wb_laser_master",
+  "source": "WB_PARTNERS_API_INTEGRATIONS_AND_SUPPORT",
+  "metadata_checked_at": null,
+  "all_finance_accesses_accounted_for": false,
+  "integrations": [],
+  "integration_fields_required": ["name", "type", "finance_category", "status", "expiry", "owner", "nonfinance_dependencies", "approved_cutover_action", "effective_at", "redacted_evidence_reference"],
+  "prices_stocks_telegram_1c_unchanged": true,
+  "legacy_remote_runtime": "UNKNOWN_DO_NOT_CONNECT",
+  "conflicting_clients_excluded": false,
+  "api_pilot_authorized": false
+}
