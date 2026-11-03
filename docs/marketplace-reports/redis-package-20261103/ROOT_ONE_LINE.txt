@@ -1,0 +1,1 @@
+quota_stage=$(mktemp -d /var/lib/msp-quota-entry.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-quota-redis-entry.py "$quota_stage/entry.py" && printf '%s  %s\n' d7b4027e17676c8026700f1b45d55491ba4b32b1ff12fbd629ea245034683aee "$quota_stage/entry.py" | sha256sum -c - && /usr/bin/python3 -I -B "$quota_stage/entry.py"
