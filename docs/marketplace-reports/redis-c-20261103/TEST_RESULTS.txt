@@ -1,0 +1,11 @@
+test_env_names_only_never_secret_values (test_msp_wb_redis_c.StageC.test_env_names_only_never_secret_values) ... ok
+test_missing_approved_config_never_runs_probe (test_msp_wb_redis_c.StageC.test_missing_approved_config_never_runs_probe) ... ok
+test_no_config_writes_or_installation_actions (test_msp_wb_redis_c.StageC.test_no_config_writes_or_installation_actions) ... ok
+test_nonroot_stops_before_discovery (test_msp_wb_redis_c.StageC.test_nonroot_stops_before_discovery) ... ok
+test_strict_config_rejects_extra_variables_and_duplicates (test_msp_wb_redis_c.StageC.test_strict_config_rejects_extra_variables_and_duplicates) ... ok
+test_symlink_and_large_file_rejected (test_msp_wb_redis_c.StageC.test_symlink_and_large_file_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.009s
+
+OK

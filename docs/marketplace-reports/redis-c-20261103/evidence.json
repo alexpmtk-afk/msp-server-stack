@@ -1,0 +1,42 @@
+{
+  "AB_readback": {
+    "state": "INSTALLED_API_BLOCKED",
+    "A": "PASS",
+    "B": "REUSED_NOT_RECOPIED",
+    "C": "NOT_CONFIGURED_APPROVED_BACKEND_REQUIRED",
+    "uid": 995,
+    "gid": 985,
+    "provider_calls": 0,
+    "api_enabled": false,
+    "storage_smoke": "PASS"
+  },
+  "source_repositories": {
+    "marketplaces-mcp-ru": "0510a409ab589c639930fbca35afb3e68d874f81",
+    "msp-server-bridge": "b901fdc299cc41dbd6cee5c83281c6c335895d0d"
+  },
+  "visible_current_VPS": {
+    "redis_environment_variable_names": [],
+    "redis_valkey_system_units_matching": [],
+    "tcp_listener_6379_or_6380": false,
+    "etc_redis": "ABSENT",
+    "etc_valkey": "ABSENT",
+    "legacy_secret_path": "ABSENT",
+    "approved_env_stat": "PERMISSION_DENIED_NOT_PROOF_OF_ABSENCE",
+    "protected_roots_with_unreadable_contents": [
+      "/etc/msp-marketplace-reports",
+      "/opt/mcp/secrets/msp-marketplace-reports"
+    ]
+  },
+  "installed_payload_hashes": {
+    "modules_17": "MATCH",
+    "readonly_probe": "MATCH"
+  },
+  "limitations": [
+    "No remote endpoint inferred",
+    "No port scanning or Redis connections",
+    "No secret values printed",
+    "Protected configuration inventory needs root",
+    "No proof old clients stopped",
+    "A/B unchanged"
+  ]
+}
