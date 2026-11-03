@@ -58,7 +58,7 @@ class Pure(unittest.TestCase):
         self.assertNotIn('Restart=always',text);self.assertNotIn('[Install]',text);self.assertNotIn('LoadCredential',text)
 
 class TempFixture(unittest.TestCase):
-    def setUp(self):self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name)
+    def setUp(self):self.tmp=tempfile.TemporaryDirectory(dir=os.environ.get("TMPDIR",str(ROOT)));self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name)
 
 class Files(TempFixture):
     def trusted(self,p,uid=0,mode=None):return self.original_trust(p,uid=os.geteuid(),mode=mode)
