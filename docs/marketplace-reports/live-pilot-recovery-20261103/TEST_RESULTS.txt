@@ -1,0 +1,8 @@
+Local Python3.12:252 tests OK, skipped=1 (root fixture requires hosted CI).
+Network connect/DNS audit guard:DENIED.
+Targeted recovery:8 tests PASS.
+Original failure regression:RED with old0600, GREEN with fixed0640.
+Original PR115 runner SHA verified:ccaec90551d6414808d506661e6b7004e6814fd9d49225e0070762bd433529c2.
+Self-contained build reproducible; bash -n PASS.
+VPS recovery root execution:NOT_EXECUTED. Historical private HTTP/budget:requires root reconciliation, not assumed0.
+GitHub actual unprivileged-reader test:must be verified against published commit before execution.

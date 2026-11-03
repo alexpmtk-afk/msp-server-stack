@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import stat
 import sys
+import time
 import urllib.error
 
 RELEASE=Path('/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf')
@@ -57,7 +58,7 @@ class AuditedOpener:
         return response
 
 
-def main(*,expected_uid=995):
+def main(*,expected_uid=995,check_approval_only=False,authorization_path='/etc/msp-marketplace-reports-executor/approval.json'):
     if os.geteuid()!=expected_uid:raise ValueError('existing msp-reports required')
     sys.path.insert(0,str(RELEASE))
     from apps.msp_marketplace_reports import standalone_wb as s
@@ -65,7 +66,11 @@ def main(*,expected_uid=995):
     from apps.msp_marketplace_reports.wb_page_resume import _dir,_read_json,_validate_state,_verify_pages
     plan=s.read_control(RELEASE/'pilot-plan.json')
     if plan!={'schema':1,'cabinet':'wb_laser_master','year':2026,'report_id':883801632,'report_type':1,'max_send_entries':3}:raise ValueError('pilot plan drift')
-    auth=s.read_authorization('/etc/msp-marketplace-reports-executor/approval.json')
+    auth=s.read_authorization(authorization_path)
+    if check_approval_only:
+        s.validate_authorization(auth,plan,ARCHIVE,time.time())
+        print(json.dumps({'approval_read':'PASS','uid':os.geteuid(),'gid':os.getegid(),'provider_calls':0}))
+        return 0
     events=ARCHIVE/'.wb-executor'/'E-883801632-events.jsonl'
     class Sender(ReadOnlyHTTP):
         def __call__(self,request):
@@ -78,6 +83,12 @@ def main(*,expected_uid=995):
         sender=Sender(cabinet='wb_laser_master',credentials_file=cred,state_root=ARCHIVE)
         sender.opener=AuditedOpener(sender.opener,events)
         return sender
+    baseline_events=0
+    if events.exists():
+        from apps.msp_marketplace_reports.wb_page_resume import _checked
+        _checked(events)
+        if events.stat().st_size>16384:raise ValueError('events oversized')
+        baseline_events=len(events.read_text().splitlines())
     outcome=s.run_bounded(ARCHIVE,plan,auth,factory)
     folder=_dir(ARCHIVE,'wb_laser_master',2026,883801632,1)
     page_state=_read_json(folder/'state.json')
@@ -100,7 +111,7 @@ def main(*,expected_uid=995):
         from apps.msp_marketplace_reports.wb_page_resume import _checked
         _checked(events)
         if events.stat().st_size>16384:raise ValueError('events oversized')
-        values=[json.loads(line) for line in events.read_text().splitlines()]
+        values=[json.loads(line) for line in events.read_text().splitlines()[baseline_events:]]
         summary.update(http_dispatch_attempts_this_run=sum(v.get('event')=='HTTP_DISPATCH_ATTEMPT' for v in values),
                        http_response_statuses=[v['status'] for v in values if v.get('event')=='HTTP_RESPONSE'],
                        http_outcomes_unknown=sum(v.get('event')=='HTTP_OUTCOME_UNKNOWN' for v in values))
@@ -110,6 +121,12 @@ def main(*,expected_uid=995):
     return 0 if outcome['status']=='DONE' else 2
 
 if __name__=='__main__':
-    try:raise SystemExit(main())
+    try:
+        if sys.argv[1:]==['--check-approval-only']:raise SystemExit(main(check_approval_only=True))
+        if len(sys.argv)==3 and sys.argv[1]=='--check-approval-file':raise SystemExit(main(check_approval_only=True,authorization_path=sys.argv[2]))
+        if sys.argv[1:]:raise ValueError('unknown runner arguments')
+        raise SystemExit(main())
     except Exception as exc:
-        print(json.dumps({'wrapper_status':'STOP_OR_UNCERTAIN','error_type':type(exc).__name__}));raise SystemExit(1)
+        filename=str(getattr(exc,'filename','') or '')
+        location='approval' if filename=='/etc/msp-marketplace-reports-executor/approval.json' else ('archive' if filename.startswith(str(ARCHIVE)+'/') else 'runtime_or_unknown')
+        print(json.dumps({'wrapper_status':'STOP_OR_UNCERTAIN','error_type':type(exc).__name__,'error_location':location,'uid':os.geteuid()}));raise SystemExit(1)

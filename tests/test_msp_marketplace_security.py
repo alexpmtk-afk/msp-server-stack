@@ -114,3 +114,22 @@ class StagingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class RealApprovalPermissionTest(unittest.TestCase):
+    def test_actual_unprivileged_process_reads_only_fixed_group_approval(self):
+        import subprocess
+        import shutil
+        import sys
+        repo=Path(__file__).resolve().parents[1]
+        helper=repo/'scripts/wb_live_pilot/permission_harness.py'
+        args=['/usr/bin/python3','-I','-B',str(helper),str(repo/'scripts/wb_live_pilot/launch.py')]
+        if os.geteuid()!=0:
+            if os.environ.get('GITHUB_ACTIONS')!='true' or not shutil.which('sudo'):
+                self.skipTest('real root-owned fixture requires hosted CI sudo; no production escalation')
+            args=['sudo','-n',*args]
+        p=subprocess.run(args,capture_output=True,timeout=60)
+        self.assertEqual(p.returncode,0,p.stderr.decode(errors='replace'))
+        result=json.loads(p.stdout)
+        print('REAL_APPROVAL_PERMISSION_PROOF '+json.dumps(result,sort_keys=True))
+        self.assertEqual(result['old0600'],'PermissionError');self.assertEqual(result['fixed0640'],'PASS')
+        self.assertNotEqual(result['actual_reader_uid'],0);self.assertTrue(result['root_owner_preserved']);self.assertEqual(result['provider_calls'],0)

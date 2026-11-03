@@ -1,0 +1,13 @@
+{
+  "launcher_sha256": "0cf4018bf3388db4492453ff636a409b5f14bb737982d44632a3d34828635b13",
+  "runner_sha256": "c11a30a31505d21cca22f829c488f8411664756558d5cd0560e1c5be09e8dd10",
+  "guard_sha256": "ac578ab43ee67d740d046d62620aea0fd68ad3589a195e4692f0419c47245807",
+  "accepted_loader_sha": "c1fee070e9efa0c925a78f266fdf03cb12a173cf",
+  "original_failed_launcher_sha": "67e73523c38bfa6049a9fb4ee9fa7dfe3c6ed07ae565a1b1ef6ffac5724b9d93",
+  "root_execution": "NOT_EXECUTED",
+  "budget": "ORIGINAL_PLAN_MAX3_CUMULATIVE_NOT_RESET",
+  "old_evidence": "PRESERVED",
+  "actual_uid_read_test": "REQUIRED_BEFORE_PROVIDER_START",
+  "new_result": "/opt/mcp/report-run-results/wb-883801632-E-recovery1.json",
+  "root_state": "/var/lib/msp-wb-E-883801632-recovery1"
+}
