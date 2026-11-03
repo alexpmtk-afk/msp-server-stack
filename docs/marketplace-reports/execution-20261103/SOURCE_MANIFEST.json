@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "accepted_release": "c1fee070e9efa0c925a78f266fdf03cb12a173cf",
+  "production_install_executed": false,
+  "new_helpers_not_installed": {
+    "finance_refresh_plan.py": "0399a3b5c9eff173bcc3f49beb915c9743d1e3586a3fd9e76abb43203e6972f9",
+    "finance_receipts.py": "808e22fe89e840427df1887f035e3f821f8d39cdf5ea470c24af4d6874c54d06",
+    "wb_discovery_resume.py": "9068e8c9d0f79384087c3543922471cdc42400b4c2b419477df5a23b3b8ee6a8",
+    "wb_report_revision.py": "99e16a223bf7cb0273d88f8586654c7f750c74bafdfbc2b55a2d7ceb1db160e0",
+    "ozon_connection_plan.py": "bfbf5f34f60e5d1b7c425d6dcf4fa66ea8cb52817e846285925d27a67b02b2f4"
+  }
+}

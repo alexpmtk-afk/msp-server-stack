@@ -1,0 +1,8 @@
+{
+  "state": "PREPARED_NOT_EXECUTED",
+  "files": {
+    "run-synthetic.py": "766aa1a4dbaffe92618e651eefd9197e412f0dd9582b54684965f1b4b57f5fee",
+    "pilot-plan.json": "38022de99e35af5971c90fe9a3d48e6570c2b542e6688e228a4cfc478114ecce",
+    "authorization.BLOCKED.json": "d2cf2077834da701c7a5c147ba86c5fe5d67f0bee3c50f27c1f5e5d12ecfcd9a"
+  }
+}
