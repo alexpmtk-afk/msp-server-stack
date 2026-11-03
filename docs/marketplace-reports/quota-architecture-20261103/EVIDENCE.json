@@ -1,0 +1,29 @@
+{
+  "scope": "finance client capability vs observed runtime; no provider calls or config writes",
+  "A_B": "ACCEPTED_UNCHANGED",
+  "C": "ROOT_NOT_CONFIGURED_ACCEPTED_NO_MORE_DISCOVERY",
+  "new_executor": {
+    "host": "VM-817589",
+    "code_sha": "c1fee070e9efa0c925a78f266fdf03cb12a173cf",
+    "unit": "msp-wb-pilot.service",
+    "load": "loaded",
+    "active": "inactive",
+    "substate": "dead",
+    "api_enabled": false
+  },
+  "legacy": {
+    "source_sha": "0510a409ab589c639930fbca35afb3e68d874f81",
+    "documented_host": "OLD_REMOTE",
+    "current_runtime": "UNKNOWN",
+    "entrypoints": [
+      "Marketplaces MCP call_spec",
+      "WB archive_queue",
+      "WB finance archive"
+    ],
+    "rate_control": "MarketplaceClient stable seller key and Redis atomic controller source; live config UNKNOWN"
+  },
+  "external_finance_clients": "NOT_ENUMERATED_NO_REMOTE_RUNTIME_ACCESS",
+  "architecture_status": "PROPOSED_NOT_APPROVED_NOT_INSTALLED",
+  "new_redis_created": false,
+  "existing_services_changed": false
+}
