@@ -1,0 +1,765 @@
+{
+  "actions": [
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-04-01",
+        "dateTo": "2026-04-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "0dbd52bf574ce7667b4bf54611beb053cbba89ba07f677775009d3aa9aa399f8"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-10-01",
+        "dateTo": "2026-10-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "18c51684398cc61cb6ecd09f7c4ddac5c9deb351fbc2fbc5940ee2c8bd2236b7"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-06-01",
+        "dateTo": "2026-06-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "1fd653e4a111a168a4c95be4d914576116c499745e432a929dc991c1fcb24f4f"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-03-01",
+        "dateTo": "2026-03-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "22b59f839682d4bd796a447c97350fd1e47205be337fc27508d3dd469d21012c"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-01-01",
+        "dateTo": "2026-01-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "2390a9e25efcf162592b06d85db1757bba0e6fba2ce7fc360f8a10210e38202d"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-09-01",
+        "dateTo": "2026-09-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "30d0b188537a66c51c7c448eed4761d9a0eec5269ba377fc6631ad1d94b73c47"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-11-01",
+        "dateTo": "2026-11-03",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "349025d5d2a8c8cc66f9fdf544853ddf3ee1e304085da04e9325e2c18a5d86fb"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-07-01",
+        "dateTo": "2026-07-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "47d108bcfc3ad4c68d87d0647c67ec5465e45bc6192c32587b8e3021f8869af1"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-03-01",
+        "dateTo": "2026-03-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "536505b3e797f84758569189c86b3e721d233bb4e0e808b77e9f3a1b51bca514"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-07-01",
+        "dateTo": "2026-07-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "5497991048377036ef7d9e5c3b2e60d4acaac9fce41993cc6c406bc6e74109a5"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-01-01",
+        "dateTo": "2026-01-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "54ec2edb82474f4d1abff70c2a74c55fb4acd3ab0c288506acd43dfcf5257567"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-09-01",
+        "dateTo": "2026-09-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "574d83e708cb0c4daafdba8beabf4d1d02b5299b4644a9eeab72fd5a12eebc31"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-08-01",
+        "dateTo": "2026-08-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "6341d048c8b877fa87ac17e76454006b72b2cd37c5ad6f8542c7f3d617098a33"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-03-01",
+        "dateTo": "2026-03-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "64b0647e7a0906230bda6a98dce779059d8e03c15b33049517dcb8a05863d2bb"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-04-01",
+        "dateTo": "2026-04-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "6b8afc9408d80862c4a8044c9e043c8a86c4c9b20c84c7fc221e1681212fb74d"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-05-01",
+        "dateTo": "2026-05-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "777d84599d6db33608bb57861d6c01d690cd38949efb76108aa2b7b533f5bbdd"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-08-01",
+        "dateTo": "2026-08-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "790f562e6e9db7516d38239f378bb2e69de5e7c1528fe2f4057a3b01c7e5d55a"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-04-01",
+        "dateTo": "2026-04-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "7f7bac78fe931ee34c0c55d999afa6e4a4b734b18cc26be33a5835276d5945bb"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-05-01",
+        "dateTo": "2026-05-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "8366b522f1edd4db6fedbc388cfbdcf3ac062584d2ec65dab74d74cae53bafe6"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-07-01",
+        "dateTo": "2026-07-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "8cce884b9df5b5e782d94eaca8806641ca3489325e804977429539a66672e410"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-02-01",
+        "dateTo": "2026-02-28",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "a48a81a47dc860d24b1ce2ecaa5b605396cad79131eaabc6d68781de7149b0cf"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-06-01",
+        "dateTo": "2026-06-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "a575853912b8d374f1e2ecb82c4cd4eeafcfbb0aad3406c24069e81084204526"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-02-01",
+        "dateTo": "2026-02-28",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "aaf45d407b328eef8c2f2b15608c336a3b61554152d817816faf774e30172c57"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-11-01",
+        "dateTo": "2026-11-03",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "bd9c6248275fef36744f79de7b94a0a016add873075d5ab8be86a93d8e0fdf91"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-06-01",
+        "dateTo": "2026-06-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "beac3597fd0e7747abc8ef26d274901a94e5930fe7d104a2a0d6ff6fab777d2b"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-05-01",
+        "dateTo": "2026-05-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "c619dd5ae464d31b4c53ad94c987d793cdd548a45924423d2f0f9d4aed040fbc"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-01-01",
+        "dateTo": "2026-01-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "d205ddcd025e0a893a82c6c70b35f3cdc56115072adf9db58c8ec716ab03f743"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-10-01",
+        "dateTo": "2026-10-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "d71a6a4cf64214c4181cbd415b14b9c774af382262f1257428f74a8ccfd04364"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-02-01",
+        "dateTo": "2026-02-28",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "da6548af022c5c7c4cd33068fb1db22f75a4c2827a6cc7c8a4c41aba7c8c2523"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-09-01",
+        "dateTo": "2026-09-30",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "eac2f9a97a0fbb222361463194478f769772748f01afa372871a98b88cf84f1f"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-11-01",
+        "dateTo": "2026-11-03",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_laser_master",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "ead90af2501f2183e81df527dba6e4d2feeaacd73602fb2e36573eb58127d933"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-10-01",
+        "dateTo": "2026-10-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_novokshenov",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "f6b53a263f849325b9a7d70ea9ca599615393f3befadeadea3ddff8888f01035"
+    },
+    {
+      "action": "DISCOVER_REPORTS",
+      "body": {
+        "dateFrom": "2026-08-01",
+        "dateTo": "2026-08-31",
+        "limit": 1000,
+        "offset": 0,
+        "period": "weekly"
+      },
+      "cabinet": "wb_dmitrieva",
+      "marketplace": "wb",
+      "reason": "missing_inventory",
+      "unit_id": "f6ca1618e71a1f67ce97c0a2947dff665b04b1e6698042a19109badf7b079573"
+    }
+  ],
+  "approval_required": true,
+  "as_of": "2026-11-03",
+  "cabinet_count": 6,
+  "executable_without_admission": false,
+  "gaps": [
+    {
+      "cabinet": "wb_laser_master",
+      "status": "DISCOVERY_REQUIRED"
+    },
+    {
+      "cabinet": "wb_novokshenov",
+      "status": "DISCOVERY_REQUIRED"
+    },
+    {
+      "cabinet": "wb_dmitrieva",
+      "status": "DISCOVERY_REQUIRED"
+    }
+  ],
+  "mode": "backfill",
+  "network_calls": 0,
+  "ozon_separate_plan": [
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-01"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-02"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-03"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-04"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-05"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-06"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-07"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-08"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-09"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-10"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_current_orders_fbo",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_current_orders_fbs",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_laser_master",
+      "dataset": "ozon_current_accruals",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-01"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-02"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-03"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-04"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-05"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-06"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-07"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-08"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-09"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-10"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_current_orders_fbo",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_current_orders_fbs",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_novokshenov",
+      "dataset": "ozon_current_accruals",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-01"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-02"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-03"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-04"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-05"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-06"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-07"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-08"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-09"
+    },
+    {
+      "action": "FETCH_OR_REVALIDATE_CLOSED_MONTH",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_final_realization",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-10"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_current_orders_fbo",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_current_orders_fbs",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    },
+    {
+      "action": "REPLACE_OPEN_MONTH_SNAPSHOT",
+      "cabinet": "ozon_dmitrieva",
+      "dataset": "ozon_current_accruals",
+      "gate": "OZON_METHOD_ACCEPTANCE_REQUIRED",
+      "period": "2026-11"
+    }
+  ],
+  "provider_coverage_proven": false,
+  "remaining_actions": 0,
+  "schema": 1,
+  "year": 2026
+}

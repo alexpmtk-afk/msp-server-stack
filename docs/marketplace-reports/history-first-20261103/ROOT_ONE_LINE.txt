@@ -1,0 +1,1 @@
+wb_history_stage=$(mktemp -d /var/lib/msp-wb-history-entry.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-wb-history-first.py "$wb_history_stage/history.py" && printf '%s  %s\n' cb1bb6e097c23ab3d42a505076f29ce4d7df4e76a3e30eb20694ed8e0e90c3ee "$wb_history_stage/history.py" | sha256sum -c - && /usr/bin/python3 -I -B "$wb_history_stage/history.py"

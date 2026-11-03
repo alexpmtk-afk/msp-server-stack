@@ -1,0 +1,9 @@
+Changed-scope offline tests:14 PASS, socket connect and DNS denied.
+13 new release/batch tests +1 wrong-UID security test.
+Actual accepted loader exercised: staged841-row old pilot preserved, list+type2 pages+terminal204, repeat no dispatch, budget exhaustion no reset, old-data corruption stop, unknown next ID stop, bounded429 delay.
+Installer: explicit0644 under umask077, exact reuse, drift refusal, partial staging preservation, unsafe member rejection.
+Compatibility:17 accepted modules byte-identical;22-module authorization digest matched.
+Self-contained artifact deterministic across2 builds; bash -n PASS.
+Provider/root installation:NOT_EXECUTED.
+Previous installed Redis synthetic acceptance reused, not rerun.
+GitHub CI and Secret scan:see exact PR head checks before root execution.
