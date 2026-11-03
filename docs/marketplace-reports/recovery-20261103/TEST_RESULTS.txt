@@ -1,0 +1,28 @@
+test_archive_readback_exact_bytes (test_msp_wb_bootstrap.Bootstrap.test_archive_readback_exact_bytes) ... ok
+test_launcher_mismatch_stops_before_any_staging (test_msp_wb_bootstrap.Bootstrap.test_launcher_mismatch_stops_before_any_staging) ... ok
+test_no_api_activation_in_installer_or_unit (test_msp_wb_bootstrap.Bootstrap.test_no_api_activation_in_installer_or_unit) ... ok
+test_nonroot_refuses_before_payload_secret_or_system_calls (test_msp_wb_bootstrap.Bootstrap.test_nonroot_refuses_before_payload_secret_or_system_calls) ... ok
+test_rel_rejects_escaping_and_empty_paths (test_msp_wb_bootstrap.Bootstrap.test_rel_rejects_escaping_and_empty_paths) ... ok
+test_traversal_absolute_symlink_hardlink_duplicate_refused (test_msp_wb_bootstrap.Bootstrap.test_traversal_absolute_symlink_hardlink_duplicate_refused) ... ok
+test_uncertain_fsync_keeps_evidence (test_msp_wb_bootstrap.Bootstrap.test_uncertain_fsync_keeps_evidence) ... ok
+test_unlisted_payload_refused (test_msp_wb_bootstrap.Bootstrap.test_unlisted_payload_refused) ... ok
+test_valid_pure_python_wheel_extraction_data (test_msp_wb_bootstrap.Bootstrap.test_valid_pure_python_wheel_extraction_data) ... ok
+test_venv_wheel_import_real_unconnected_network_denied (test_msp_wb_bootstrap.Bootstrap.test_venv_wheel_import_real_unconnected_network_denied) ... ok
+test_wheel_paths_and_symlinks_refused (test_msp_wb_bootstrap.Bootstrap.test_wheel_paths_and_symlinks_refused) ... ok
+test_write_new_no_overwrite (test_msp_wb_bootstrap.Bootstrap.test_write_new_no_overwrite) ... ok
+test_wrong_manifest_and_changed_payload_refused (test_msp_wb_bootstrap.Bootstrap.test_wrong_manifest_and_changed_payload_refused) ... ok
+test_private_default_stays_600_under_umask_077 (test_msp_wb_bootstrap_recovery.ModeRegression.test_private_default_stays_600_under_umask_077) ... ok
+test_program_mode_644_under_umask_077 (test_msp_wb_bootstrap_recovery.ModeRegression.test_program_mode_644_under_umask_077) ... ok
+test_fchmod_failure_is_uncertain_not_file_rewrite (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_fchmod_failure_is_uncertain_not_file_rewrite) ... ok
+test_later_bad_checksum_means_no_earlier_chmod (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_later_bad_checksum_means_no_earlier_chmod) ... ok
+test_link_or_unsafe_mode_refuses_before_any_chmod (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_link_or_unsafe_mode_refuses_before_any_chmod) ... ok
+test_modes_fixed_and_second_call_is_noop (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_modes_fixed_and_second_call_is_noop) ... ok
+test_nonroot_refusal_before_original_snapshot_or_secrets (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_nonroot_refusal_before_original_snapshot_or_secrets) ... ok
+test_published_recovery_matches_manifest_and_refuses_nonroot (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_published_recovery_matches_manifest_and_refuses_nonroot) ... ok
+test_recovery_has_no_identity_or_secret_copy_path (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_recovery_has_no_identity_or_secret_copy_path) ... ok
+test_wrong_owner_refused_before_mode_change (test_msp_wb_bootstrap_recovery.RecoveryBoundaries.test_wrong_owner_refused_before_mode_change) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 1.822s
+
+OK

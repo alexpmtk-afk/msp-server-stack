@@ -1,0 +1,13 @@
+{
+  "repair_sha256": "d8f29e56e7f8a3b17561ab56582e333ac5c89441f76a3ff0b313a893d0c0ec21",
+  "original_install_sha256": "1e4647029674752333a13bebd4d598bce41c51849238ebf8a96f26c905f371e9",
+  "original_bundle_sha256": "eb2ac87f8ad6221c230fdf28b2cb384645e1018f1845b4d7e60f7a943c67767b",
+  "original_manifest_sha256": "a6d556ae5aa28b8d07893cc9808dbc599d26641b1eeea586c69cc0bd80c2b059",
+  "generated_runtime_files": {
+    "pyvenv.cfg": "100eb84011f5f5f6a050c283dadd77113c87194fb64e7a3b3cdd04aa0fa77059",
+    "bin/activate.fish": "d8d92997dacb3e63f89c051e25f170cbe38ad9c0b71bd5388b2a0b3b75e29e74",
+    "bin/Activate.ps1": "3795a060dea7d621320d6d841deb37591fadf7f5592c5cb2286f9867af0e91df",
+    "bin/activate": "5787a1972b6b05e85cc90b047dd611e57211a61d129311bc3e696e4c8e2e15c2",
+    "bin/activate.csh": "76c9d75d239617f8d5fb1bd227394c86789701144dc2f64022535aab96ced3a1"
+  }
+}
