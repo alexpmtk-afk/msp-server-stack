@@ -1,0 +1,11 @@
+{
+  "entry_sha256": "d7b4027e17676c8026700f1b45d55491ba4b32b1ff12fbd629ea245034683aee",
+  "bundle_sha256": "94f7d869411b8249bd11b8f04ef07a2393dcd5a6f09110594b83130b7485825a",
+  "manifest_sha256": "8793eeb35ec1e61bfc3552da2bd9eb72f015c2b52fcfd366aed0c8e386ab86f6",
+  "bundle_bytes": 6174720,
+  "payload_files": 14,
+  "redis_version": "7.0.15 Ubuntu security patched",
+  "bundle_local": "/home/hermes/workspace/msp-quota-redis.tar",
+  "state": "PREPARED_NOT_INSTALLED",
+  "reproducible_build": "MATCH"
+}

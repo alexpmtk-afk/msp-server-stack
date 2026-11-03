@@ -1,0 +1,72 @@
+{
+  "redis_version": "7.0.15",
+  "ubuntu_version": "5:7.0.15-1ubuntu0.24.04.5",
+  "packages": [
+    {
+      "deb": "redis-tools_5%3a7.0.15-1ubuntu0.24.04.5_amd64.deb",
+      "sha256": "6e5c009ce7761d0a956dafcfcf054ddeecc7a51efcc38215f26bb5794a4e93e1",
+      "source": "Ubuntu noble/noble-updates signed APT index",
+      "selected": {
+        "./usr/bin/redis-check-rdb": [
+          "bin/redis-server"
+        ],
+        "./usr/bin/redis-check-aof": [
+          "bin/redis-check-aof"
+        ],
+        "./usr/share/doc/redis-tools/copyright": [
+          "licenses/redis.txt"
+        ]
+      }
+    },
+    {
+      "deb": "libjemalloc2_5.3.0-2build1_amd64.deb",
+      "sha256": "0cccf7701765b5a633b964ed551c2bd1c074cad17daea8fa20a4e9cad0adb5a8",
+      "source": "Ubuntu noble/noble-updates signed APT index",
+      "selected": {
+        "./usr/lib/x86_64-linux-gnu/libjemalloc.so.2": [
+          "lib/libjemalloc.so.2"
+        ],
+        "./usr/share/doc/libjemalloc2/copyright": [
+          "licenses/jemalloc.txt"
+        ]
+      }
+    },
+    {
+      "deb": "liblzf1_3.6-4_amd64.deb",
+      "sha256": "253182d4718271565d6c24125f27dd93da56fce34b34d8226615cb3553bbe73f",
+      "source": "Ubuntu noble/noble-updates signed APT index",
+      "selected": {
+        "./usr/lib/x86_64-linux-gnu/liblzf.so.1.5": [
+          "lib/liblzf.so.1"
+        ],
+        "./usr/share/doc/liblzf1/copyright": [
+          "licenses/lzf.txt"
+        ]
+      }
+    }
+  ],
+  "host_libraries": {
+    "/usr/lib/x86_64-linux-gnu/libatomic.so.1.2.0": "9d8a34468e614a71a6427dbabb0ac24eb8cb1e324dc6aa3bf95eb6f59201f000",
+    "/usr/lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+    "/usr/lib/x86_64-linux-gnu/libsystemd.so.0.38.0": "b10be60fc80ea6910df1b253658e638bd29f3d1aeeb3798006fc66972366cb94",
+    "/usr/lib/x86_64-linux-gnu/libssl.so.3": "a40e7b67489bbd257e432c700ff8f6a1ad796425b5eccecdc2930127fdd86624",
+    "/usr/lib/x86_64-linux-gnu/libcrypto.so.3": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+    "/usr/lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+    "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33": "1fd75fe70354a416d75aef22bcae68c47bd25d20e2d0568c30b1a9838cf62f11",
+    "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+    "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+    "/usr/lib/x86_64-linux-gnu/libcap.so.2.66": "6ac6abc86ac891c6e13486470e26f1d939f47fda9e6b5d5508a7f5ec881adc84",
+    "/usr/lib/x86_64-linux-gnu/libgcrypt.so.20.4.3": "6ad6d7007ee1ad8319eb18ba9a512cf09dda49396a303774c68b47477020bad4",
+    "/usr/lib/x86_64-linux-gnu/liblz4.so.1.9.4": "40bffd0a098387368b16b992abd5f7cf43c0fa2f05cabe5a6d483719554adfda",
+    "/usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5": "26b37d25f7ca2a2d348de8ecabacda12e921cd933b21fa069a179760db77219d",
+    "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5": "0a2128bc10841fb29e76d08d945864dfb0b6a66da5df6df5d8299197439e54bb",
+    "/usr/lib/x86_64-linux-gnu/libgpg-error.so.0.34.0": "6cb18a007bfcb623029f4528a36b46578fea7dc34c2b505b8e6e0d99e6348cd1"
+  },
+  "apt_index_provenance": {
+    "inrelease_sha256": "6b1d7bab86063d6f0f3c4271263c5d23302b4bfbec551335f04f0e4bf60843f4",
+    "signature_verified_with": "/usr/share/keyrings/ubuntu-archive-keyring.gpg",
+    "signing_key": "F6ECB3762474EDA9D21B7022871920D1991BC93C",
+    "archive": "Ubuntu noble-updates",
+    "retrieval": "apt-get download only; no package installation"
+  }
+}

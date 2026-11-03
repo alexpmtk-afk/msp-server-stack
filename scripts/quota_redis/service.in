@@ -1,0 +1,38 @@
+[Unit]
+Description=MSP dedicated local quota Redis (no provider dispatcher)
+After=local-fs.target
+StartLimitIntervalSec=60
+StartLimitBurst=2
+
+[Service]
+Type=simple
+User=msp-quota-redis
+Group=msp-quota-redis
+UMask=0077
+Environment=LD_LIBRARY_PATH=/opt/mcp/quota-redis/lib
+ExecStartPre=/usr/bin/python3 -I -B /opt/mcp/quota-redis/guard.py
+ExecStart=/opt/mcp/quota-redis/bin/redis-server /etc/msp-quota-redis/redis.conf
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=90
+KillSignal=SIGTERM
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_INET AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=127.0.0.1/32
+ReadWritePaths=/var/lib/msp-quota-redis
+MemoryMax=256M
+TasksMax=32
+LimitCORE=0
+[Install]
+WantedBy=multi-user.target
+# Only Redis auto-start, not a provider dispatcher/timer.

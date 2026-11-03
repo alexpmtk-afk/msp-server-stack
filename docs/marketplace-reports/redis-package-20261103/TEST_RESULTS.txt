@@ -1,0 +1,29 @@
+test_backup_helper_preserves_source_and_refuses_symlink (test_msp_quota_redis.InstallerRecoveryBoundaries.test_backup_helper_preserves_source_and_refuses_symlink) ... ok
+test_complete_install_only_checks_no_restart_or_rotation (test_msp_quota_redis.InstallerRecoveryBoundaries.test_complete_install_only_checks_no_restart_or_rotation) ... ok
+test_partial_install_refuses_without_password_generation_or_service_change (test_msp_quota_redis.InstallerRecoveryBoundaries.test_partial_install_refuses_without_password_generation_or_service_change) ... ok
+test_accept_only_configured_loopback (test_msp_quota_redis.ListenerValidation.test_accept_only_configured_loopback) ... ok
+test_reject_public_or_absent_listener (test_msp_quota_redis.ListenerValidation.test_reject_public_or_absent_listener) ... ok
+test_initialized_missing_aof_is_hold_not_empty_reset (test_msp_quota_redis.PersistenceGuard.test_initialized_missing_aof_is_hold_not_empty_reset) ... ok
+test_installer_does_not_recreate_AB_or_enable_provider (test_msp_quota_redis.PersistenceGuard.test_installer_does_not_recreate_AB_or_enable_provider) ... ok
+test_no_first_start_without_private_root_permit (test_msp_quota_redis.PersistenceGuard.test_no_first_start_without_private_root_permit) ... ok
+test_nonempty_partial_first_start_refused (test_msp_quota_redis.PersistenceGuard.test_nonempty_partial_first_start_refused) ... ok
+test_acl_hides_password_and_admin_commands (test_msp_quota_redis.Pure.test_acl_hides_password_and_admin_commands) ... ok
+test_config_is_local_persistent_strict_and_noeviction (test_msp_quota_redis.Pure.test_config_is_local_persistent_strict_and_noeviction) ... ok
+test_explicit_public_mode_under_private_umask (test_msp_quota_redis.Pure.test_explicit_public_mode_under_private_umask) ... ok
+test_nonroot_installer_refuses_before_reads (test_msp_quota_redis.Pure.test_nonroot_installer_refuses_before_reads) ... ok
+test_429_cooldown_defer_and_reserve_use_real_acl (test_msp_quota_redis.RealRedis.test_429_cooldown_defer_and_reserve_use_real_acl) ... ok
+test_acknowledged_state_survives_sigkill_restart (test_msp_quota_redis.RealRedis.test_acknowledged_state_survives_sigkill_restart) ... ok
+test_auth_acl_namespace_and_destructive_commands_denied (test_msp_quota_redis.RealRedis.test_auth_acl_namespace_and_destructive_commands_denied) ... ok
+test_backend_unavailable_fails_without_sqlite_fallback (test_msp_quota_redis.RealRedis.test_backend_unavailable_fails_without_sqlite_fallback) ... ok
+test_corrupt_aof_refuses_start_without_auto_truncation (test_msp_quota_redis.RealRedis.test_corrupt_aof_refuses_start_without_auto_truncation) ... ok
+test_existing_controller_snapshot_real_acl (test_msp_quota_redis.RealRedis.test_existing_controller_snapshot_real_acl) ... ok
+test_readonly_default_resp2_and_no_write (test_msp_quota_redis.RealRedis.test_readonly_default_resp2_and_no_write) ... ok
+test_real_async_atomic_competition_shared_seller_and_ozon (test_msp_quota_redis.RealRedis.test_real_async_atomic_competition_shared_seller_and_ozon) ... ok
+test_separate_processes_share_one_atomic_quota (test_msp_quota_redis.RealRedis.test_separate_processes_share_one_atomic_quota) ... ok
+test_stopped_backup_restore_copy_aof_check_and_replay (test_msp_quota_redis.RealRedis.test_stopped_backup_restore_copy_aof_check_and_replay) ... ok
+test_hold_survives_restart_even_with_valid_manifest (test_msp_quota_redis.RecoveryHold.test_hold_survives_restart_even_with_valid_manifest) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 7.920s
+
+OK

@@ -1,0 +1,90 @@
+{
+  "state": "PREPARED_NOT_INSTALLED",
+  "package": "MSP local quota Redis",
+  "files": [
+    {
+      "path": "app-manifest.json",
+      "sha256": "95819f10fa818cd310d2133a40f21d63cdbfd9c159b191eac79c8ae8c9f9f332",
+      "mode": 420,
+      "bytes": 4702
+    },
+    {
+      "path": "bin/redis-check-aof",
+      "sha256": "8716cd03cf5a0fcd99d0e95f9b04f7983fb134345d6e5802a7f4259af3658b6d",
+      "mode": 493,
+      "bytes": 2624600
+    },
+    {
+      "path": "bin/redis-server",
+      "sha256": "8716cd03cf5a0fcd99d0e95f9b04f7983fb134345d6e5802a7f4259af3658b6d",
+      "mode": 493,
+      "bytes": 2624600
+    },
+    {
+      "path": "common.py",
+      "sha256": "233cf7238bc118da00098ca6bdafa7807f5d61c95dd24020970c7e8c4ee1fb9d",
+      "mode": 420,
+      "bytes": 4125
+    },
+    {
+      "path": "guard.py",
+      "sha256": "ac75c259eb93d5c61a51a432fa864c2a6f4bef4cbe00fbe5feb950e353a3ca7e",
+      "mode": 420,
+      "bytes": 454
+    },
+    {
+      "path": "install.py",
+      "sha256": "7066e0fe3f63550a67c205d448541390e78717c6868ab83efda4771f5733ea4d",
+      "mode": 420,
+      "bytes": 11614
+    },
+    {
+      "path": "lib/libjemalloc.so.2",
+      "sha256": "567efa52ecf445d5966025e1dcfd6b927a986472d272be3742f74a4a373baf12",
+      "mode": 420,
+      "bytes": 830656
+    },
+    {
+      "path": "lib/liblzf.so.1",
+      "sha256": "db8105cdc5b50e7ea043050d4050354365f7a3e993facd2c5ee4bad1afc6b24c",
+      "mode": 420,
+      "bytes": 18424
+    },
+    {
+      "path": "licenses/jemalloc.txt",
+      "sha256": "6b2bfecf4008286f3c81a71199587432cc19cdb24b1def4dc0d5ad7e47dfdc21",
+      "mode": 420,
+      "bytes": 10539
+    },
+    {
+      "path": "licenses/lzf.txt",
+      "sha256": "43adc9b37f1e0f750829ac37522b19a120946159134d9940485782e9d10c45c7",
+      "mode": 420,
+      "bytes": 4770
+    },
+    {
+      "path": "licenses/redis.txt",
+      "sha256": "e160262e794fe385b6b26ce7ec7384886cb97d339909ae1f60a2dc32dcdbff48",
+      "mode": 420,
+      "bytes": 5440
+    },
+    {
+      "path": "manage.py",
+      "sha256": "ab44f02f59610112d27949a1288ca4bc25aa1441ff4accaf1af18edd140b3536",
+      "mode": 420,
+      "bytes": 6037
+    },
+    {
+      "path": "runtime-lock.json",
+      "sha256": "30f220ef5c07a556cbde8f18977f7eaf59296a152836a8033f6a548db38deb35",
+      "mode": 420,
+      "bytes": 3618
+    },
+    {
+      "path": "service.in",
+      "sha256": "84ab2040a03c3524e75aa0098d4e7bab76eef71ae76b2ff69c57287942aeae5f",
+      "mode": 420,
+      "bytes": 957
+    }
+  ]
+}
