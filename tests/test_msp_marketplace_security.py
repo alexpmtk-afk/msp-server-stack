@@ -133,3 +133,13 @@ class RealApprovalPermissionTest(unittest.TestCase):
         print('REAL_APPROVAL_PERMISSION_PROOF '+json.dumps(result,sort_keys=True))
         self.assertEqual(result['old0600'],'PermissionError');self.assertEqual(result['fixed0640'],'PASS')
         self.assertNotEqual(result['actual_reader_uid'],0);self.assertTrue(result['root_owner_preserved']);self.assertEqual(result['provider_calls'],0)
+
+class HistoryWorkerSecurity(unittest.TestCase):
+    def test_history_worker_wrong_uid_cannot_read_credentials_or_authorization(self):
+        import importlib.util
+        from unittest.mock import patch
+        root=Path(__file__).resolve().parents[1]
+        spec=importlib.util.spec_from_file_location('fixed_history_worker',root/'scripts/wb_history/worker.py')
+        worker=importlib.util.module_from_spec(spec);spec.loader.exec_module(worker)
+        with patch.object(os,'geteuid',return_value=1001),patch.object(Path,'read_text',side_effect=AssertionError('no secret reads')):
+            with self.assertRaisesRegex(ValueError,'msp-reports'):worker.main()

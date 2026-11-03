@@ -1,0 +1,479 @@
+{
+  "ozon_laser_master": {
+    "cabinet": "ozon_laser_master",
+    "year": 2026,
+    "final": [
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 1
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 2
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 3
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 4
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 5
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 6
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 7
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 8
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 9
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 10
+        }
+      }
+    ],
+    "current": [
+      {
+        "marketplace": "ozon",
+        "path": "/v3/posting/fbo/list",
+        "body": {
+          "filter": {
+            "since": "2026-10-31T21:00:00Z",
+            "to": "2026-11-03T20:59:59Z"
+          },
+          "limit": 100,
+          "cursor": "",
+          "with": {
+            "analytics_data": true,
+            "financial_data": true,
+            "legal_info": true
+          }
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v4/posting/fbs/list",
+        "body": {
+          "filter": {
+            "since": "2026-10-31T21:00:00Z",
+            "to": "2026-11-03T20:59:59Z"
+          },
+          "limit": 100,
+          "cursor": "",
+          "with": {
+            "analytics_data": true,
+            "financial_data": true,
+            "legal_info": true
+          }
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-01",
+          "last_id": ""
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-02",
+          "last_id": ""
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-03",
+          "last_id": ""
+        }
+      }
+    ],
+    "financial_report_dataset": "ozon_final_realization",
+    "orders_are_final": false,
+    "api_enabled": false,
+    "approval_env_not_set": "MSP_REPORTS_OZON_FINANCE_METHODS_VERIFIED",
+    "schema_acceptance": "REQUIRED_BEFORE_API",
+    "quota_owner": "Client-Id",
+    "pagination": {
+      "/v1/finance/realization/posting": "none_per_existing_source",
+      "/v3/posting/fbo/list": "cursor",
+      "/v4/posting/fbs/list": "cursor",
+      "/v1/finance/accrual/by-day": "last_id"
+    },
+    "late_corrections": "revalidate_every_closed_month_in_bounded_rotation_replace_month_rebuild_annual"
+  },
+  "ozon_novokshenov": {
+    "cabinet": "ozon_novokshenov",
+    "year": 2026,
+    "final": [
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 1
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 2
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 3
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 4
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 5
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 6
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 7
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 8
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 9
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 10
+        }
+      }
+    ],
+    "current": [
+      {
+        "marketplace": "ozon",
+        "path": "/v3/posting/fbo/list",
+        "body": {
+          "filter": {
+            "since": "2026-10-31T21:00:00Z",
+            "to": "2026-11-03T20:59:59Z"
+          },
+          "limit": 100,
+          "cursor": "",
+          "with": {
+            "analytics_data": true,
+            "financial_data": true,
+            "legal_info": true
+          }
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v4/posting/fbs/list",
+        "body": {
+          "filter": {
+            "since": "2026-10-31T21:00:00Z",
+            "to": "2026-11-03T20:59:59Z"
+          },
+          "limit": 100,
+          "cursor": "",
+          "with": {
+            "analytics_data": true,
+            "financial_data": true,
+            "legal_info": true
+          }
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-01",
+          "last_id": ""
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-02",
+          "last_id": ""
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-03",
+          "last_id": ""
+        }
+      }
+    ],
+    "financial_report_dataset": "ozon_final_realization",
+    "orders_are_final": false,
+    "api_enabled": false,
+    "approval_env_not_set": "MSP_REPORTS_OZON_FINANCE_METHODS_VERIFIED",
+    "schema_acceptance": "REQUIRED_BEFORE_API",
+    "quota_owner": "Client-Id",
+    "pagination": {
+      "/v1/finance/realization/posting": "none_per_existing_source",
+      "/v3/posting/fbo/list": "cursor",
+      "/v4/posting/fbs/list": "cursor",
+      "/v1/finance/accrual/by-day": "last_id"
+    },
+    "late_corrections": "revalidate_every_closed_month_in_bounded_rotation_replace_month_rebuild_annual"
+  },
+  "ozon_dmitrieva": {
+    "cabinet": "ozon_dmitrieva",
+    "year": 2026,
+    "final": [
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 1
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 2
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 3
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 4
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 5
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 6
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 7
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 8
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 9
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/realization/posting",
+        "body": {
+          "year": 2026,
+          "month": 10
+        }
+      }
+    ],
+    "current": [
+      {
+        "marketplace": "ozon",
+        "path": "/v3/posting/fbo/list",
+        "body": {
+          "filter": {
+            "since": "2026-10-31T21:00:00Z",
+            "to": "2026-11-03T20:59:59Z"
+          },
+          "limit": 100,
+          "cursor": "",
+          "with": {
+            "analytics_data": true,
+            "financial_data": true,
+            "legal_info": true
+          }
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v4/posting/fbs/list",
+        "body": {
+          "filter": {
+            "since": "2026-10-31T21:00:00Z",
+            "to": "2026-11-03T20:59:59Z"
+          },
+          "limit": 100,
+          "cursor": "",
+          "with": {
+            "analytics_data": true,
+            "financial_data": true,
+            "legal_info": true
+          }
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-01",
+          "last_id": ""
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-02",
+          "last_id": ""
+        }
+      },
+      {
+        "marketplace": "ozon",
+        "path": "/v1/finance/accrual/by-day",
+        "body": {
+          "date": "2026-11-03",
+          "last_id": ""
+        }
+      }
+    ],
+    "financial_report_dataset": "ozon_final_realization",
+    "orders_are_final": false,
+    "api_enabled": false,
+    "approval_env_not_set": "MSP_REPORTS_OZON_FINANCE_METHODS_VERIFIED",
+    "schema_acceptance": "REQUIRED_BEFORE_API",
+    "quota_owner": "Client-Id",
+    "pagination": {
+      "/v1/finance/realization/posting": "none_per_existing_source",
+      "/v3/posting/fbo/list": "cursor",
+      "/v4/posting/fbs/list": "cursor",
+      "/v1/finance/accrual/by-day": "last_id"
+    },
+    "late_corrections": "revalidate_every_closed_month_in_bounded_rotation_replace_month_rebuild_annual"
+  }
+}
