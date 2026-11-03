@@ -86,7 +86,7 @@ def write_new(path, data, mode=0o600):
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, mode)
     try:
         with os.fdopen(fd, 'wb', closefd=False) as f:
-            f.write(data); f.flush(); os.fsync(fd)
+            f.write(data); f.flush(); os.fchmod(fd, mode); os.fsync(fd)
     finally:
         os.close(fd)
     sync_dir(path.parent)

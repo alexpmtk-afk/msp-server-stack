@@ -1,0 +1,1 @@
+wb_repair_stage=$(mktemp -d /var/lib/msp-wb-repair.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-wb-repair.py "$wb_repair_stage/repair.py" && printf '%s  %s\n' d8f29e56e7f8a3b17561ab56582e333ac5c89441f76a3ff0b313a893d0c0ec21 "$wb_repair_stage/repair.py" | sha256sum -c - && /usr/bin/python3 -I -B "$wb_repair_stage/repair.py"
