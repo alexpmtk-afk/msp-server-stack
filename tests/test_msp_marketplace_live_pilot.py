@@ -146,6 +146,7 @@ class Coordinator(TempFixture):
         def show():return {'ActiveState':'inactive','PrivateNetwork':'no' if values['DROP'].exists() else 'yes','User':'msp-reports','Group':'msp-reports','DropInPaths':str(values['DROP']) if values['DROP'].exists() else '', 'EnvironmentFiles':str(launcher.REDIS_ENV),'Restart':'no'}
         def command(args,**kwargs):commands.append(args);return b''
         def start(args,**kwargs):
+            assert values['APPROVAL'].stat().st_mode & 0o777 == 0o640, 'approval must be readable to executor group, not root-only0600'
             calls.append(args)
             (values['STATE']/'worker-output.json').write_text(json.dumps({'report_detail_complete':True,'executor':{'status':'DONE','send_entries':2},'rows':1,'pages':1,'http_dispatch_attempts_this_run':2,'http_response_statuses':[200,204]}))
             return type('Done',(),{'returncode':0})()

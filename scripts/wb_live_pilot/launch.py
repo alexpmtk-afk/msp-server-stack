@@ -35,6 +35,8 @@ STATE=Path('/var/lib/msp-wb-E-883801632')
 DROP_DIR=Path('/run/systemd/system/msp-wb-pilot.service.d')
 DROP=DROP_DIR/'90-msp-E-883801632.conf'
 PUBLIC=Path('/opt/mcp/report-run-results')
+EXECUTOR_GID=985
+RESULT_NAME='wb-883801632-E.json'
 PLAN={'schema':1,'cabinet':'wb_laser_master','year':2026,'report_id':883801632,'report_type':1,'max_send_entries':3}
 
 
@@ -57,13 +59,18 @@ def syncdir(p):
     try:os.fsync(fd)
     finally:os.close(fd)
 
-def write_new(p,data,mode=0o600):
+def write_new(p,data,mode=0o600,gid=0):
     fd=os.open(p,os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,mode)
     try:
         with os.fdopen(fd,'wb',closefd=False) as f:
-            f.write(data);f.flush();os.fchown(fd,0,0);os.fchmod(fd,mode);os.fsync(fd)
+            f.write(data);f.flush();os.fchown(fd,0,gid);os.fchmod(fd,mode);os.fsync(fd)
     finally:os.close(fd)
     syncdir(p.parent)
+
+def write_approval(raw):
+    # Nonsecret capability document: root writes, only executor group may read.
+    write_new(APPROVAL,raw,0o640,gid=EXECUTOR_GID)
+
 
 def strict_json(raw):
     def pairs(items):
@@ -158,7 +165,7 @@ def preflight():
     if (user.pw_uid,user.pw_gid)!=(995,985):raise ValueError('identity drift')
     if PUBLIC.exists():
         parents(PUBLIC)
-        if (PUBLIC/'wb-883801632-E.json').exists():raise ValueError('existing E public result')
+        if (PUBLIC/RESULT_NAME).exists():raise ValueError('existing E public result')
     for n,digest in ASSETS['app_files'].items():
         p=RELEASE/n;parents(p.parent);trusted(p,mode=0o644)
         if sha(p.read_bytes())!=digest:raise ValueError('accepted code drift')
@@ -178,7 +185,7 @@ def preflight():
     p=RELEASE/'pilot-plan.json';trusted(p,mode=0o644)
     if sha(p.read_bytes())!=ASSETS['plan_file_sha256'] or strict_json(p.read_bytes())!=PLAN:raise ValueError('pilot plan drift')
     parents(ARCHIVE.parent);trusted(ARCHIVE,uid=995,mode=0o700)
-    if (ARCHIVE/'.wb-executor/E-883801632-events.jsonl').exists():raise ValueError('preexisting E events; reconcile')
+    if (ARCHIVE/'.wb-executor/E-883801632-events.jsonl').exists() and not ASSETS.get('recovery'):raise ValueError('preexisting E events; reconcile')
     if ARCHIVE.stat().st_gid!=985:raise ValueError('archive group drift')
     before=show()
     if before.get('ActiveState') not in ('inactive','failed') or before.get('DropInPaths') or before.get('PrivateNetwork')!='yes' or before.get('Restart')!='no':raise ValueError('pilot is active/modified')
@@ -214,7 +221,7 @@ def summarize():
 def publish_result(doc):
     if not PUBLIC.exists():PUBLIC.mkdir(mode=0o755);os.chmod(PUBLIC,0o755);syncdir(PUBLIC.parent)
     parents(PUBLIC)
-    write_new(PUBLIC/'wb-883801632-E.json',encoded(doc),0o644)
+    write_new(PUBLIC/RESULT_NAME,encoded(doc),0o644)
     write_new(STATE/'result.json',encoded(doc))
     print(json.dumps(doc,sort_keys=True))
 
@@ -233,12 +240,21 @@ def main():
         raise ValueError('partial/uncertain E; no retry; inspect state or hold')
     if sys.argv[1:]:raise ValueError('no existing E to hold')
     guards,credential_summary=preflight()
+    recovery_summary=None
+    if ASSETS.get('recovery'):
+        sys.path.insert(0,str(RELEASE))
+        import types
+        guard_code=base64.b64decode(ASSETS['recovery_guard_base64'])
+        if sha(guard_code)!=ASSETS['recovery_guard_sha256']:raise ValueError('recovery guard integrity')
+        recovery_guard=types.ModuleType('reviewed_recovery_guard');exec(compile(guard_code,'<reviewed recovery guard>','exec'),recovery_guard.__dict__)
+        recovery_summary=recovery_guard.inspect_failure()
     # PREPARED command is run only after independent review; owner E already granted.
     allow=resolve_allowlist()
     STATE.mkdir(mode=0o700);os.chmod(STATE,0o700);syncdir(STATE.parent)
     ownership={};started=False;cleanup_ok=False;phase='PREPARE'
     def checkpoint(name):write_new(STATE/(name+'.json'),encoded({'phase':name,'code_sha':CODE}))
     checkpoint('BEGIN')
+    if recovery_summary is not None:write_new(STATE/'recovery-preflight.json',encoded(recovery_summary))
     try:
         program_dir=Path(tempfile.mkdtemp(prefix='msp-wb-E-program-',dir='/var/lib'))
         runner=base64.b64decode(ASSETS['runner_base64'])
@@ -253,7 +269,23 @@ def main():
         # Durable ownership BEFORE control mutations, for safe crash-time hold.
         write_new(STATE/'controls.json',encoded(ownership))
         DROP_DIR.mkdir(mode=0o755);os.chmod(DROP_DIR,0o755);syncdir(DROP_DIR.parent)
-        write_new(DROP,drop_raw,0o644);write_new(APPROVAL,auth_raw)
+        write_new(DROP,drop_raw,0o644);write_approval(auth_raw)
+        if ASSETS.get('recovery'):
+            negative=program_dir/'approval-negative.json';write_new(negative,auth_raw)
+            def readcheck(arguments,label):
+                cmd=['/usr/bin/systemd-run','--quiet','--wait','--pipe','--collect','--unit=msp-wb-E-read-'+label,
+                    '-p','User=msp-reports','-p','Group=msp-reports','-p','NoNewPrivileges=yes',
+                    '-p','CapabilityBoundingSet=','-p','ProtectSystem=strict','-p','ProtectHome=yes',
+                    '-p','PrivateNetwork=yes','-p','IPAddressDeny=any','-p','RuntimeMaxSec=20',
+                    str(RELEASE/'.venv/bin/python'),'-I','-B',str(program_dir/'runner.py'),*arguments]
+                p=subprocess.run(cmd,capture_output=True,timeout=30,env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'})
+                return p.returncode,strict_json(p.stdout)
+            red_rc,red=readcheck(['--check-approval-file',str(negative)],'negative')
+            if red_rc==0 or red.get('error_type')!='PermissionError' or red.get('uid')!=995:raise ValueError('actual UID negative proof failed')
+            green_rc,green=readcheck(['--check-approval-only'],'positive')
+            if green_rc or green.get('approval_read')!='PASS' or green.get('uid')!=995 or green.get('gid')!=985 or green.get('provider_calls')!=0:raise ValueError('actual UID approval read failed')
+            recovery_guard.assert_preserved(recovery_summary['snapshots'])
+            write_new(STATE/'actual-uid-approval-read.json',encoded({'old0600':'PermissionError','fixed0640':'PASS','uid':995,'gid':985,'provider_calls':0,'budget_unchanged':True}))
         run(['/usr/bin/systemd-analyze','verify',SERVICE]);run(['/usr/bin/systemctl','daemon-reload'])
         settings=show()
         if (settings.get('PrivateNetwork')!='no' or settings.get('User')!='msp-reports' or settings.get('Group')!='msp-reports'
@@ -276,7 +308,8 @@ def main():
              'owner_old_remote_status':'OWNER_ATTESTED_OLD_REMOTE_RETIRED','credential_local_checks':credential_summary,
              'worker_exit':child.returncode,'outcome':output,'archive_root':str(ARCHIVE),
              'provider_contract':'HISTORICAL_MATCH_FIRST_AUTHORIZED_REQUEST_VALIDATES_LIVE_ACCESS',
-             'protected_credentials_unchanged':True,'A_B_C':'UNCHANGED','root_state':str(STATE)}
+             'protected_credentials_unchanged':True,'A_B_C':'UNCHANGED','root_state':str(STATE),
+             'recovery_preflight':({k:v for k,v in recovery_summary.items() if k!='snapshots'} if recovery_summary else None)}
         publish_result(doc);return 0 if status in ('PASS','PARTIAL') else 1
     except Exception as exc:
         if not cleanup_ok:

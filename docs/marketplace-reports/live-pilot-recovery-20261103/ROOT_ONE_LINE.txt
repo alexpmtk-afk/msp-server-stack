@@ -1,0 +1,1 @@
+wb_recovery_stage=$(mktemp -d /var/lib/msp-wb-E-recovery-entry.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-wb-E-recovery.py "$wb_recovery_stage/recovery.py" && printf '%s  %s\n' 0cf4018bf3388db4492453ff636a409b5f14bb737982d44632a3d34828635b13 "$wb_recovery_stage/recovery.py" | sha256sum -c - && /usr/bin/python3 -I -B "$wb_recovery_stage/recovery.py"
