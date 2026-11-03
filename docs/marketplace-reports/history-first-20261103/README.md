@@ -22,7 +22,7 @@ Result: /opt/mcp/report-run-results/wb-history-october-first.json.
 Private evidence: /var/lib/msp-wb-history-october-first (including actual-uid-release-read.json).
 HTTP attempt/status/unknown evidence: existing archive/.wb-executor/history-october-first-events.jsonl (no URLs, request bodies, tokens, headers or response bodies).
 Discovery: existing archive/.wb-executor/discovery-<plan-sha>.json and offset-page receipts.
-Report state: existing archive/.wb-report-stage/wb_laser_master/2026/883801636-type-2; reportType2 publication uses wb_weekly_finance_buyouts, separate from main reportType1.
+Report state: existing archive/.wb-report-stage/wb_laser_master/2026/883801636-type-2; reportType2 publication uses wb_weekly_finance_buyout, separate from main reportType1.
 
 Repeated launcher with a completed run receipt prints that receipt; it never starts another sender or refreshes budgets. If interrupted/partial, do not delete state to repeat. Reconcile first. ROOT_HOLD_ONE_LINE.txt closes only hash-matching controls owned by this run and stops only its known finance unit; all code, pages, counters, logs and archive versions are retained. The persistent original service files remain unchanged.
 
