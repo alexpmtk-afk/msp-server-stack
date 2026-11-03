@@ -6,3 +6,7 @@
 # Public Ubuntu archive signing-key fingerprint, verified with gpgv; not private key/auth.
 # Exact historical finding only; package bytes and general secret protection unchanged.
 04bffc1c563deee5bd5a26322692a0999c30c5dc:scripts/quota_redis/runtime-lock.json:generic-api-key:68
+
+# Three public redis8.1.0 wheel-file SHA256s (credentials.py/auth token modules),
+# recomputed from pinned verified wheel; exact immutable historical line only.
+4b11758d5d38bc88e6d2206fc01d92fde35ffae1:docs/marketplace-reports/live-pilot-20261103/pilot.py:generic-api-key:22
