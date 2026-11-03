@@ -1,0 +1,132 @@
+{
+  "code_sha": "c1fee070e9efa0c925a78f266fdf03cb12a173cf",
+  "admin_sha": "4df06d795b494cff167b67489f17b2028142aa79",
+  "state": "PREPARED_NOT_EXECUTED",
+  "files": [
+    {
+      "path": "INSTALL_MANIFEST.json",
+      "sha256": "61bcce54f4a28dd6384faddfd6ef4ec005362adfb8084a9d8a8485048cec4b90",
+      "bytes": 4607
+    },
+    {
+      "path": "apps/msp_marketplace_reports/__init__.py",
+      "sha256": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
+      "bytes": 83
+    },
+    {
+      "path": "apps/msp_marketplace_reports/archive.py",
+      "sha256": "a4d2800494da1464ed73ffa338d7fc501d1fce7ce3da5dceb45f0eb7f057a3a2",
+      "bytes": 22246
+    },
+    {
+      "path": "apps/msp_marketplace_reports/backfill_plan.py",
+      "sha256": "b7811e304cebbe8ed3519df2fa82bd132b482690bb81272cce40f80e6ece4384",
+      "bytes": 10167
+    },
+    {
+      "path": "apps/msp_marketplace_reports/cli.py",
+      "sha256": "bdeb1d586ffe01800c236b5687b2fcf060952cc394e213cb16083c8f0b0636e2",
+      "bytes": 3603
+    },
+    {
+      "path": "apps/msp_marketplace_reports/current_repair.py",
+      "sha256": "087fb13de1072f08aaaf49eb71cef7de42c9d804f099d582f963be013077cc44",
+      "bytes": 14812
+    },
+    {
+      "path": "apps/msp_marketplace_reports/existing_worker_bridge.py",
+      "sha256": "8cc5d3ce2454dc1f6c048b0f989f01143ff77dfac32abce0c863877d77f5c2be",
+      "bytes": 4447
+    },
+    {
+      "path": "apps/msp_marketplace_reports/generation_recovery.py",
+      "sha256": "abd05ee172af8c8087af96898b88f430843ed93aab7b8849b242ed09514fe5de",
+      "bytes": 7135
+    },
+    {
+      "path": "apps/msp_marketplace_reports/generation_store.py",
+      "sha256": "1a981685a160031604e18d1aa3bd7728f2fb7b297183229d131fb24a34740fe2",
+      "bytes": 19939
+    },
+    {
+      "path": "apps/msp_marketplace_reports/ingest.py",
+      "sha256": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58",
+      "bytes": 10617
+    },
+    {
+      "path": "apps/msp_marketplace_reports/providers.py",
+      "sha256": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676",
+      "bytes": 10457
+    },
+    {
+      "path": "apps/msp_marketplace_reports/quota.py",
+      "sha256": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422",
+      "bytes": 9529
+    },
+    {
+      "path": "apps/msp_marketplace_reports/runtime.py",
+      "sha256": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5",
+      "bytes": 8677
+    },
+    {
+      "path": "apps/msp_marketplace_reports/shared_rate_limit.py",
+      "sha256": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726",
+      "bytes": 19563
+    },
+    {
+      "path": "apps/msp_marketplace_reports/standalone_wb.py",
+      "sha256": "a63d18fd8a4f781357385bde015fb1b06f830e28ece9b1b2b406177778b22266",
+      "bytes": 11105
+    },
+    {
+      "path": "apps/msp_marketplace_reports/versioned_archive.py",
+      "sha256": "7c49b1cf7c25cead17092d149030d4bc22652e26e66e7c890d96310122f3ad1f",
+      "bytes": 10520
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_page_resume.py",
+      "sha256": "a49c30c3725ea69a3dab28b1a5fe181112de1b6ce2740cd8478d7e546af180a8",
+      "bytes": 14566
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_worker_adapter.py",
+      "sha256": "d528b557ed8eec20f1ebab22dcab6fc1ba17feee4b8e2d9dd4506ac47a3cb59f",
+      "bytes": 11904
+    },
+    {
+      "path": "install.py",
+      "sha256": "1e4647029674752333a13bebd4d598bce41c51849238ebf8a96f26c905f371e9",
+      "bytes": 18048
+    },
+    {
+      "path": "pilot-plan.json",
+      "sha256": "38022de99e35af5971c90fe9a3d48e6570c2b542e6688e228a4cfc478114ecce",
+      "bytes": 137
+    },
+    {
+      "path": "redis-8.1.0-py3-none-any.whl",
+      "sha256": "a4fe1aac3d3b3cc791d4b3d5931c5a956045dc951ee74d1c913ee3ac4d2ee9fb",
+      "bytes": 560618
+    },
+    {
+      "path": "redis_readonly_probe.py",
+      "sha256": "4a3a70596e0a5ab1d198b18e862c3bc15319f19d568a6c11b0cf733c62b8e7a1",
+      "bytes": 4502
+    },
+    {
+      "path": "select_pilot_credential.py",
+      "sha256": "0ea1424ff45b909e71077c214d6374e5f02082a241e9b65fc7f36a16420ac4ea",
+      "bytes": 3922
+    },
+    {
+      "path": "smoke.py",
+      "sha256": "a8126e92bb0363bc520de1b3ce9a322ba531052d67fd0a6345aaa0afd0f98873",
+      "bytes": 2292
+    },
+    {
+      "path": "staged.service.in",
+      "sha256": "a951986b7f1355e3c4806f9a560fc5e7f53c0514fea335786a34fddafdafd906",
+      "bytes": 1364
+    }
+  ]
+}

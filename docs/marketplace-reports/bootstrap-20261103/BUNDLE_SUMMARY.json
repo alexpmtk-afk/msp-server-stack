@@ -1,0 +1,9 @@
+{
+  "bundle": "/home/hermes/workspace/msp-wb-bootstrap-20261103-final.tar",
+  "bundle_sha256": "eb2ac87f8ad6221c230fdf28b2cb384645e1018f1845b4d7e60f7a943c67767b",
+  "manifest_sha256": "a6d556ae5aa28b8d07893cc9808dbc599d26641b1eeea586c69cc0bd80c2b059",
+  "files": 25,
+  "bytes": 808960,
+  "code_sha": "c1fee070e9efa0c925a78f266fdf03cb12a173cf",
+  "admin_sha": "4df06d795b494cff167b67489f17b2028142aa79"
+}
