@@ -33,9 +33,11 @@ def install():
   if json.loads(receipt.read_text()).get('payload_sha256')!=PACKAGE['payload_sha256']:raise ValueError('different/partial existing controller')
   for n,d in PACKAGE['hashes'].items():
    if sha((release/n).read_bytes())!=d:raise ValueError('installed code drift')
-  expected={Path('/etc/systemd/system')/n:files['units/'+n] for n in ['msp-finance-control.service','msp-finance-recover.service']}
+  expected={Path('/etc/systemd/system')/n:files['units/'+n] for n in ['msp-finance-control.service','msp-finance-recover.service','msp-finance-diagnostics.service']}
   expected[Path('/etc/polkit-1/rules.d/49-msp-finance-control.rules')]=files['units/49-msp-finance-control.rules']
-  expected[Path('/usr/local/bin/msp-finance-wake')]=('#!/bin/sh\nexec /usr/bin/python3 -I -B '+str(release/'client.py')+' \"$@\"\n').encode()
+  expected[Path('/etc/polkit-1/rules.d/48-msp-finance-diagnostics.rules')]=files['units/48-msp-finance-diagnostics.rules']
+  expected[Path('/usr/local/bin/msp-finance-diagnose')]=('#!/bin/sh\nexec /usr/bin/python3 -I -B '+str(release/'diagnostics_client.py')+' "$@"\n').encode()
+  expected[Path('/usr/local/bin/msp-finance-wake')]=('#!/bin/sh\nexec /usr/bin/python3 -I -B '+str(release/'client.py')+' "$@"\n').encode()
   expected[Path('/etc/tmpfiles.d/msp-finance-control.conf')]=b'd /run/msp-finance-control 0700 root root -\n'
   for p,b in expected.items():
    st=p.lstat()
@@ -47,7 +49,7 @@ def install():
  c.ASSETS=json.loads(files['assets.json']);c.ASSETS['recovery']=True
  c.PUBLIC=state/'results';c.RESULT_NAME='unused.json';c.preflight()
  unitdir=Path('/etc/systemd/system');rule=Path('/etc/polkit-1/rules.d/49-msp-finance-control.rules');entry=Path('/usr/local/bin/msp-finance-wake')
- targets=[unitdir/'msp-finance-control.service',unitdir/'msp-finance-recover.service',rule,entry,release,state,Path('/run/msp-finance-control')]
+ targets=[unitdir/'msp-finance-diagnostics.service',Path('/etc/polkit-1/rules.d/48-msp-finance-diagnostics.rules'),Path('/usr/local/bin/msp-finance-diagnose'),unitdir/'msp-finance-control.service',unitdir/'msp-finance-recover.service',rule,entry,release,state,Path('/run/msp-finance-control')]
  for p in targets:
   if p.exists() or p.is_symlink():raise ValueError('existing target/partial install; preserve and inspect')
  # Durable refusal marker before installation mutations; unknown partial never reruns.
@@ -70,8 +72,10 @@ def install():
  tmpfile=Path('/etc/tmpfiles.d/msp-finance-control.conf')
  if tmpfile.exists():raise ValueError('unknown tmpfiles config')
  write(tmpfile,b'd /run/msp-finance-control 0700 root root -\n',0o644)
- for n in ['msp-finance-control.service','msp-finance-recover.service']:write(unitdir/n,files['units/'+n],0o644)
+ for n in ['msp-finance-control.service','msp-finance-recover.service','msp-finance-diagnostics.service']:write(unitdir/n,files['units/'+n],0o644)
  write(rule,files['units/49-msp-finance-control.rules'],0o644)
+ write(Path('/etc/polkit-1/rules.d/48-msp-finance-diagnostics.rules'),files['units/48-msp-finance-diagnostics.rules'],0o644)
+ write(Path('/usr/local/bin/msp-finance-diagnose'),('#!/bin/sh\nexec /usr/bin/python3 -I -B '+str(release/'diagnostics_client.py')+' "$@"\n').encode(),0o755)
  write(entry,('#!/bin/sh\nexec /usr/bin/python3 -I -B '+str(release/'client.py')+' "$@"\n').encode(),0o755)
  run(['/usr/bin/systemd-analyze','verify','msp-finance-control.service','msp-finance-recover.service'])
  run(['/usr/bin/systemctl','daemon-reload'])

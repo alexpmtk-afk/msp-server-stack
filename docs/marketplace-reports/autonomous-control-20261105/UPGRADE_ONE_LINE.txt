@@ -1,0 +1,1 @@
+msp_diag_stage=$(mktemp -d /var/lib/msp-finance-diag.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-finance-diagnostics-upgrade.py "$msp_diag_stage/upgrade.py" && printf '%s  %s\n' a2bf8c1dfc4b326e34d6839c0e9919e5da02d04037c46febeb600139ef0a8879 "$msp_diag_stage/upgrade.py" | sha256sum -c - && /usr/bin/python3 -I -B "$msp_diag_stage/upgrade.py"

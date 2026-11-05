@@ -12,7 +12,10 @@ def main():
   out=os.open(tmp,os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,0o600);os.write(out,(json.dumps(req)+'\n').encode());os.fsync(out);os.close(out);os.replace(tmp,target)
   directory=os.open(target.parent,os.O_RDONLY|os.O_DIRECTORY);os.fsync(directory);os.close(directory)
   result=subprocess.run(['/usr/bin/systemctl','--no-ask-password','start','msp-finance-control.service'],env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'})
-  if result.returncode:raise RuntimeError('fixed control start failed; no retry')
+  if result.returncode:
+   failure=STATE/'results'/(nonce+'-failure.json')
+   if failure.exists():print(failure.read_text())
+   raise RuntimeError('fixed control start failed; no retry')
   receipt=STATE/'results'/(nonce+'.json')
   print(receipt.read_text() if receipt.exists() else json.dumps({'status':'UNCERTAIN','request_nonce':nonce,'no_auto_retry':True}))
  finally:os.close(fd)
