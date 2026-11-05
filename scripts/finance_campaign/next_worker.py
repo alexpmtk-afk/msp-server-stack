@@ -14,7 +14,7 @@ RELEASE=Path('__HISTORY_RELEASE__')
 DISCOVERY={'schema':1,'kind':'wb-discovery','cabinet':'wb_laser_master','year':2026,
  'date_from':'2026-10-01','date_to':'2026-10-31','limit':1000,'max_send_entries':2}
 DETAIL={'schema':1,'cabinet':'wb_laser_master','year':2026,'report_id':865431404,'report_type':1,'max_send_entries':3}
-BATCH={'schema':1,'kind':'wb-history-next-865431404','discovery':DISCOVERY,'detail':DETAIL,'max_send_entries':5}
+BATCH={'schema':1,'kind':'wb-history-next-865431404','discovery':DISCOVERY,'detail':DETAIL,'max_send_entries':3}
 
 def event(path,value):
     from apps.msp_marketplace_reports.wb_page_resume import _checked
@@ -29,8 +29,7 @@ def event(path,value):
 class AuditedOpener:
     def __init__(self,inner,path):self.inner=inner;self.path=path
     def open(self,request,timeout):
-        allowed={'https://finance-api.wildberries.ru/api/finance/v1/sales-reports/list':'list',
-                 'https://finance-api.wildberries.ru/api/finance/v1/sales-reports/detailed/865431404':'detail'}
+        allowed={'https://finance-api.wildberries.ru/api/finance/v1/sales-reports/detailed/865431404':'detail'}
         if request.get_method()!='POST' or request.full_url not in allowed:raise ValueError('fixed history endpoint required')
         event(self.path,{'event':'HTTP_DISPATCH_ATTEMPT','method_scope':allowed[request.full_url]})
         try:response=self.inner.open(request,timeout=timeout)
@@ -78,18 +77,11 @@ def execute(root,authorization,make_sender,*,clock=time.time,sleep=time.sleep,ma
         if clock()+delay-before>=max_seconds:return False
         if delay:sleep(delay)
         return True
-    # Local receipt replays do not enter sender. At most2 list +3 detail entries.
-    for _ in range(16):
-        if clock()-before>=max_seconds:break
-        state=discovery.step(root,DISCOVERY,subauth(DISCOVERY),make_sender,now=clock())
-        status=state['status']
-        if status=='COMPLETE':
-            inventory=discovery.read_inventory(root,[DISCOVERY]);inventory['budget_entries']=state['entries'];break
-        if status in ('HOLD_ERROR','PAUSED_BUDGET'):
-            return {'executor':{'status':status},'discovery':state,'report_detail_complete':False,'skipped_completed':[883801632,883801636]}
-        if not wait(max(state.get('not_before_epoch',0),clock()+66 if state.get('provider_calls')==1 else 0)):break
-    if inventory is None:
-        return {'executor':{'status':'WAITING_RATE_LIMIT'},'report_detail_complete':False,'skipped_completed':[883801632,883801636]}
+    # This is a continuation of completed discovery, never a new list admission.
+    # Missing/corrupt original journal stops; no fresh discovery budget is created.
+    inventory=discovery.read_inventory(root,[DISCOVERY])
+    preserved=s.read_control(Path(root)/'.wb-executor'/('discovery-'+s._digest(DISCOVERY)+'.json'))
+    inventory['budget_entries']=preserved['entries']
     selected=[r for r in inventory['items'] if r['reportId']==865431404]
     if len(selected)!=1 or selected[0]['reportType']!=1 or selected[0]['dateFrom'][:10]!='2026-10-01' or selected[0]['dateTo'][:10]!='2026-10-04':
         raise ValueError('approved next report not confirmed by discovery; no substitute ID')
@@ -127,10 +119,7 @@ def main():
     class Sender(ReadOnlyHTTP):
         def __call__(self,req):
             if req.marketplace!='wb':raise ValueError('WB only')
-            if req.path==WB_LIST:
-                expected={'dateFrom':DISCOVERY['date_from'],'dateTo':DISCOVERY['date_to'],'period':'weekly','limit':1000,'offset':req.body.get('offset')}
-                if req.body!=expected or type(req.body.get('offset')) is not int or req.body['offset']<0:raise ValueError('fixed discovery scope')
-            elif req.path=='/api/finance/v1/sales-reports/detailed/865431404':
+            if req.path=='/api/finance/v1/sales-reports/detailed/865431404':
                 if set(req.body)!={'limit','rrdId'} or req.body['limit']!=1000 or type(req.body['rrdId']) is not int or req.body['rrdId']<0:raise ValueError('fixed detail scope')
             else:raise ValueError('unapproved report or endpoint')
             result=super().__call__(req)
@@ -152,7 +141,7 @@ def main():
     outcome.update(http_dispatch_attempts_this_run=sum(v['event']=='HTTP_DISPATCH_ATTEMPT' for v in observed),
                    http_response_statuses=[v['status'] for v in observed if v['event']=='HTTP_RESPONSE'],
                    http_outcomes_unknown=sum(v['event']=='HTTP_OUTCOME_UNKNOWN' for v in observed))
-    outcome['release']=str(RELEASE);outcome['batch_max_entries']=5
+    outcome['release']=str(RELEASE);outcome['batch_max_entries']=3
     print(json.dumps(outcome,sort_keys=True))
     return 0 if outcome['executor']['status']=='DONE' else 2
 

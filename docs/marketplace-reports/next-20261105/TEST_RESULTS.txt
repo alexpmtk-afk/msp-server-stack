@@ -1,5 +1,5 @@
-Local changed-scope tests:10 PASS with socket connect and DNS denied.
-6 receipt/wake/Ozon admission tests;3 real accepted-loader next-worker tests;1 wake security test.
+Local changed-scope tests:11 PASS with socket connect and DNS denied.
+6 receipt/wake/Ozon admission tests;4 real accepted-loader next-worker tests;1 wake security test.
 Existing standalone loader exercises: verify841+46 completed rows, retain their original budgets, reuse complete discovery with ZERO new list dispatch, next main report200→204, repeat completed no dispatch, deny both completed HTTP routes.
 Bundle: original PR117 SHA256 checked, all22 app sources byte-identical, two-build match, /bin/sh -n one-line commands PASS.
 VPS:read actual accepted receipt; new NEXT root/API execution NOT performed.

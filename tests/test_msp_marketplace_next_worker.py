@@ -38,3 +38,8 @@ class NextBatch(unittest.TestCase):
   op=w.AuditedOpener(types.SimpleNamespace(open=lambda *a,**k:(_ for _ in ()).throw(AssertionError('no opener'))),self.root/'events')
   for rid in [883801632,883801636]:
    with self.assertRaises(ValueError):op.open(urllib.request.Request('https://finance-api.wildberries.ru/api/finance/v1/sales-reports/detailed/'+str(rid),data=b'{}',method='POST'),60)
+ def test_lost_discovery_journal_does_not_recreate_list_budget(self):
+  self.completed(883801632,1,841);self.completed(883801636,2,46)
+  with self.assertRaises(Exception):
+   w.execute(self.root,self.auth(w.BATCH),lambda:(_ for _ in ()).throw(AssertionError('no discovery refetch')),clock=lambda:self.now,sleep=self.sleep)
+  self.assertFalse(any((self.root/'.wb-executor').glob('discovery-*.json')))
