@@ -1,8 +1,8 @@
 """Unprivileged sequential backfill admission; NEVER a financial HTTP sender.
 Calls only installed msp-finance-wake/diagnose. No credentials, Redis or archive
-writes. Stops permanently on PARTIAL/HOLD/UNCERTAIN and unknown prior dispatch.
+writes. Continues ONLY verified normal budget pauses; errors/unknowns remain fail-stop.
 """
-import fcntl,json,os,stat,subprocess,time
+import fcntl,hashlib,json,math,os,stat,subprocess,time
 from pathlib import Path
 CABINETS=('wb_laser_master','wb_novokshenov','wb_dmitrieva')
 EXPECTED_RELEASE='/opt/mcp/projects/msp-marketplace-reports-releases/control-8dbdf9642b1d5326a363f79f6c8ec21dd3eedeac9315412093d44ed23999306d'
@@ -10,6 +10,7 @@ OLD_RELEASE='/opt/mcp/projects/msp-marketplace-reports-releases/control-a1807fd6
 STATE=Path('/home/hermes/.local/state/msp-finance-history')
 ROOT_STATE=Path('/var/lib/msp-finance-control')
 MAX_WAKES=512
+PORTION_PAUSE_SECONDS=70
 
 def write(path,value):
  raw=(json.dumps(value,sort_keys=True)+'\n').encode();tmp=path.with_suffix('.tmp')
@@ -20,9 +21,35 @@ def write(path,value):
  os.replace(tmp,path);fd=os.open(path.parent,os.O_RDONLY|os.O_DIRECTORY)
  try:os.fsync(fd)
  finally:os.close(fd)
-def advance(path,gate,wake,observe):
+def safe_budget_pause(result):
+ try:
+  if result.get('status')!='PARTIAL' or result.get('api_enabled_after_run') is not False or result.get('schedule_enabled') is not False:return None
+  jobs=result['jobs']
+  if type(jobs) is not list or len(jobs)!=1 or jobs[0]['status']!='PARTIAL':return None
+  out=jobs[0]['outcome'];e=out['executor'];count=e['send_entries'];cap=e['approved_total_entries'];key=e['plan_sha256'];until=e['not_before_epoch']
+  if (e['status']!='PAUSED_BUDGET' or type(count) is not int or type(cap) is not int or not 3<=count<cap<=1000
+      or type(out['wake_entries']) is not int or out['wake_entries']!=3
+      or type(out['http_dispatch_attempts']) is not int or out['http_dispatch_attempts']!=3
+      or type(out['http_outcomes_unknown']) is not int or out['http_outcomes_unknown']!=0
+      or out['http_response_statuses']!=[200,200,200] or out.get('report_detail_complete') is not False
+      or type(key) is not str or len(key)!=64 or any(c not in '0123456789abcdef' for c in key)
+      or type(until) not in (int,float) or not math.isfinite(until) or until<0):return None
+  return {'plan_sha256':key,'count':count,'not_before':until}
+ except (KeyError,TypeError,AttributeError):return None
+
+def recover_pause(path,read_receipt,gate,*,clock=time.time):
+ value=json.loads(path.read_text());prior=value.get('last');pause=safe_budget_pause(prior or {})
+ if value.get('phase')!='HOLD' or value.get('reason')!='non_pass_no_retry' or pause is None:return False
+ # Exact original root receipt + closed-network, read-only page/budget check.
+ if read_receipt(prior['request_nonce'])!=prior or gate()!='READY':return False
+ value.setdefault('counters',{})[pause['plan_sha256']]=pause['count']
+ value.update(phase='COOLDOWN',reason='verified_budget_pause_continuation',resume_not_before=max(clock()+PORTION_PAUSE_SECONDS,pause['not_before']))
+ write(path,value);return True
+
+def advance(path,gate,wake,observe,*,clock=time.time):
  value=json.loads(path.read_text()) if path.exists() else {'schema':1,'phase':'WAITING_UPDATE','wakes':0,'last':None,'cabinet_index':0}
  if value['phase'] in ('HOLD','COMPLETE'):return value
+ if value['phase']=='COOLDOWN' and clock()<value['resume_not_before']:return value
  if value['phase']=='DISPATCHING':
   value.update(phase='HOLD',reason='previous_dispatch_uncertain_no_retry');write(path,value);return value
  try:
@@ -32,8 +59,14 @@ def advance(path,gate,wake,observe):
   if value['wakes']>=MAX_WAKES:raise ValueError('global wake ceiling reached')
   value.update(phase='DISPATCHING',wakes=value['wakes']+1);write(path,value)
   result=wake();observe(result);value['last']=result
-  value.update(phase='READY' if result.get('status')=='PASS' else 'HOLD')
-  if value['phase']=='HOLD':value['reason']='non_pass_no_retry'
+  pause=safe_budget_pause(result)
+  if pause is not None:
+   counters=value.setdefault('counters',{});previous=counters.get(pause['plan_sha256'])
+   if previous is not None and pause['count']!=previous+3:raise ValueError('nonmonotonic cumulative budget')
+   counters[pause['plan_sha256']]=pause['count']
+   value.update(phase='COOLDOWN',reason='normal_budget_pause',resume_not_before=max(clock()+PORTION_PAUSE_SECONDS,pause['not_before']))
+  elif result.get('status')=='PASS':value.update(phase='COOLDOWN',reason='portion_complete',resume_not_before=clock()+PORTION_PAUSE_SECONDS)
+  else:value.update(phase='HOLD',reason='non_pass_no_retry')
  except Exception as e:value.update(phase='HOLD',reason=type(e).__name__)
  write(path,value);return value
 
@@ -58,6 +91,12 @@ def gate(cabinet):
  req=json.loads((ROOT_STATE/'inbox/request.json').read_text())
  if d.get('request_nonce')!=req['nonce']:raise ValueError('diagnostic request changed')
  if req['cabinet']==cabinet and d.get('selected_plan') is None:return 'CABINET_COMPLETE'
+ state_path=STATE/'state.json'
+ prior=json.loads(state_path.read_text()).get('last',{}) if state_path.exists() else {}
+ pause=safe_budget_pause(prior)
+ if pause is not None:
+  selected=d.get('selected_plan');digest=hashlib.sha256((json.dumps(selected,sort_keys=True,separators=(',',':'))+'\n').encode()).hexdigest()
+  if digest!=pause['plan_sha256']:raise ValueError('different report selected during continuation')
  return 'READY'
 def wake(cabinet):
  previous=json.loads((ROOT_STATE/'inbox/request.json').read_text())['nonce']
@@ -80,7 +119,9 @@ def main():
  while True:
   old=json.loads(path.read_text()) if path.exists() else {'cabinet_index':0}
   if old.get('phase')=='COMPLETE':return 0
-  if old.get('phase')=='HOLD':return 2
+  if old.get('phase')=='HOLD':
+   if not recover_pause(path,lambda nonce:root_json(ROOT_STATE/'results'/(nonce+'.json')),lambda:gate(CABINETS[old.get('cabinet_index',0)])):return 2
+   old=json.loads(path.read_text())
   cab=CABINETS[old.get('cabinet_index',0)]
   state=advance(path,lambda:gate(cab),lambda:wake(cab),lambda r:None)
   print(json.dumps({'phase':state['phase'],'cabinet':cab,'wakes':state['wakes'],'last':state.get('last')}),flush=True)
@@ -90,6 +131,7 @@ def main():
    if state['phase']=='COMPLETE':return 0
   elif state['phase']=='HOLD':return 2
   elif state['phase']=='WAITING_UPDATE':time.sleep(15)
-  elif state['phase']=='READY':time.sleep(1) # Redis and persisted not-before govern real HTTP.
+  elif state['phase']=='COOLDOWN':time.sleep(min(60,max(1,state['resume_not_before']-time.time())))
+  elif state['phase']=='READY':time.sleep(1) # Redis remains authoritative within every portion.
   else:raise ValueError('unexpected driver state')
 if __name__=='__main__':raise SystemExit(main())
