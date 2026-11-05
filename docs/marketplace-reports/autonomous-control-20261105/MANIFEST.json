@@ -1,5 +1,5 @@
 {
-  "installer_sha256": "3afb3cbad3777208260d8f6bc691c6fd4dd7bae1c3bb84f4c966d2ba6d52718d",
+  "installer_sha256": "a270634ba5a92c712609395c07d38f6150415dbc5fc041f1e73c40b1672feca1",
   "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-8f370103b763e54c4aa1c6c4d5eeff462d3643c3455c44afc30aa3ba5aad2395",
   "payload_sha256": "add0ec7529f0085aea84f183df0676435022bd5d813853cf70ef59837f93d0fa",
   "files": [

@@ -1,5 +1,5 @@
 """Single reviewed administrative installation. No provider call/financial start."""
-import base64,hashlib,json,os,stat,subprocess,sys,types
+import base64,hashlib,json,os,stat,subprocess,sys,types,pwd
 from pathlib import Path
 PACKAGE = {}  # BUILD_PACKAGE
 def sha(v):return hashlib.sha256(v).hexdigest()
@@ -19,6 +19,9 @@ def run(args):
 
 def install():
  if os.geteuid()!=0:raise ValueError('root snapshot required')
+ user=pwd.getpwnam('hermes')
+ if (user.pw_uid,user.pw_gid)!=(1001,1001):raise ValueError('hermes identity drift')
+ if not Path('/usr/lib/polkit-1/polkitd').is_file():raise ValueError('existing Polkit backend required')
  release=Path(PACKAGE['release']);state=Path('/var/lib/msp-finance-control');receipt=state/'INSTALL.json'
  for p in [Path(__file__),*Path(__file__).parents]:
   st=p.lstat()
@@ -30,6 +33,13 @@ def install():
   if json.loads(receipt.read_text()).get('payload_sha256')!=PACKAGE['payload_sha256']:raise ValueError('different/partial existing controller')
   for n,d in PACKAGE['hashes'].items():
    if sha((release/n).read_bytes())!=d:raise ValueError('installed code drift')
+  expected={Path('/etc/systemd/system')/n:files['units/'+n] for n in ['msp-finance-control.service','msp-finance-recover.service']}
+  expected[Path('/etc/polkit-1/rules.d/49-msp-finance-control.rules')]=files['units/49-msp-finance-control.rules']
+  expected[Path('/usr/local/bin/msp-finance-wake')]=('#!/bin/sh\nexec /usr/bin/python3 -I -B '+str(release/'client.py')+' \"$@\"\n').encode()
+  expected[Path('/etc/tmpfiles.d/msp-finance-control.conf')]=b'd /run/msp-finance-control 0700 root root -\n'
+  for p,b in expected.items():
+   st=p.lstat()
+   if stat.S_ISLNK(st.st_mode) or st.st_uid!=0 or st.st_mode&0o022 or p.read_bytes()!=b:raise ValueError('installed administrative wiring drift')
   print('ALREADY_INSTALLED_NO_START');return
  # Reuse exact accepted runtime/unit acceptance without mutating infrastructure.
  c=types.ModuleType('accepted_preflight');c.__file__=__file__
