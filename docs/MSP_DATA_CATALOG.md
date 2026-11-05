@@ -48,3 +48,29 @@ Check SQLite and four-source ingestion without fetching live sources:
 `python3 /opt/mcp/projects/msp-server-stack/apps/msp_data_sync/sync.py --config /opt/mcp/projects/msp-server-stack/config/msp-data/sync.json --verify-only`
 
 A timer being enabled does not prove the scheduled sync actually ran: verify the latest `sync_run` status and timestamps for each of the four sources. SQLite integrity and foreign keys should also be checked before claiming acceptance.
+
+<!-- MSP_SIGNAL_REGISTRY_START -->
+## Единый реестр сигналов МСП — 29.10.2026
+
+Для SIG-002/015/016/021/022/032 и анализа их отработки сначала читать
+`/opt/mcp/projects/msp-server-stack/docs/signals/SIGNAL_REGISTRY.md`
+(локальная копия `/home/hermes/.local/share/msp/signal-registry/OPERATIONS.md`).
+Реестр SQLite: `/opt/mcp/data/msp/msp_signal_registry.sqlite3`;
+вход: `python3 /home/hermes/.local/share/msp/signal-registry/registry.py status`,
+затем `show --id ID`. Обратная связь в Удалённом сервере и Hermes Group —
+отработка, но НЕ подтверждение успешного действия. Результат сохранять отдельно
+по товару/площадке/кабинету с доказательствами, имитацию не выдавать за факт.
+При ручной работе связывать сохранённую обратную связь через `link` и добавлять
+непокрытые журналами исполнителей результаты через `record-action` по инструкции.
+Неоднозначные сообщения не закрывают сигнал; не угадывать связь по названию.
+Не запускать повторно действия/отправки ради заполнения реестра.
+
+### Обязательность с 29.10.2026
+Владелец поручил Hermes вести реестр постоянно для всех чатов и агентов сервера.
+Каждый считанный сигнал, обратная связь и действие подлежат записи; работа не
+завершена до проверки записи через show. Навык:
+`/home/hermes/.hermes/skills/productivity/msp-signal-registry/SKILL.md`.
+Автосбор охватывает подключённые журналы; ручные/новые исполнители обязаны
+дополнять их через record-action/link. При сбое фиксировать пробел и сверять
+квитанции, не повторять внешнее действие ради заполнения реестра.
+<!-- MSP_SIGNAL_REGISTRY_END -->

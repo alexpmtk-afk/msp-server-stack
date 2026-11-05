@@ -1,0 +1,15 @@
+[Unit]
+Description=MSP passive six-signal registry reconciliation
+After=network.target
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/hermes/.local/share/msp/signal-registry/registry.py watch
+Restart=always
+RestartSec=10
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/mcp/data/msp /home/hermes/.local/share/msp/signal-registry
+[Install]
+WantedBy=default.target
