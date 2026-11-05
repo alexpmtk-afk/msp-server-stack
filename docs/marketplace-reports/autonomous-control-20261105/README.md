@@ -35,3 +35,26 @@ Local new tests exercise actual overlaid archive loader with fake HTTP/no socket
 After one-time installation actual VPS acceptance remains: two no-root manual wakes, exact selected reports/rows/page hashes and restored block; controlled recovery readback; physical reboot only in an agreed maintenance window. Do not claim these from offline/CI tests. No live installer/root call was performed during preparation.
 
 Emergency closure: root `systemctl stop msp-finance-control.service` invokes fixed ExecStopPost. Recover-only: root `systemctl restart msp-finance-recover.service` after stop; do not delete active-run/state to retry. To disable future user wakes remove ONLY the reviewed exact-unit Polkit rule under root after closure; preserve source/runtime/archive/data and reconcile installation receipt rather than reinstall. Paths and units must match MANIFEST; never remove foreign changed controls.
+
+
+## PR120 lost-budget blocker correction (review comment 6654128005)
+
+Before worker admission, before creating any new detail budget, before each
+sender entry, and at the real HTTP boundary, reconcile the original sealed
+budget against durable staging and **all** `*events.jsonl` files, not just this
+wake's nonce. New events carry the exact immutable plan (no credentials).
+Legacy E/October-first/next-865431404 journals retain their original plan
+identities and are checked too. Unknown unscoped legacy events, truncated logs,
+missing/corrupt budgets, counters below aggregate attempts or staged pages:
+**HOLD, no new HTTP, no budget reconstruction/reset or automatic repair**.
+A conservative HOLD may require operator evidence reconciliation; never delete
+logs/pages to clear it. No changes to A/B/C, credentials, schedules or archives.
+
+The network-denied actual-loader regression includes 24 negative invocations:
+missing counter with dispatch/unknown outcome, orphan/real staged pages,
+corrupt JSON/seal, multiple old nonces exceeding a valid counter, previous
+legacy report evidence, truncated events and loss at the HTTP boundary. Each
+asserts no new HTTP and preservation of existing evidence. The original sealed
+legacy budget with three HTTP attempts still continues monotonically 3 -> 4;
+two bounded portions continue 3 -> 6 and completed replay does not dispatch.
+These are offline evidence, not VPS execution or new downloaded rows.

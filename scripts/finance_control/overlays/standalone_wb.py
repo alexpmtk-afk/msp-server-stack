@@ -105,6 +105,105 @@ def _resync(path):
         os.close(fd)
     _sync_dir(path.parent)
 
+def reconcile_admission(root, plan):
+    """Read-only fail-closed check across ALL wake nonces and legacy HTTP logs.
+
+    Evidence never reconstructs a budget: only its original sealed counter may
+    authorize continuation. Unscoped/invalid evidence requires manual review.
+    """
+    from .wb_page_resume import _dir, _read_json, _validate_state, _verify_pages
+    root = Path(root)
+    folder = _checked(root / '.wb-executor')
+    totals = {}
+    plans = {_digest(plan): plan}
+    def budget(p):
+        discovery = p.get('kind') == 'wb-discovery'
+        key = _digest(p)
+        path = folder / (('discovery-' if discovery else '') + key + '.json')
+        value = read_control(path)  # Missing/corrupt is NEVER zero.
+        if type(value) is not dict:
+            raise PilotBlocked('budget is not an object')
+        seal = value.pop('state_sha256', None)
+        count = value.get('entries' if discovery else 'send_entries')
+        cap = value.get('approved_total_entries', p['max_send_entries'])
+        if (seal != _digest(value) or value.get('plan_sha256') != key
+                or type(count) is not int or type(cap) is not int
+                or not 0 <= count <= cap <= 1000):
+            raise PilotBlocked('original sealed budget invalid; no reset')
+        return count
+    def legacy(name, event):
+        base = {'schema':1,'cabinet':'wb_laser_master','year':2026,'max_send_entries':3}
+        if name == 'E-883801632-events.jsonl':
+            return {**base,'report_id':883801632,'report_type':1}
+        if name in ('history-october-first-events.jsonl','history-next-865431404-events.jsonl'):
+            if event.get('method_scope') == 'list':
+                return {'schema':1,'kind':'wb-discovery','cabinet':'wb_laser_master','year':2026,
+                        'date_from':'2026-10-01','date_to':'2026-10-31','limit':1000,'max_send_entries':2}
+            if event.get('method_scope') == 'detail':
+                return {**base,'report_id':883801636 if name.startswith('history-october') else 865431404,
+                        'report_type':2 if name.startswith('history-october') else 1}
+        raise PilotBlocked('unscoped historical HTTP evidence; review required')
+    if folder.exists():
+        for path in sorted(folder.glob('*events.jsonl')):
+            _checked(path)
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            try:
+                info = os.fstat(fd)
+                if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size > 16*1024*1024:
+                    raise PilotBlocked('invalid HTTP evidence file')
+                raw = os.read(fd, 16*1024*1024+1)
+                if len(raw) > 16*1024*1024:
+                    raise PilotBlocked('HTTP evidence too large')
+            finally:
+                os.close(fd)
+            pending = None
+            for line in raw.splitlines():
+                event = json.loads(line, object_pairs_hook=_strict)
+                if type(event) is not dict or event.get('event') not in ('HTTP_DISPATCH_ATTEMPT','HTTP_RESPONSE','HTTP_OUTCOME_UNKNOWN'):
+                    raise PilotBlocked('invalid historical HTTP event')
+                p = event.get('plan')
+                if p is None and event['event'] != 'HTTP_DISPATCH_ATTEMPT' and pending is not None:
+                    p = pending
+                if p is None:
+                    p = legacy(path.name, event)
+                if p.get('kind') != 'wb-discovery':
+                    validate_plan(p)
+                else:
+                    from .wb_discovery_resume import validate
+                    validate(p)
+                key = _digest(p);plans[key] = p
+                if event['event'] == 'HTTP_DISPATCH_ATTEMPT':
+                    totals[key] = totals.get(key, 0) + 1;pending = p
+                else:
+                    if pending is None:
+                        # An orphan outcome still proves at least one spent entry.
+                        totals[key] = totals.get(key, 0) + 1
+                    elif _digest(pending) != key:
+                        raise PilotBlocked('HTTP outcome scope mismatch')
+                    pending = None
+    selected = folder / (('discovery-' if plan.get('kind') == 'wb-discovery' else '') + _digest(plan) + '.json')
+    counts = {}
+    for key, p in plans.items():
+        if key in totals or (key == _digest(plan) and (selected.exists() or selected.is_symlink())):
+            counts[key] = budget(p)
+            if totals.get(key, 0) > counts[key]:
+                raise PilotBlocked('HTTP attempts exceed original sealed budget')
+    if plan.get('kind') == 'wb-discovery':
+        if folder.exists() and any(folder.glob('discovery-' + _digest(plan) + '-offset-*.json')):
+            if budget(plan) < 1:
+                raise PilotBlocked('discovery pages without spent budget')
+    else:
+        stage = _checked(_dir(root, plan['cabinet'], plan['year'], plan['report_id'], plan['report_type']))
+        if stage.exists() and any(stage.iterdir()):
+            count = budget(plan)
+            state = _read_json(stage / 'state.json', required=True)
+            _validate_state(state, plan['cabinet'], plan['year'], plan['report_id'], plan['report_type'])
+            _verify_pages(stage, state, plan['report_id'], plan['report_type'])
+            minimum = len(state['pages']) + (state['status'] == 'STAGED_COMPLETE')
+            if count < minimum:
+                raise PilotBlocked('staged pages exceed original sealed budget')
+    return counts.get(_digest(plan), 0)
+
 def run_step(root, plan, authorization, factory, *, now=None, fault=None, admission_ceiling=None, policy_sha256=None):
     """One adapter step. Injected factory is for offline tests or approved HTTP.
 
@@ -122,6 +221,7 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
     root = Path(root)
     if not _checked(root).is_dir():
         raise PilotBlocked('archive root must be provisioned before execution')
+    reconcile_admission(root, plan)
     key = _digest(plan)
     # A common local owner across cabinets/types. Not a cross-host Redis lease.
     with _lock(root, 'standalone', 'wb_executor'):
@@ -144,6 +244,7 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
                 raise PilotBlocked('executor journal invalid; do not reset')
             _resync(path)
         else:
+            reconcile_admission(root, plan)
             state = {'schema':1,'plan_sha256':key,'send_entries':0,'status':'READY'}
             _safe_write(path, _encode({**state, 'state_sha256':_digest(state)}))
         def save():
@@ -170,6 +271,7 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
                 raise PilotBlocked('completed journal must reconcile without new download')
             if state['send_entries'] >= ceiling:
                 raise BudgetPause()
+            reconcile_admission(root, plan)
             state['send_entries'] += 1
             state['status'] = 'DISPATCH_UNCERTAIN'
             state.pop('not_before_epoch', None)

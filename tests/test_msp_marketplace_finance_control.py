@@ -18,7 +18,7 @@ class Control(unittest.TestCase):
  def test_real_overlay_loader_two_portions_no_reset_and_crash(self):
   with tempfile.TemporaryDirectory(dir=os.environ.get('TMPDIR',str(ROOT))) as d:
    p=subprocess.run([sys.executable,'-I','-B',str(ROOT/'scripts/finance_control/test_overlay.py'),str(ROOT/'docs/marketplace-reports/autonomous-control-20261105/install.py'),str(ROOT),d],capture_output=True,timeout=45)
-   self.assertEqual(p.returncode,0,p.stderr.decode());proof=json.loads(p.stdout);self.assertEqual(proof['entries'],[3,6]);self.assertEqual(proof['rows'],5);self.assertTrue(proof['completed_replay_no_dispatch'])
+   self.assertEqual(p.returncode,0,p.stderr.decode());proof=json.loads(p.stdout);self.assertEqual(proof['entries'],[3,6]);self.assertEqual(proof['rows'],5);self.assertTrue(proof['completed_replay_no_dispatch']);self.assertEqual(proof['lost_budget_negative_scenarios'],24);self.assertEqual(proof['new_http_in_negative_scenarios'],0);self.assertTrue(proof['all_nonce_logs_checked']);print('BUDGET_LOSS_PROOF '+json.dumps(proof,sort_keys=True))
  def test_unit_and_policy_allow_only_fixed_start_and_no_daily_timer(self):
   folder=ROOT/'docs/marketplace-reports/autonomous-control-20261105'
   rule=(folder/'49-msp-finance-control.rules').read_text();self.assertIn('action.lookup("verb") === "start"',rule);self.assertIn('subject.user === "hermes"',rule)

@@ -13,19 +13,21 @@ def record(path,value):
   os.write(fd,(json.dumps(value)+'\n').encode());os.fchmod(fd,0o600);os.fsync(fd)
  finally:os.close(fd)
 class Audit:
- def __init__(self,inner,journal,url):self.inner=inner;self.journal=journal;self.url=url
+ def __init__(self,inner,journal,url,plan):self.inner=inner;self.journal=journal;self.url=url;self.plan=plan
  def open(self,req,timeout):
   if req.full_url!=self.url or req.get_method()!='POST':raise ValueError('fixed root-approved HTTPS scope')
-  record(self.journal,{'event':'HTTP_DISPATCH_ATTEMPT'})
+  from apps.msp_marketplace_reports import standalone_wb as s
+  s.reconcile_admission(self.journal.parent.parent,self.plan)
+  record(self.journal,{'event':'HTTP_DISPATCH_ATTEMPT','plan':self.plan})
   try:r=self.inner.open(req,timeout=timeout)
-  except urllib.error.HTTPError as e:record(self.journal,{'event':'HTTP_RESPONSE','status':int(e.code)});raise
-  except Exception as e:record(self.journal,{'event':'HTTP_OUTCOME_UNKNOWN','error_type':type(e).__name__});raise
-  record(self.journal,{'event':'HTTP_RESPONSE','status':int(r.status)});return r
+  except urllib.error.HTTPError as e:record(self.journal,{'event':'HTTP_RESPONSE','plan':self.plan,'status':int(e.code)});raise
+  except Exception as e:record(self.journal,{'event':'HTTP_OUTCOME_UNKNOWN','plan':self.plan,'error_type':type(e).__name__});raise
+  record(self.journal,{'event':'HTTP_RESPONSE','plan':self.plan,'status':int(r.status)});return r
 def execute(root,plan,auth,factory,policy_sha,*,clock=time.time,sleep=time.sleep):
  from apps.msp_marketplace_reports import standalone_wb as s
  from apps.msp_marketplace_reports import wb_discovery_resume as d
  from apps.msp_marketplace_reports.finance_receipts import report_receipt
- s.validate_authorization(auth,plan,root,clock());deadline=clock()+300
+ s.validate_authorization(auth,plan,root,clock());s.reconcile_admission(root,plan);deadline=clock()+300
  if plan.get('kind')=='wb-discovery':
   out=d.step(root,plan,auth,factory,now=clock())
   if out['status']=='PAGE_STAGED_RECONCILE':out=d.step(root,plan,auth,lambda:(_ for _ in ()).throw(ValueError('replay only')),now=clock())
@@ -70,7 +72,7 @@ def main():
  def factory():
   sender=Sender(cabinet=plan['cabinet'],credentials_file=Path(os.environ['CREDENTIALS_DIRECTORY'])/'cabinets.json',state_root=ARCHIVE)
   path=WB_LIST if plan.get('kind')=='wb-discovery' else WB_DETAIL+str(plan['report_id'])
-  sender.opener=Audit(sender.opener,journal,'https://finance-api.wildberries.ru'+path);return sender
+  sender.opener=Audit(sender.opener,journal,'https://finance-api.wildberries.ru'+path,plan);return sender
  result=execute(ARCHIVE,plan,auth,factory,active['policy_sha256'])
  observed=[json.loads(line) for line in journal.read_text().splitlines()] if journal.exists() else []
  result.update(http_dispatch_attempts=sum(v['event']=='HTTP_DISPATCH_ATTEMPT' for v in observed),http_response_statuses=[v['status'] for v in observed if v['event']=='HTTP_RESPONSE'],http_outcomes_unknown=sum(v['event']=='HTTP_OUTCOME_UNKNOWN' for v in observed))
