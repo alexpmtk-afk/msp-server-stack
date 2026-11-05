@@ -1,5 +1,8 @@
 # Reviewed signal rules — 2026-10-05
 
+> **СТАТУС:** [единый живой реестр шести сигналов](STATUS_AND_ROADMAP.md). Раздел SIG-032 ниже частично устарел: см. действующую [двухветочную схему и прямую команду](https://github.com/alexpmtk-afk/msp-server-bridge/blob/main/docs/SIG-032_TELEGRAM_APPROVAL_COMMENT_FLOW.md). Код и серверные инструкции подготовлены, а Gateway callbacks пока не активированы (bridge issue #679). SIG-002 использует приоритет решения от 27.10.2026.
+
+
 These are the six signal types that were explicitly discussed with the user and partially reviewed on REMOTE. They are decision/routing instructions only. Automatic execution is disabled until approved API/MCP action tools and result verification are available.
 
 ## 1. SIG-002 — «Поднять цену»
