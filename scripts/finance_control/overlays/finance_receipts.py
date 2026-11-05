@@ -5,14 +5,33 @@ completeness claims. Invalid local evidence is a HOLD, never a fresh download.
 """
 import json
 from pathlib import Path
-from .archive import DATASETS,_rows
+from .archive import DATASETS,_rows,_sha
 from .generation_store import read_active,GenerationError
 from .wb_worker_adapter import _dataset
-from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,read_completed_wb_pages
+from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,_validate_page
 from .wb_report_revision import revision_root
 from .ingest import _cell
 from .standalone_wb import _digest
 from .backfill_plan import _inventory
+
+
+def _completed_pages_readonly(root,cabinet,year,rid,kind):
+    """No O_CREAT/O_RDWR lock: admin controller is ProtectSystem=strict.
+
+    The caller serializes executor admission. Page bytes are pinned to the
+    captured validated cursor chain and rehashed on the actual read, so this
+    read-only path neither modifies evidence nor trusts mutable reread bytes.
+    """
+    folder=_dir(root,cabinet,year,rid,kind)
+    state=_read_json(folder/'state.json',required=True)
+    _validate_state(state,cabinet,year,rid,kind)
+    if state['status']!='STAGED_COMPLETE':raise GenerationError('report not terminal')
+    _verify_pages(folder,state,rid,kind)
+    for entry in state['pages']:
+        page,raw=_read_json(folder/('page-'+str(entry['cursor'])+'.json'),required=True,with_bytes=True)
+        if _sha(raw)!=entry['sha256'] or _validate_page(page,rid,kind,entry['cursor'])!=entry['next_rrd_id']:
+            raise GenerationError('read-only page changed during verification')
+        yield page['rows']
 
 
 def report_receipt(root,cabinet,year,rid,kind):
@@ -42,10 +61,10 @@ def report_receipt(root,cabinet,year,rid,kind):
         if not active:raise GenerationError('terminal report missing publication')
         _,rows=_rows(active['files']['data.csv'],DATASETS[dataset][1]);selected={k:v for k,v in rows.items() if k[0]==str(rid)}
         fields=set(DATASETS[dataset][1])|{'reportType'}
-        for page in read_completed_wb_pages(staged,cabinet,year,rid,kind):
+        for page in _completed_pages_readonly(staged,cabinet,year,rid,kind):
             for row in page:fields.update(row)
         fields.discard('_raw_json');count=0
-        for page in read_completed_wb_pages(staged,cabinet,year,rid,kind):
+        for page in _completed_pages_readonly(staged,cabinet,year,rid,kind):
             for row in page:
                 expected={f:_cell(row.get(f)) for f in fields}
                 expected['_raw_json']=json.dumps(row,ensure_ascii=False,sort_keys=True,separators=(',',':'))

@@ -19,9 +19,10 @@ def main():
  folder=Path(tempfile.mkdtemp(prefix='msp-control-ci-',dir='/var/lib'));os.chmod(folder,0o755)
  suffix=folder.name[-8:];financial='msp-fin-ci-'+suffix+'.service';admin='msp-adm-ci-'+suffix+'.service'
  unitdir=Path('/etc/systemd/system');ruledir=Path('/etc/polkit-1/rules.d');rule=ruledir/('49-'+suffix+'.rules')
- units=[unitdir/financial,unitdir/admin];dropdir=Path('/run/systemd/system')/(financial+'.d')
+ diagnostic='msp-diagnostic-ci-'+suffix+'.service'
+ units=[unitdir/financial,unitdir/admin,unitdir/diagnostic];dropdir=Path('/run/systemd/system')/(financial+'.d')
  try:
-  for name,source in [('control.py',repo/'scripts/finance_control/control.py'),('supervisor.py',repo/'scripts/wb_live_pilot/launch.py'),('client.py',repo/'scripts/finance_control/client.py')]:
+  for name,source in [('control.py',repo/'scripts/finance_control/control.py'),('supervisor.py',repo/'scripts/wb_live_pilot/launch.py'),('client.py',repo/'scripts/finance_control/client.py'),('diagnostics.py',repo/'scripts/finance_control/diagnostics.py'),('diagnostics_client.py',repo/'scripts/finance_control/diagnostics_client.py')]:
    p=folder/name;p.write_bytes(source.read_bytes());os.chmod(p,0o644)
   for name in ['inbox','budget']:
    p=folder/name;p.mkdir();os.chown(p,uid,user.pw_gid);os.chmod(p,0o700)
@@ -67,6 +68,14 @@ m.subprocess.run=dispatch;m.main()
   units[0].write_text('[Service]\nType=oneshot\nUser='+user.pw_name+'\nGroup='+str(user.pw_gid)+'\nExecStart=/usr/bin/python3 -I -B '+str(folder/'worker.py')+'\nPrivateNetwork=yes\nIPAddressDeny=any\nNoNewPrivileges=yes\n')
   units[1].write_text('[Service]\nType=oneshot\nExecStart=/usr/bin/python3 -I -B '+str(folder/'helper.py')+'\nExecStopPost=/usr/bin/python3 -I -B '+str(folder/'helper.py')+' --close\nTimeoutStartSec=60\n')
   rule.write_text('polkit.addRule(function(a,s){if(a.id==="org.freedesktop.systemd1.manage-units" && a.lookup("unit")==='+json.dumps(admin)+' && a.lookup("verb")==="start" && s.user==='+json.dumps(user.pw_name)+') return polkit.Result.YES;});\n');os.chmod(rule,0o644)
+  # Actual root diagnostic service emits only redacted location, then actual
+  # UID1001 reads it via the production diagnostic client and Polkit path.
+  diag_helper="import importlib.util,json\nfrom pathlib import Path\nf=Path("+repr(str(folder))+");s=importlib.util.spec_from_file_location('diagnostics',f/'diagnostics.py');d=importlib.util.module_from_spec(s);s.loader.exec_module(d)\ndef bad():raise ValueError('CI_PRIVATE_VALUE_MUST_NOT_LEAK')\nr=d.probe([('SELECT_REPORT_READ_ONLY',bad)]);d.publish(f/'results',r)\n"
+  (folder/'diagnostic_helper.py').write_text(diag_helper);os.chmod(folder/'diagnostic_helper.py',0o644)
+  diag_client="import importlib.util\nfrom pathlib import Path\nf=Path("+repr(str(folder))+");s=importlib.util.spec_from_file_location('diag_client',f/'diagnostics_client.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.STATE=f\nactual=m.subprocess.run\ndef dispatch(args,**kw):\n assert args==['/usr/bin/systemctl','--no-ask-password','start','msp-finance-diagnostics.service'];return actual(['/usr/bin/systemctl','--no-ask-password','start',"+repr(diagnostic)+"],**kw)\nm.subprocess.run=dispatch;m.main()\n"
+  (folder/'diagnose.py').write_text(diag_client);os.chmod(folder/'diagnose.py',0o644)
+  units[2].write_text('[Service]\nType=oneshot\nUser=root\nExecStart=/usr/bin/python3 -I -B '+str(folder/'diagnostic_helper.py')+'\nPrivateNetwork=yes\nNoNewPrivileges=yes\nProtectSystem=strict\nReadWritePaths='+str(folder/'results')+'\nUMask=0077\n')
+  with rule.open('a') as f:f.write('polkit.addRule(function(a,s){if(a.id==="org.freedesktop.systemd1.manage-units" && a.lookup("unit")==='+json.dumps(diagnostic)+' && a.lookup("verb")==="start" && s.user==='+json.dumps(user.pw_name)+') return polkit.Result.YES;});\n')
   run(['/usr/bin/systemctl','start','polkit.service']);run(['/usr/bin/systemctl','daemon-reload']);time.sleep(1)
   def wake():return run(['/usr/bin/sudo','-n','-u',user.pw_name,'/usr/bin/python3','-I','-B',str(folder/'invoke.py'),'--cabinet','wb_laser_master','--jobs','1'],False)
   for expected in [1,2]:
@@ -85,10 +94,14 @@ m.subprocess.run=dispatch;m.main()
   dropdir.mkdir();(dropdir/'90-test.conf').write_bytes(raw);shutil.rmtree(dropdir) # reboot removes volatile dropin, not budget
   run(['/usr/bin/python3','-I','-B',str(folder/'helper.py'),'--close']);assert json.loads((folder/'budget/counter.json').read_text())['entries']==3
   p=wake();assert p.returncode==0,p.stderr.decode();assert json.loads((folder/'budget/counter.json').read_text())['entries']==4
-  print(json.dumps({'actual_nonroot_uid':uid,'polkit_sequential_wakes':2,'entries_after_two':2,'crash_entries_preserved':3,'boot_equivalent_recovery_entries':3,'subsequent_entries':4,'network_block_restored':True,'physical_reboot_tested':False,'provider_calls':0}))
+  diag=run(['/usr/bin/sudo','-n','-u',user.pw_name,'/usr/bin/python3','-I','-B',str(folder/'diagnose.py')]);diagnostic_result=json.loads(diag.stdout)
+  assert diagnostic_result['status']=='HOLD' and diagnostic_result['failure']['phase']=='SELECT_REPORT_READ_ONLY'
+  assert 'CI_PRIVATE_VALUE_MUST_NOT_LEAK' not in diag.stdout.decode()
+  assert json.loads((folder/'budget/counter.json').read_text())['entries']==4
+  print(json.dumps({'actual_nonroot_uid':uid,'polkit_sequential_wakes':2,'entries_after_two':2,'crash_entries_preserved':3,'boot_equivalent_recovery_entries':3,'subsequent_entries':4,'network_block_restored':True,'physical_reboot_tested':False,'diagnostics_nonroot_read':'PASS','diagnostics_no_financial_start':True,'provider_calls':0}))
  finally:
-  run(['/usr/bin/systemctl','stop',admin,financial],False)
+  run(['/usr/bin/systemctl','stop',admin,financial,diagnostic],False)
   for p in units+[rule]:p.unlink(missing_ok=True)
   if dropdir.exists():shutil.rmtree(dropdir)
-  run(['/usr/bin/systemctl','daemon-reload'],False);run(['/usr/bin/systemctl','reset-failed',admin,financial],False);shutil.rmtree(folder)
+  run(['/usr/bin/systemctl','daemon-reload'],False);run(['/usr/bin/systemctl','reset-failed',admin,financial,diagnostic],False);shutil.rmtree(folder)
 if __name__=='__main__':main()

@@ -162,5 +162,5 @@ class FinanceControlActualSystemd(unittest.TestCase):
         args=['sudo','-n','/usr/bin/python3','-I','-B',str(root/'scripts/finance_control/systemd_fixture.py'),str(root)]
         p=subprocess.run(args,capture_output=True,timeout=240)
         self.assertEqual(p.returncode,0,p.stderr.decode(errors='replace')+p.stdout.decode(errors='replace'))
-        proof=json.loads(p.stdout);self.assertEqual(proof['polkit_sequential_wakes'],2);self.assertTrue(proof['network_block_restored']);self.assertEqual(proof['entries_after_two'],2);self.assertEqual(proof['boot_equivalent_recovery_entries'],3);self.assertEqual(proof['provider_calls'],0)
+        proof=json.loads(p.stdout);self.assertEqual(proof['polkit_sequential_wakes'],2);self.assertTrue(proof['network_block_restored']);self.assertEqual(proof['entries_after_two'],2);self.assertEqual(proof['boot_equivalent_recovery_entries'],3);self.assertEqual(proof['provider_calls'],0);self.assertEqual(proof['diagnostics_nonroot_read'],'PASS');self.assertTrue(proof['diagnostics_no_financial_start'])
         print('REAL_SYSTEMD_CONTROL_PROOF '+json.dumps(proof,sort_keys=True))
