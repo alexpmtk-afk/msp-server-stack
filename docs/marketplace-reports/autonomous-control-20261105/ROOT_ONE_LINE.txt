@@ -1,0 +1,1 @@
+msp_control_stage=$(mktemp -d /var/lib/msp-control-install.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-finance-control-install.py "$msp_control_stage/install.py" && printf '%s  %s\n' 3afb3cbad3777208260d8f6bc691c6fd4dd7bae1c3bb84f4c966d2ba6d52718d "$msp_control_stage/install.py" | sha256sum -c - && /usr/bin/python3 -I -B "$msp_control_stage/install.py"

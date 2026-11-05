@@ -1,0 +1,137 @@
+{
+  "installer_sha256": "3afb3cbad3777208260d8f6bc691c6fd4dd7bae1c3bb84f4c966d2ba6d52718d",
+  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-8f370103b763e54c4aa1c6c4d5eeff462d3643c3455c44afc30aa3ba5aad2395",
+  "payload_sha256": "add0ec7529f0085aea84f183df0676435022bd5d813853cf70ef59837f93d0fa",
+  "files": [
+    {
+      "path": "apps/msp_marketplace_reports/__init__.py",
+      "sha256": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/archive.py",
+      "sha256": "a4d2800494da1464ed73ffa338d7fc501d1fce7ce3da5dceb45f0eb7f057a3a2"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/backfill_plan.py",
+      "sha256": "b7811e304cebbe8ed3519df2fa82bd132b482690bb81272cce40f80e6ece4384"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/cli.py",
+      "sha256": "bdeb1d586ffe01800c236b5687b2fcf060952cc394e213cb16083c8f0b0636e2"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/current_repair.py",
+      "sha256": "087fb13de1072f08aaaf49eb71cef7de42c9d804f099d582f963be013077cc44"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/existing_worker_bridge.py",
+      "sha256": "8cc5d3ce2454dc1f6c048b0f989f01143ff77dfac32abce0c863877d77f5c2be"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/finance_receipts.py",
+      "sha256": "15224d302845d69691fd4c06b1d6d2ac81767b95a46e6556edac1a150cd9d37e"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/finance_refresh_plan.py",
+      "sha256": "0399a3b5c9eff173bcc3f49beb915c9743d1e3586a3fd9e76abb43203e6972f9"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/generation_recovery.py",
+      "sha256": "abd05ee172af8c8087af96898b88f430843ed93aab7b8849b242ed09514fe5de"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/generation_store.py",
+      "sha256": "1a981685a160031604e18d1aa3bd7728f2fb7b297183229d131fb24a34740fe2"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/ingest.py",
+      "sha256": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/ozon_connection_plan.py",
+      "sha256": "bfbf5f34f60e5d1b7c425d6dcf4fa66ea8cb52817e846285925d27a67b02b2f4"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/providers.py",
+      "sha256": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/quota.py",
+      "sha256": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/runtime.py",
+      "sha256": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/shared_rate_limit.py",
+      "sha256": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/standalone_wb.py",
+      "sha256": "c1a00af8f85f300d80dcc640958e9b04f76ad3dc6e16410ffacf12cf3fe4d056"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/versioned_archive.py",
+      "sha256": "7c49b1cf7c25cead17092d149030d4bc22652e26e66e7c890d96310122f3ad1f"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_discovery_resume.py",
+      "sha256": "9068e8c9d0f79384087c3543922471cdc42400b4c2b419477df5a23b3b8ee6a8"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_page_resume.py",
+      "sha256": "a49c30c3725ea69a3dab28b1a5fe181112de1b6ce2740cd8478d7e546af180a8"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_report_revision.py",
+      "sha256": "99e16a223bf7cb0273d88f8586654c7f750c74bafdfbc2b55a2d7ceb1db160e0"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_worker_adapter.py",
+      "sha256": "d528b557ed8eec20f1ebab22dcab6fc1ba17feee4b8e2d9dd4506ac47a3cb59f"
+    },
+    {
+      "path": "control.py",
+      "sha256": "79175537203242a58e5e34099a89d6aa9abf3de15994f4ab48f58cfa60077ced"
+    },
+    {
+      "path": "worker.py",
+      "sha256": "6e69b49458f6c759ef357aef114e8ea0f72d0af6b39f4037d6615408997ae159"
+    },
+    {
+      "path": "client.py",
+      "sha256": "e0ea8c746a1a1f3ec93c6835e73a5f1e9235d20fdd65309a000df29f85338acb"
+    },
+    {
+      "path": "pilot_supervisor.py",
+      "sha256": "fab5b328197f72f847a973ab1b2b652c7b97fd4957bd43b0d46e24b1b7d1a735"
+    },
+    {
+      "path": "build-source.sha256",
+      "sha256": "932f4543382c070c6dad3e3f48fc31e3697205fc3c0f5b76876c71dcc006467a"
+    },
+    {
+      "path": "assets.json",
+      "sha256": "2d3d141bd05392b713577e7cb549aa4ae16040d350744e1fdff7ef003f3ad94c"
+    },
+    {
+      "path": "units/msp-finance-control.service",
+      "sha256": "2cf664fd88cfb49bc439e89133a601d28d20a6425788e21ec68daec5b578c0b3"
+    },
+    {
+      "path": "units/msp-finance-recover.service",
+      "sha256": "757ca11a2198b3f4a4efeb6731def6c55708057b1a0850c5de042c250123aa84"
+    },
+    {
+      "path": "units/49-msp-finance-control.rules",
+      "sha256": "8a05958cd0488fdeca77a7210c2bde9cc33e8799a7a0585fe26e553599182b92"
+    },
+    {
+      "path": "files.json",
+      "sha256": "201682baceeadb52a0b082fe0b62eba60058025a104dbd63985a4085024f7d69"
+    }
+  ],
+  "root_execution": "NOT_EXECUTED",
+  "daily_timer": false
+}

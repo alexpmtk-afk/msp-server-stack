@@ -153,3 +153,14 @@ class CampaignWakeSecurity(unittest.TestCase):
         policy={'campaign_ids':['wb2026'],'max_wake_entries':3}
         for field in ('command','env','credentials_file','redis_url','reset_budget','report_id','release'):
             with self.assertRaises(ValueError):scope.admit_wake({'campaign_id':'wb2026','max_entries':1,field:'untrusted'},policy)
+
+class FinanceControlActualSystemd(unittest.TestCase):
+    def test_two_nonroot_wakes_real_systemd_cleanup_and_boot_equivalent_recovery(self):
+        import subprocess,shutil
+        root=Path(__file__).resolve().parents[1]
+        if os.environ.get('GITHUB_ACTIONS')!='true':self.skipTest('ephemeral hosted CI root/systemd fixture only; no VPS mutation')
+        args=['sudo','-n','/usr/bin/python3','-I','-B',str(root/'scripts/finance_control/systemd_fixture.py'),str(root)]
+        p=subprocess.run(args,capture_output=True,timeout=240)
+        self.assertEqual(p.returncode,0,p.stderr.decode(errors='replace')+p.stdout.decode(errors='replace'))
+        proof=json.loads(p.stdout);self.assertEqual(proof['polkit_sequential_wakes'],2);self.assertTrue(proof['network_block_restored']);self.assertEqual(proof['entries_after_two'],2);self.assertEqual(proof['boot_equivalent_recovery_entries'],3);self.assertEqual(proof['provider_calls'],0)
+        print('REAL_SYSTEMD_CONTROL_PROOF '+json.dumps(proof,sort_keys=True))
