@@ -111,6 +111,20 @@ def summarize_history(*, marketplace, sku, d1, d2, comments, period):
     }
     if isinstance(comments, dict) and type(comments.get('last_request')) in (int, float):
         result['comments_cache_updated_utc'] = datetime.fromtimestamp(comments['last_request'], timezone.utc).isoformat()
+    feed=(normalized['comments'] or {}).get('comments') if isinstance(normalized['comments'],dict) else normalized['comments']
+    dates=[]
+    for row in feed or []:
+        if not isinstance(row,dict):
+            continue
+        try:
+            day=str(row.get('date',''))[:10]
+            _date(day)
+        except ValueError:
+            continue
+        dates.append(day)
+    result['review_feed_diagnostics']={'received_rows':len(feed) if isinstance(feed,list) else None,
+        'latest_record_date':max(dates,default=None),
+        'cache_update_is_not_latest_review_date':True}
     return result
 
 
@@ -148,6 +162,8 @@ def query_history(reader, *, marketplace, sku, d1, d2, as_of, max_reads=24):
                                comments=comments, period=rows)
     result['source_receipts'] = receipts
     result['mpstats_calls'] = reader.calls
+    from apps.msp_self_analytics.dated_rating_detail import enrich_public_fallback
+    enrich_public_fallback(result,reader,max_reads=max_reads)
     return result
 
 
@@ -181,6 +197,8 @@ def format_history_ru(result):
     lines.append('Полное число оценок и текстовых отзывов отдельно: неизвестно. '
                  'Выборка неполная; ноль найденных не означает отсутствие новых оценок. '
                  'Дата выкупа не доказывает дату публикации отзыва или причинный эффект.')
+    from apps.msp_self_analytics.dated_rating_detail import format_dated_detail_ru
+    lines.append(format_dated_detail_ru(result))
     return '\n'.join(lines)
 
 
@@ -268,6 +286,10 @@ def format_review_date_summary_ru(result):
         stars = ', '.join(str(s) + '★ — ' + str(sample['stars'][str(s)]) for s in range(1, 6))
         mean = str(round(sample['mean_received_rating'], 3)) if sample['mean_received_rating'] is not None else 'не определена'
         lines.append(label + ': найдено ' + str(sample['received_count']) + ' оценок; ' + stars + '; средняя — ' + mean + '.')
+        if sample['records']:
+            lines.append('Дата | Оценка (найденные записи, авторство не установлено)')
+            for row in sorted(sample['records'],key=lambda r:(r['date'],r['valuation'])):
+                lines.append(f"{row['date']} | {row['valuation']}★")
     unresolved = result['own_date_records_not_attributed']
     if unresolved and unresolved['received_count']:
         lines.append('Записи в дни собственных отзывов отложены отдельно: ' + str(unresolved['received_count']) +

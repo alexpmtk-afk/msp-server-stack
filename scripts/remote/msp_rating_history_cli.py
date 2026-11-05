@@ -41,6 +41,8 @@ def main():
     else:
         if args.review_date:
             print(format_review_date_summary_ru(result['review_date_analysis']))
+            from apps.msp_self_analytics.dated_rating_detail import format_dated_detail_ru
+            print(format_dated_detail_ru(result,own_review_dates=[args.review_date,*args.own_review_date]))
         else:
             print(format_history_ru(result))
     return 0
