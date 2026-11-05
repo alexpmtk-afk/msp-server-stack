@@ -143,3 +143,13 @@ class HistoryWorkerSecurity(unittest.TestCase):
         worker=importlib.util.module_from_spec(spec);spec.loader.exec_module(worker)
         with patch.object(os,'geteuid',return_value=1001),patch.object(Path,'read_text',side_effect=AssertionError('no secret reads')):
             with self.assertRaisesRegex(ValueError,'msp-reports'):worker.main()
+
+class CampaignWakeSecurity(unittest.TestCase):
+    def test_unprivileged_wake_cannot_supply_root_command_or_override_paths(self):
+        import importlib.util
+        root=Path(__file__).resolve().parents[1]
+        spec=importlib.util.spec_from_file_location('campaign_admission',root/'scripts/finance_campaign/scope.py')
+        scope=importlib.util.module_from_spec(spec);spec.loader.exec_module(scope)
+        policy={'campaign_ids':['wb2026'],'max_wake_entries':3}
+        for field in ('command','env','credentials_file','redis_url','reset_budget','report_id','release'):
+            with self.assertRaises(ValueError):scope.admit_wake({'campaign_id':'wb2026','max_entries':1,field:'untrusted'},policy)

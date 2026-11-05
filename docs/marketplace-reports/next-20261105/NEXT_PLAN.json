@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "completed_excluded": [
+    883801632,
+    883801636
+  ],
+  "next": {
+    "schema": 1,
+    "cabinet": "wb_laser_master",
+    "year": 2026,
+    "report_id": 865431404,
+    "report_type": 1,
+    "max_send_entries": 3,
+    "date_from": "2026-10-01",
+    "date_to": "2026-10-04"
+  },
+  "remaining_discovered": [
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 865431404,
+      "report_type": 1,
+      "max_send_entries": 3,
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-04"
+    },
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 865431405,
+      "report_type": 2,
+      "max_send_entries": 3,
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-04"
+    },
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 869764518,
+      "report_type": 1,
+      "max_send_entries": 3,
+      "date_from": "2026-10-05",
+      "date_to": "2026-10-11"
+    },
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 869764723,
+      "report_type": 2,
+      "max_send_entries": 3,
+      "date_from": "2026-10-05",
+      "date_to": "2026-10-11"
+    },
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 875899155,
+      "report_type": 1,
+      "max_send_entries": 3,
+      "date_from": "2026-10-12",
+      "date_to": "2026-10-18"
+    },
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 875899158,
+      "report_type": 2,
+      "max_send_entries": 3,
+      "date_from": "2026-10-12",
+      "date_to": "2026-10-18"
+    },
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 890551254,
+      "report_type": 1,
+      "max_send_entries": 3,
+      "date_from": "2026-10-26",
+      "date_to": "2026-10-31"
+    },
+    {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 890551259,
+      "report_type": 2,
+      "max_send_entries": 3,
+      "date_from": "2026-10-26",
+      "date_to": "2026-10-31"
+    }
+  ],
+  "coverage": "OCTOBER_DISCOVERY_ONLY_NOT_YEAR_COMPLETE",
+  "other_cabinets": {
+    "wb_novokshenov": "DISCOVERY_REQUIRED",
+    "wb_dmitrieva": "DISCOVERY_REQUIRED"
+  },
+  "year_windows": "2026-01-01_THROUGH_LAST_AVAILABLE_CLOSED_PERIOD",
+  "daily_enabled": false
+}

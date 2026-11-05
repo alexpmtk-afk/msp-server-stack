@@ -1,0 +1,135 @@
+{
+  "launcher_sha256": "7b57b3fba377fc6bd5f1fa9455fe44aeac2a5e25787136cc80466c825907c18a",
+  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/history-next-7fa12d585f031f8d7fedc9b4fdab4eacb8d55fc92cf82a854dd1395e5cdc4942",
+  "files": [
+    {
+      "path": "apps/msp_marketplace_reports/__init__.py",
+      "sha256": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/archive.py",
+      "sha256": "a4d2800494da1464ed73ffa338d7fc501d1fce7ce3da5dceb45f0eb7f057a3a2"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/backfill_plan.py",
+      "sha256": "b7811e304cebbe8ed3519df2fa82bd132b482690bb81272cce40f80e6ece4384"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/cli.py",
+      "sha256": "bdeb1d586ffe01800c236b5687b2fcf060952cc394e213cb16083c8f0b0636e2"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/current_repair.py",
+      "sha256": "087fb13de1072f08aaaf49eb71cef7de42c9d804f099d582f963be013077cc44"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/existing_worker_bridge.py",
+      "sha256": "8cc5d3ce2454dc1f6c048b0f989f01143ff77dfac32abce0c863877d77f5c2be"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/finance_receipts.py",
+      "sha256": "808e22fe89e840427df1887f035e3f821f8d39cdf5ea470c24af4d6874c54d06"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/finance_refresh_plan.py",
+      "sha256": "0399a3b5c9eff173bcc3f49beb915c9743d1e3586a3fd9e76abb43203e6972f9"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/generation_recovery.py",
+      "sha256": "abd05ee172af8c8087af96898b88f430843ed93aab7b8849b242ed09514fe5de"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/generation_store.py",
+      "sha256": "1a981685a160031604e18d1aa3bd7728f2fb7b297183229d131fb24a34740fe2"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/ingest.py",
+      "sha256": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/ozon_connection_plan.py",
+      "sha256": "bfbf5f34f60e5d1b7c425d6dcf4fa66ea8cb52817e846285925d27a67b02b2f4"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/providers.py",
+      "sha256": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/quota.py",
+      "sha256": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/runtime.py",
+      "sha256": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/shared_rate_limit.py",
+      "sha256": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/standalone_wb.py",
+      "sha256": "a63d18fd8a4f781357385bde015fb1b06f830e28ece9b1b2b406177778b22266"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/versioned_archive.py",
+      "sha256": "7c49b1cf7c25cead17092d149030d4bc22652e26e66e7c890d96310122f3ad1f"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_discovery_resume.py",
+      "sha256": "9068e8c9d0f79384087c3543922471cdc42400b4c2b419477df5a23b3b8ee6a8"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_page_resume.py",
+      "sha256": "a49c30c3725ea69a3dab28b1a5fe181112de1b6ce2740cd8478d7e546af180a8"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_report_revision.py",
+      "sha256": "99e16a223bf7cb0273d88f8586654c7f750c74bafdfbc2b55a2d7ceb1db160e0"
+    },
+    {
+      "path": "apps/msp_marketplace_reports/wb_worker_adapter.py",
+      "sha256": "d528b557ed8eec20f1ebab22dcab6fc1ba17feee4b8e2d9dd4506ac47a3cb59f"
+    },
+    {
+      "path": "worker.py",
+      "sha256": "e4d4cddacd78825068ef4023bc0fce09c9c270207f7c8c3b7ab3620e4383a7ab"
+    },
+    {
+      "path": "templates/msp-finance-daily-plan.service.in",
+      "sha256": "779e8658bc130ff9eec68c5929015451f25ca57abf9052b163c51e3f5b9924d5"
+    },
+    {
+      "path": "templates/msp-finance-daily-plan.timer.in",
+      "sha256": "cc2ee10cb2ba6f0b7c70ccd1db536bf8641a84205fdb333c79e03147737a507d"
+    }
+  ],
+  "batch": {
+    "schema": 1,
+    "kind": "wb-history-next-865431404",
+    "discovery": {
+      "schema": 1,
+      "kind": "wb-discovery",
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-31",
+      "limit": 1000,
+      "max_send_entries": 2
+    },
+    "detail": {
+      "schema": 1,
+      "cabinet": "wb_laser_master",
+      "year": 2026,
+      "report_id": 865431404,
+      "report_type": 1,
+      "max_send_entries": 3
+    },
+    "max_send_entries": 3
+  },
+  "completed_excluded": [
+    883801632,
+    883801636
+  ],
+  "root_execution": "NOT_EXECUTED",
+  "schedule_enabled": false
+}
