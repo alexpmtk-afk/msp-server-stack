@@ -6,7 +6,7 @@ from pathlib import Path
 PACKAGE = {}  # BUILD_PACKAGE
 OLD = {}  # BUILD_OLD
 STATE=Path('/var/lib/msp-finance-control')
-BACKUP=STATE/'upgrades'/'diagnostics-20261105'
+BACKUP=STATE/'upgrades'/('diagnostics-'+PACKAGE.get('payload_sha256','unbuilt')[:16])
 def sha(raw):return hashlib.sha256(raw).hexdigest()
 def enc(value):return (json.dumps(value,sort_keys=True)+'\n').encode()
 def trusted(p,directory=False):
@@ -64,7 +64,7 @@ def _main():
   p=old/n;trusted(p)
   if sha(p.read_bytes())!=h:raise ValueError('old installed payload drift')
   oldfiles[n]=p.read_bytes()
- before=wiring(str(old),oldfiles,False);after=wiring(str(release),files,True)
+ before=wiring(str(old),oldfiles,'units/msp-finance-diagnostics.service' in oldfiles);after=wiring(str(release),files,True)
  old_install=STATE/'INSTALL.json';trusted(old_install)
  if sys.argv[1:]==['--rollback']:
   trusted(BACKUP/'snapshot.json');snap=json.loads((BACKUP/'snapshot.json').read_text())

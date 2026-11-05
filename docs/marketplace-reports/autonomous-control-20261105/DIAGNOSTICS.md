@@ -14,8 +14,22 @@ Installed controller immutable-payload verification was separately executed
 read-only as hermes: PASS. Root journal and claims are not readable by hermes.
 The devexec maintenance broker's fixed contract covers only devexec; it is not
 an authorized finance installation or journal-read route. Do not abuse it.
-The original fault remains UNKNOWN until protected read-only checks succeed;
-this patch fixes observability, not a claimed unidentified underlying fault.
+Installed diagnostic readback now confirms HOLD in SELECT_REPORT_READ_ONLY,
+control.choose line58 (completed archive receipt rejected). Source inspection
+and an isolated failing regression reproduce the cause: report_receipt called
+read_completed_wb_pages, whose archive._lock opens O_CREAT|O_RDWR. Under the
+administrative/diagnostic unit's ProtectSystem=strict, the archive is read-only.
+The first missing report skips completed-page reads; the next wake visits the
+completed report and fails at that hidden write. This is not a WB rate error.
+
+The updated finance_receipts overlay reads terminal pages without writer locks,
+validates captured state/cursor chain, checks every page's SHA256 again on its
+actual read, and retains publication/business-row verification. Controller/
+diagnostic admission already serializes against the sole financial executor.
+No writable archive permission is added to either root unit. The isolated test
+first reproduced HOLD on a denied write to the archive lock; with the fix it
+verifies the completed receipt with zero writable opens and byte-identical
+archive evidence. Live protected-page verification remains pending update.
 
 ## Installed capabilities after the one-time upgrade
 
@@ -47,10 +61,11 @@ Killed-before-handler cases remain distinguishable from reported exceptions.
 Existing A/B/C and finance worker, archive, Redis, token files and schedules
 are unchanged. This is a different immutable controller release, never edits
 inside the installed PR120 release. Use **UPGRADE_ONE_LINE.txt**, not the old
-fresh-install command. Pinned old release/hashes and all old wiring must
+fresh-install command. The update now pins the already-installed diagnostic release e418e253, not
+the superseded initial PR120 release. Pinned old release/hashes and all old wiring must
 match. Refuse concurrent financial execution, unknown targets and partial
 installation. Back up only changed wiring and INSTALL.json to root0700
-`/var/lib/msp-finance-control/upgrades/diagnostics-20261105`.
+`/var/lib/msp-finance-control/upgrades/diagnostics-<payload-prefix>`.
 
 After replacement, verify units, reload systemd and start ONLY the read-only
 diagnostic unit. No financial/control/recover start or daily timer activation.

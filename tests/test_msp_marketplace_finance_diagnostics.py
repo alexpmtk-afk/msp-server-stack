@@ -73,3 +73,39 @@ class Upgrade(unittest.TestCase):
    before={str(p):p.read_bytes() for p in folder.rglob('*') if p.is_file()}
    with self.assertRaises(ValueError):self.invoke(m,[])
    after={str(p):p.read_bytes() for p in folder.rglob('*') if p.is_file()};self.assertEqual(before,after);self.assertFalse(any(a[1]=='start' for a in calls))
+
+class ReadOnlyCompletedReceipt(unittest.TestCase):
+ def test_completed_receipt_does_not_require_writable_archive_lock(self):
+  import ast,base64,subprocess,sys,os
+  # Isolated subprocess uses exact packaged code, never the installed archive.
+  script=r'''
+import ast,base64,sys,json,errno,os
+from pathlib import Path
+from unittest.mock import patch
+bundle=Path(sys.argv[1]);folder=Path(sys.argv[2]);node=next(n for n in ast.parse(bundle.read_bytes()).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PACKAGE' for t in n.targets));p=ast.literal_eval(node.value)
+for name,raw in p['files'].items():
+ if name.startswith('apps/'):
+  target=folder/'code'/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(base64.b64decode(raw))
+sys.path.insert(0,str(folder/'code'))
+from apps.msp_marketplace_reports import standalone_wb as s
+from apps.msp_marketplace_reports.finance_receipts import report_receipt
+root=folder/'archive';root.mkdir();plan={'schema':1,'cabinet':'wb_laser_master','year':2026,'report_id':865431404,'report_type':1,'max_send_entries':3}
+auth={'schema':1,'plan_sha256':s._digest(plan),'code_sha256':s.code_digest(),'archive_root':str(root),'expires_epoch':9999999999,'owner_api_pilot_authorized':True,'shared_quota_verified':True,'conflicting_clients_excluded':True,'evidence_reference':'OFFLINE_READ_ONLY_TEST'}
+answers=iter([(200,[{'reportId':865431404,'reportType':1,'rrdId':5}]),(204,None)]);now=[1000.]
+s.run_bounded(root,plan,auth,lambda:lambda req:next(answers),clock=lambda:now[0],sleep=lambda t:now.__setitem__(0,now[0]+t))
+assert report_receipt(root,plan['cabinet'],2026,865431404,1)['verified']
+before={str(p):p.read_bytes() for p in root.rglob('*') if p.is_file()}
+real_open=os.open;write_attempts=[]
+def readonly(path,flags,*args,**kwargs):
+ if flags&(os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND):
+  write_attempts.append(str(path));raise OSError(errno.EROFS,'Read-only file system')
+ return real_open(path,flags,*args,**kwargs)
+with patch.object(os,'open',readonly):result=report_receipt(root,plan['cabinet'],2026,865431404,1)
+assert result['verified'],(result,write_attempts)
+assert write_attempts==[],write_attempts
+assert before=={str(p):p.read_bytes() for p in root.rglob('*') if p.is_file()}
+print('READ_ONLY_COMPLETED_RECEIPT_PASS')
+'''
+  with tempfile.TemporaryDirectory() as tmp:
+   p=subprocess.run([sys.executable,'-I','-B','-c',script,str(ROOT/'docs/marketplace-reports/autonomous-control-20261105/install.py'),tmp],capture_output=True,text=True)
+   self.assertEqual(p.returncode,0,p.stderr);self.assertIn('READ_ONLY_COMPLETED_RECEIPT_PASS',p.stdout)

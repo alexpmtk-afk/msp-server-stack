@@ -45,7 +45,7 @@ def build():
   if n.startswith('units/'):(OUT/Path(n).name).write_bytes(b)
  (OUT/'MANIFEST.json').write_text(json.dumps({'installer_sha256':sha(raw),'release':release,'payload_sha256':package['payload_sha256'],'files':[{'path':n,'sha256':h} for n,h in package['hashes'].items()],'root_execution':'NOT_EXECUTED','daily_timer':False},indent=2)+'\n')
  # Pin the exact already-installed PR120 payload, not mutable branch state.
- old_raw=subprocess.check_output(['git','show','215c67e1ee417b946a21bdab8553ed14e93aabad:docs/marketplace-reports/autonomous-control-20261105/install.py'])
+ old_raw=subprocess.check_output(['git','show','e418e253fc799d8a5f8b59c875bef2d3fa26fe91:docs/marketplace-reports/autonomous-control-20261105/install.py'])
  old_node=next(n for n in ast.parse(old_raw).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PACKAGE' for t in n.targets));old_package=ast.literal_eval(old_node.value)
  old_pin={k:old_package[k] for k in ('release','hashes','payload_sha256')}
  up_source=(ROOT/'scripts/finance_control/upgrade.py').read_text();up=up_source.replace('PACKAGE = {}  # BUILD_PACKAGE','PACKAGE = '+repr(package)).replace('OLD = {}  # BUILD_OLD','OLD = '+repr(old_pin)).encode();compile(up,'upgrade.py','exec')
