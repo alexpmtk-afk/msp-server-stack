@@ -14,6 +14,7 @@ import shutil
 import subprocess
 
 FILES = (
+    'apps/msp_self_analytics/dated_rating_detail.py',
     'apps/msp_self_analytics/marketplace_rating_sources.py',
     'apps/msp_self_analytics/ozon_rating_source.py',
     'apps/msp_self_analytics/wb_rating_source.py',
