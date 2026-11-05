@@ -11,8 +11,9 @@ def run(args,check=True):
 
 def main():
  if os.geteuid()!=0:raise ValueError('ephemeral CI root fixture only')
- status=run(['/usr/bin/systemctl','is-system-running'],False).stdout.strip()
- if status not in (b'running',b'degraded'):raise AssertionError('hosted CI needs real systemd, not a mocked pass')
+ if Path('/proc/1/comm').read_text().strip()!='systemd':raise AssertionError('hosted CI requires actual systemd PID1')
+ manager=run(['/usr/bin/systemctl','show','--property=Version']).stdout
+ if b'Version=' not in manager:raise AssertionError('actual systemd manager unavailable')
  repo=Path(sys.argv[1]);uid=int(os.environ.get('SUDO_UID','1001'));user=pwd.getpwuid(uid)
  if uid!=1001:raise AssertionError('real unprivileged UID1001 required')
  folder=Path(tempfile.mkdtemp(prefix='msp-control-ci-',dir='/var/lib'));os.chmod(folder,0o755)
