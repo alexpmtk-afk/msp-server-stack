@@ -1,0 +1,1 @@
+wb_next_stage=$(mktemp -d /var/lib/msp-wb-next-entry.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-wb-next-865431404.py "$wb_next_stage/next.py" && printf '%s  %s\n' 01e99c0895e0a44333d1308e0d2a0d5153904a82c02e50df44e3693c63a198b8 "$wb_next_stage/next.py" | sha256sum -c - && /usr/bin/python3 -I -B "$wb_next_stage/next.py"

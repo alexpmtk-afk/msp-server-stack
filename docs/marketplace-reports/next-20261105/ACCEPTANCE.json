@@ -1,0 +1,30 @@
+{
+  "source": "/opt/mcp/report-run-results/wb-history-october-first.json",
+  "source_sha256": "5377397870de8b3870a60655cb77df7683c7715beec8c23a8711d574f596ab16",
+  "source_owner": "root:root0644",
+  "status": "PASS",
+  "report_id": 883801636,
+  "report_type": 2,
+  "rows": 46,
+  "pages": 1,
+  "http_statuses_entire_batch": [
+    200,
+    200,
+    204
+  ],
+  "http_requests_entire_batch": 3,
+  "detail_entries_spent": 2,
+  "detail_entries_ceiling": 3,
+  "discovery_entries_spent": 1,
+  "cursor": 3137222205064,
+  "page_sha256": [
+    "39d7124009fb469779cb51c76e995ca379724da2972b6f423697164f67b81b3d"
+  ],
+  "manifest_sha256": "4a48d1ea2d8695043b259ced3c705222f129c319cd8b903658ab3cdf28ece649",
+  "generation": "c6ff6f6be02c437bbf56e291f942e891",
+  "terminal_http_status": 204,
+  "report_detail_complete": true,
+  "api_enabled_after_run": false,
+  "schedule_enabled": false,
+  "two_completed_reports_total_rows": 887
+}
