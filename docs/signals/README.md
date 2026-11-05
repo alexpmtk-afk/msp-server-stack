@@ -1,5 +1,8 @@
 # Карта сигналов Marketplace
 
+> **СТАТУС И ЕДИНЫЙ МАРШРУТ:** [STATUS_AND_ROADMAP.md](STATUS_AND_ROADMAP.md) — общая карта шести сигналов, подтверждённые этапы внедрения и ссылки на действующие документы. Этот README содержит **исторические** разделы, в том числе отменённое правило SIG-002 «нет даты ⇒ нет заказа»; они не имеют приоритета над решениями от 27.10.2026. Для SIG-032 действующая схема — в [приватном bridge](https://github.com/alexpmtk-afk/msp-server-bridge/blob/main/docs/SIG-032_TELEGRAM_APPROVAL_COMMENT_FLOW.md). Не путать подготовленный код с действующим Gateway.
+
+
 ## Действующая семантика Hermes (09.10.2026)
 
 Для ручных запросов агенту Hermes («обработай сигналы», «Поднять цену», Сигналы МП) используется Skill `msp-signals` из `apps/hermes/msp_signals_skill/SKILL.md`, установленный на REMOTE в `/home/hermes/.hermes/skills/productivity/msp-signals/`. Установка: `scripts/deploy/install-msp-signals-skill.sh`. Канонические правила шести сигналов: `REVIEWED_RULES_2026-10-05.md`. Фоновый обработчик: `apps/msp_signal_notify/notify.py` (проверка раз в 60 секунд, только тестовые сообщения).
