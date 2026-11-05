@@ -1,0 +1,22 @@
+[Unit]
+Description=Close owned MSP finance activation after boot; never downloads
+After=local-fs.target systemd-tmpfiles-setup.service
+Before=msp-finance-control.service msp-wb-pilot.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+ExecStart=/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf/.venv/bin/python -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-de7b4ab5eada963c3e41259ea2da0cc862db92e52359541ea3bc3e0e6eeecd37/control.py --recover
+TimeoutStartSec=150
+PrivateNetwork=yes
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+UMask=0077
+Restart=no
+ReadWritePaths=/var/lib/msp-finance-control /etc/msp-marketplace-reports-executor /run/systemd/system /run/msp-finance-control
+
+[Install]
+WantedBy=multi-user.target
