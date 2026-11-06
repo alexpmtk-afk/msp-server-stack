@@ -5,8 +5,8 @@ After=msp-finance-recover.service
 [Service]
 Type=oneshot
 User=root
-ExecStart=/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf/.venv/bin/python -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-2a81ce92bf9198f91012a828b8f6c6adf95943e7255a61ef3ce5b4e7c16a357b/control.py
-ExecStopPost=/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf/.venv/bin/python -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-2a81ce92bf9198f91012a828b8f6c6adf95943e7255a61ef3ce5b4e7c16a357b/control.py --close
+ExecStart=/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf/.venv/bin/python -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-56da9d52175d1a3fe083a6710be6633e5ec4bac65223e8c2b6e2914c5dc65666/control.py
+ExecStopPost=/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf/.venv/bin/python -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-56da9d52175d1a3fe083a6710be6633e5ec4bac65223e8c2b6e2914c5dc65666/control.py --close
 TimeoutStartSec=1000
 TimeoutStopSec=150
 IPAddressDeny=any

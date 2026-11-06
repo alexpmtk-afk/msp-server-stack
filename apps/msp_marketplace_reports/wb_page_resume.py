@@ -20,6 +20,7 @@ from .providers import ProviderError, Request, WB_DETAIL, _positive_id
 from .quota import QuotaBusy
 
 MAX_STAGE_BYTES = 64 * 1024 * 1024
+WB_CHUNK_ROWS = 1000
 
 
 def _canonical(obj):
@@ -77,13 +78,16 @@ def _validate_state(state, cabinet, year, report_id, report_type):
                                         "RUNNING", "STAGED_COMPLETE")):
         raise GenerationError("invalid/stale WB resume state")
     last = 0
+    visited = {0}
     for entry in state["pages"]:
         if (type(entry) is not dict or type(entry.get("cursor")) is not int or
                 entry["cursor"] != last or type(entry.get("next_rrd_id")) is not int or
-                entry["next_rrd_id"] <= last or type(entry.get("sha256")) is not str or
+                entry["next_rrd_id"] <= 0 or entry["next_rrd_id"] in visited or
+                type(entry.get("sha256")) is not str or
                 len(entry["sha256"]) != 64 or any(c not in "0123456789abcdef" for c in entry["sha256"])):
             raise GenerationError("invalid WB staged cursor chain")
         last = entry["next_rrd_id"]
+        visited.add(last)
     if last != state["current_rrd_id"]:
         raise GenerationError("WB staged cursor does not match pages")
 
@@ -105,8 +109,9 @@ def _validate_page(page, report_id, report_type, cursor):
             type(page.get("rows")) is not list or not page["rows"]):
         raise GenerationError("invalid/orphan WB page identity")
     # WB cursor is the LAST source row, not max(rrdId). Responses can contain
-    # an internal order reversal. Require unique IDs above the request cursor;
-    # exact cross-page repeats are checked against full original payload hashes.
+    # an internal reversal or new IDs BELOW the request cursor. The contract
+    # does not promise numerical ordering. Identity, payload consistency and an
+    # acyclic last-source-row chain are independent checks; never sort or max().
     seen = set()
     previous = cursor
     for row in page["rows"]:
@@ -117,8 +122,8 @@ def _validate_page(page, report_id, report_type, cursor):
         if row.get("reportType") is not None and int(row["reportType"]) != report_type:
             raise GenerationError("WB detail report type mismatch")
         item_id = _positive_id(row.get("rrdId"), "rrdId")
-        if item_id <= cursor or item_id in seen:
-            raise GenerationError("non-increasing or duplicated WB rrdId")
+        if item_id in seen:
+            raise GenerationError("duplicated WB rrdId within page")
         previous = item_id
         seen.add(item_id)
     if type(page.get("next_rrd_id")) is not int or page["next_rrd_id"] != previous:
@@ -139,6 +144,11 @@ def _unique_rows(page, seen):
     return unique
 
 
+def _validate_next_cursor(state, next_id):
+    if next_id in {0, state["current_rrd_id"], *(entry["cursor"] for entry in state["pages"])}:
+        raise GenerationError("WB pagination cursor cycle; retained response requires review")
+
+
 def _replay_or_advance(folder, state, report_id, report_type):
     cursor = state["current_rrd_id"]
     page_path = _checked(folder / ("page-" + str(cursor) + ".json"))
@@ -147,6 +157,7 @@ def _replay_or_advance(folder, state, report_id, report_type):
         return None
     payload, data = staged
     next_id = _validate_page(payload, report_id, report_type, cursor)
+    _validate_next_cursor(state, next_id)
     _unique_rows(payload, _verify_pages(folder, state, report_id, report_type))
     state["pages"].append({"cursor": cursor, "next_rrd_id": next_id,
                            "sha256": _sha(data)})
@@ -189,7 +200,8 @@ def _stage_received_response(folder, state, report_id, report_type, rows=None, *
         if len(raw) > MAX_STAGE_BYTES:
             raise ProviderError("WB detail page exceeds staging size limit; use smaller provider batches")
         _safe_write(pending_path, raw)
-    _validate_page(page, report_id, report_type, state["current_rrd_id"])
+    next_id = _validate_page(page, report_id, report_type, state["current_rrd_id"])
+    _validate_next_cursor(state, next_id)
     _unique_rows(page, _verify_pages(folder, state, report_id, report_type))
     stage_data = _canonical(page)
     stage_path = _checked(folder / ("page-" + str(state["current_rrd_id"]) + ".json"))
@@ -249,7 +261,7 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
         # Smaller provider batches bound operational memory exposure. The
         # serialized staging cap below still enforces the hard safety limit.
         request = Request("wb", WB_DETAIL + str(report_id),
-                          {"limit": 1000, "rrdId": state["current_rrd_id"]})
+                          {"limit": WB_CHUNK_ROWS, "rrdId": state["current_rrd_id"]})
         try:
             status, rows = send(request)
         except QuotaBusy as exc:

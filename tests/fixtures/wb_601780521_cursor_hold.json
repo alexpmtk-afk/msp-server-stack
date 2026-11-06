@@ -1,0 +1,59 @@
+{
+  "admission_extension": {
+    "from": 3,
+    "policy_sha256": "0582e3fdbeec5d87dda75709928a44e7fc3f3a3682b0b442bf45561db0e9e978",
+    "prior_state_sha256": "85c7084c6eb6eb2c0f62a36897b50b98718bd48fac1f4966d617b843e390aa5c",
+    "to": 1000
+  },
+  "approved_total_entries": 1000,
+  "error_type": "GenerationError",
+  "failure": {
+    "code": "WB_CURSOR_SEQUENCE_INVALID",
+    "errno": null,
+    "error_type": "GenerationError",
+    "frames": [
+      {
+        "file": "standalone_wb.py",
+        "function": "run_step",
+        "line": 421
+      },
+      {
+        "file": "wb_worker_adapter.py",
+        "function": "run_one_step",
+        "line": 241
+      },
+      {
+        "file": "wb_page_resume.py",
+        "function": "step_wb_detail",
+        "line": 277
+      },
+      {
+        "file": "wb_page_resume.py",
+        "function": "_stage_received_response",
+        "line": 192
+      },
+      {
+        "file": "wb_page_resume.py",
+        "function": "_validate_page",
+        "line": 121
+      }
+    ]
+  },
+  "local_response_replay": {
+    "original_send_entries": 3,
+    "prefix_sha256": "d2aec1ff9adfcb0479e813f416b894b4ee50d497bc90e312bad3b95006be5985",
+    "prior_state_sha256": "bf7b0f8abb68e42e38b16f38315ccdef26d7e9905e3440d1e380bb30a32a3c35",
+    "provider_calls": 0,
+    "response_sha256": "185b1577e3ddd6d81bec8fcd89d0da6b423ee39026502891bc52b5e3d39a3f44"
+  },
+  "plan_sha256": "dbdb4ea5ee55b2bf4f8c59d4efcf56db07a1ed7487f5c1b6c12232f9438b1ce2",
+  "processing_recovery": {
+    "original_receipt_sha256": "db4033bc459beddcebd8649c11c63ca6d3fe7ad8aef9856eb8cabd8e24e3a711",
+    "original_send_entries": 2,
+    "original_state_sha256": "abad7f67d570713cdee5f2f27a3ef160627362d8666e735a9c50564e2a4d5eb5",
+    "reason": "OWNER_REQUESTED_CAPTURED_RETRY"
+  },
+  "schema": 1,
+  "send_entries": 4,
+  "status": "HOLD_ERROR"
+}

@@ -21,6 +21,8 @@ from .providers import ProviderError
 from .wb_page_resume import _checked
 from .wb_worker_adapter import run_one_step, _dataset
 
+WB_PAGE_PAUSE_SECONDS = 70.0
+
 class PilotBlocked(GenerationError):
     pass
 
@@ -334,6 +336,65 @@ def verify_captured_replay_ticket(root,plan,state):
     return saved['current_rrd_id']==original_cursor
 
 
+CURSOR_HOLD_SHA256='c68ac57cf52dc2315d5305840b880dfd399cdd3063db08f6721ed796fdfd1489'
+CURSOR_ROWS_PROFILE_SHA256='94c7a7e3cb0a60de0eb86ba6ea12b6185fb65d94a139bfa26f66ed3ead5881fc'
+
+def recover_cursor_policy_hold(root,plan,state):
+    """One migration of the diagnosed four-entry HOLD, never a generic retry.
+
+    Replay ONLY the checksum-verified response, after current chain/conflict/cycle
+    validation and all-nonce reconciliation. Preserve all bytes and spent entries.
+    """
+    if _digest(plan)!=KNOWN_REPAIR_PLAN_SHA256 or _digest(state)!=CURSOR_HOLD_SHA256:return False
+    if state.get('send_entries')!=4 or state.get('failure',{}).get('code')!='WB_CURSOR_SEQUENCE_INVALID':
+        raise PilotBlocked('unexpected cursor-policy migration evidence')
+    from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,_validate_page,_validate_next_cursor,_unique_rows
+    stage=_dir(root,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    saved=_read_json(stage/'state.json',required=True)
+    _validate_state(saved,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    seen=_verify_pages(stage,saved,plan['report_id'],plan['report_type'])
+    if saved['status']!='RUNNING' or len(saved['pages'])!=2:raise PilotBlocked('cursor-policy prefix changed')
+    page,raw=_read_json(stage/('response-'+str(saved['current_rrd_id'])+'.json'),required=True,with_bytes=True)
+    next_id=_validate_page(page,plan['report_id'],plan['report_type'],saved['current_rrd_id'])
+    profile=[{'rrdId':r['rrdId'],'row_sha256':_digest(r)} for r in page['rows']]
+    if _digest(profile)!=CURSOR_ROWS_PROFILE_SHA256:raise PilotBlocked('cursor-policy response differs from protected diagnostic')
+    _validate_next_cursor(saved,next_id);_unique_rows(page,seen)
+    events=[]
+    for journal in sorted((Path(root)/'.wb-executor').glob('control-*-events.jsonl')):
+        _checked(journal)
+        events.extend(json.loads(line,object_pairs_hook=_strict) for line in journal.read_text().splitlines())
+    events=[event for event in events if event.get('plan')==plan]
+    if (sum(e['event']=='HTTP_DISPATCH_ATTEMPT' for e in events)!=4 or
+            [e['status'] for e in events if e['event']=='HTTP_RESPONSE']!=[200]*4 or
+            any(e['event']=='HTTP_OUTCOME_UNKNOWN' for e in events)):
+        raise PilotBlocked('cursor-policy HTTP evidence changed or uncertain')
+    state['cursor_policy_replay']={'prior_state_sha256':CURSOR_HOLD_SHA256,
+        'response_sha256':hashlib.sha256(raw).hexdigest(),'cursor':saved['current_rrd_id'],
+        'prefix_sha256':[p['sha256'] for p in saved['pages']],
+        'original_send_entries':4,'provider_calls':0}
+    state['status']='READY'
+    return True
+
+def verify_cursor_policy_ticket(root,plan,state):
+    ticket=state.get('cursor_policy_replay')
+    if ticket is None:return False
+    if (_digest(plan)!=KNOWN_REPAIR_PLAN_SHA256 or type(ticket) is not dict or
+            set(ticket)!={'prior_state_sha256','response_sha256','cursor','prefix_sha256','original_send_entries','provider_calls'} or
+            ticket['prior_state_sha256']!=CURSOR_HOLD_SHA256 or ticket['original_send_entries']!=4 or
+            ticket['provider_calls']!=0 or type(ticket['cursor']) is not int or ticket['cursor']<=0):
+        raise PilotBlocked('cursor-policy replay ticket changed')
+    from .wb_page_resume import _dir,_read_json,_validate_state,_validate_page
+    stage=_dir(root,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    saved=_read_json(stage/'state.json',required=True)
+    _validate_state(saved,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    if [p['sha256'] for p in saved['pages'][:2]]!=ticket['prefix_sha256']:
+        raise PilotBlocked('cursor-policy replay prefix changed')
+    page,raw=_read_json(stage/('response-'+str(ticket['cursor'])+'.json'),required=True,with_bytes=True)
+    if hashlib.sha256(raw).hexdigest()!=ticket['response_sha256']:raise PilotBlocked('cursor-policy retained response changed')
+    _validate_page(page,plan['report_id'],plan['report_type'],ticket['cursor'])
+    return saved['current_rrd_id']==ticket['cursor']
+
+
 def run_step(root, plan, authorization, factory, *, now=None, fault=None, admission_ceiling=None, policy_sha256=None, processing_recovery=False):
     """One adapter step. Injected factory is for offline tests or approved HTTP.
 
@@ -389,11 +450,13 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
 
         replay_only=False
         if state['status'] == 'HOLD_ERROR':
-            if recover_captured_processing_hold(root,plan,state):
+            if recover_cursor_policy_hold(root,plan,state):
+                replay_only=True;save()
+            elif recover_captured_processing_hold(root,plan,state):
                 replay_only=True;save()
             elif processing_recovery and recover_known_processing_hold(root,plan,state):save()
             else:return dict(state)
-        replay_only=verify_captured_replay_ticket(root,plan,state) or replay_only
+        replay_only=verify_cursor_policy_ticket(root,plan,state) or verify_captured_replay_ticket(root,plan,state) or replay_only
         until = state.get('not_before_epoch', 0)
         if type(until) not in (int,float) or not math.isfinite(until) or until < 0:
             raise PilotBlocked('invalid executor not-before; do not reset')
@@ -439,7 +502,7 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
                 raise PilotBlocked('timezone required')
             state.update(status=status, not_before_epoch=max(instant.timestamp(),now+outcome['retry_after_seconds']))
         elif status == 'PAGE_STAGED':
-            state.update(status=status, not_before_epoch=now+66)
+            state.update(status=status, not_before_epoch=now+WB_PAGE_PAUSE_SECONDS)
         elif status == 'LOCAL_VERIFIED_NOT_PROVIDER_COMPLETE':
             state.update(status='DONE', generation=outcome['generation'],
                          manifest_sha256=outcome['manifest_sha256'], rows=outcome['rows'],

@@ -13,6 +13,7 @@ def analyze(page,previous,cursor,*,report_id=601780521,report_type=1):
    if ident in seen and seen[ident]!=value:raise ValueError('conflicting acknowledged identity')
    seen[ident]=value
  ids=[];metadata=[];reversals=[];duplicates=[];new={};old_equal=[];old_conflict=[]
+ new_lower=[];identical=[];conflicting=[]
  previous_id=cursor
  for index,row in enumerate(page['rows']):
   ident=row.get('rrdId')
@@ -23,6 +24,9 @@ def analyze(page,previous,cursor,*,report_id=601780521,report_type=1):
   if ident in new:
    duplicates.append({'index':index,'rrdId':ident,'same_payload':new[ident]==value})
   new[ident]=value
+  if ident in seen:
+   (identical if seen[ident]==value else conflicting).append(ident)
+  elif ident<=cursor:new_lower.append(ident)
   if ident<=cursor:
    (old_equal if seen.get(ident)==value else old_conflict).append(ident)
   previous_id=ident
@@ -31,7 +35,8 @@ def analyze(page,previous,cursor,*,report_id=601780521,report_type=1):
          'last_id':ids[-1] if ids else None,'last_is_maximum':bool(ids) and ids[-1]==max(ids),
          'adjacent_order_violations':reversals,'within_response_duplicates':duplicates,
          'verified_previous_identical_ids':old_equal,'previous_or_unknown_conflicting_ids':old_conflict,
-         'rows':metadata,'provider_calls':0}
+         'new_ids_below_cursor':new_lower,'identical_previous_ids':identical,
+         'conflicting_previous_ids':conflicting,'rows':metadata,'provider_calls':0}
 def trusted(path):
  for p in [path,*path.parents]:
   st=p.lstat()

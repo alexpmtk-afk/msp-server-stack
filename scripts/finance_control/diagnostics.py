@@ -79,13 +79,16 @@ def report_evidence(root,plan):
   out['pending_response_present']=pending.exists()
   if pending.exists():
    from apps.msp_marketplace_reports.wb_page_resume import _validate_page
-   page=_read_json(pending,required=True)
+   page,raw=_read_json(pending,required=True,with_bytes=True)
+   out['pending_response_sha256']=s.hashlib.sha256(raw).hexdigest()
    # Fixed read-only identifier profile; never export amounts or credentials.
    from rrd_profile import analyze
    previous=[_read_json(stage/('page-'+str(entry['cursor'])+'.json'),required=True)['rows'] for entry in state['pages']]
    out['identifier_profile']=analyze(page,previous,state['current_rrd_id'],report_id=plan['report_id'],report_type=plan['report_type'])
    try:
-    _validate_page(page,plan['report_id'],plan['report_type'],state['current_rrd_id'])
+    from apps.msp_marketplace_reports.wb_page_resume import _validate_next_cursor,_unique_rows
+    next_id=_validate_page(page,plan['report_id'],plan['report_type'],state['current_rrd_id'])
+    _validate_next_cursor(state,next_id);_unique_rows(page,_verify_pages(stage,state,plan['report_id'],plan['report_type']))
     out['pending_response_validation']='PASS'
    except Exception as exc:
     out['pending_response_validation']='HOLD';out['pending_response_failure']=s.failure_location(exc)

@@ -1,7 +1,7 @@
 {
-  "installer_sha256": "b0249fd0d1ceb28b39ffb99de4683120692a8b9d0418d954cbf15cf28c4f0f3e",
-  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-2a81ce92bf9198f91012a828b8f6c6adf95943e7255a61ef3ce5b4e7c16a357b",
-  "payload_sha256": "343a6305eff15eb445d036b38721b8db5d14b5efa1812752642c59564d9247e1",
+  "installer_sha256": "861e1f457ffeab7598894d483e556e7c8cc959d5804a099b89b2fbe610f3cf2f",
+  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-56da9d52175d1a3fe083a6710be6633e5ec4bac65223e8c2b6e2914c5dc65666",
+  "payload_sha256": "cbcca1be0ed43a25e6ab57a56405be4daeb389b392313d629b81877af8e1bf35",
   "files": [
     {
       "path": "apps/msp_marketplace_reports/__init__.py",
@@ -69,7 +69,7 @@
     },
     {
       "path": "apps/msp_marketplace_reports/standalone_wb.py",
-      "sha256": "5ca27700fec756eeab1f942eab156728b706a02afc0df3de7faac2c25d24ab24"
+      "sha256": "07d126db6d4efee8eb2666257bbab645acf25824a987925ddf499a6c6c7e63be"
     },
     {
       "path": "apps/msp_marketplace_reports/versioned_archive.py",
@@ -81,7 +81,7 @@
     },
     {
       "path": "apps/msp_marketplace_reports/wb_page_resume.py",
-      "sha256": "9f0ab12ab47152ab997018eaea2d40d92c90b6155a0df5430dde9b9545472d9f"
+      "sha256": "89f1e9275d237ab9471ec5d29a67794f89ddae8b2ef1c69b129df174a5bd6108"
     },
     {
       "path": "apps/msp_marketplace_reports/wb_report_revision.py",
@@ -93,11 +93,11 @@
     },
     {
       "path": "control.py",
-      "sha256": "aaf656fcb73a32558189b804b899d01fc5209021d7bbd7f9ea28652477af683a"
+      "sha256": "38e4722a13bcb90257bab340793c5fccbe6b7d297706ec85c133f0afdd86bb1e"
     },
     {
       "path": "worker.py",
-      "sha256": "6c59858864a31c18a12c4951c59a9a2b5353d104af264a9b888dee4a35f5757b"
+      "sha256": "4a698e8fc159a60da29f8a51bc8a8394e0e5ee4420b386a01cc8b419916b0429"
     },
     {
       "path": "client.py",
@@ -105,7 +105,7 @@
     },
     {
       "path": "diagnostics.py",
-      "sha256": "3c6970d15b5cf2b0557f2d2bc55613ae2b61bb67fb00d342ce2c1654e4357591"
+      "sha256": "141d33ed51f68722107fbfa45565b6677b77a19d9d92bdab6f19504cb3c55e2f"
     },
     {
       "path": "diagnostics_client.py",
@@ -113,7 +113,7 @@
     },
     {
       "path": "rrd_profile.py",
-      "sha256": "ab34bf9a60f0480f0f2684bffaf68840d378649721720f28cefe8c26baac60ff"
+      "sha256": "99314206cf7822ae89fa5aa97954c29456847c82fb4bc2778e93bfc74147fb8d"
     },
     {
       "path": "pilot_supervisor.py",
@@ -121,15 +121,15 @@
     },
     {
       "path": "build-source.sha256",
-      "sha256": "ecb71eb6eacc45d6854f8f67a8e248632210369dec7bf5760035f7697c68e46d"
+      "sha256": "3dd360e9db55e150946e042155c9cb0656b3a3a45a5023b593aa50a5e631c5c6"
     },
     {
       "path": "assets.json",
-      "sha256": "7f6092f114eca02a9abacad11ed26b89e90000fec199c8851916d78a28eabe84"
+      "sha256": "e5eae030bd6183c4f99876f303473e60f886aedd0c12ef265ffaf8f69c18d968"
     },
     {
       "path": "units/msp-finance-diagnostics.service",
-      "sha256": "f761b485bc3f077cf2f8c68a365849f357af68feef35a5f0510dbf3cd63b77b9"
+      "sha256": "aca3fcba1828df41d8e0968963378c50272b3a86e1dc95f9594fab990a784abe"
     },
     {
       "path": "units/48-msp-finance-diagnostics.rules",
@@ -137,11 +137,11 @@
     },
     {
       "path": "units/msp-finance-control.service",
-      "sha256": "95578ede246edf003a53fd44995f8348282be70d6f01a920e201f42d76d1d175"
+      "sha256": "5769e9b94dd14b724be942970db8c2940838fa2447c21656f4715b12a8bb63d5"
     },
     {
       "path": "units/msp-finance-recover.service",
-      "sha256": "507795db82982a6f922d595fad7c6571d0ce49c9b458e21e3c98db2c4c788359"
+      "sha256": "ebc8aafeef09d3e8a23e6635089439cb495a420d95f5598c961af1d9d831c203"
     },
     {
       "path": "units/49-msp-finance-control.rules",
@@ -149,7 +149,7 @@
     },
     {
       "path": "files.json",
-      "sha256": "da6c388038032eeb99df35983509a9634b2121c8c87458edee9bdb35302dd376"
+      "sha256": "f9fdce23bf20ece73015a81c36f4484aba4fd38852de1f30d33abfc20dd24713"
     }
   ],
   "root_execution": "NOT_EXECUTED",
