@@ -5,7 +5,7 @@ by an authorized supervisor. Every entry is synced before factory/Redis/HTTP.
 A separately admitted discovery budget never consumes/resets fixed-report pilot.
 """
 from __future__ import annotations
-from datetime import datetime,timezone,date
+from datetime import datetime,timezone,date,timedelta
 import json
 from pathlib import Path
 from .archive import _lock,_safe_write
@@ -24,7 +24,9 @@ def validate(plan):
     if any(type(plan[k]) is not int for k in ('schema','year','limit','max_send_entries')):raise PilotBlocked('strict discovery integers required')
     if plan['schema']!=1 or plan['year']!=2026 or not 1<=plan['limit']<=1000 or not 1<=plan['max_send_entries']<=100:raise PilotBlocked('bounded discovery required')
     start=date.fromisoformat(plan['date_from']);end=date.fromisoformat(plan['date_to'])
-    if start>end or start.year!=2026 or end.year!=2026:raise PilotBlocked('2026 range required')
+    first=date(2026,1,1);boundary_start=first-timedelta(days=first.weekday())
+    boundary=(start==boundary_start and end==boundary_start+timedelta(days=6))
+    if start>end or (not boundary and (start.year!=2026 or end.year!=2026)):raise PilotBlocked('2026 range or exact crossing week required')
     _inventory({'cabinet':plan['cabinet'],'year':2026,'status':'DISCOVERED_NOT_DOWNLOADED','items':[]},plan['cabinet'],2026)
     from .archive import CABINETS
     if plan['cabinet'] not in CABINETS['wb']:raise PilotBlocked('unknown cabinet')

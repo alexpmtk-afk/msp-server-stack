@@ -36,6 +36,16 @@ def choose(root,cabinet):
  from apps.msp_marketplace_reports.finance_refresh_plan import discovery_windows
  from apps.msp_marketplace_reports.finance_receipts import report_receipt
  from apps.msp_marketplace_reports.wb_page_resume import _read_json
+ # Resolve this owner's explicitly requested failed report BEFORE new discovery.
+ repair={'schema':1,'cabinet':'wb_laser_master','year':2026,'report_id':601780521,'report_type':1,'max_send_entries':3}
+ repair_path=Path(root)/'.wb-executor'/(s._digest(repair)+'.json')
+ if cabinet==repair['cabinet'] and repair_path.exists():
+  budget=s.read_control(repair_path);seal=budget.pop('state_sha256',None)
+  if seal!=s._digest(budget):raise ValueError('repair budget checksum HOLD')
+  if budget.get('status')=='HOLD_ERROR' or budget.get('processing_recovery'):
+   receipt=report_receipt(root,cabinet,2026,601780521,1)
+   if receipt['status']=='HOLD_INVALID_LOCAL_EVIDENCE':raise ValueError('repair archive integrity HOLD')
+   if not receipt.get('verified'):return repair
  # Reuse October first, then fill missing monthly inventories from January.
  windows=discovery_windows(2026,date.fromisoformat(POLICY['as_of']))
  windows.sort(key=lambda b:(b['dateFrom']!='2026-10-01',b['dateFrom']))

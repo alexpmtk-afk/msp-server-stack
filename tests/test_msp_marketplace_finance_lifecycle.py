@@ -102,7 +102,7 @@ class Plans(unittest.TestCase):
     def inv(self):return {CAB:{'cabinet':CAB,'year':2026,'status':'DISCOVERED_NOT_DOWNLOADED','items':[item(),item(883801636,2)]}}
     def test_bounded_three_cabinet_discovery_no_guess_empty(self):
         p=build_refresh_plan(as_of=date(2026,11,3),max_actions=4)
-        self.assertEqual(len(p['actions']),4);self.assertEqual(p['remaining_actions'],29);self.assertEqual(len(p['gaps']),3)
+        self.assertEqual(len(p['actions']),4);self.assertEqual(p['remaining_actions'],32);self.assertEqual(len(p['gaps']),3)
         self.assertEqual(p['network_calls'],0);self.assertFalse(p['executable_without_admission'])
     def test_type1_type2_separate_deterministic_units(self):
         a=build_refresh_plan(as_of=date(2026,11,3),discoveries=self.inv(),max_actions=100)

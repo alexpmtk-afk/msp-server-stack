@@ -153,6 +153,38 @@ def _waiting(state, path, delay, attempts):
                                 timedelta(seconds=delay)).isoformat()}
 
 
+def _stage_received_response(folder, state, report_id, report_type, rows=None, *, fault=None):
+    """Retain decoded provider page BEFORE validation; replay never re-fetches it."""
+    pending_path = _checked(folder / ("response-" + str(state["current_rrd_id"]) + ".json"))
+    replay = rows is None
+    if replay:
+        page = _read_json(pending_path, required=True)
+    else:
+        if pending_path.exists():
+            raise GenerationError("received response already exists; reconcile without HTTP")
+        page = {"schema": 1, "report_id": report_id, "report_type": report_type,
+                "cursor": state["current_rrd_id"], "next_rrd_id": 0, "rows": rows}
+        # Preserve anomalous identifiers too; the strict validator diagnoses them.
+        if rows and isinstance(rows[-1], dict):
+            page["next_rrd_id"] = rows[-1].get("rrdId")
+        page["payload_sha256"] = _sha(_canonical(page))
+        raw = _canonical(page)
+        if len(raw) > MAX_STAGE_BYTES:
+            raise ProviderError("WB detail page exceeds staging size limit; use smaller provider batches")
+        _safe_write(pending_path, raw)
+    _validate_page(page, report_id, report_type, state["current_rrd_id"])
+    stage_data = _canonical(page)
+    stage_path = _checked(folder / ("page-" + str(state["current_rrd_id"]) + ".json"))
+    if stage_path.exists():
+        raise GenerationError("staged cursor file already exists")
+    _safe_write(stage_path, stage_data)
+    if fault is not None:
+        fault("after_page_fsync_before_state")
+    result = _replay_or_advance(folder, state, report_id, report_type)
+    return {**result, "replayed_after_interruption": replay,
+            "pages": len(state["pages"]), "provider_calls": 0 if replay else 1}
+
+
 def step_wb_detail(root, cabinet: str, year: int, report_id: int,
                    report_type: int, send, *, fault=None):
     """One durable step per invocation; never mark COMPLETE without HTTP 204."""
@@ -193,6 +225,9 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
         replay = _replay_or_advance(folder, state, report_id, report_type)
         if replay is not None:
             return {**replay, "pages": len(state["pages"]), "provider_calls": 0}
+        pending_path = _checked(folder / ("response-" + str(state["current_rrd_id"]) + ".json"))
+        if pending_path.exists():
+            return _stage_received_response(folder, state, report_id, report_type, fault=fault)
         # Smaller provider batches bound operational memory exposure. The
         # serialized staging cap below still enforces the hard safety limit.
         request = Request("wb", WB_DETAIL + str(report_id),
@@ -221,29 +256,7 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
                     "provider_coverage_proven": False}
         if status != 200 or not isinstance(rows, list) or not rows:
             raise ProviderError("invalid WB detail response; stage retained")
-        page = {"schema": 1, "report_id": report_id,
-                "report_type": report_type,
-                "cursor": state["current_rrd_id"],
-                "next_rrd_id": 0, "rows": rows}
-        page["next_rrd_id"] = _positive_id(rows[-1].get("rrdId") if isinstance(rows[-1], dict) else None,
-                                            "rrdId")
-        # Seal the payload in the durable page itself, not in the later state.
-        # A crash after page fsync must leave evidence against modifications.
-        page["payload_sha256"] = _sha(_canonical(page))
-        _validate_page(page, report_id, report_type, state["current_rrd_id"])
-        stage_data = _canonical(page)
-        if len(stage_data) > MAX_STAGE_BYTES:
-            raise ProviderError("WB detail page exceeds staging size limit; use smaller provider batches")
-        stage_path = folder / ("page-" + str(state["current_rrd_id"]) + ".json")
-        _checked(stage_path)
-        if stage_path.exists():
-            raise GenerationError("staged cursor file already exists")
-        _safe_write(stage_path, stage_data)
-        if fault is not None:
-            fault("after_page_fsync_before_state")
-        result = _replay_or_advance(folder, state, report_id, report_type)
-        return {**result, "replayed_after_interruption": False,
-                "pages": len(state["pages"]), "provider_calls": 1}
+        return _stage_received_response(folder, state, report_id, report_type, rows, fault=fault)
 
 
 def _verify_pages(folder, state, report_id, report_type):

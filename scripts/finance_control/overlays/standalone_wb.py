@@ -204,7 +204,75 @@ def reconcile_admission(root, plan):
                 raise PilotBlocked('staged pages exceed original sealed budget')
     return counts.get(_digest(plan), 0)
 
-def run_step(root, plan, authorization, factory, *, now=None, fault=None, admission_ceiling=None, policy_sha256=None):
+def failure_location(exc):
+    frames=[];tb=exc.__traceback__
+    while tb is not None:
+        code=tb.tb_frame.f_code
+        frames.append({'file':Path(code.co_filename).name,'function':code.co_name,'line':tb.tb_lineno})
+        tb=tb.tb_next
+    # Only fixed local classifications. Never export arbitrary exception messages.
+    reasons={'non-increasing or duplicated WB rrdId':'WB_CURSOR_SEQUENCE_INVALID',
+             'WB detail report type mismatch':'WB_REPORT_TYPE_MISMATCH',
+             'foreign WB reportId in staged page':'WB_REPORT_ID_MISMATCH',
+             'WB staged page payload checksum mismatch':'WB_RESPONSE_CHECKSUM_MISMATCH',
+             'staged cursor file already exists':'WB_CURSOR_FILE_CONFLICT'}
+    return {'error_type':type(exc).__name__,'errno':getattr(exc,'errno',None),
+            'code':reasons.get(str(exc),'LOCAL_PROCESSING_FAILURE'),'frames':frames[-12:]}
+
+
+KNOWN_REPAIR_PLAN_SHA256='dbdb4ea5ee55b2bf4f8c59d4efcf56db07a1ed7487f5c1b6c12232f9438b1ce2'
+KNOWN_REPAIR_STATE_SHA256='abad7f67d570713cdee5f2f27a3ef160627362d8666e735a9c50564e2a4d5eb5'
+KNOWN_REPAIR_RECEIPT_SHA256='db4033bc459beddcebd8649c11c63ca6d3fe7ad8aef9856eb8cabd8e24e3a711'
+
+def _load_known_failure_receipt():
+    path=Path('/var/lib/msp-finance-control/results/bb7f9919ee2a4a22b0bdc2a6f0a78645.json')
+    _checked(path);st=path.stat()
+    if st.st_uid!=0 or st.st_mode&0o022 or st.st_nlink!=1 or not stat.S_ISREG(st.st_mode) or st.st_size>65536:
+        raise PilotBlocked('untrusted known failure receipt')
+    raw=path.read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=KNOWN_REPAIR_RECEIPT_SHA256:
+        raise PilotBlocked('known failure receipt changed')
+    return json.loads(raw,object_pairs_hook=_strict)['jobs'][0]['outcome']['executor']
+
+def recover_known_processing_hold(root,plan,state):
+    """Owner-requested single recovery of ONE pinned legacy processing failure.
+
+    Not a generic HOLD bypass. Original counter, all pages, cursor and cap stay.
+    Another failure gets a new state digest and can never use this ticket again.
+    """
+    if (_digest(plan)!=KNOWN_REPAIR_PLAN_SHA256 or _digest(state)!=KNOWN_REPAIR_STATE_SHA256
+            or state.get('processing_recovery') is not None):return False
+    original=_load_known_failure_receipt()
+    if _digest(original)!=KNOWN_REPAIR_STATE_SHA256 or original!=state:
+        raise PilotBlocked('legacy repair state no longer matches recorded failure')
+    reconcile_admission(root,plan)
+    from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages
+    stage=_dir(root,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    page_state=_read_json(stage/'state.json',required=True)
+    _validate_state(page_state,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    _verify_pages(stage,page_state,plan['report_id'],plan['report_type'])
+    if page_state['status']!='RUNNING' or len(page_state['pages'])!=1 or page_state['current_rrd_id']<=0:
+        raise PilotBlocked('legacy repair requires exactly one verified retained page')
+    attempts=unknown=0;statuses=[]
+    for journal in sorted((Path(root)/'.wb-executor').glob('control-*-events.jsonl')):
+        _checked(journal)
+        with journal.open() as stream:
+            for line in stream:
+                event=json.loads(line,object_pairs_hook=_strict)
+                if event.get('plan')!=plan:continue
+                if event['event']=='HTTP_DISPATCH_ATTEMPT':attempts+=1
+                elif event['event']=='HTTP_OUTCOME_UNKNOWN':unknown+=1
+                elif event['event']=='HTTP_RESPONSE':statuses.append(event['status'])
+    if attempts!=2 or statuses!=[200,200] or unknown:
+        raise PilotBlocked('legacy repair HTTP evidence changed or uncertain')
+    state['processing_recovery']={'original_state_sha256':KNOWN_REPAIR_STATE_SHA256,
+                                 'original_receipt_sha256':KNOWN_REPAIR_RECEIPT_SHA256,
+                                 'original_send_entries':2,'reason':'OWNER_REQUESTED_CAPTURED_RETRY'}
+    state['status']='READY'
+    return True
+
+
+def run_step(root, plan, authorization, factory, *, now=None, fault=None, admission_ceiling=None, policy_sha256=None, processing_recovery=False):
     """One adapter step. Injected factory is for offline tests or approved HTTP.
 
     Budget counts durable sender entries, not proven HTTPs; a crash or quota
@@ -258,7 +326,8 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
             save() # Same plan path/cursor/counter; never a replacement budget.
 
         if state['status'] == 'HOLD_ERROR':
-            return dict(state)
+            if processing_recovery and recover_known_processing_hold(root,plan,state):save()
+            else:return dict(state)
         until = state.get('not_before_epoch', 0)
         if type(until) not in (int,float) or not math.isfinite(until) or until < 0:
             raise PilotBlocked('invalid executor not-before; do not reset')
@@ -293,7 +362,7 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
             save()
             return dict(state)
         except (GenerationError, ProviderError, ValueError, OSError) as exc:
-            state.update(status='HOLD_ERROR', error_type=type(exc).__name__)
+            state.update(status='HOLD_ERROR', error_type=type(exc).__name__, failure=failure_location(exc))
             save()
             return dict(state)
         status = outcome['status']

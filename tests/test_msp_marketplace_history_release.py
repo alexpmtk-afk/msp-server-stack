@@ -72,7 +72,9 @@ class ReleaseFiles(unittest.TestCase):
   import base64
   files={n:base64.b64decode(v) for n,v in artifact.PACKAGE['files'].items()}
   accepted=json.loads((ROOT/'docs/marketplace-reports/deployment/autonomous-wb/INSTALL_MANIFEST.json').read_text())['files']
-  self.assertEqual(artifact.PACKAGE['accepted_assets']['app_code_sha256'],s.code_digest())
+  # Frozen PR117 bundle is pinned to its own bytes, not newer source modules.
+  frozen={Path(n).name:hashlib.sha256(b).hexdigest() for n,b in files.items() if n.startswith('apps/') and n.endswith('.py')}
+  self.assertEqual(artifact.PACKAGE['accepted_assets']['app_code_sha256'],s._digest(frozen))
   for n,h in accepted.items():self.assertEqual(hashlib.sha256(files[n]).hexdigest(),h)
   for n in ['wb_discovery_resume.py','finance_receipts.py','finance_refresh_plan.py','wb_report_revision.py','ozon_connection_plan.py']:self.assertIn('apps/msp_marketplace_reports/'+n,files)
   self.assertEqual(manifest['schedule'],'DISABLED');self.assertEqual(hashlib.sha256((folder/'history.py').read_bytes()).hexdigest(),manifest['launcher_sha256'])

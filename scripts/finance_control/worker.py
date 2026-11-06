@@ -33,18 +33,21 @@ def execute(root,plan,auth,factory,policy_sha,*,clock=time.time,sleep=time.sleep
   if out['status']=='PAGE_STAGED_RECONCILE':out=d.step(root,plan,auth,lambda:(_ for _ in ()).throw(ValueError('replay only')),now=clock())
   return {'executor':{'status':'DONE' if out['status']=='COMPLETE' else ('HOLD_ERROR' if out['status']=='HOLD_ERROR' else 'PAUSED_BUDGET')},'discovery':out,'report_detail_complete':False}
  path=Path(root)/'.wb-executor'/(s._digest(plan)+'.json')
- baseline=s.read_control(path)['send_entries'] if path.exists() else 0
+ prior=s.read_control(path) if path.exists() else {}
+ baseline=prior.get('send_entries',0)
+ repair_portion=(s._digest(plan)==s.KNOWN_REPAIR_PLAN_SHA256 and prior.get('status')=='HOLD_ERROR' and not prior.get('processing_recovery'))
+ portion_limit=1 if repair_portion else 3
  outcome=None
  for _ in range(12):
   receipt=report_receipt(root,plan['cabinet'],2026,plan['report_id'],plan['report_type'])
   if receipt.get('verified'):return {'executor':{'status':'DONE'},'report_detail_complete':True,'receipt':receipt}
   if receipt['status']=='HOLD_INVALID_LOCAL_EVIDENCE':raise ValueError('archive integrity HOLD; no refetch')
   count=s.read_control(path)['send_entries'] if path.exists() else 0
-  if count-baseline>=3 or clock()>=deadline:break
+  if count-baseline>=portion_limit or clock()>=deadline:break
   until=(outcome or {}).get('not_before_epoch',0)
   if until>=deadline:break
   if until>clock():sleep(until-clock())
-  outcome=s.run_step(root,plan,auth,factory,now=clock(),admission_ceiling=1000,policy_sha256=policy_sha)
+  outcome=s.run_step(root,plan,auth,factory,now=clock(),admission_ceiling=1000,policy_sha256=policy_sha,processing_recovery=repair_portion)
   if outcome['status'] in ('HOLD_ERROR','PAUSED_BUDGET'):break
  return {'executor':{**(outcome or {}),'status':'HOLD_ERROR' if (outcome or {}).get('status')=='HOLD_ERROR' else 'PAUSED_BUDGET'},'report_detail_complete':False,'wake_entries':(s.read_control(path)['send_entries']-baseline if path.exists() else 0)}
 def main():
