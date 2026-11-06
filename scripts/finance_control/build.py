@@ -53,6 +53,8 @@ def build():
  (OUT/'upgrade.py').write_bytes(up);up_local=Path('/home/hermes/workspace/msp-finance-diagnostics-upgrade.py');up_local.write_bytes(up)
  up_cmd='msp_diag_stage=$(mktemp -d /var/lib/msp-finance-diag.XXXXXXXX) && install -o root -g root -m 600 '+str(up_local)+' "$msp_diag_stage/upgrade.py" && printf \'%s  %s\\n\' '+sha(up)+' "$msp_diag_stage/upgrade.py" | sha256sum -c - && /usr/bin/python3 -I -B "$msp_diag_stage/upgrade.py"'
  subprocess.run(['/bin/sh','-n','-c',up_cmd],check=True);(OUT/'UPGRADE_ONE_LINE.txt').write_text(up_cmd+'\n')
+ resume_cmd=up_cmd+' && /usr/sbin/runuser -u hermes -- /usr/local/bin/msp-finance-wake --cabinet wb_laser_master --jobs 1 --expect-report 601780521'
+ subprocess.run(['/bin/sh','-n','-c',resume_cmd],check=True);(OUT/'ROOT_REPAIR_AND_RESUME.txt').write_text(resume_cmd+'\n')
  (OUT/'UPGRADE_MANIFEST.json').write_bytes(enc({'upgrade_sha256':sha(up),'old_release':old_pin['release'],'new_release':release,'root_execution':'NOT_EXECUTED','provider_calls':0}))
  print(json.dumps({'installer_sha256':sha(raw),'upgrade_sha256':sha(up),'release':release,'files':len(files)}))
 if __name__=='__main__':build()

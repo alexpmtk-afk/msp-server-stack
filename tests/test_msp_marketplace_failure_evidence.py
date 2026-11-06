@@ -55,12 +55,12 @@ class ResponseRetention(unittest.TestCase):
    root=Path(tmp);calls=[]
    def send(req):
     calls.append(req.body['rrdId'])
-    return 200,[{'reportId':601780521,'reportType':1,'rrdId':9}, {'reportId':601780521,'reportType':1,'rrdId':8}]
+    return 200,[{'reportId':601780521,'reportType':1,'rrdId':9}, {'reportId':601780521,'reportType':1,'rrdId':9}]
    with self.assertRaises(GenerationError):step_wb_detail(root,'wb_laser_master',2026,601780521,1,send)
    folder=_dir(root,'wb_laser_master',2026,601780521,1)
    saved=folder/'response-0.json'
    self.assertTrue(saved.exists(),'successful HTTP body was discarded on processing error')
-   self.assertEqual(json.loads(saved.read_text())['rows'][1]['rrdId'],8)
+   self.assertEqual(json.loads(saved.read_text())['rows'][1]['rrdId'],9)
    before={str(p):p.read_bytes() for p in root.rglob('*') if p.is_file()}
    with self.assertRaises(GenerationError):step_wb_detail(root,'wb_laser_master',2026,601780521,1,send)
    self.assertEqual(calls,[0]);self.assertEqual(before,{str(p):p.read_bytes() for p in root.rglob('*') if p.is_file()})

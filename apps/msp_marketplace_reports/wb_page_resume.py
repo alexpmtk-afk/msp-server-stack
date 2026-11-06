@@ -104,6 +104,9 @@ def _validate_page(page, report_id, report_type, cursor):
             type(page.get("cursor")) is not int or page["cursor"] != cursor or
             type(page.get("rows")) is not list or not page["rows"]):
         raise GenerationError("invalid/orphan WB page identity")
+    # WB cursor is the LAST source row, not max(rrdId). Responses can contain
+    # an internal order reversal. Require unique IDs above the request cursor;
+    # exact cross-page repeats are checked against full original payload hashes.
     seen = set()
     previous = cursor
     for row in page["rows"]:
@@ -114,13 +117,26 @@ def _validate_page(page, report_id, report_type, cursor):
         if row.get("reportType") is not None and int(row["reportType"]) != report_type:
             raise GenerationError("WB detail report type mismatch")
         item_id = _positive_id(row.get("rrdId"), "rrdId")
-        if item_id <= previous or item_id in seen:
+        if item_id <= cursor or item_id in seen:
             raise GenerationError("non-increasing or duplicated WB rrdId")
         previous = item_id
         seen.add(item_id)
     if type(page.get("next_rrd_id")) is not int or page["next_rrd_id"] != previous:
         raise GenerationError("WB next rrdId mismatch")
     return previous
+
+
+def _unique_rows(page, seen):
+    """Deduplicate only exact business-payload matches; never overwrite conflicts."""
+    unique=[]
+    for row in page['rows']:
+        ident=row['rrdId'];digest=_sha(_canonical(row))
+        if ident in seen:
+            if seen[ident]!=digest:
+                raise GenerationError('conflicting WB rrdId across received pages')
+        else:
+            seen[ident]=digest;unique.append(row)
+    return unique
 
 
 def _replay_or_advance(folder, state, report_id, report_type):
@@ -131,6 +147,7 @@ def _replay_or_advance(folder, state, report_id, report_type):
         return None
     payload, data = staged
     next_id = _validate_page(payload, report_id, report_type, cursor)
+    _unique_rows(payload, _verify_pages(folder, state, report_id, report_type))
     state["pages"].append({"cursor": cursor, "next_rrd_id": next_id,
                            "sha256": _sha(data)})
     state["current_rrd_id"] = next_id
@@ -173,6 +190,7 @@ def _stage_received_response(folder, state, report_id, report_type, rows=None, *
             raise ProviderError("WB detail page exceeds staging size limit; use smaller provider batches")
         _safe_write(pending_path, raw)
     _validate_page(page, report_id, report_type, state["current_rrd_id"])
+    _unique_rows(page, _verify_pages(folder, state, report_id, report_type))
     stage_data = _canonical(page)
     stage_path = _checked(folder / ("page-" + str(state["current_rrd_id"]) + ".json"))
     if stage_path.exists():
@@ -260,6 +278,7 @@ def step_wb_detail(root, cabinet: str, year: int, report_id: int,
 
 
 def _verify_pages(folder, state, report_id, report_type):
+    seen={}
     for entry in state["pages"]:
         file = _checked(folder / ("page-" + str(entry["cursor"]) + ".json"))
         page, data = _read_json(file, required=True, with_bytes=True)
@@ -267,6 +286,7 @@ def _verify_pages(folder, state, report_id, report_type):
             raise GenerationError("WB staged page missing or checksum mismatch")
         if _validate_page(page, report_id, report_type, entry["cursor"]) != entry["next_rrd_id"]:
             raise GenerationError("WB staged page cursor mismatch")
+        _unique_rows(page, seen)
     # Every uncommitted page must equal the current cursor, never skip orphan
     # chunks or silently include out-of-order page files.
     expected = {"page-" + str(x["cursor"]) + ".json" for x in state["pages"]}
@@ -274,6 +294,7 @@ def _verify_pages(folder, state, report_id, report_type):
     for item in folder.glob("page-*.json"):
         if item.name not in expected:
             raise GenerationError("unaccounted WB page file: manual review required")
+    return seen
 
 
 def read_completed_wb_pages(root, cabinet: str, year: int, report_id: int,
@@ -289,6 +310,9 @@ def read_completed_wb_pages(root, cabinet: str, year: int, report_id: int,
             raise GenerationError("WB detail still incomplete")
         _verify_pages(folder, state, report_id, report_type)
         # Lazy page generator: no aggregate of every finance row in memory.
+        seen={}
         for entry in state["pages"]:
-            yield _read_json(folder / ("page-" + str(entry["cursor"]) + ".json"),
-                             required=True)["rows"]
+            page,raw=_read_json(folder / ("page-" + str(entry["cursor"]) + ".json"),required=True,with_bytes=True)
+            if _sha(raw)!=entry['sha256'] or _validate_page(page,report_id,report_type,entry['cursor'])!=entry['next_rrd_id']:
+                raise GenerationError('WB page changed while reading completed report')
+            yield _unique_rows(page,seen)

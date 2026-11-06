@@ -45,5 +45,5 @@ class DiagnosticIntegration(unittest.TestCase):
    pending={'schema':1,'report_id':601780521,'report_type':1,'cursor':10,'next_rrd_id':15,'rows':[row(12),row(11),row(15)]};pending['payload_sha256']=s._digest(pending)
    (stage/'response-10.json').write_bytes(s._encode(pending));before={str(p):p.read_bytes() for p in root.rglob('*') if p.is_file()}
    with patch.object(package,'standalone_wb',s),patch.dict(sys.modules,{'rrd_profile':p}):out=d.report_evidence(root,plan)
-   self.assertEqual(out['pending_response_validation'],'HOLD');self.assertEqual(out['identifier_profile']['adjacent_order_violations'],[{'index':1,'previous':12,'current':11}])
+   self.assertEqual(out['pending_response_validation'],'PASS');self.assertEqual(out['identifier_profile']['adjacent_order_violations'],[{'index':1,'previous':12,'current':11}])
    self.assertNotIn('PRIVATE_AMOUNT',json.dumps(out));self.assertEqual(before,{str(p):p.read_bytes() for p in root.rglob('*') if p.is_file()})

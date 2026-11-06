@@ -26,8 +26,9 @@ def checked_json(path,uid=0,limit=65536):
   return json.loads(os.read(fd,limit+1),object_pairs_hook=s._strict)
  finally:os.close(fd)
 def request(value):
- if type(value) is not dict or set(value)!={'nonce','cabinet','max_jobs'} or not isinstance(value['nonce'],str) or not re.fullmatch('[a-f0-9]{32}',value['nonce']):raise ValueError('fixed request fields')
+ if type(value) is not dict or set(value) not in ({'nonce','cabinet','max_jobs'},{'nonce','cabinet','max_jobs','expected_report_id'}) or not isinstance(value['nonce'],str) or not re.fullmatch('[a-f0-9]{32}',value['nonce']):raise ValueError('fixed request fields')
  if value['cabinet'] not in POLICY['cabinets'] or type(value['max_jobs']) is not int or not 1<=value['max_jobs']<=POLICY['max_jobs']:raise ValueError('bounded cabinet/jobs')
+ if 'expected_report_id' in value and (type(value['expected_report_id']) is not int or value['expected_report_id']<=0 or value['max_jobs']!=1):raise ValueError('one positive expected report only')
  return value
 
 def choose(root,cabinet):
@@ -137,6 +138,7 @@ def process(value,select,perform,persist):
  for index in range(req['max_jobs']):
   plan=select(req['cabinet'])
   if plan is None:break
+  if req.get('expected_report_id') is not None and (plan.get('kind')=='wb-discovery' or plan.get('report_id')!=req['expected_report_id']):raise ValueError('selected report differs from requested scope; no dispatch')
   persist('BEFORE_JOB',index,plan)
   result=perform(index,plan);out.append(result);persist('AFTER_JOB',index,plan)
   if result.get('status')!='PASS':break

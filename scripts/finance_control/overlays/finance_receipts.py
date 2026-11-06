@@ -8,7 +8,7 @@ from pathlib import Path
 from .archive import DATASETS,_rows,_sha
 from .generation_store import read_active,GenerationError
 from .wb_worker_adapter import _dataset
-from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,_validate_page
+from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,_validate_page,_unique_rows
 from .wb_report_revision import revision_root
 from .ingest import _cell
 from .standalone_wb import _digest
@@ -27,11 +27,12 @@ def _completed_pages_readonly(root,cabinet,year,rid,kind):
     _validate_state(state,cabinet,year,rid,kind)
     if state['status']!='STAGED_COMPLETE':raise GenerationError('report not terminal')
     _verify_pages(folder,state,rid,kind)
+    seen={}
     for entry in state['pages']:
         page,raw=_read_json(folder/('page-'+str(entry['cursor'])+'.json'),required=True,with_bytes=True)
         if _sha(raw)!=entry['sha256'] or _validate_page(page,rid,kind,entry['cursor'])!=entry['next_rrd_id']:
             raise GenerationError('read-only page changed during verification')
-        yield page['rows']
+        yield _unique_rows(page,seen)
 
 
 def report_receipt(root,cabinet,year,rid,kind):

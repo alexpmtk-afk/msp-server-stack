@@ -272,6 +272,47 @@ def recover_known_processing_hold(root,plan,state):
     return True
 
 
+CAPTURED_HOLD_SHA256='bf7b0f8abb68e42e38b16f38315ccdef26d7e9905e3440d1e380bb30a32a3c35'
+CAPTURED_RESPONSE_SHA256='185b1577e3ddd6d81bec8fcd89d0da6b423ee39026502891bc52b5e3d39a3f44'
+CAPTURED_PREFIX_SHA256='d2aec1ff9adfcb0479e813f416b894b4ee50d497bc90e312bad3b95006be5985'
+
+def recover_captured_processing_hold(root,plan,state):
+    """Replay the exact investigated response under the corrected validation.
+
+    This ticket admits NO transport. Original response, prefix and counter are
+    cryptographically pinned. Another HOLD or changed evidence is not recoverable.
+    """
+    if _digest(plan)!=KNOWN_REPAIR_PLAN_SHA256 or _digest(state)!=CAPTURED_HOLD_SHA256:return False
+    from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,_validate_page,_unique_rows
+    stage=_dir(root,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    saved=_read_json(stage/'state.json',required=True)
+    _validate_state(saved,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    seen=_verify_pages(stage,saved,plan['report_id'],plan['report_type'])
+    if len(saved['pages'])!=1 or saved['pages'][0]['sha256']!=CAPTURED_PREFIX_SHA256:
+        raise PilotBlocked('captured recovery prefix changed')
+    pending=stage/('response-'+str(saved['current_rrd_id'])+'.json')
+    page,raw=_read_json(pending,required=True,with_bytes=True)
+    if hashlib.sha256(raw).hexdigest()!=CAPTURED_RESPONSE_SHA256:raise PilotBlocked('captured response changed')
+    _validate_page(page,plan['report_id'],plan['report_type'],saved['current_rrd_id'])
+    _unique_rows(page,seen)
+    attempts=0;statuses=[];unknown=0
+    for journal in sorted((Path(root)/'.wb-executor').glob('control-*-events.jsonl')):
+        _checked(journal)
+        with journal.open() as stream:
+            for line in stream:
+                event=json.loads(line,object_pairs_hook=_strict)
+                if event.get('plan')!=plan:continue
+                if event['event']=='HTTP_DISPATCH_ATTEMPT':attempts+=1
+                elif event['event']=='HTTP_RESPONSE':statuses.append(event['status'])
+                elif event['event']=='HTTP_OUTCOME_UNKNOWN':unknown+=1
+    if attempts!=3 or statuses!=[200,200,200] or unknown:raise PilotBlocked('captured recovery HTTP evidence changed')
+    state['local_response_replay']={'prior_state_sha256':CAPTURED_HOLD_SHA256,
+        'response_sha256':CAPTURED_RESPONSE_SHA256,'prefix_sha256':CAPTURED_PREFIX_SHA256,
+        'original_send_entries':3,'provider_calls':0}
+    state['status']='READY'
+    return True
+
+
 def run_step(root, plan, authorization, factory, *, now=None, fault=None, admission_ceiling=None, policy_sha256=None, processing_recovery=False):
     """One adapter step. Injected factory is for offline tests or approved HTTP.
 
@@ -325,8 +366,11 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
             state['approved_total_entries']=ceiling
             save() # Same plan path/cursor/counter; never a replacement budget.
 
+        replay_only=False
         if state['status'] == 'HOLD_ERROR':
-            if processing_recovery and recover_known_processing_hold(root,plan,state):save()
+            if recover_captured_processing_hold(root,plan,state):
+                replay_only=True;save()
+            elif processing_recovery and recover_known_processing_hold(root,plan,state):save()
             else:return dict(state)
         until = state.get('not_before_epoch', 0)
         if type(until) not in (int,float) or not math.isfinite(until) or until < 0:
@@ -336,6 +380,7 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
         sender = None
         def guarded_send(request):
             nonlocal sender
+            if replay_only:raise PilotBlocked('captured recovery is local replay only; no new sender entry')
             if state['status'] == 'DONE':
                 raise PilotBlocked('completed journal must reconcile without new download')
             if state['send_entries'] >= ceiling:
