@@ -10,7 +10,7 @@ def build():
  files={n:base64.b64decode(v) for n,v in accepted['files'].items() if n.startswith('apps/')}
  for n in ['wb_page_resume.py','finance_refresh_plan.py','wb_discovery_resume.py']:files['apps/msp_marketplace_reports/'+n]=(ROOT/'apps/msp_marketplace_reports'/n).read_bytes()
  for n in ['standalone_wb.py','finance_receipts.py']:files['apps/msp_marketplace_reports/'+n]=(ROOT/'scripts/finance_control/overlays'/n).read_bytes()
- for n in ['control.py','worker.py','client.py','diagnostics.py','diagnostics_client.py']:files[n]=(ROOT/'scripts/finance_control'/n).read_bytes()
+ for n in ['control.py','worker.py','client.py','diagnostics.py','diagnostics_client.py','rrd_profile.py']:files[n]=(ROOT/'scripts/finance_control'/n).read_bytes()
  files['pilot_supervisor.py']=(ROOT/'scripts/finance_control/supervisor.py').read_bytes()
  files['build-source.sha256']=sha(Path(__file__).read_bytes()).encode()
  release='/opt/mcp/projects/msp-marketplace-reports-releases/control-'+sha(enc({n:sha(b) for n,b in files.items()}))
@@ -46,7 +46,7 @@ def build():
   if n.startswith('units/'):(OUT/Path(n).name).write_bytes(b)
  (OUT/'MANIFEST.json').write_text(json.dumps({'installer_sha256':sha(raw),'release':release,'payload_sha256':package['payload_sha256'],'files':[{'path':n,'sha256':h} for n,h in package['hashes'].items()],'root_execution':'NOT_EXECUTED','daily_timer':False},indent=2)+'\n')
  # Pin the exact already-installed PR120 payload, not mutable branch state.
- old_raw=subprocess.check_output(['git','show','49a378537cba22411de772a3461233e19e75a95f:docs/marketplace-reports/autonomous-control-20261105/install.py'])
+ old_raw=subprocess.check_output(['git','show','14f5852c0a224ab57e63f27dfbd74cf29c612b1a:docs/marketplace-reports/autonomous-control-20261105/install.py'])
  old_node=next(n for n in ast.parse(old_raw).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PACKAGE' for t in n.targets));old_package=ast.literal_eval(old_node.value)
  old_pin={k:old_package[k] for k in ('release','hashes','payload_sha256')}
  up_source=(ROOT/'scripts/finance_control/upgrade.py').read_text();up=up_source.replace('PACKAGE = {}  # BUILD_PACKAGE','PACKAGE = '+repr(package)).replace('OLD = {}  # BUILD_OLD','OLD = '+repr(old_pin)).encode();compile(up,'upgrade.py','exec')
