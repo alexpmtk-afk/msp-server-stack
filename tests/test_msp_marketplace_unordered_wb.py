@@ -61,7 +61,12 @@ class SavedProcessingRecovery(unittest.TestCase):
    self.assertEqual((stage/('page-'+str(evidence['cursor'])+'.json')).read_bytes(),raw_bytes)
    calls=[]
    def sender(req):calls.append(req.body['rrdId']);return 204,None
-   done=s.run_step(root,plan,auth,lambda:sender,now=2000.,admission_ceiling=1000,policy_sha256='c'*64)
+   unchanged=budget.read_bytes();hidden=pending.with_suffix('.held');pending.rename(hidden)
+   with patch.object(s,'CAPTURED_RESPONSE_SHA256',p._sha(raw_bytes)),patch.object(s,'CAPTURED_PREFIX_SHA256',p._sha(prefix)):
+    with self.assertRaises(GenerationError):s.run_step(root,plan,auth,lambda:self.fail('lost retained response must not refetch'),now=2000.,admission_ceiling=1000,policy_sha256='c'*64)
+   self.assertEqual(budget.read_bytes(),unchanged);hidden.rename(pending)
+   with patch.object(s,'CAPTURED_RESPONSE_SHA256',p._sha(raw_bytes)),patch.object(s,'CAPTURED_PREFIX_SHA256',p._sha(prefix)):
+    done=s.run_step(root,plan,auth,lambda:sender,now=2000.,admission_ceiling=1000,policy_sha256='c'*64)
    self.assertEqual(done['status'],'DONE');self.assertEqual(done['send_entries'],4);self.assertEqual(calls,[evidence['ids'][-1]])
 
 class ReadonlyOverlapReceipt(unittest.TestCase):

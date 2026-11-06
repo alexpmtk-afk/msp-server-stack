@@ -1,7 +1,7 @@
 {
-  "installer_sha256": "8538db608c65b83fe4e9cc18980ad796dcd935b4df1285ccf43e3394e3ec5df4",
-  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-c45e501a45139ed988a4276df1d44bb55d33acdeb3a90d576696b8256c7203a1",
-  "payload_sha256": "3171596c6735c89810a722e8960cb3c4c537cdab5e04cc1ad2cb6a90fa185e28",
+  "installer_sha256": "b0249fd0d1ceb28b39ffb99de4683120692a8b9d0418d954cbf15cf28c4f0f3e",
+  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-2a81ce92bf9198f91012a828b8f6c6adf95943e7255a61ef3ce5b4e7c16a357b",
+  "payload_sha256": "343a6305eff15eb445d036b38721b8db5d14b5efa1812752642c59564d9247e1",
   "files": [
     {
       "path": "apps/msp_marketplace_reports/__init__.py",
@@ -69,7 +69,7 @@
     },
     {
       "path": "apps/msp_marketplace_reports/standalone_wb.py",
-      "sha256": "58deb0057b01a34179e609fa02093b58fd57c948bcaed90d0b16693ca73e457b"
+      "sha256": "5ca27700fec756eeab1f942eab156728b706a02afc0df3de7faac2c25d24ab24"
     },
     {
       "path": "apps/msp_marketplace_reports/versioned_archive.py",
@@ -93,11 +93,11 @@
     },
     {
       "path": "control.py",
-      "sha256": "7406b660f1eac76f34dcddc22d24553824156dcffa9391d6fcfc1500cd770402"
+      "sha256": "aaf656fcb73a32558189b804b899d01fc5209021d7bbd7f9ea28652477af683a"
     },
     {
       "path": "worker.py",
-      "sha256": "8fbbed41bbd51bda827dece12030c7698e2738a91e9edab9d171c05ba2ea5374"
+      "sha256": "6c59858864a31c18a12c4951c59a9a2b5353d104af264a9b888dee4a35f5757b"
     },
     {
       "path": "client.py",
@@ -105,7 +105,7 @@
     },
     {
       "path": "diagnostics.py",
-      "sha256": "e984c90164de8a39dea08f446a8525e7a289903713e91d5b9460b77e2a9587fa"
+      "sha256": "3c6970d15b5cf2b0557f2d2bc55613ae2b61bb67fb00d342ce2c1654e4357591"
     },
     {
       "path": "diagnostics_client.py",
@@ -125,11 +125,11 @@
     },
     {
       "path": "assets.json",
-      "sha256": "ad36cfab94ff6c1aaee3cc29fdd9a8b7ee881f2708a2fbe98034837e761325a9"
+      "sha256": "7f6092f114eca02a9abacad11ed26b89e90000fec199c8851916d78a28eabe84"
     },
     {
       "path": "units/msp-finance-diagnostics.service",
-      "sha256": "3ebd166580caf1cad0e8147c96b9e1554bdecaaec221e30f97a54a497bde48e5"
+      "sha256": "f761b485bc3f077cf2f8c68a365849f357af68feef35a5f0510dbf3cd63b77b9"
     },
     {
       "path": "units/48-msp-finance-diagnostics.rules",
@@ -137,11 +137,11 @@
     },
     {
       "path": "units/msp-finance-control.service",
-      "sha256": "9220edbd88bc1df6e70d5d33b72a3ef224e3503d700d4228bd3f5c9c4cc7d973"
+      "sha256": "95578ede246edf003a53fd44995f8348282be70d6f01a920e201f42d76d1d175"
     },
     {
       "path": "units/msp-finance-recover.service",
-      "sha256": "33271b95e4a4c231fe1c141cf26b3f5791fc302d87e595dd2ce2fb7a8768f38f"
+      "sha256": "507795db82982a6f922d595fad7c6571d0ce49c9b458e21e3c98db2c4c788359"
     },
     {
       "path": "units/49-msp-finance-control.rules",
@@ -149,7 +149,7 @@
     },
     {
       "path": "files.json",
-      "sha256": "b3b31bdeecc43469247416ca79d701b093745e415d02737a4c325c9ec7a446ae"
+      "sha256": "da6c388038032eeb99df35983509a9634b2121c8c87458edee9bdb35302dd376"
     }
   ],
   "root_execution": "NOT_EXECUTED",

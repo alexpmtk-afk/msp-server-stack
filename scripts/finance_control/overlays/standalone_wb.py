@@ -313,6 +313,27 @@ def recover_captured_processing_hold(root,plan,state):
     return True
 
 
+def verify_captured_replay_ticket(root,plan,state):
+    ticket=state.get('local_response_replay')
+    if ticket is None:return False
+    expected={'prior_state_sha256':CAPTURED_HOLD_SHA256,'response_sha256':CAPTURED_RESPONSE_SHA256,
+              'prefix_sha256':CAPTURED_PREFIX_SHA256,'original_send_entries':3,'provider_calls':0}
+    if _digest(plan)!=KNOWN_REPAIR_PLAN_SHA256 or ticket!=expected:
+        raise PilotBlocked('captured replay ticket changed')
+    from .wb_page_resume import _dir,_read_json,_validate_state,_validate_page
+    stage=_dir(root,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    saved=_read_json(stage/'state.json',required=True)
+    _validate_state(saved,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+    original_cursor=3111429097937
+    page,raw=_read_json(stage/('response-'+str(original_cursor)+'.json'),required=True,with_bytes=True)
+    if hashlib.sha256(raw).hexdigest()!=CAPTURED_RESPONSE_SHA256:
+        raise PilotBlocked('captured response lost or changed after recovery')
+    _validate_page(page,plan['report_id'],plan['report_type'],original_cursor)
+    # A crash after arming but before cursor acknowledgement must still replay
+    # locally, never invoke transport if the retained response disappears.
+    return saved['current_rrd_id']==original_cursor
+
+
 def run_step(root, plan, authorization, factory, *, now=None, fault=None, admission_ceiling=None, policy_sha256=None, processing_recovery=False):
     """One adapter step. Injected factory is for offline tests or approved HTTP.
 
@@ -372,6 +393,7 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
                 replay_only=True;save()
             elif processing_recovery and recover_known_processing_hold(root,plan,state):save()
             else:return dict(state)
+        replay_only=verify_captured_replay_ticket(root,plan,state) or replay_only
         until = state.get('not_before_epoch', 0)
         if type(until) not in (int,float) or not math.isfinite(until) or until < 0:
             raise PilotBlocked('invalid executor not-before; do not reset')
