@@ -51,3 +51,10 @@ Proof digest, original root summary and wake/budget counters are preserved;
 proof is rechecked at admission. At most2 such local recoveries per plan;
 corruption, nonterminal/unknown transport, stale/foreign proof or absent root
 summary remain HOLD. No LLM, secret access or direct HTTP added to the driver.
+
+
+## Installed continuation: cross-nonce journal ordering
+
+Owner installed control-b7b70bfa6b745a8e7c75e0e886c13f554b60d3649032d293c63e346fdef4b598. Fresh root diagnostic for 0983f5a05a704fdebc8579ec9aa48bd1 passed: report 743994450/type1 has 3 validated pages, 2587 staged rows, 4 sealed requests and known responses [204,200,200,200], unknown=0, pending_response=false, publication pending. This response order is lexical random-nonce filename order, not chronology. The old client wrongly required terminal 204 at list end and rejected continuation after successful installation.
+
+The unprivileged recovery and future driver now require exactly one 204 and otherwise only 200, preserving exact sealed counters, validated terminal stage and all original plan/publication/hash requirements. Regression reproduces the old failure and covers all permutations, repeated terminal, missing terminal, 429 and unknown outcomes. No root reinstall is needed for this client-only fix. Exact recovery launched once as user service msp-wb-memory-resume-20261107; original state/counters backed up by existing helper, new request e2a2558bf80940e1a90023af94a1b0a0. Production completion must be verified from that root receipt before claiming recovery success. Original ROOT_MEMORY_REPAIR_AND_RESUME.txt is a historical installation command; do not repeat against the already installed release.

@@ -17,7 +17,7 @@ def validate_reconciled_timeout(prior,diagnostic,now):
  if plan!=expected:raise ValueError('different interrupted plan')
  if not (evidence.get('stage_status')=='STAGED_COMPLETE' and type(evidence.get('pages')) is int and evidence['pages']>0 and type(evidence.get('budget_entries')) is int and evidence['budget_entries']>=evidence['pages']+1 and evidence.get('http_attempts')==evidence['budget_entries'] and evidence.get('unknown_outcomes')==0 and evidence.get('pending_response_present') is False):raise ValueError('terminal pages/admission not reconciled')
  statuses=evidence.get('http_statuses',[])
- if len(statuses)!=evidence['http_attempts'] or statuses[-1:]!=[204] or any(x!=200 for x in statuses[:-1]):raise ValueError('not all HTTP outcomes known')
+ if len(statuses)!=evidence['http_attempts'] or statuses.count(204)!=1 or any(x not in (200,204) for x in statuses):raise ValueError('not all HTTP outcomes known')
  if receipt.get('status')=='STAGED_PUBLICATION_PENDING':
   if diagnostic.get('selected_plan')!=expected:raise ValueError('local replay must select exact interrupted report')
  elif not (receipt.get('verified') is True and receipt.get('publication_verified') is True and receipt.get('page_hashes_verified') is True and receipt.get('report_id')==743994450 and receipt.get('report_type')==1 and receipt.get('cabinet')=='wb_laser_master' and receipt.get('terminal_http_status')==204):raise ValueError('not eligible for local-only recovery')

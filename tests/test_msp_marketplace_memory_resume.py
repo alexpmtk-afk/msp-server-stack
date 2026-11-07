@@ -14,3 +14,22 @@ class MemoryResumeTests(unittest.TestCase):
  def test_corrupt_receipt_not_reclassified_as_publication_pending(self):
   self.d['interrupted_recovery']['receipt']={'status':'HOLD_INVALID_LOCAL_EVIDENCE'}
   with self.assertRaises(ValueError):m.validate_reconciled_timeout(self.prior,self.d,1001)
+
+ def test_cross_nonce_journal_order_is_not_http_chronology(self):
+  self.d['interrupted_recovery']['evidence']['http_statuses']=[204,200,200,200]
+  m.validate_reconciled_timeout(self.prior,self.d,1001)
+ def test_duplicate_terminal_or_unexpected_status_rejected(self):
+  for statuses in ([204,204,200,200],[200,200,200,200],[204,200,429,200]):
+   self.d['interrupted_recovery']['evidence']['http_statuses']=statuses
+   with self.subTest(statuses=statuses),self.assertRaises(ValueError):m.validate_reconciled_timeout(self.prior,self.d,1001)
+
+ def test_generic_terminal_recovery_accepts_all_cross_nonce_orders(self):
+  import itertools
+  p=Path(__file__).resolve().parents[1]/'scripts/finance_control/history_driver.py'
+  spec=importlib.util.spec_from_file_location('terminal_order_driver',p);driver=importlib.util.module_from_spec(spec);spec.loader.exec_module(driver)
+  prior={'status':'PARTIAL','api_enabled_after_run':False,'schedule_enabled':False,'request_nonce':m.EXPECTED_NONCE,'jobs':[{'status':'STOP_OR_UNCERTAIN'}]}
+  for statuses in set(itertools.permutations([200,200,200,204])):
+   self.d['interrupted_recovery']['evidence']['http_statuses']=list(statuses)
+   self.assertIsNotNone(driver.safe_terminal_stop(prior,self.d,now=1001))
+  self.d['interrupted_recovery']['evidence']['http_statuses']=[204,204,200,200]
+  self.assertIsNone(driver.safe_terminal_stop(prior,self.d,now=1001))

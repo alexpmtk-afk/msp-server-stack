@@ -65,7 +65,7 @@ def safe_terminal_stop(result, diagnostic, *, now=None):
   recovered=diagnostic['interrupted_recovery'];plan=recovered['plan'];e=recovered['evidence'];r=recovered['receipt']
   if plan.get('cabinet')!='wb_laser_master' or plan.get('year')!=2026 or type(plan.get('report_id')) is not int or plan.get('report_type') not in (1,2):return None
   statuses=e['http_statuses'];attempts=e['http_attempts'];pages=e['pages'];spent=e['budget_entries']
-  if (e.get('stage_status')!='STAGED_COMPLETE' or type(pages) is not int or pages<1 or type(attempts) is not int or type(spent) is not int or not pages+1<=spent==attempts<=1000 or type(e.get('unknown_outcomes')) is not int or e.get('unknown_outcomes')!=0 or e.get('pending_response_present') is not False or len(statuses)!=attempts or statuses[-1:]!=[204] or any(x!=200 for x in statuses[:-1])):return None
+  if (e.get('stage_status')!='STAGED_COMPLETE' or type(pages) is not int or pages<1 or type(attempts) is not int or type(spent) is not int or not pages+1<=spent==attempts<=1000 or type(e.get('unknown_outcomes')) is not int or e.get('unknown_outcomes')!=0 or e.get('pending_response_present') is not False or len(statuses)!=attempts or statuses.count(204)!=1 or any(x not in (200,204) for x in statuses)):return None
   if r.get('status')=='STAGED_PUBLICATION_PENDING':
    if diagnostic.get('selected_plan')!=plan:return None
   elif not (r.get('verified') is True and r.get('publication_verified') is True and r.get('page_hashes_verified') is True and r.get('report_id')==plan['report_id'] and r.get('report_type')==plan['report_type'] and r.get('terminal_http_status')==204):return None
