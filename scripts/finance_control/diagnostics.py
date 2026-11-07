@@ -129,6 +129,14 @@ def _main():
  def reconcile():
   if context.get('selected'):context['report_evidence']=report_evidence('/opt/mcp/data/msp-marketplace-reports',context['selected'])
  result=probe([('VERIFY_IMMUTABLE_CODE',c.verify_payload),('READ_REQUEST',read_request),('CHECK_PRIOR_OWNERSHIP',ownership),('SELECT_REPORT_READ_ONLY',selection),('VERIFY_BUDGET_HTTP_PAGES',reconcile)])
+ if context.get('request',{}).get('nonce')=='0983f5a05a704fdebc8579ec9aa48bd1':
+  try:
+   from apps.msp_marketplace_reports.finance_receipts import report_receipt
+   claimed=c.checked_json(STATE/'claims'/'0983f5a05a704fdebc8579ec9aa48bd1-0-BEFORE_JOB.json')['plan']
+   s.validate_plan(claimed)
+   if claimed['cabinet']!='wb_laser_master' or claimed['year']!=2026:raise ValueError('different recovery scope')
+   result['interrupted_recovery']={'plan':claimed,'evidence':report_evidence('/opt/mcp/data/msp-marketplace-reports',claimed),'receipt':report_receipt('/opt/mcp/data/msp-marketplace-reports',claimed['cabinet'],2026,claimed['report_id'],claimed['report_type'])}
+  except Exception as exc:result['interrupted_recovery']={'failure':failure(exc,'INTERRUPTED_REPORT')}
  result['report_evidence']=context.get('report_evidence')
  if context.get('report_evidence',{}).get('executor_status')=='HOLD_ERROR':result['status']='HOLD_REPORT_ERROR'
  if context.get('request',{}).get('nonce')=='9e4d19223c0f447e885271edcc38698c' and result['status']=='READ_ONLY_PASS':

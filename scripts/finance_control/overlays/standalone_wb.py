@@ -450,7 +450,16 @@ def run_step(root, plan, authorization, factory, *, now=None, fault=None, admiss
 
         replay_only=False
         if state['status'] == 'HOLD_ERROR':
-            if recover_cursor_policy_hold(root,plan,state):
+            from .wb_page_resume import _dir, _read_json, _validate_state, _verify_pages
+            terminal_folder=_dir(root,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+            terminal_state=_read_json(terminal_folder/'state.json')
+            if terminal_state is not None and terminal_state.get('status')=='STAGED_COMPLETE':
+                _validate_state(terminal_state,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+                _verify_pages(terminal_folder,terminal_state,plan['report_id'],plan['report_type'])
+                state['terminal_publication_recovery']={'prior_error_type':state.get('error_type'),'prior_state_sha256':_digest(state)}
+                state['status']='PAGE_STAGED'
+                replay_only=True;save()
+            elif recover_cursor_policy_hold(root,plan,state):
                 replay_only=True;save()
             elif recover_captured_processing_hold(root,plan,state):
                 replay_only=True;save()

@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from pathlib import Path
 
-from .archive import DATASETS, _rows, _safe_write, _sha, _validate
+from .archive import _scan_rows, DATASETS, _rows, _safe_write, _sha, _validate
 
 _VERSION = 2  # New opt-in store; no production generations exist yet.
 _HASH_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -161,23 +161,32 @@ def _validate_payload_pairs(dataset, cabinet, period, files):
         else:
             expected_period = _MONTH_RE.fullmatch(name).group(1)
         raw = files[name]
-        fields, rows = _rows(raw, DATASETS[dataset][1])
+        if dataset.startswith("wb_weekly_finance_"):
+            fields, records = _scan_rows(raw, DATASETS[dataset][1])
+            if "reportType" not in fields:
+                raise GenerationError("WB reportType mismatch/missing")
+            type_index = fields.index("reportType")
+            expected_type = "1" if dataset.endswith("_main") else "2"
+            count = 0
+            for _, values in records:
+                if values[type_index] != expected_type:
+                    raise GenerationError("WB reportType mismatch/missing")
+                count += 1
+            rows = None
+        else:
+            fields, rows = _rows(raw, DATASETS[dataset][1])
+            count = len(rows)
         manifest = _strict_json(files[name + ".meta.json"])
         if set(("schema", "rows", "bytes")) - set(manifest):
             raise GenerationError("missing integer fields")
         _integer(manifest, "schema", 1)
-        _integer(manifest, "rows", len(rows))
+        _integer(manifest, "rows", count)
         _integer(manifest, "bytes", len(raw))
         expectations = {"dataset": dataset, "cabinet": cabinet, "period": expected_period,
                         "status": "LOCAL_VERIFIED", "sha256": _sha(raw)}
         if any(type(manifest.get(k)) is not str or manifest[k] != v
                for k, v in expectations.items()):
             raise GenerationError("manifest identity/hash mismatch")
-        if dataset.startswith("wb_weekly_finance_"):
-            expected_type = "1" if dataset.endswith("_main") else "2"
-            if "reportType" not in fields or any(row["reportType"] != expected_type
-                                                 for row in rows.values()):
-                raise GenerationError("WB reportType mismatch/missing")
         if dataset == "ozon_final_realization":
             if name != "annual.csv":
                 if any(row["report_month"] != expected_period
@@ -188,7 +197,7 @@ def _validate_payload_pairs(dataset, cabinet, period, files):
                 monthly.update(rows)
             else:
                 annual = rows
-        verified[name] = len(rows)
+        verified[name] = count
     if dataset == "ozon_final_realization" and (
         set(monthly) != set(annual) or any(
             any(row.get(field, "") != annual[key].get(field, "")

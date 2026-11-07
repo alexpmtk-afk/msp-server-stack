@@ -11,7 +11,7 @@ def files():
 class PayloadCacheTests(unittest.TestCase):
  def test_identical_bytes_parsed_once_per_context_and_result_not_mutable(self):
   f=files();args=('wb_weekly_finance_main','wb_laser_master','2026',f)
-  with patch.object(g,'_rows',wraps=g._rows) as rows:
+  with patch.object(g,'_scan_rows',wraps=g._scan_rows) as rows:
    with g.verified_payload_cache():
     result=g._payload_pairs(*args);result['data.csv']=999
     self.assertEqual(g._payload_pairs(*args)['data.csv'],1)

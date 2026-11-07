@@ -137,7 +137,7 @@ def gate(cabinet):
  return 'READY'
 def wake(cabinet):
  previous=json.loads((ROOT_STATE/'inbox/request.json').read_text())['nonce']
- p=subprocess.run(['/usr/local/bin/msp-finance-wake','--cabinet',cabinet,'--jobs','1'],capture_output=True,text=True,timeout=1100)
+ p=subprocess.run(['/usr/local/bin/msp-finance-wake','--cabinet',cabinet,'--jobs','1'],capture_output=True,text=True,timeout=1800)
  # Preserve raw wrapper-only stdout/stderr locally; no token/HTTP bodies exist
  # in this entrypoint. A nonzero exit is never retried or converted to PASS.
  (STATE/'last-client-output.txt').write_text(p.stdout+'\n'+p.stderr);os.chmod(STATE/'last-client-output.txt',0o600)

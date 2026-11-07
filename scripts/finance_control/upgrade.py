@@ -114,6 +114,8 @@ def _main():
  run(['/usr/bin/systemd-analyze','verify','msp-finance-control.service','msp-finance-recover.service','msp-finance-diagnostics.service'])
  newreceipt={**receipt,'payload_sha256':PACKAGE['payload_sha256'],'release':str(release),'diagnostics_enabled':True}
  replace(old_install,enc(newreceipt),0o644);run(['/usr/bin/systemctl','daemon-reload'])
+ # Wiring is committed. Release exclusive lock before shared-lock diagnostic.
+ os.close(LOCK_FD);LOCK_FD=None
  # Read-only new service only, never msp-wb-pilot/control/recover.
  run(['/usr/bin/systemctl','start','msp-finance-diagnostics.service'])
  print(json.dumps({'status':'UPGRADED_NO_API','diagnostic_receipt':str(STATE/'results/diagnostics-latest.json'),'hermes_command':'msp-finance-diagnose','schedule_enabled':False}))

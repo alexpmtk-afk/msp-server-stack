@@ -46,6 +46,12 @@ def _execute(root,plan,auth,factory,policy_sha,*,clock=time.time,sleep=time.slee
  for _ in range(12):
   receipt=report_receipt(root,plan['cabinet'],2026,plan['report_id'],plan['report_type'])
   if receipt.get('verified'):return {'executor':{'status':'DONE'},'report_detail_complete':True,'receipt':receipt}
+  if receipt['status']=='STAGED_PUBLICATION_PENDING':
+   def no_sender():raise ValueError('local terminal publication must never use network')
+   outcome=s.run_step(root,plan,auth,no_sender,now=clock(),admission_ceiling=1000,policy_sha256=policy_sha)
+   verified=report_receipt(root,plan['cabinet'],2026,plan['report_id'],plan['report_type'])
+   if not verified.get('verified'):raise ValueError('local publication did not verify; no refetch')
+   return {'executor':{'status':'DONE'},'report_detail_complete':True,'receipt':verified,'local_publication_recovery':True}
   if receipt['status']=='HOLD_INVALID_LOCAL_EVIDENCE':raise ValueError('archive integrity HOLD; no refetch')
   count=s.read_control(path)['send_entries'] if path.exists() else 0
   if count-baseline>=portion_limit or clock()>=deadline:break
