@@ -56,6 +56,44 @@ def recover_pause(path,read_receipt,gate,*,clock=time.time):
  value.update(phase='COOLDOWN',reason='verified_budget_pause_continuation',resume_not_before=max(clock()+PORTION_PAUSE_SECONDS,pause['not_before']))
  write(path,value);return True
 
+def safe_terminal_stop(result, diagnostic, *, now=None):
+ try:
+  now=time.time() if now is None else now
+  if result.get('status')!='PARTIAL' or result.get('api_enabled_after_run') is not False or result.get('schedule_enabled') is not False:return None
+  if len(result['jobs'])!=1 or result['jobs'][0]['status']!='STOP_OR_UNCERTAIN':return None
+  if diagnostic.get('status')!='READ_ONLY_PASS' or diagnostic.get('request_nonce')!=result['request_nonce'] or not 0<=now-diagnostic['checked_epoch']<=1800:return None
+  recovered=diagnostic['interrupted_recovery'];plan=recovered['plan'];e=recovered['evidence'];r=recovered['receipt']
+  if plan.get('cabinet')!='wb_laser_master' or plan.get('year')!=2026 or type(plan.get('report_id')) is not int or plan.get('report_type') not in (1,2):return None
+  statuses=e['http_statuses'];attempts=e['http_attempts'];pages=e['pages'];spent=e['budget_entries']
+  if (e.get('stage_status')!='STAGED_COMPLETE' or type(pages) is not int or pages<1 or type(attempts) is not int or type(spent) is not int or not pages+1<=spent==attempts<=1000 or type(e.get('unknown_outcomes')) is not int or e.get('unknown_outcomes')!=0 or e.get('pending_response_present') is not False or len(statuses)!=attempts or statuses[-1:]!=[204] or any(x!=200 for x in statuses[:-1])):return None
+  if r.get('status')=='STAGED_PUBLICATION_PENDING':
+   if diagnostic.get('selected_plan')!=plan:return None
+  elif not (r.get('verified') is True and r.get('publication_verified') is True and r.get('page_hashes_verified') is True and r.get('report_id')==plan['report_id'] and r.get('report_type')==plan['report_type'] and r.get('terminal_http_status')==204):return None
+  return hashlib.sha256((json.dumps(plan,sort_keys=True,separators=(',',':'))+'\n').encode()).hexdigest()
+ except (KeyError,TypeError,AttributeError):return None
+
+def recover_terminal_stop(path, read_diagnostic, read_receipt, closed, *, clock=time.time):
+ value=json.loads(path.read_text());prior=value.get('last') or {}
+ if value.get('phase')!='HOLD' or value.get('reason')!='non_pass_no_retry':return False
+ if len(prior.get('jobs',[]))!=1 or prior['jobs'][0].get('status')!='STOP_OR_UNCERTAIN':return False
+ if read_receipt(prior['request_nonce'])!=prior:return False
+ closed();diagnostic=read_diagnostic();key=safe_terminal_stop(prior,diagnostic,now=clock())
+ if key is None:return False
+ counts=value.setdefault('local_publication_recoveries',{})
+ if counts.get(key,0)>=2:return False
+ counts[key]=counts.get(key,0)+1
+ value['terminal_reconciliation_sha256']=hashlib.sha256(json.dumps(diagnostic,sort_keys=True).encode()).hexdigest()
+ value.update(phase='COOLDOWN',reason='verified_terminal_local_recovery',resume_not_before=clock()+PORTION_PAUSE_SECONDS)
+ write(path,value);return True
+
+def terminal_recovery(path):
+ def diagnose():
+  p=subprocess.run(['/usr/local/bin/msp-finance-diagnose'],capture_output=True,text=True,timeout=360)
+  if p.returncode:raise ValueError('terminal recovery diagnostic failed')
+  return root_json(ROOT_STATE/'results/diagnostics-latest.json')
+ try:return recover_terminal_stop(path,diagnose,lambda nonce:root_json(ROOT_STATE/'results'/(nonce+'.json')),unit_closed)
+ except Exception:return False # Preserve original HOLD, never allocate another request.
+
 def advance(path,gate,wake,observe,*,clock=time.time):
  value=json.loads(path.read_text()) if path.exists() else {'schema':1,'phase':'WAITING_UPDATE','wakes':0,'last':None,'cabinet_index':0}
  if value['phase'] in ('HOLD','COMPLETE'):return value
@@ -112,7 +150,10 @@ def admission_receipt_gate(cabinet):
  receipt=root_json(ROOT_STATE/'results'/(req['nonce']+'.json'))
  if receipt!=prior or receipt.get('api_enabled_after_run') is not False or receipt.get('schedule_enabled') is not False:raise ValueError('prior root receipt changed')
  if receipt.get('jobs')==[] and receipt.get('status')=='PARTIAL':return 'CABINET_COMPLETE'
- if receipt.get('status')!='PASS' and safe_budget_pause(receipt) is None:raise ValueError('prior root execution not safely continuable')
+ if receipt.get('status')!='PASS' and safe_budget_pause(receipt) is None:
+  state=json.loads((STATE/'state.json').read_text());diagnostic=root_json(ROOT_STATE/'results/diagnostics-latest.json')
+  expected=state.get('terminal_reconciliation_sha256')
+  if not expected or hashlib.sha256(json.dumps(diagnostic,sort_keys=True).encode()).hexdigest()!=expected or safe_terminal_stop(receipt,diagnostic) is None:raise ValueError('prior root execution not safely continuable')
  return 'READY'
 
 def gate(cabinet):
@@ -157,7 +198,7 @@ def main():
   old=json.loads(path.read_text()) if path.exists() else {'cabinet_index':0}
   if old.get('phase')=='COMPLETE':return 0
   if old.get('phase')=='HOLD':
-   if not recover_pause(path,lambda nonce:root_json(ROOT_STATE/'results'/(nonce+'.json')),lambda:gate(CABINETS[old.get('cabinet_index',0)])):return 2
+   if not recover_pause(path,lambda nonce:root_json(ROOT_STATE/'results'/(nonce+'.json')),lambda:gate(CABINETS[old.get('cabinet_index',0)])) and not terminal_recovery(path):return 2
    old=json.loads(path.read_text())
   cab=CABINETS[old.get('cabinet_index',0)]
   state=advance(path,lambda:gate(cab),lambda:wake(cab),lambda r:None)
@@ -166,7 +207,9 @@ def main():
    index=state.get('cabinet_index',0)+1
    state.update(cabinet_index=index,phase='COMPLETE' if index==len(CABINETS) else 'READY');write(path,state)
    if state['phase']=='COMPLETE':return 0
-  elif state['phase']=='HOLD':return 2
+  elif state['phase']=='HOLD':
+   if terminal_recovery(path):continue
+   return 2
   elif state['phase']=='WAITING_UPDATE':time.sleep(15)
   elif state['phase']=='COOLDOWN':time.sleep(min(60,max(1,state['resume_not_before']-time.time())))
   elif state['phase']=='READY':time.sleep(1) # Redis remains authoritative within every portion.

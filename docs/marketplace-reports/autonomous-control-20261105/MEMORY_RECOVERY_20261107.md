@@ -34,7 +34,7 @@ Changes:
   previous normal-pause receipt/current nonce, pinned installed code and idle
   closed-network units. Unknown or corrupt outcomes remain blocked, never reset.
 
-Offline acceptance:354 tests,2 skipped. Actual overlay harness kills publication
+Offline acceptance:357 tests,2 skipped. Actual overlay harness kills publication
 after terminal204, proves pending classification, negative corrupted-page HOLD,
 then local replay with a forbidden sender factory and unchanged spent count.
 Synthetic20000row/50field index benchmark:161451642bytes old vs72247362bytes new
@@ -42,3 +42,12 @@ peak allocation (55.3% lower),2.395s vs1.745s. This is not production acceptance
 
 Root command: ROOT_MEMORY_REPAIR_AND_RESUME.txt. Prepared only; install and
 exact following runtime receipt remain required. Background model jobs stay paused.
+
+Additional deterministic recovery (no model): one STOP_OR_UNCERTAIN result with
+an existing exact root summary may invoke the allowed read-only diagnostic.
+Only root-attested complete terminal pages, original matching counters and
+known200*/204 with no unknown outcomes permit a70s cooldown and local finalization.
+Proof digest, original root summary and wake/budget counters are preserved;
+proof is rechecked at admission. At most2 such local recoveries per plan;
+corruption, nonterminal/unknown transport, stale/foreign proof or absent root
+summary remain HOLD. No LLM, secret access or direct HTTP added to the driver.

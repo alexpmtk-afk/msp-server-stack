@@ -6,7 +6,7 @@ Before=msp-finance-control.service msp-wb-pilot.service
 Type=oneshot
 RemainAfterExit=yes
 User=root
-ExecStart=/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf/.venv/bin/python -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-44b64b565766560dc575e3f1e756ca311e142c2091089e19ced31005dee2edf2/control.py --recover
+ExecStart=/opt/mcp/projects/msp-marketplace-reports-releases/c1fee070e9efa0c925a78f266fdf03cb12a173cf/.venv/bin/python -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-b7b70bfa6b745a8e7c75e0e886c13f554b60d3649032d293c63e346fdef4b598/control.py --recover
 TimeoutStartSec=150
 PrivateNetwork=yes
 

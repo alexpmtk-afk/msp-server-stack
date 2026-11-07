@@ -104,7 +104,7 @@ def report_evidence(root,plan):
     out['pending_response_validation']='PASS'
    except Exception as exc:
     out['pending_response_validation']='HOLD';out['pending_response_failure']=s.failure_location(exc)
- out['http_statuses']=out['http_statuses'][-32:]
+ out['http_statuses']=out['http_statuses'][-1000:]
  out['historical_error_detail_available']=bool(out.get('failure'))
  return out
 
@@ -129,10 +129,10 @@ def _main():
  def reconcile():
   if context.get('selected'):context['report_evidence']=report_evidence('/opt/mcp/data/msp-marketplace-reports',context['selected'])
  result=probe([('VERIFY_IMMUTABLE_CODE',c.verify_payload),('READ_REQUEST',read_request),('CHECK_PRIOR_OWNERSHIP',ownership),('SELECT_REPORT_READ_ONLY',selection),('VERIFY_BUDGET_HTTP_PAGES',reconcile)])
- if context.get('request',{}).get('nonce')=='0983f5a05a704fdebc8579ec9aa48bd1':
+ if context.get('request',{}).get('nonce') and (STATE/'claims'/(context['request']['nonce']+'-0-BEFORE_JOB.json')).exists():
   try:
    from apps.msp_marketplace_reports.finance_receipts import report_receipt
-   claimed=c.checked_json(STATE/'claims'/'0983f5a05a704fdebc8579ec9aa48bd1-0-BEFORE_JOB.json')['plan']
+   claimed=c.checked_json(STATE/'claims'/(context['request']['nonce']+'-0-BEFORE_JOB.json'))['plan']
    s.validate_plan(claimed)
    if claimed['cabinet']!='wb_laser_master' or claimed['year']!=2026:raise ValueError('different recovery scope')
    result['interrupted_recovery']={'plan':claimed,'evidence':report_evidence('/opt/mcp/data/msp-marketplace-reports',claimed),'receipt':report_receipt('/opt/mcp/data/msp-marketplace-reports',claimed['cabinet'],2026,claimed['report_id'],claimed['report_type'])}

@@ -3,7 +3,7 @@ Description=Read-only MSP finance diagnostics
 [Service]
 Type=oneshot
 User=root
-ExecStart=/usr/bin/python3 -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-44b64b565766560dc575e3f1e756ca311e142c2091089e19ced31005dee2edf2/diagnostics.py
+ExecStart=/usr/bin/python3 -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-b7b70bfa6b745a8e7c75e0e886c13f554b60d3649032d293c63e346fdef4b598/diagnostics.py
 PrivateNetwork=yes
 NoNewPrivileges=yes
 ProtectSystem=strict
