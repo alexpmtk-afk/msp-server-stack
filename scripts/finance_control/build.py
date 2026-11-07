@@ -8,8 +8,9 @@ def build():
  old=(ROOT/'docs/marketplace-reports/history-first-20261103/history.py').read_bytes();assert sha(old)=='cb1bb6e097c23ab3d42a505076f29ce4d7df4e76a3e30eb20694ed8e0e90c3ee'
  node=next(n for n in ast.parse(old).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PACKAGE' for t in n.targets));accepted=ast.literal_eval(node.value)
  files={n:base64.b64decode(v) for n,v in accepted['files'].items() if n.startswith('apps/')}
+ for n in ['wb_page_resume.py','finance_refresh_plan.py','wb_discovery_resume.py','generation_store.py','archive.py','versioned_archive.py','wb_worker_adapter.py']:files['apps/msp_marketplace_reports/'+n]=(ROOT/'apps/msp_marketplace_reports'/n).read_bytes()
  for n in ['standalone_wb.py','finance_receipts.py']:files['apps/msp_marketplace_reports/'+n]=(ROOT/'scripts/finance_control/overlays'/n).read_bytes()
- for n in ['control.py','worker.py','client.py','diagnostics.py','diagnostics_client.py']:files[n]=(ROOT/'scripts/finance_control'/n).read_bytes()
+ for n in ['control.py','worker.py','client.py','diagnostics.py','diagnostics_client.py','rrd_profile.py']:files[n]=(ROOT/'scripts/finance_control'/n).read_bytes()
  files['pilot_supervisor.py']=(ROOT/'scripts/finance_control/supervisor.py').read_bytes()
  files['build-source.sha256']=sha(Path(__file__).read_bytes()).encode()
  release='/opt/mcp/projects/msp-marketplace-reports-releases/control-'+sha(enc({n:sha(b) for n,b in files.items()}))
@@ -29,7 +30,7 @@ def build():
  control='[Unit]\nDescription=Bounded MSP finance administrative control (not a financial sender)\nRequires=msp-finance-recover.service\nAfter=msp-finance-recover.service\n[Service]\nType=oneshot\nUser=root\nExecStart='+python+' -I -B '+release+'/control.py\nExecStopPost='+python+' -I -B '+release+'/control.py --close\nTimeoutStartSec=1000\nTimeoutStopSec=150\nIPAddressDeny=any\nIPAddressAllow='+allow+'\n'+common
  recover='[Unit]\nDescription=Close owned MSP finance activation after boot; never downloads\nAfter=local-fs.target systemd-tmpfiles-setup.service\nBefore=msp-finance-control.service msp-wb-pilot.service\n[Service]\nType=oneshot\nRemainAfterExit=yes\nUser=root\nExecStart='+python+' -I -B '+release+'/control.py --recover\nTimeoutStartSec=150\nPrivateNetwork=yes\n'+common+'\n[Install]\nWantedBy=multi-user.target\n'
  rule='polkit.addRule(function(action, subject) {\n  if (action.id === "org.freedesktop.systemd1.manage-units" && action.lookup("unit") === "msp-finance-control.service" && action.lookup("verb") === "start" && subject.user === "hermes") { return polkit.Result.YES; }\n});\n'
- diagnostic='[Unit]\nDescription=Read-only MSP finance diagnostics\n[Service]\nType=oneshot\nUser=root\nExecStart=/usr/bin/python3 -I -B '+release+'/diagnostics.py\nPrivateNetwork=yes\nNoNewPrivileges=yes\nProtectSystem=strict\nProtectHome=yes\nPrivateTmp=yes\nUMask=0077\nReadWritePaths=/var/lib/msp-finance-control/results\nInaccessiblePaths=/etc/msp-marketplace-reports /etc/msp-marketplace-reports-pilot /run/msp-finance-control /etc/msp-marketplace-reports-executor\nTimeoutStartSec=60\n'
+ diagnostic='[Unit]\nDescription=Read-only MSP finance diagnostics\n[Service]\nType=oneshot\nUser=root\nExecStart=/usr/bin/python3 -I -B '+release+'/diagnostics.py\nPrivateNetwork=yes\nNoNewPrivileges=yes\nProtectSystem=strict\nProtectHome=yes\nPrivateTmp=yes\nUMask=0077\nReadWritePaths=/var/lib/msp-finance-control/results\nInaccessiblePaths=/etc/msp-marketplace-reports /etc/msp-marketplace-reports-pilot /run/msp-finance-control /etc/msp-marketplace-reports-executor\nTimeoutStartSec=300\n'
  diagnostic_rule=rule.replace('msp-finance-control.service','msp-finance-diagnostics.service')
  files['units/msp-finance-diagnostics.service']=diagnostic.encode();files['units/48-msp-finance-diagnostics.rules']=diagnostic_rule.encode()
  files['units/msp-finance-control.service']=control.encode();files['units/msp-finance-recover.service']=recover.encode();files['units/49-msp-finance-control.rules']=rule.encode()
@@ -45,13 +46,28 @@ def build():
   if n.startswith('units/'):(OUT/Path(n).name).write_bytes(b)
  (OUT/'MANIFEST.json').write_text(json.dumps({'installer_sha256':sha(raw),'release':release,'payload_sha256':package['payload_sha256'],'files':[{'path':n,'sha256':h} for n,h in package['hashes'].items()],'root_execution':'NOT_EXECUTED','daily_timer':False},indent=2)+'\n')
  # Pin the exact already-installed PR120 payload, not mutable branch state.
- old_raw=subprocess.check_output(['git','show','e418e253fc799d8a5f8b59c875bef2d3fa26fe91:docs/marketplace-reports/autonomous-control-20261105/install.py'])
+ old_raw=subprocess.check_output(['git','show','4bd20a946a557847dd2915e03bb876158ae2ea87:docs/marketplace-reports/autonomous-control-20261105/install.py'])
  old_node=next(n for n in ast.parse(old_raw).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PACKAGE' for t in n.targets));old_package=ast.literal_eval(old_node.value)
  old_pin={k:old_package[k] for k in ('release','hashes','payload_sha256')}
  up_source=(ROOT/'scripts/finance_control/upgrade.py').read_text();up=up_source.replace('PACKAGE = {}  # BUILD_PACKAGE','PACKAGE = '+repr(package)).replace('OLD = {}  # BUILD_OLD','OLD = '+repr(old_pin)).encode();compile(up,'upgrade.py','exec')
  (OUT/'upgrade.py').write_bytes(up);up_local=Path('/home/hermes/workspace/msp-finance-diagnostics-upgrade.py');up_local.write_bytes(up)
  up_cmd='msp_diag_stage=$(mktemp -d /var/lib/msp-finance-diag.XXXXXXXX) && install -o root -g root -m 600 '+str(up_local)+' "$msp_diag_stage/upgrade.py" && printf \'%s  %s\\n\' '+sha(up)+' "$msp_diag_stage/upgrade.py" | sha256sum -c - && /usr/bin/python3 -I -B "$msp_diag_stage/upgrade.py"'
  subprocess.run(['/bin/sh','-n','-c',up_cmd],check=True);(OUT/'UPGRADE_ONE_LINE.txt').write_text(up_cmd+'\n')
+ resume=(ROOT/'scripts/finance_control/resume_discovery_recovery.py').read_text().replace('__CONTROL_RELEASE__',release).replace('__ROOT_CONTROL_SHA__',sha(files['control.py'])).replace('__DRIVER_BASE64__',base64.b64encode((ROOT/'scripts/finance_control/history_driver.py').read_bytes()).decode())
+ compile(resume,'resume-discovery.py','exec')
+ resume_local=Path('/home/hermes/workspace/msp-finance-resume-discovery.py');resume_local.write_text(resume);(OUT/'resume-discovery.py').write_text(resume)
+ resume_cmd=up_cmd+" && printf '%s  %s\\n' "+sha(resume.encode())+' '+str(resume_local)+' | sha256sum -c - && /usr/sbin/runuser -u hermes -- /usr/bin/env XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus /usr/bin/python3 -I -B '+str(resume_local)
+ subprocess.run(['/bin/sh','-n','-c',resume_cmd],check=True);(OUT/'ROOT_REPAIR_AND_RESUME.txt').write_text(resume_cmd+'\n')
+ timeout_source=(ROOT/'scripts/finance_control/resume_timeout_recovery.py').read_text().replace('__CONTROL_RELEASE__',release).replace('__ROOT_CONTROL_SHA__',sha(files['control.py'])).replace('__DRIVER_BASE64__',base64.b64encode((ROOT/'scripts/finance_control/history_driver.py').read_bytes()).decode())
+ compile(timeout_source,'resume-timeout.py','exec')
+ timeout_local=Path('/home/hermes/workspace/msp-finance-resume-timeout.py');timeout_local.write_text(timeout_source);(OUT/'resume-timeout.py').write_text(timeout_source)
+ timeout_cmd=up_cmd+" && printf '%s  %s\\n' "+sha(timeout_source.encode())+' '+str(timeout_local)+' | sha256sum -c - && /usr/sbin/runuser -u hermes -- /usr/bin/env XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus /usr/bin/python3 -I -B '+str(timeout_local)
+ subprocess.run(['/bin/sh','-n','-c',timeout_cmd],check=True);(OUT/'ROOT_TIMEOUT_REPAIR_AND_RESUME.txt').write_text(timeout_cmd+'\n')
+ memory_source=(ROOT/'scripts/finance_control/resume_memory_recovery.py').read_text().replace('__CONTROL_RELEASE__',release).replace('__ROOT_CONTROL_SHA__',sha(files['control.py'])).replace('__DRIVER_BASE64__',base64.b64encode((ROOT/'scripts/finance_control/history_driver.py').read_bytes()).decode())
+ compile(memory_source,'resume-memory.py','exec')
+ memory_local=Path('/home/hermes/workspace/msp-finance-resume-memory.py');memory_local.write_text(memory_source);(OUT/'resume-memory.py').write_text(memory_source)
+ memory_cmd=up_cmd+" && printf '%s  %s\\n' "+sha(memory_source.encode())+' '+str(memory_local)+' | sha256sum -c - && /usr/sbin/runuser -u hermes -- /usr/bin/env XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus /usr/bin/python3 -I -B '+str(memory_local)
+ subprocess.run(['/bin/sh','-n','-c',memory_cmd],check=True);(OUT/'ROOT_MEMORY_REPAIR_AND_RESUME.txt').write_text(memory_cmd+'\n')
  (OUT/'UPGRADE_MANIFEST.json').write_bytes(enc({'upgrade_sha256':sha(up),'old_release':old_pin['release'],'new_release':release,'root_execution':'NOT_EXECUTED','provider_calls':0}))
  print(json.dumps({'installer_sha256':sha(raw),'upgrade_sha256':sha(up),'release':release,'files':len(files)}))
 if __name__=='__main__':build()

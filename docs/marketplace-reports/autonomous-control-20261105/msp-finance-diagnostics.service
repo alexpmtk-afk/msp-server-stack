@@ -3,7 +3,7 @@ Description=Read-only MSP finance diagnostics
 [Service]
 Type=oneshot
 User=root
-ExecStart=/usr/bin/python3 -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-8dbdf9642b1d5326a363f79f6c8ec21dd3eedeac9315412093d44ed23999306d/diagnostics.py
+ExecStart=/usr/bin/python3 -I -B /opt/mcp/projects/msp-marketplace-reports-releases/control-b7b70bfa6b745a8e7c75e0e886c13f554b60d3649032d293c63e346fdef4b598/diagnostics.py
 PrivateNetwork=yes
 NoNewPrivileges=yes
 ProtectSystem=strict
@@ -12,4 +12,4 @@ PrivateTmp=yes
 UMask=0077
 ReadWritePaths=/var/lib/msp-finance-control/results
 InaccessiblePaths=/etc/msp-marketplace-reports /etc/msp-marketplace-reports-pilot /run/msp-finance-control /etc/msp-marketplace-reports-executor
-TimeoutStartSec=60
+TimeoutStartSec=300

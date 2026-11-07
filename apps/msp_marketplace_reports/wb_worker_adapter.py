@@ -15,7 +15,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .archive import _rows, _sha, _validate, DATASETS
+from .archive import _scan_rows, _rows, _sha, _validate, DATASETS
 from .generation_store import GenerationError, read_active, _ensure_scope_durable, _sync_dir
 from .ingest import _cell
 from .versioned_archive import import_csv_versioned, read_csv_versioned, _assert_no_legacy
@@ -107,7 +107,8 @@ def _verify_receipt(root, dataset, cabinet, period, report_id, report_type,
         pinned_generation=receipt["generation"],
         expected_digest=receipt["manifest_sha256"])
     _, expected = _rows(source.read_bytes(), DATASETS[dataset][1])
-    _, actual = _rows(raw, DATASETS[dataset][1])
+    csv_fields, csv_records = _scan_rows(raw, DATASETS[dataset][1])
+    actual = {key:dict(zip(csv_fields,values)) for key,values in csv_records if key[0]==str(report_id)}
     if any(key not in actual or any(
             actual[key].get(column, "") != value
             for column, value in row.items())
@@ -150,7 +151,8 @@ def _validate_coverage(root, cabinet, year, report_id, report_type, doc):
         root, dataset, cabinet, str(year),
         pinned_generation=doc["generation"],
         expected_digest=doc["manifest_sha256"])
-    _, actual = _rows(raw, DATASETS[dataset][1])
+    csv_fields, csv_records = _scan_rows(raw, DATASETS[dataset][1])
+    actual = {key:dict(zip(csv_fields,values)) for key,values in csv_records if key[0]==str(report_id)}
     if len([key for key in actual if key[0] == str(report_id)]) != doc["rows"]:
         raise GenerationError("WB coverage rows missing from committed publication")
     # A valid pin with the same row count is not proof of the same report.

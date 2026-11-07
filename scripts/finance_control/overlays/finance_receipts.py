@@ -3,12 +3,12 @@
 No initialization, repair, resealing, network, credential access or provider
 completeness claims. Invalid local evidence is a HOLD, never a fresh download.
 """
-import json
+import json,csv,io,zlib
 from pathlib import Path
-from .archive import DATASETS,_rows,_sha
+from .archive import DATASETS,_rows,_sha,_scan_rows
 from .generation_store import read_active,GenerationError
 from .wb_worker_adapter import _dataset
-from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,_validate_page
+from .wb_page_resume import _dir,_read_json,_validate_state,_verify_pages,_validate_page,_unique_rows
 from .wb_report_revision import revision_root
 from .ingest import _cell
 from .standalone_wb import _digest
@@ -27,20 +27,48 @@ def _completed_pages_readonly(root,cabinet,year,rid,kind):
     _validate_state(state,cabinet,year,rid,kind)
     if state['status']!='STAGED_COMPLETE':raise GenerationError('report not terminal')
     _verify_pages(folder,state,rid,kind)
+    seen={}
     for entry in state['pages']:
         page,raw=_read_json(folder/('page-'+str(entry['cursor'])+'.json'),required=True,with_bytes=True)
         if _sha(raw)!=entry['sha256'] or _validate_page(page,rid,kind,entry['cursor'])!=entry['next_rrd_id']:
             raise GenerationError('read-only page changed during verification')
-        yield page['rows']
+        yield _unique_rows(page,seen)
 
 
-def report_receipt(root,cabinet,year,rid,kind):
+def _compressed_report_index(data, keys):
+    """Keep compressed CSV per report, not millions of annual field objects."""
+    fields, records = _scan_rows(data, keys)
+    stream = io.StringIO(newline='')
+    writer = csv.writer(stream, delimiter=';', lineterminator='\n')
+    writer.writerow(fields)
+    header = ('\ufeff'+stream.getvalue()).encode('utf-8')
+    buckets = {}
+    for key, values in records:
+        if key[0] not in buckets:
+            buckets[key[0]]=(zlib.compressobj(1), bytearray())
+        encoder, output = buckets[key[0]]
+        stream.seek(0); stream.truncate(0); writer.writerow(values)
+        output.extend(encoder.compress(stream.getvalue().encode('utf-8')))
+    return header, {rid: bytes(output+encoder.flush()) for rid,(encoder,output) in buckets.items()}
+
+
+def _selected_rows(data, keys, rid):
+    fields, records = _scan_rows(data, keys)
+    return {key:dict(zip(fields,values)) for key,values in records if key[0]==str(rid)}
+
+
+def report_receipt(root,cabinet,year,rid,kind,*,snapshot=None):
     root=Path(root);dataset=_dataset(kind)
     out={'verified':False,'cabinet':cabinet,'year':year,'report_id':rid,'report_type':kind,
          'cursor':None,'page_hashes':[],'budget_entries':None,'last_error':None,
          'not_before_epoch':None,'last_checked_at':None,'provider_coverage_proven':False}
     try:
-        active=read_active(root,dataset,cabinet,str(year))
+        # Snapshot is scoped to ONE serialized root selection, never global.
+        key=(str(root),dataset,cabinet,str(year))
+        if snapshot is None or key not in snapshot:
+            active=read_active(root,dataset,cabinet,str(year))
+            if snapshot is not None:snapshot[key]={'active':active}
+        else:active=snapshot[key]['active']
         check=None
         if active:
             meta=json.loads(active['files']['data.csv.meta.json'])
@@ -58,8 +86,19 @@ def report_receipt(root,cabinet,year,rid,kind):
                 raise GenerationError('budget receipt mismatch')
             out.update(budget_entries=budget['send_entries'],last_error=budget.get('error_type'),not_before_epoch=budget.get('not_before_epoch'))
         if state['status']!='STAGED_COMPLETE':return out
-        if not active:raise GenerationError('terminal report missing publication')
-        _,rows=_rows(active['files']['data.csv'],DATASETS[dataset][1]);selected={k:v for k,v in rows.items() if k[0]==str(rid)}
+        if not active:
+            if budget is not None and budget.get('status')!='DONE':return {**out,'status':'STAGED_PUBLICATION_PENDING'}
+            raise GenerationError('terminal report missing publication')
+        if snapshot is None:
+            selected=_selected_rows(active['files']['data.csv'],DATASETS[dataset][1],rid)
+        else:
+            if 'partitions' not in snapshot[key]:
+                snapshot[key]['partitions']=_compressed_report_index(active['files']['data.csv'],DATASETS[dataset][1])
+            header,buckets=snapshot[key]['partitions']
+            packed=buckets.get(str(rid))
+            selected={} if packed is None else _rows(header+zlib.decompress(packed),DATASETS[dataset][1])[1]
+        if not selected and check is None and budget is not None and budget.get('status')!='DONE':
+            return {**out,'status':'STAGED_PUBLICATION_PENDING'}
         fields=set(DATASETS[dataset][1])|{'reportType'}
         for page in _completed_pages_readonly(staged,cabinet,year,rid,kind):
             for row in page:fields.update(row)
@@ -81,7 +120,8 @@ def report_receipt(root,cabinet,year,rid,kind):
                    generation=active['generation'],manifest_sha256=active['manifest_sha256'])
         return out
     except (OSError,ValueError,KeyError,TypeError) as exc:
-        return {**out,'verified':False,'status':'HOLD_INVALID_LOCAL_EVIDENCE','last_error':type(exc).__name__}
+        from .standalone_wb import failure_location
+        return {**out,'verified':False,'status':'HOLD_INVALID_LOCAL_EVIDENCE','last_error':type(exc).__name__,'failure':failure_location(exc)}
 
 
 def collect(root,discoveries):

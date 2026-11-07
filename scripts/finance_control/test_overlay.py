@@ -28,6 +28,26 @@ second=w.execute(root,plan,auth,factory,'a'*64,clock=lambda:now[0],sleep=sleep)
 assert second['report_detail_complete'] and second['receipt']['rows']==5,second
 assert json.loads(path.read_text())['send_entries']==6 and calls==[0,1,2,3,4,5],calls
 before=path.read_bytes();third=w.execute(root,plan,auth,factory,'a'*64,clock=lambda:now[0],sleep=sleep);assert third['report_detail_complete'] and path.read_bytes()==before and len(calls)==6
+
+# A terminal page survives a process death before publication; replay is local-only.
+from unittest.mock import patch
+from apps.msp_marketplace_reports import wb_worker_adapter as adapter
+local_plan={**plan,'report_id':865431407};local_auth={**auth,'plan_sha256':s._digest(local_plan)}
+s.run_step(root,local_plan,local_auth,lambda:lambda req:(200,[{'reportId':865431407,'reportType':1,'rrdId':1}]),now=now[0],admission_ceiling=1000,policy_sha256='a'*64)
+now[0]+=70
+with patch.object(adapter,'finalize_staged_report',side_effect=adapter.GenerationError('synthetic interrupted publication')):
+ try:s.run_step(root,local_plan,local_auth,lambda:lambda req:(204,None),now=now[0],admission_ceiling=1000,policy_sha256='a'*64)
+ except RuntimeError:pass
+assert report_receipt(root,plan['cabinet'],2026,865431407,1)['status']=='STAGED_PUBLICATION_PENDING'
+local_budget=root/'.wb-executor'/(s._digest(local_plan)+'.json');spent=json.loads(local_budget.read_text())['send_entries']
+page=root/'.wb-report-stage'/plan['cabinet']/'2026'/'865431407-type-1'/'page-0.json';saved=page.read_bytes();page.write_bytes(saved+b' ')
+assert report_receipt(root,plan['cabinet'],2026,865431407,1)['status']=='HOLD_INVALID_LOCAL_EVIDENCE'
+page.write_bytes(saved)
+def forbid_factory():raise AssertionError('new HTTP prohibited during local publication')
+local_done=w.execute(root,local_plan,local_auth,forbid_factory,'a'*64,clock=lambda:now[0],sleep=sleep)
+assert local_done['local_publication_recovery'] and local_done['receipt']['verified']
+assert json.loads(local_budget.read_text())['send_entries']==spent
+
 # Interrupted pre-factory admission preserves the spent count on reconstruction.
 crash_plan={**plan,'report_id':865431405};crash_auth={**auth,'plan_sha256':s._digest(crash_plan)}
 def fault(where):
