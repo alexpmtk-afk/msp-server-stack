@@ -24,6 +24,11 @@ class Audit:
   except Exception as e:record(self.journal,{'event':'HTTP_OUTCOME_UNKNOWN','plan':self.plan,'error_type':type(e).__name__});raise
   record(self.journal,{'event':'HTTP_RESPONSE','plan':self.plan,'status':int(r.status)});return r
 def execute(root,plan,auth,factory,policy_sha,*,clock=time.time,sleep=time.sleep):
+ from apps.msp_marketplace_reports.generation_store import verified_payload_cache
+ with verified_payload_cache():
+  return _execute(root,plan,auth,factory,policy_sha,clock=clock,sleep=sleep)
+
+def _execute(root,plan,auth,factory,policy_sha,*,clock=time.time,sleep=time.sleep):
  from apps.msp_marketplace_reports import standalone_wb as s
  from apps.msp_marketplace_reports import wb_discovery_resume as d
  from apps.msp_marketplace_reports.finance_receipts import report_receipt

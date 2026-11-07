@@ -32,6 +32,11 @@ def request(value):
  return value
 
 def choose(root,cabinet):
+ from apps.msp_marketplace_reports.generation_store import verified_payload_cache
+ with verified_payload_cache():
+  return _choose(root,cabinet)
+
+def _choose(root,cabinet):
  from datetime import date,timedelta
  from apps.msp_marketplace_reports import standalone_wb as s,wb_discovery_resume as discovery
  from apps.msp_marketplace_reports.finance_refresh_plan import discovery_windows

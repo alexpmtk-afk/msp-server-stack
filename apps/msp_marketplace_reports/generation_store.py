@@ -13,6 +13,7 @@ import os
 import re
 import uuid
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 
 from .archive import DATASETS, _rows, _safe_write, _sha, _validate
@@ -86,7 +87,44 @@ def _require_plain(path):
             raise GenerationError("symbolic link forbidden in generation store")
 
 
+_PAYLOAD_CACHE = ContextVar('verified_generation_payloads', default=None)
+
+
+@contextmanager
+def verified_payload_cache():
+    """Reuse semantic validation of identical bytes in one bounded operation.
+
+    Never cache file reads, CURRENT/descriptor lineage, hashes or mutable rows.
+    Every caller still rereads and hashes actual bytes; altered data/identity
+    is a cache miss. Only successful row-count proofs are retained, bounded to
+    256 entries, and discarded even when the operation raises.
+    """
+    if _PAYLOAD_CACHE.get() is not None:
+        yield
+        return
+    token = _PAYLOAD_CACHE.set({})
+    try:
+        yield
+    finally:
+        _PAYLOAD_CACHE.reset(token)
+
+
 def _payload_pairs(dataset, cabinet, period, files):
+    cache = _PAYLOAD_CACHE.get()
+    if cache is None:
+        return _validate_payload_pairs(dataset, cabinet, period, files)
+    key = (dataset, cabinet, period, tuple(
+        (name, len(raw), _sha(raw)) for name, raw in sorted(files.items())))
+    if key in cache:
+        return dict(cache[key])
+    result = _validate_payload_pairs(dataset, cabinet, period, files)
+    if len(cache) >= 256:
+        cache.clear()
+    cache[key] = dict(result)
+    return result
+
+
+def _validate_payload_pairs(dataset, cabinet, period, files):
     if not isinstance(files, dict) or not files:
         raise GenerationError("generation files required")
     if any(type(k) is not str or type(v) is not bytes for k, v in files.items()):
