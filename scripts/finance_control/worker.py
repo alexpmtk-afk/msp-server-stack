@@ -82,4 +82,8 @@ def main():
  print(json.dumps(result,sort_keys=True));return 0 if result['executor']['status']=='DONE' else 2
 if __name__=='__main__':
  try:raise SystemExit(main())
- except Exception as e:print(json.dumps({'error_type':type(e).__name__,'wrapper_status':'STOP_OR_UNCERTAIN'}));raise SystemExit(1)
+ except Exception as e:
+  frames=[];tb=e.__traceback__
+  while tb is not None:
+   c=tb.tb_frame.f_code;frames.append({'file':Path(c.co_filename).name,'function':c.co_name,'line':tb.tb_lineno});tb=tb.tb_next
+  print(json.dumps({'error_type':type(e).__name__,'wrapper_status':'STOP_OR_UNCERTAIN','failure':{'error_type':type(e).__name__,'errno':getattr(e,'errno',None),'frames':frames[-8:]}}));raise SystemExit(1)

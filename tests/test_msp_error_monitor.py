@@ -22,3 +22,8 @@ class MonitorTests(unittest.TestCase):
   m=load();state={'incidents':{}};f={'source':'user:failed.service','code':'SERVICE_FAILED','details':{}}
   m.reconcile(state,[f],1);next(iter(state['incidents'].values()))['remediation']='resolved'
   out=m.reconcile(state,[f],2);self.assertEqual(len(out['actionable']),1)
+ def test_new_failure_identity_reopens_investigation_after_old_external_block(self):
+  m=load();state={'incidents':{}};a={'source':'finance:cabinet','code':'CAMPAIGN_HOLD','fingerprint':'old-nonce','details':{}}
+  m.reconcile(state,[a],1);next(iter(state['incidents'].values()))['remediation']='blocked_external'
+  out=m.reconcile(state,[{**a,'fingerprint':'new-nonce'}],2)
+  self.assertEqual(len(out['actionable']),1);self.assertEqual(out['blocked'],[])

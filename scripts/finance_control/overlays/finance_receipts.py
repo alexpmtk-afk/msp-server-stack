@@ -35,13 +35,18 @@ def _completed_pages_readonly(root,cabinet,year,rid,kind):
         yield _unique_rows(page,seen)
 
 
-def report_receipt(root,cabinet,year,rid,kind):
+def report_receipt(root,cabinet,year,rid,kind,*,snapshot=None):
     root=Path(root);dataset=_dataset(kind)
     out={'verified':False,'cabinet':cabinet,'year':year,'report_id':rid,'report_type':kind,
          'cursor':None,'page_hashes':[],'budget_entries':None,'last_error':None,
          'not_before_epoch':None,'last_checked_at':None,'provider_coverage_proven':False}
     try:
-        active=read_active(root,dataset,cabinet,str(year))
+        # Snapshot is scoped to ONE serialized root selection, never global.
+        key=(str(root),dataset,cabinet,str(year))
+        if snapshot is None or key not in snapshot:
+            active=read_active(root,dataset,cabinet,str(year))
+            if snapshot is not None:snapshot[key]={'active':active}
+        else:active=snapshot[key]['active']
         check=None
         if active:
             meta=json.loads(active['files']['data.csv.meta.json'])
@@ -60,7 +65,11 @@ def report_receipt(root,cabinet,year,rid,kind):
             out.update(budget_entries=budget['send_entries'],last_error=budget.get('error_type'),not_before_epoch=budget.get('not_before_epoch'))
         if state['status']!='STAGED_COMPLETE':return out
         if not active:raise GenerationError('terminal report missing publication')
-        _,rows=_rows(active['files']['data.csv'],DATASETS[dataset][1]);selected={k:v for k,v in rows.items() if k[0]==str(rid)}
+        if snapshot is not None and 'rows' in snapshot[key]:rows=snapshot[key]['rows']
+        else:
+            _,rows=_rows(active['files']['data.csv'],DATASETS[dataset][1])
+            if snapshot is not None:snapshot[key]['rows']=rows
+        selected={k:v for k,v in rows.items() if k[0]==str(rid)}
         fields=set(DATASETS[dataset][1])|{'reportType'}
         for page in _completed_pages_readonly(staged,cabinet,year,rid,kind):
             for row in page:fields.update(row)

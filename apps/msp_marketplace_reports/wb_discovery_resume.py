@@ -6,7 +6,7 @@ A separately admitted discovery budget never consumes/resets fixed-report pilot.
 """
 from __future__ import annotations
 from datetime import datetime,timezone,date,timedelta
-import json
+import json,re,stat
 from pathlib import Path
 from .archive import _lock,_safe_write
 from .generation_store import GenerationError,_ensure_scope_durable
@@ -30,6 +30,68 @@ def validate(plan):
     _inventory({'cabinet':plan['cabinet'],'year':2026,'status':'DISCOVERED_NOT_DOWNLOADED','items':[]},plan['cabinet'],2026)
     from .archive import CABINETS
     if plan['cabinet'] not in CABINETS['wb']:raise PilotBlocked('unknown cabinet')
+
+
+class MetadataInvalid(ValueError):
+    def __init__(self,code,index=None):self.code=code;self.index=index;super().__init__(code)
+
+
+def _project_metadata(rows):
+    projected=[]
+    for row in rows[:1001]:
+        if type(row) is not dict:projected.append({'invalid_row_type':type(row).__name__});continue
+        out={}
+        for key in ('reportId','reportType','dateFrom','dateTo'):
+            if key not in row:continue
+            value=row[key]
+            if key in ('reportId','reportType') and type(value) is int:out[key]=value
+            elif key in ('dateFrom','dateTo') and type(value) is str and len(value)<=64 and re.fullmatch(r'\d{4}-\d{2}-\d{2}(?:[T ][0-9TZ:+. -]+)?',value):out[key]=value
+            else:out[key]={'invalid_type':type(value).__name__}
+        projected.append(out)
+    return projected
+
+
+def _classify_metadata(items,plan):
+    accepted=[];excluded=[];seen=set()
+    for index,row in enumerate(items):
+        if type(row) is not dict or set(row)!={'reportId','reportType','dateFrom','dateTo'}:raise MetadataInvalid('MISSING_OR_INVALID_FIELDS',index)
+        if type(row['reportId']) is not int or row['reportId']<=0 or type(row['reportType']) is not int or row['reportType'] not in (1,2):raise MetadataInvalid('INVALID_REPORT_ID_OR_TYPE',index)
+        if row['reportId'] in seen:raise MetadataInvalid('DUPLICATE_REPORT_ID',index)
+        seen.add(row['reportId'])
+        try:
+            start=date.fromisoformat(row['dateFrom'][:10]) if type(row['dateFrom']) is str else None
+            end=date.fromisoformat(row['dateTo'][:10]) if type(row['dateTo']) is str else None
+        except ValueError:raise MetadataInvalid('INVALID_REPORT_DATES',index) from None
+        if start is None or end is None or start>end:raise MetadataInvalid('INVALID_REPORT_DATES',index)
+        (accepted if start.year<=plan['year']<=end.year else excluded).append(row)
+    _inventory({'cabinet':plan['cabinet'],'year':plan['year'],'status':'DISCOVERED_NOT_DOWNLOADED','items':accepted},plan['cabinet'],plan['year'])
+    return accepted,excluded
+
+
+RECOVERY_PLAN='7dffbfc66652c48870b23e9a5663183b9b3780909d2dd29ce857332639eb0036'
+RECOVERY_STATE='85d62257a51f30573a06e9df834196e9cb68b4204f03ccc2df0aebb0a693cb7a'
+def _known_recovery_allowed(plan,state):
+    return _digest(plan)==RECOVERY_PLAN and _digest(state)==RECOVERY_STATE
+
+def _verify_known_recovery(root,plan,state):
+    # Exact known HTTP200 with discarded metadata, not an unknown dispatch.
+    receipt=Path('/var/lib/msp-finance-control/results/cdf5beea55974566a308b88b6850a599.json')
+    _checked(receipt);st=receipt.stat()
+    if st.st_uid!=0 or st.st_mode&0o022 or st.st_nlink!=1:raise GenerationError('untrusted discovery recovery receipt')
+    public=json.loads(receipt.read_text())
+    out=public['jobs'][0]['outcome']
+    saved={k:v for k,v in out['discovery'].items() if k not in ('cabinet','year','provider_coverage_proven')}
+    if saved!=state or out['http_dispatch_attempts']!=1 or out['http_response_statuses']!=[200] or out['http_outcomes_unknown']!=0:raise GenerationError('discovery recovery receipt changed')
+    events=[]
+    for journal in (Path(root)/'.wb-executor').glob('control-*-events.jsonl'):
+        _checked(journal)
+        if journal.stat().st_size>16*1024*1024:raise GenerationError('unbounded discovery journal')
+        for line in journal.read_text().splitlines():
+            event=json.loads(line)
+            if event.get('plan')==plan:events.append(event)
+    if (sum(e['event']=='HTTP_DISPATCH_ATTEMPT' for e in events)!=1 or
+            [e['status'] for e in events if e['event']=='HTTP_RESPONSE']!=[200] or
+            any(e['event']=='HTTP_OUTCOME_UNKNOWN' for e in events)):raise GenerationError('discovery recovery HTTP history changed')
 
 
 def step(root,plan,authorization,factory,*,now,fault=None):
@@ -63,7 +125,10 @@ def step(root,plan,authorization,factory,*,now,fault=None):
                 raise GenerationError('discovery pending page mismatch')
             if (type(pending.get('source_count')) is not int or not 0<=pending['source_count']<=plan['limit']
                 or type(pending.get('terminal')) is not bool or type(pending.get('items')) is not list
-                or len(pending['items'])!=pending['source_count']):raise GenerationError('invalid discovery page receipt')
+                or type(pending.get('excluded',[])) is not list
+                or len(pending['items'])+len(pending.get('excluded',[]))!=pending['source_count']):raise GenerationError('invalid discovery page receipt')
+            accepted,excluded=_classify_metadata(pending['items']+pending.get('excluded',[]),plan)
+            if accepted!=pending['items'] or excluded!=pending.get('excluded',[]):raise GenerationError('discovery exclusion classification changed')
             _inventory({'cabinet':plan['cabinet'],'year':2026,'status':'DISCOVERED_NOT_DOWNLOADED','items':pending['items']},plan['cabinet'],2026)
             page=pending['items'];combined={r['reportId']:r for r in state['items']}
             for row in page:
@@ -72,32 +137,49 @@ def step(root,plan,authorization,factory,*,now,fault=None):
             state['items']=list(combined.values());state['offset']+=pending['source_count']
             state['status']='COMPLETE' if pending['terminal'] else 'READY'
             state['last_checked_at']=pending['checked_at'];save();return result()
+        if state['status']=='HOLD_ERROR' and _known_recovery_allowed(plan,state):
+            _verify_known_recovery(root,plan,state)
+            state.update(status='READY',recovery={'original_state_sha256':RECOVERY_STATE,'original_entries':1,'max_new_entries':1,'reason':'OWNER_AUTHORIZED_EVIDENCE_RETAINING_RETRY'})
+            save()
         if state['status'] in ('COMPLETE','HOLD_ERROR','PAUSED_BUDGET') or state['not_before_epoch']>now:return result()
-        if state['entries']>=plan['max_send_entries']:
-            state['status']='PAUSED_BUDGET';save();return result()
-        state['entries']+=1;state['status']='DISPATCH_UNCERTAIN';save()
-        if fault:fault('after_budget_before_factory')
-        req=Request('wb',WB_LIST,{'dateFrom':plan['date_from'],'dateTo':plan['date_to'],
-                                'period':'weekly','limit':plan['limit'],'offset':state['offset']})
-        try:status,rows=factory()(req)
-        except (QuotaBusy,TransportUnavailable) as exc:
-            state.update(status='WAITING',not_before_epoch=now+max(66,getattr(exc,'retry_after_seconds',66)),last_error=type(exc).__name__);save();return result()
-        except (ProviderError,OSError):
-            state.update(status='HOLD_ERROR',last_error='PROVIDER_OR_STORAGE_ERROR');save();return result()
-        if status==429:
-            state.update(status='WAITING',not_before_epoch=now+66,last_error='RATE_LIMIT');save();return result()
-        if status not in (200,204) or (status==200 and type(rows) is not list):
-            state.update(status='HOLD_ERROR',last_error='INVALID_DISCOVERY_RESPONSE');save();return result()
-        rows=[] if status==204 else rows
+        metadata_path=folder/('discovery-'+ident+'-metadata-'+str(state['offset'])+'.json')
+        metadata=_read_json(metadata_path)
+        if metadata is not None:
+            seal=metadata.pop('metadata_sha256',None)
+            if (seal!=_digest(metadata) or metadata.get('plan_sha256')!=ident or metadata.get('offset')!=state['offset'] or metadata.get('entries')!=state['entries']):raise GenerationError('retained discovery metadata changed')
+            status=metadata['http_status'];rows=metadata['items']
+        else:
+            if state['status']=='DISPATCH_UNCERTAIN':
+                state.update(status='HOLD_ERROR',last_error='UNKNOWN_DISCOVERY_DISPATCH');save();return result()
+            if state['entries']>=plan['max_send_entries']:
+                state['status']='PAUSED_BUDGET';save();return result()
+            state['entries']+=1;state['status']='DISPATCH_UNCERTAIN';save()
+            if fault:fault('after_budget_before_factory')
+            req=Request('wb',WB_LIST,{'dateFrom':plan['date_from'],'dateTo':plan['date_to'],
+                                    'period':'weekly','limit':plan['limit'],'offset':state['offset']})
+            try:status,rows=factory()(req)
+            except (QuotaBusy,TransportUnavailable) as exc:
+                state.update(status='WAITING',not_before_epoch=now+max(66,getattr(exc,'retry_after_seconds',66)),last_error=type(exc).__name__);save();return result()
+            except (ProviderError,OSError) as exc:
+                state.update(status='HOLD_ERROR',last_error='PROVIDER_OR_STORAGE_ERROR',failure={'code':'PROVIDER_OR_STORAGE_ERROR','error_type':type(exc).__name__,'errno':getattr(exc,'errno',None)});save();return result()
+            if status==429:
+                state.update(status='WAITING',not_before_epoch=now+66,last_error='RATE_LIMIT');save();return result()
+            if status not in (200,204) or (status==200 and type(rows) is not list):
+                state.update(status='HOLD_ERROR',last_error='INVALID_DISCOVERY_RESPONSE');save();return result()
+            rows=[] if status==204 else rows
+            metadata={'schema':1,'plan_sha256':ident,'offset':state['offset'],'entries':state['entries'],
+                      'http_status':status,'source_count':len(rows),'items':_project_metadata(rows)}
+            _safe_write(metadata_path,_encode({**metadata,'metadata_sha256':_digest(metadata)}))
+            if fault:fault('after_metadata_before_validation')
+            rows=metadata['items']
         # Metadata-only receipt; do not persist financial amounts from the list.
         try:
-            if len(rows)>plan['limit']:raise ValueError('oversized list page')
-            page=[{k:r[k] for k in ('reportId','reportType','dateFrom','dateTo')} for r in rows]
-            _inventory({'cabinet':plan['cabinet'],'year':2026,'status':'DISCOVERED_NOT_DOWNLOADED','items':page},plan['cabinet'],2026)
-        except (TypeError,ValueError,KeyError):
-            state.update(status='HOLD_ERROR',last_error='INVALID_DISCOVERY_METADATA');save();return result()
-        pending={'schema':1,'plan_sha256':ident,'offset':state['offset'],'items':page,'source_count':len(rows),
-                 'terminal':status==204 or len(rows)<plan['limit'],
+            if metadata['source_count']>plan['limit']:raise MetadataInvalid('DISCOVERY_PAGE_TOO_LARGE')
+            page,excluded=_classify_metadata(rows,plan)
+        except (TypeError,ValueError,KeyError) as exc:
+            state.update(status='HOLD_ERROR',last_error='INVALID_DISCOVERY_METADATA',failure={'code':getattr(exc,'code','INVALID_METADATA_SHAPE'),'row_index':getattr(exc,'index',None),'error_type':type(exc).__name__});save();return result()
+        pending={'schema':1,'plan_sha256':ident,'offset':state['offset'],'items':page,'excluded':excluded,'source_count':metadata['source_count'],
+                 'terminal':status==204 or metadata['source_count']<plan['limit'],
                  'checked_at':datetime.fromtimestamp(now,timezone.utc).isoformat()}
         _safe_write(page_path,_encode({**pending,'page_sha256':_digest(pending)}))
         if fault:fault('after_page_before_state')

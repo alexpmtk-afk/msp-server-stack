@@ -30,7 +30,7 @@ def build():
  control='[Unit]\nDescription=Bounded MSP finance administrative control (not a financial sender)\nRequires=msp-finance-recover.service\nAfter=msp-finance-recover.service\n[Service]\nType=oneshot\nUser=root\nExecStart='+python+' -I -B '+release+'/control.py\nExecStopPost='+python+' -I -B '+release+'/control.py --close\nTimeoutStartSec=1000\nTimeoutStopSec=150\nIPAddressDeny=any\nIPAddressAllow='+allow+'\n'+common
  recover='[Unit]\nDescription=Close owned MSP finance activation after boot; never downloads\nAfter=local-fs.target systemd-tmpfiles-setup.service\nBefore=msp-finance-control.service msp-wb-pilot.service\n[Service]\nType=oneshot\nRemainAfterExit=yes\nUser=root\nExecStart='+python+' -I -B '+release+'/control.py --recover\nTimeoutStartSec=150\nPrivateNetwork=yes\n'+common+'\n[Install]\nWantedBy=multi-user.target\n'
  rule='polkit.addRule(function(action, subject) {\n  if (action.id === "org.freedesktop.systemd1.manage-units" && action.lookup("unit") === "msp-finance-control.service" && action.lookup("verb") === "start" && subject.user === "hermes") { return polkit.Result.YES; }\n});\n'
- diagnostic='[Unit]\nDescription=Read-only MSP finance diagnostics\n[Service]\nType=oneshot\nUser=root\nExecStart=/usr/bin/python3 -I -B '+release+'/diagnostics.py\nPrivateNetwork=yes\nNoNewPrivileges=yes\nProtectSystem=strict\nProtectHome=yes\nPrivateTmp=yes\nUMask=0077\nReadWritePaths=/var/lib/msp-finance-control/results\nInaccessiblePaths=/etc/msp-marketplace-reports /etc/msp-marketplace-reports-pilot /run/msp-finance-control /etc/msp-marketplace-reports-executor\nTimeoutStartSec=60\n'
+ diagnostic='[Unit]\nDescription=Read-only MSP finance diagnostics\n[Service]\nType=oneshot\nUser=root\nExecStart=/usr/bin/python3 -I -B '+release+'/diagnostics.py\nPrivateNetwork=yes\nNoNewPrivileges=yes\nProtectSystem=strict\nProtectHome=yes\nPrivateTmp=yes\nUMask=0077\nReadWritePaths=/var/lib/msp-finance-control/results\nInaccessiblePaths=/etc/msp-marketplace-reports /etc/msp-marketplace-reports-pilot /run/msp-finance-control /etc/msp-marketplace-reports-executor\nTimeoutStartSec=300\n'
  diagnostic_rule=rule.replace('msp-finance-control.service','msp-finance-diagnostics.service')
  files['units/msp-finance-diagnostics.service']=diagnostic.encode();files['units/48-msp-finance-diagnostics.rules']=diagnostic_rule.encode()
  files['units/msp-finance-control.service']=control.encode();files['units/msp-finance-recover.service']=recover.encode();files['units/49-msp-finance-control.rules']=rule.encode()
@@ -46,14 +46,17 @@ def build():
   if n.startswith('units/'):(OUT/Path(n).name).write_bytes(b)
  (OUT/'MANIFEST.json').write_text(json.dumps({'installer_sha256':sha(raw),'release':release,'payload_sha256':package['payload_sha256'],'files':[{'path':n,'sha256':h} for n,h in package['hashes'].items()],'root_execution':'NOT_EXECUTED','daily_timer':False},indent=2)+'\n')
  # Pin the exact already-installed PR120 payload, not mutable branch state.
- old_raw=subprocess.check_output(['git','show','2f9bb1aef29e5335cdc24d0b99d9f0239cac42c7:docs/marketplace-reports/autonomous-control-20261105/install.py'])
+ old_raw=subprocess.check_output(['git','show','575c2310e5b75fca88a3cb37e1bf7776d64a9cee:docs/marketplace-reports/autonomous-control-20261105/install.py'])
  old_node=next(n for n in ast.parse(old_raw).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PACKAGE' for t in n.targets));old_package=ast.literal_eval(old_node.value)
  old_pin={k:old_package[k] for k in ('release','hashes','payload_sha256')}
  up_source=(ROOT/'scripts/finance_control/upgrade.py').read_text();up=up_source.replace('PACKAGE = {}  # BUILD_PACKAGE','PACKAGE = '+repr(package)).replace('OLD = {}  # BUILD_OLD','OLD = '+repr(old_pin)).encode();compile(up,'upgrade.py','exec')
  (OUT/'upgrade.py').write_bytes(up);up_local=Path('/home/hermes/workspace/msp-finance-diagnostics-upgrade.py');up_local.write_bytes(up)
  up_cmd='msp_diag_stage=$(mktemp -d /var/lib/msp-finance-diag.XXXXXXXX) && install -o root -g root -m 600 '+str(up_local)+' "$msp_diag_stage/upgrade.py" && printf \'%s  %s\\n\' '+sha(up)+' "$msp_diag_stage/upgrade.py" | sha256sum -c - && /usr/bin/python3 -I -B "$msp_diag_stage/upgrade.py"'
  subprocess.run(['/bin/sh','-n','-c',up_cmd],check=True);(OUT/'UPGRADE_ONE_LINE.txt').write_text(up_cmd+'\n')
- resume_cmd=up_cmd+' && /usr/sbin/runuser -u hermes -- /usr/local/bin/msp-finance-wake --cabinet wb_laser_master --jobs 1 --expect-report 601780521'
+ resume=(ROOT/'scripts/finance_control/resume_discovery_recovery.py').read_text().replace('__CONTROL_RELEASE__',release).replace('__ROOT_CONTROL_SHA__',sha(files['control.py'])).replace('__DRIVER_BASE64__',base64.b64encode((ROOT/'scripts/finance_control/history_driver.py').read_bytes()).decode())
+ compile(resume,'resume-discovery.py','exec')
+ resume_local=Path('/home/hermes/workspace/msp-finance-resume-discovery.py');resume_local.write_text(resume);(OUT/'resume-discovery.py').write_text(resume)
+ resume_cmd=up_cmd+" && printf '%s  %s\\n' "+sha(resume.encode())+' '+str(resume_local)+' | sha256sum -c - && /usr/sbin/runuser -u hermes -- /usr/bin/python3 -I -B '+str(resume_local)
  subprocess.run(['/bin/sh','-n','-c',resume_cmd],check=True);(OUT/'ROOT_REPAIR_AND_RESUME.txt').write_text(resume_cmd+'\n')
  (OUT/'UPGRADE_MANIFEST.json').write_bytes(enc({'upgrade_sha256':sha(up),'old_release':old_pin['release'],'new_release':release,'root_execution':'NOT_EXECUTED','provider_calls':0}))
  print(json.dumps({'installer_sha256':sha(raw),'upgrade_sha256':sha(up),'release':release,'files':len(files)}))

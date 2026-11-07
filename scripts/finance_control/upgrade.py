@@ -31,7 +31,7 @@ def replace(p,raw,mode):
  tmp=p.with_name('.'+p.name+'.diagnostics-upgrade')
  write(tmp,raw,mode);os.replace(tmp,p);sync(p.parent)
 def run(args):
- p=subprocess.run(args,capture_output=True,timeout=70,env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','LANG':'C.UTF-8'})
+ p=subprocess.run(args,capture_output=True,timeout=330 if args==['/usr/bin/systemctl','start','msp-finance-diagnostics.service'] else 70,env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','LANG':'C.UTF-8'})
  if p.returncode:raise RuntimeError('fixed upgrade command failed')
  return p.stdout
 

@@ -15,10 +15,10 @@ def classify_log(text):
 def reconcile(state,events,now):
     incidents=state.setdefault('incidents',{});seen=set()
     for event in events:
-        ident=hashlib.sha256((event['source']+'\0'+event['code']).encode()).hexdigest()[:20];seen.add(ident)
+        ident=hashlib.sha256((event['source']+'\0'+event['code']+'\0'+event.get('fingerprint','')).encode()).hexdigest()[:20];seen.add(ident)
         item=incidents.get(ident)
         if item is None or item.get('status')=='resolved':
-            item={'id':ident,'source':event['source'],'code':event['code'],'status':'open','first_seen':now,'remediation':'pending'};incidents[ident]=item
+            item={'id':ident,'source':event['source'],'code':event['code'],'status':'open','first_seen':now,'remediation':'pending','fingerprint':event.get('fingerprint','')};incidents[ident]=item
         if item.get('remediation')=='resolved' and not event['source'].startswith(('hermes_log:','journal:')):item['remediation']='pending'
         item['details']=event.get('details',{});item['last_seen']=now
     for ident,item in incidents.items():
@@ -52,7 +52,7 @@ def collect(state,run=subprocess.run):
     if campaign.exists():
         try:
             v=json.loads(campaign.read_text())
-            if v.get('phase')=='HOLD':events.append({'source':'finance:wb_laser_master','code':'CAMPAIGN_HOLD','details':{'reason':v.get('reason'),'failure':v.get('failure'),'state':str(campaign)}})
+            if v.get('phase')=='HOLD':events.append({'source':'finance:wb_laser_master','code':'CAMPAIGN_HOLD','fingerprint':v.get('last',{}).get('request_nonce',''),'details':{'reason':v.get('reason'),'failure':v.get('failure'),'state':str(campaign)}})
         except Exception as exc:events.append({'source':'collector:finance','code':type(exc).__name__,'details':{}})
     try:
         since=str(int(state.get('last_collection_epoch',time.time())))
@@ -80,7 +80,7 @@ def collect(state,run=subprocess.run):
     sources={e['source'] for e in events}
     for item in state.get('incidents',{}).values():
         if item['status']=='open' and item['source'].startswith(('hermes_log:','journal:')) and item.get('remediation')!='resolved' and item['source'] not in sources:
-            events.append({k:item[k] for k in ('source','code','details')})
+            events.append({k:item[k] for k in ('source','code','details','fingerprint') if k in item})
     return events
 
 def write(path,value):

@@ -41,7 +41,19 @@ def save_failure(exc,phase,nonce=None):
 
 def report_evidence(root,plan):
  """Read fixed report metadata and all-nonce HTTP evidence, never amounts/secrets."""
- if plan.get('kind')=='wb-discovery':return {'kind':'wb-discovery'}
+ if plan.get('kind')=='wb-discovery':
+  from apps.msp_marketplace_reports.wb_discovery_resume import _digest,_read_json
+  ident=_digest(plan);folder=Path(root)/'.wb-executor';value=_read_json(folder/('discovery-'+ident+'.json'),required=True)
+  seal=value.pop('state_sha256',None)
+  if seal!=_digest(value):raise ValueError('discovery diagnostic checksum mismatch')
+  out={'kind':'wb-discovery','plan':plan,'budget_entries':value['entries'],'status':value['status'],'executor_status':value['status'],'offset':value['offset'],'last_error':value.get('last_error'),'failure':value.get('failure'),'provider_calls':0}
+  metadata=_read_json(folder/('discovery-'+ident+'-metadata-'+str(value['offset'])+'.json'))
+  if metadata is not None:
+   digest=metadata.pop('metadata_sha256',None)
+   if digest!=_digest(metadata):raise ValueError('discovery metadata checksum mismatch')
+   out['retained_metadata']=metadata
+  else:out['retained_metadata']=None
+  return out
  from apps.msp_marketplace_reports import standalone_wb as s
  from apps.msp_marketplace_reports.wb_page_resume import _dir,_read_json,_validate_state,_verify_pages
  s.reconcile_admission(root,plan)
