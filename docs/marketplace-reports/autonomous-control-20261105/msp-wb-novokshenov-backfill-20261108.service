@@ -1,0 +1,12 @@
+[Unit]
+Description=WB Novokshenov 2026 sequential financial backfill
+[Service]
+Type=exec
+ExecStart=/usr/bin/python3 -I -B /home/hermes/.local/share/msp/finance-history-driver/wb-novokshenov-20261108.py
+Restart=no
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_UNIX
+UMask=0077
+
+[Install]
+WantedBy=default.target

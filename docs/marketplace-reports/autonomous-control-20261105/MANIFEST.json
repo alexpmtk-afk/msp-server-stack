@@ -1,7 +1,7 @@
 {
-  "installer_sha256": "738610d89b0f0ce4b339a17c8abd0cb57b915fa92135c57d7156ac325528c0e2",
-  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-8dbdf9642b1d5326a363f79f6c8ec21dd3eedeac9315412093d44ed23999306d",
-  "payload_sha256": "bdeefeda28b6fb2c761c94bc185fd1f037521e847a193f8771487ea6c5a2b1ed",
+  "installer_sha256": "c209f12ba2e33154a7d0e6a1e91f444c4914a8b77624f82bf61c7fcc6ac8dfc3",
+  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-b7b70bfa6b745a8e7c75e0e886c13f554b60d3649032d293c63e346fdef4b598",
+  "payload_sha256": "84f885174aa15aa45da9da7a9b28230e7a3a7465e2ca0d03570eec8fcb2e149d",
   "files": [
     {
       "path": "apps/msp_marketplace_reports/__init__.py",
@@ -9,7 +9,7 @@
     },
     {
       "path": "apps/msp_marketplace_reports/archive.py",
-      "sha256": "a4d2800494da1464ed73ffa338d7fc501d1fce7ce3da5dceb45f0eb7f057a3a2"
+      "sha256": "7bc136f90efd1c6bd30f741316776ad0d620ace9dc64bcc6586ae9320bb9cc33"
     },
     {
       "path": "apps/msp_marketplace_reports/backfill_plan.py",
@@ -29,11 +29,11 @@
     },
     {
       "path": "apps/msp_marketplace_reports/finance_receipts.py",
-      "sha256": "9b663a3e06a7f08db89eec6d3954b84a7d2e4df2f62edf6b79743f764d88bdd1"
+      "sha256": "fa033ed446d4775a8edf356acf1248ebca8a416b3e01fc4d13f0fd7ed04a5324"
     },
     {
       "path": "apps/msp_marketplace_reports/finance_refresh_plan.py",
-      "sha256": "0399a3b5c9eff173bcc3f49beb915c9743d1e3586a3fd9e76abb43203e6972f9"
+      "sha256": "fe7dcd9a5f2352b1451615453bd03da3ba31bf86287f7ae540d1a5e988975087"
     },
     {
       "path": "apps/msp_marketplace_reports/generation_recovery.py",
@@ -41,7 +41,7 @@
     },
     {
       "path": "apps/msp_marketplace_reports/generation_store.py",
-      "sha256": "1a981685a160031604e18d1aa3bd7728f2fb7b297183229d131fb24a34740fe2"
+      "sha256": "a9537d0dc767e01c8f9a3cc9ebe8e3731431a0800dd9bf848c7c37596647a207"
     },
     {
       "path": "apps/msp_marketplace_reports/ingest.py",
@@ -69,19 +69,19 @@
     },
     {
       "path": "apps/msp_marketplace_reports/standalone_wb.py",
-      "sha256": "72ba6dcf2c3b660369b732522006ad6f94557157c02fc30f55cec5b2cf8f6b46"
+      "sha256": "5e946f9ee3bfda3704d8dd55b0a7aed08791208d5dee897d12de4c3c2179e2b9"
     },
     {
       "path": "apps/msp_marketplace_reports/versioned_archive.py",
-      "sha256": "7c49b1cf7c25cead17092d149030d4bc22652e26e66e7c890d96310122f3ad1f"
+      "sha256": "7c6c0e747f0be05cfe0d06caefc98bf9af3e55b73d9b98ce25fe601b7537fd04"
     },
     {
       "path": "apps/msp_marketplace_reports/wb_discovery_resume.py",
-      "sha256": "9068e8c9d0f79384087c3543922471cdc42400b4c2b419477df5a23b3b8ee6a8"
+      "sha256": "95c371da2334e594f4949d36678a0fc401a8880e98006334d1c4b87b9cc23db7"
     },
     {
       "path": "apps/msp_marketplace_reports/wb_page_resume.py",
-      "sha256": "a49c30c3725ea69a3dab28b1a5fe181112de1b6ce2740cd8478d7e546af180a8"
+      "sha256": "89f1e9275d237ab9471ec5d29a67794f89ddae8b2ef1c69b129df174a5bd6108"
     },
     {
       "path": "apps/msp_marketplace_reports/wb_report_revision.py",
@@ -89,27 +89,31 @@
     },
     {
       "path": "apps/msp_marketplace_reports/wb_worker_adapter.py",
-      "sha256": "d528b557ed8eec20f1ebab22dcab6fc1ba17feee4b8e2d9dd4506ac47a3cb59f"
+      "sha256": "bc82109ca247798a077018707f1e79f707f2fb0e2d866bb0000a02f7c0ee8076"
     },
     {
       "path": "control.py",
-      "sha256": "3e4d396410e7ce8c260839e7cda23029e8f75c76e08d6a80a4916ae015432bc9"
+      "sha256": "7b8183911cdfb2b58a7bac17a1bcdb8c2cee1dc3bc87e149a2a4f341954a6af9"
     },
     {
       "path": "worker.py",
-      "sha256": "d5697955a272b11667b643a257c1919dbfcc155772af892290ade2641e6d58f1"
+      "sha256": "a8eaccbcb811e5526cbc7ed29c70ecceb7309211ca52a482a3e5b1375d5ee94f"
     },
     {
       "path": "client.py",
-      "sha256": "88d6b5992dc69947923b8eb9a4601936dcfd44438c1d5d79adc34b5880f40386"
+      "sha256": "c1b553a1cc142735c079f0169e780f136aad8871f0fef3d9c612dc87d5e7621f"
     },
     {
       "path": "diagnostics.py",
-      "sha256": "a7fa6608923598ef539d20cc59cf08b865d89bdcf609ee6d87ace15560f495cd"
+      "sha256": "d80acd7f7b234fae083c61ae062132e0f822bea59a2564b61260a053cf01ba96"
     },
     {
       "path": "diagnostics_client.py",
       "sha256": "1dea054d02c0e09a1525cfd3e0e4bbed334608959fe742525b7507e1688d936f"
+    },
+    {
+      "path": "rrd_profile.py",
+      "sha256": "99314206cf7822ae89fa5aa97954c29456847c82fb4bc2778e93bfc74147fb8d"
     },
     {
       "path": "pilot_supervisor.py",
@@ -117,15 +121,15 @@
     },
     {
       "path": "build-source.sha256",
-      "sha256": "7c7c40bcdcf8f73fa00980f6749a2318e9b0edd593a8e9924dc0f5cb4f8147ee"
+      "sha256": "aa9c0765fa83f7572161b0ee467f6fc68202d344a7af95c09ad0d77122fcdba0"
     },
     {
       "path": "assets.json",
-      "sha256": "fdad3a18bf828df7690da8d3856394555c94e6aa14f099f56f397e946aa61910"
+      "sha256": "576353b57c6d1e216c4c764961134ec8130077e4be7b6ebddf0e41affd46b1aa"
     },
     {
       "path": "units/msp-finance-diagnostics.service",
-      "sha256": "cd420b277282436a5d3a28ba1cef31a7d5d1910ae4b3d3bdec0fdcf0c97a69b8"
+      "sha256": "b12bb4f334c0b65f2ffafbfad77e3a4c78f28deeb68a9fcb63fbaad8c2a8d754"
     },
     {
       "path": "units/48-msp-finance-diagnostics.rules",
@@ -133,11 +137,11 @@
     },
     {
       "path": "units/msp-finance-control.service",
-      "sha256": "a1a00a08db52a23bd4d9c5fdd966d49122be3938177c2670d23d7411d0db372e"
+      "sha256": "9389641f61197e77046f86c3e2c59f622498133c0f235c3b3214e0fd857d6195"
     },
     {
       "path": "units/msp-finance-recover.service",
-      "sha256": "40a6e60b8f8901e0a4f5699511ad6b1e062aca0cc54c1b28df3c127a0afbed85"
+      "sha256": "6e6146403b7b80d268a7c24d02abdb12e805e0c0642d04d9a54b2e5ced046412"
     },
     {
       "path": "units/49-msp-finance-control.rules",
@@ -145,7 +149,7 @@
     },
     {
       "path": "files.json",
-      "sha256": "97706e778239bae90dcbbe733e4e26a03b7aa67f3781764404bf31fdc47f1a5f"
+      "sha256": "ca1d745a9e9b3facf35796bb703d9a7c66752f145e2faa15d5e8f2d5c5fb6aa4"
     }
   ],
   "root_execution": "NOT_EXECUTED",

@@ -8,14 +8,16 @@ No provider calls, network, credentials, automatic migration or recovery writes.
 from __future__ import annotations
 
 import fcntl
+import hashlib
 import json
 import os
 import re
 import uuid
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 
-from .archive import DATASETS, _rows, _safe_write, _sha, _validate
+from .archive import _scan_rows, DATASETS, _rows, _safe_write, _sha, _validate
 
 _VERSION = 2  # New opt-in store; no production generations exist yet.
 _HASH_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -86,7 +88,44 @@ def _require_plain(path):
             raise GenerationError("symbolic link forbidden in generation store")
 
 
+_PAYLOAD_CACHE = ContextVar('verified_generation_payloads', default=None)
+
+
+@contextmanager
+def verified_payload_cache():
+    """Reuse semantic validation of identical bytes in one bounded operation.
+
+    Never cache file reads, CURRENT/descriptor lineage, hashes or mutable rows.
+    Every caller still rereads and hashes actual bytes; altered data/identity
+    is a cache miss. Only successful row-count proofs are retained, bounded to
+    256 entries, and discarded even when the operation raises.
+    """
+    if _PAYLOAD_CACHE.get() is not None:
+        yield
+        return
+    token = _PAYLOAD_CACHE.set({})
+    try:
+        yield
+    finally:
+        _PAYLOAD_CACHE.reset(token)
+
+
 def _payload_pairs(dataset, cabinet, period, files):
+    cache = _PAYLOAD_CACHE.get()
+    if cache is None:
+        return _validate_payload_pairs(dataset, cabinet, period, files)
+    key = (dataset, cabinet, period, tuple(
+        (name, len(raw), _sha(raw)) for name, raw in sorted(files.items())))
+    if key in cache:
+        return dict(cache[key])
+    result = _validate_payload_pairs(dataset, cabinet, period, files)
+    if len(cache) >= 256:
+        cache.clear()
+    cache[key] = dict(result)
+    return result
+
+
+def _validate_payload_pairs(dataset, cabinet, period, files):
     if not isinstance(files, dict) or not files:
         raise GenerationError("generation files required")
     if any(type(k) is not str or type(v) is not bytes for k, v in files.items()):
@@ -123,23 +162,32 @@ def _payload_pairs(dataset, cabinet, period, files):
         else:
             expected_period = _MONTH_RE.fullmatch(name).group(1)
         raw = files[name]
-        fields, rows = _rows(raw, DATASETS[dataset][1])
+        if dataset.startswith("wb_weekly_finance_"):
+            fields, records = _scan_rows(raw, DATASETS[dataset][1])
+            if "reportType" not in fields:
+                raise GenerationError("WB reportType mismatch/missing")
+            type_index = fields.index("reportType")
+            expected_type = "1" if dataset.endswith("_main") else "2"
+            count = 0
+            for _, values in records:
+                if values[type_index] != expected_type:
+                    raise GenerationError("WB reportType mismatch/missing")
+                count += 1
+            rows = None
+        else:
+            fields, rows = _rows(raw, DATASETS[dataset][1])
+            count = len(rows)
         manifest = _strict_json(files[name + ".meta.json"])
         if set(("schema", "rows", "bytes")) - set(manifest):
             raise GenerationError("missing integer fields")
         _integer(manifest, "schema", 1)
-        _integer(manifest, "rows", len(rows))
+        _integer(manifest, "rows", count)
         _integer(manifest, "bytes", len(raw))
         expectations = {"dataset": dataset, "cabinet": cabinet, "period": expected_period,
                         "status": "LOCAL_VERIFIED", "sha256": _sha(raw)}
         if any(type(manifest.get(k)) is not str or manifest[k] != v
                for k, v in expectations.items()):
             raise GenerationError("manifest identity/hash mismatch")
-        if dataset.startswith("wb_weekly_finance_"):
-            expected_type = "1" if dataset.endswith("_main") else "2"
-            if "reportType" not in fields or any(row["reportType"] != expected_type
-                                                 for row in rows.values()):
-                raise GenerationError("WB reportType mismatch/missing")
         if dataset == "ozon_final_realization":
             if name != "annual.csv":
                 if any(row["report_month"] != expected_period
@@ -150,7 +198,7 @@ def _payload_pairs(dataset, cabinet, period, files):
                 monthly.update(rows)
             else:
                 annual = rows
-        verified[name] = len(rows)
+        verified[name] = count
     if dataset == "ozon_final_realization" and (
         set(monthly) != set(annual) or any(
             any(row.get(field, "") != annual[key].get(field, "")
@@ -173,7 +221,7 @@ def _descriptor(scope_name, generation, parent, parent_sha256, files):
                       for k in sorted(files)]}
 
 
-def _read_generation(scope, generation, expected_digest=None):
+def _read_generation(scope, generation, expected_digest=None, *, integrity_only=False):
     _identifier(generation)
     genpath = scope / "generations" / generation
     _require_plain(genpath)
@@ -215,13 +263,29 @@ def _read_generation(scope, generation, expected_digest=None):
         _require_plain(target)
         if not target.is_file():
             raise GenerationError("missing immutable generation file")
-        raw = target.read_bytes()
-        _integer(item, "bytes", len(raw))
-        if type(item.get("sha256")) is not str or item["sha256"] != _sha(raw):
+        if integrity_only:
+            # Ancestors establish cryptographic provenance, not the snapshot
+            # returned to the caller. Hash every actual byte without parsing
+            # or retaining every historical annual CSV again.
+            hasher = hashlib.sha256()
+            length = 0
+            with target.open('rb') as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                    hasher.update(chunk)
+                    length += len(chunk)
+            actual_hash = hasher.hexdigest()
+            files[name] = None  # retains duplicate-name checks, not payloads
+        else:
+            raw = target.read_bytes()
+            length = len(raw)
+            actual_hash = _sha(raw)
+            files[name] = raw
+        _integer(item, "bytes", length)
+        if type(item.get("sha256")) is not str or item["sha256"] != actual_hash:
             raise GenerationError("immutable generation file checksum mismatch")
-        files[name] = raw
     dataset, cabinet, period = scope.parts[-3:]
-    _payload_pairs(dataset, cabinet, period, files)
+    if not integrity_only:
+        _payload_pairs(dataset, cabinet, period, files)
     return {"generation": generation, "parent": parent,
             "parent_sha256": digest, "files": files,
             "manifest_sha256": _sha(descriptor_raw)}
@@ -340,6 +404,9 @@ def _lineage(scope, active):
     Parent links are bound by the child descriptor digest. Repacking an
     apparently consistent old CSV/metadata/descriptor cannot silently
     rewrite previously committed history while CURRENT remains unchanged.
+    Every ancestor payload is rehashed against its anchored descriptor. Only
+    the requested snapshot is semantically decoded; reading a historical
+    snapshot through read_generation still validates that selected payload.
     """
     accepted = {}
     item = active
@@ -349,7 +416,7 @@ def _lineage(scope, active):
             raise GenerationError("cyclic generation parent chain")
         accepted[name] = item["manifest_sha256"]
         parent = item["parent"]
-        item = (_read_generation(scope, parent, item["parent_sha256"])
+        item = (_read_generation(scope, parent, item["parent_sha256"], integrity_only=scope.parts[-3].startswith('wb_weekly_finance_'))
                 if parent is not None else None)
     return accepted
 

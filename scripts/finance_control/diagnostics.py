@@ -39,7 +39,81 @@ def save_failure(exc,phase,nonce=None):
  publish(STATE/'results',value,name='controller-latest-failure.json')
  return value
 
+def report_evidence(root,plan):
+ """Read fixed report metadata and all-nonce HTTP evidence, never amounts/secrets."""
+ if plan.get('kind')=='wb-discovery':
+  from apps.msp_marketplace_reports.wb_discovery_resume import _digest,_read_json
+  ident=_digest(plan);folder=Path(root)/'.wb-executor';value=_read_json(folder/('discovery-'+ident+'.json'),required=True)
+  seal=value.pop('state_sha256',None)
+  if seal!=_digest(value):raise ValueError('discovery diagnostic checksum mismatch')
+  out={'kind':'wb-discovery','plan':plan,'budget_entries':value['entries'],'status':value['status'],'executor_status':value['status'],'offset':value['offset'],'last_error':value.get('last_error'),'failure':value.get('failure'),'provider_calls':0}
+  metadata=_read_json(folder/('discovery-'+ident+'-metadata-'+str(value['offset'])+'.json'))
+  if metadata is not None:
+   digest=metadata.pop('metadata_sha256',None)
+   if digest!=_digest(metadata):raise ValueError('discovery metadata checksum mismatch')
+   out['retained_metadata']=metadata
+  else:out['retained_metadata']=None
+  return out
+ from apps.msp_marketplace_reports import standalone_wb as s
+ from apps.msp_marketplace_reports.wb_page_resume import _dir,_read_json,_validate_state,_verify_pages
+ s.reconcile_admission(root,plan)
+ folder=Path(root)/'.wb-executor';path=folder/(s._digest(plan)+'.json')
+ out={'report_id':plan['report_id'],'report_type':plan['report_type'],'cabinet':plan['cabinet'],
+      'budget_entries':0,'executor_status':'NOT_STARTED','pages':0,'rows_staged':0,'cursor':0,
+      'http_attempts':0,'http_statuses':[],'unknown_outcomes':0,'provider_calls':0}
+ if path.exists():
+  value=s.read_control(path);seal=value.pop('state_sha256',None)
+  if seal!=s._digest(value):raise ValueError('executor checksum mismatch')
+  out.update(budget_entries=value['send_entries'],executor_status=value['status'],budget_state_sha256=seal,
+             error_type=value.get('error_type'),failure=value.get('failure'))
+ stage=_dir(root,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+ state=_read_json(stage/'state.json')
+ if state is not None:
+  _validate_state(state,plan['cabinet'],plan['year'],plan['report_id'],plan['report_type'])
+  _verify_pages(stage,state,plan['report_id'],plan['report_type'])
+  out.update(pages=len(state['pages']),cursor=state['current_rrd_id'],stage_status=state['status'],
+             page_sha256=[p['sha256'] for p in state['pages']])
+  for p in state['pages']:
+   page=_read_json(stage/('page-'+str(p['cursor'])+'.json'),required=True)
+   out['rows_staged']+=len(page['rows'])
+ for journal in sorted(folder.glob('control-*-events.jsonl')):
+  s._checked(journal)
+  if not journal.is_file() or journal.stat().st_size>16*1024*1024:raise ValueError('unbounded event journal')
+  with journal.open() as stream:
+   for line in stream:
+    event=json.loads(line,object_pairs_hook=s._strict)
+    if event.get('plan')!=plan:continue
+    if event['event']=='HTTP_DISPATCH_ATTEMPT':out['http_attempts']+=1
+    elif event['event']=='HTTP_RESPONSE':out['http_statuses'].append(int(event['status']))
+    elif event['event']=='HTTP_OUTCOME_UNKNOWN':out['unknown_outcomes']+=1
+ if state is not None:
+  pending=stage/('response-'+str(state['current_rrd_id'])+'.json')
+  out['pending_response_present']=pending.exists()
+  if pending.exists():
+   from apps.msp_marketplace_reports.wb_page_resume import _validate_page
+   page,raw=_read_json(pending,required=True,with_bytes=True)
+   out['pending_response_sha256']=s.hashlib.sha256(raw).hexdigest()
+   # Fixed read-only identifier profile; never export amounts or credentials.
+   from rrd_profile import analyze
+   previous=[_read_json(stage/('page-'+str(entry['cursor'])+'.json'),required=True)['rows'] for entry in state['pages']]
+   out['identifier_profile']=analyze(page,previous,state['current_rrd_id'],report_id=plan['report_id'],report_type=plan['report_type'])
+   try:
+    from apps.msp_marketplace_reports.wb_page_resume import _validate_next_cursor,_unique_rows
+    next_id=_validate_page(page,plan['report_id'],plan['report_type'],state['current_rrd_id'])
+    _validate_next_cursor(state,next_id);_unique_rows(page,_verify_pages(stage,state,plan['report_id'],plan['report_type']))
+    out['pending_response_validation']='PASS'
+   except Exception as exc:
+    out['pending_response_validation']='HOLD';out['pending_response_failure']=s.failure_location(exc)
+ out['http_statuses']=out['http_statuses'][-1000:]
+ out['historical_error_detail_available']=bool(out.get('failure'))
+ return out
+
 def main():
+ sys.path.insert(0,str(ROOT))
+ from apps.msp_marketplace_reports.generation_store import verified_payload_cache
+ with verified_payload_cache():return _main()
+
+def _main():
  if os.geteuid()!=0 or sys.argv[1:]:raise ValueError('fixed diagnostic service only')
  lock=os.open(STATE/'controller.lock',os.O_RDONLY|os.O_NOFOLLOW)
  try:fcntl.flock(lock,fcntl.LOCK_SH|fcntl.LOCK_NB)
@@ -53,8 +127,22 @@ def main():
   if (STATE/'active-run.json').exists():raise ValueError('unreconciled prior execution; do not launch')
  def selection():context['selected']=c.choose('/opt/mcp/data/msp-marketplace-reports',context['request']['cabinet'])
  def reconcile():
-  if context.get('selected'):s.reconcile_admission('/opt/mcp/data/msp-marketplace-reports',context['selected'])
+  if context.get('selected'):context['report_evidence']=report_evidence('/opt/mcp/data/msp-marketplace-reports',context['selected'])
  result=probe([('VERIFY_IMMUTABLE_CODE',c.verify_payload),('READ_REQUEST',read_request),('CHECK_PRIOR_OWNERSHIP',ownership),('SELECT_REPORT_READ_ONLY',selection),('VERIFY_BUDGET_HTTP_PAGES',reconcile)])
+ if context.get('request',{}).get('nonce') and (STATE/'claims'/(context['request']['nonce']+'-0-BEFORE_JOB.json')).exists():
+  try:
+   from apps.msp_marketplace_reports.finance_receipts import report_receipt
+   claimed=c.checked_json(STATE/'claims'/(context['request']['nonce']+'-0-BEFORE_JOB.json'))['plan']
+   s.validate_plan(claimed)
+   if claimed['cabinet']!='wb_laser_master' or claimed['year']!=2026:raise ValueError('different recovery scope')
+   result['interrupted_recovery']={'plan':claimed,'evidence':report_evidence('/opt/mcp/data/msp-marketplace-reports',claimed),'receipt':report_receipt('/opt/mcp/data/msp-marketplace-reports',claimed['cabinet'],2026,claimed['report_id'],claimed['report_type'])}
+  except Exception as exc:result['interrupted_recovery']={'failure':failure(exc,'INTERRUPTED_REPORT')}
+ result['report_evidence']=context.get('report_evidence')
+ if context.get('report_evidence',{}).get('executor_status')=='HOLD_ERROR':result['status']='HOLD_REPORT_ERROR'
+ if context.get('request',{}).get('nonce')=='9e4d19223c0f447e885271edcc38698c' and result['status']=='READ_ONLY_PASS':
+  from apps.msp_marketplace_reports.finance_receipts import report_receipt
+  failed_plan={'schema':1,'cabinet':'wb_laser_master','year':2026,'report_id':713724240,'report_type':1,'max_send_entries':3}
+  result['timeout_recovery']={'receipt':report_receipt('/opt/mcp/data/msp-marketplace-reports','wb_laser_master',2026,713724240,1),'evidence':report_evidence('/opt/mcp/data/msp-marketplace-reports',failed_plan)}
  result['request_nonce']=context.get('request',{}).get('nonce');result['selected_plan']=context.get('selected');result['checked_epoch']=time.time()
  args=['/usr/bin/systemctl','show','msp-finance-control.service','msp-wb-pilot.service','-p','Id','-p','ActiveState','-p','Result','-p','MainPID','-p','ExecMainStartTimestamp','-p','IPAddressAllow','-p','IPAddressDeny','-p','DropInPaths']
  r=subprocess.run(args,capture_output=True,text=True,timeout=15,env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'});result['unit_state']=r.stdout if r.returncode==0 else 'UNAVAILABLE'

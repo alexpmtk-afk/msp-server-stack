@@ -7,7 +7,7 @@ The existing sole executor/supervisor must admit every selected action.
 from __future__ import annotations
 import argparse
 import calendar
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 import hashlib
 import json
 from pathlib import Path
@@ -27,6 +27,13 @@ def discovery_windows(year,as_of):
     for month in range(1,end.month+1):
         last=date(year,month,calendar.monthrange(year,month)[1])
         out.append({'dateFrom':date(year,month,1).isoformat(),'dateTo':min(last,end).isoformat(),
+                    'period':'weekly','limit':1000,'offset':0})
+    # Keep every existing monthly plan byte-identical: budgets are keyed by it.
+    # Separately discover the complete weekly period crossing New Year.
+    first=date(year,1,1);monday=first-timedelta(days=first.weekday())
+    sunday=monday+timedelta(days=6)
+    if monday<first and as_of>=sunday:
+        out.append({'dateFrom':monday.isoformat(),'dateTo':sunday.isoformat(),
                     'period':'weekly','limit':1000,'offset':0})
     return out
 

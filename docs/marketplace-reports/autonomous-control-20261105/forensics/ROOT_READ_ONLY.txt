@@ -1,0 +1,1 @@
+msp_rrd_stage=$(mktemp -d /var/lib/msp-rrd-profile.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/msp-wb-rrd-profile.py "$msp_rrd_stage/profile.py" && printf '%s  %s\n' 9e1cdc70f6cae42ba298b356f55acac63e43de3d60eb7477e6be14d65f51d583 "$msp_rrd_stage/profile.py" | sha256sum -c - && /usr/bin/python3 -I -B "$msp_rrd_stage/profile.py"

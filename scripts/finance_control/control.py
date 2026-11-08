@@ -26,16 +26,33 @@ def checked_json(path,uid=0,limit=65536):
   return json.loads(os.read(fd,limit+1),object_pairs_hook=s._strict)
  finally:os.close(fd)
 def request(value):
- if type(value) is not dict or set(value)!={'nonce','cabinet','max_jobs'} or not isinstance(value['nonce'],str) or not re.fullmatch('[a-f0-9]{32}',value['nonce']):raise ValueError('fixed request fields')
+ if type(value) is not dict or set(value) not in ({'nonce','cabinet','max_jobs'},{'nonce','cabinet','max_jobs','expected_report_id'}) or not isinstance(value['nonce'],str) or not re.fullmatch('[a-f0-9]{32}',value['nonce']):raise ValueError('fixed request fields')
  if value['cabinet'] not in POLICY['cabinets'] or type(value['max_jobs']) is not int or not 1<=value['max_jobs']<=POLICY['max_jobs']:raise ValueError('bounded cabinet/jobs')
+ if 'expected_report_id' in value and (type(value['expected_report_id']) is not int or value['expected_report_id']<=0 or value['max_jobs']!=1):raise ValueError('one positive expected report only')
  return value
 
 def choose(root,cabinet):
+ from apps.msp_marketplace_reports.generation_store import verified_payload_cache
+ with verified_payload_cache():
+  return _choose(root,cabinet)
+
+def _choose(root,cabinet):
  from datetime import date,timedelta
  from apps.msp_marketplace_reports import standalone_wb as s,wb_discovery_resume as discovery
  from apps.msp_marketplace_reports.finance_refresh_plan import discovery_windows
  from apps.msp_marketplace_reports.finance_receipts import report_receipt
  from apps.msp_marketplace_reports.wb_page_resume import _read_json
+ # Resolve this owner's explicitly requested failed report BEFORE new discovery.
+ snapshot={} # Fresh immutable-generation snapshot for this serialized selection.
+ repair={'schema':1,'cabinet':'wb_laser_master','year':2026,'report_id':601780521,'report_type':1,'max_send_entries':3}
+ repair_path=Path(root)/'.wb-executor'/(s._digest(repair)+'.json')
+ if cabinet==repair['cabinet'] and repair_path.exists():
+  budget=s.read_control(repair_path);seal=budget.pop('state_sha256',None)
+  if seal!=s._digest(budget):raise ValueError('repair budget checksum HOLD')
+  if budget.get('status')=='HOLD_ERROR' or budget.get('processing_recovery'):
+   receipt=report_receipt(root,cabinet,2026,601780521,1,snapshot=snapshot)
+   if receipt['status']=='HOLD_INVALID_LOCAL_EVIDENCE':raise ValueError('repair archive integrity HOLD')
+   if not receipt.get('verified'):return repair
  # Reuse October first, then fill missing monthly inventories from January.
  windows=discovery_windows(2026,date.fromisoformat(POLICY['as_of']))
  windows.sort(key=lambda b:(b['dateFrom']!='2026-10-01',b['dateFrom']))
@@ -48,13 +65,13 @@ def choose(root,cabinet):
   # Verify journal before interpreting its status; corrupt evidence is never a new admission.
   seal=state.pop('state_sha256',None)
   if seal!=s._digest(state) or state.get('plan_sha256')!=s._digest(p):raise ValueError('discovery integrity HOLD')
-  if state['status']=='HOLD_ERROR':raise ValueError('discovery provider HOLD')
+  if state['status']=='HOLD_ERROR':return p # Worker never retries an unapproved HOLD; diagnostics retain its exact evidence.
   if state['status']!='COMPLETE':return p
   inv=discovery.read_inventory(root,[p])
   for row in sorted(inv['items'],key=lambda r:(r['dateFrom'],r['reportType'],r['reportId'])):
    as_of=date.fromisoformat(POLICY['as_of']);last_closed=as_of-timedelta(days=as_of.weekday()+1)
    if date.fromisoformat(row['dateTo'][:10])>last_closed:continue
-   local=report_receipt(root,cabinet,2026,row['reportId'],row['reportType'])
+   local=report_receipt(root,cabinet,2026,row['reportId'],row['reportType'],snapshot=snapshot)
    if local['status']=='HOLD_INVALID_LOCAL_EVIDENCE':raise ValueError('archive integrity HOLD')
    if local.get('verified'):continue
    return {'schema':1,'cabinet':cabinet,'year':2026,'report_id':row['reportId'],'report_type':row['reportType'],'max_send_entries':3}
@@ -127,6 +144,7 @@ def process(value,select,perform,persist):
  for index in range(req['max_jobs']):
   plan=select(req['cabinet'])
   if plan is None:break
+  if req.get('expected_report_id') is not None and (plan.get('kind')=='wb-discovery' or plan.get('report_id')!=req['expected_report_id']):raise ValueError('selected report differs from requested scope; no dispatch')
   persist('BEFORE_JOB',index,plan)
   result=perform(index,plan);out.append(result);persist('AFTER_JOB',index,plan)
   if result.get('status')!='PASS':break

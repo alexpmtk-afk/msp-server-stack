@@ -76,6 +76,34 @@ def _backup(path: Path, root: Path):
         _safe_write(target, current)
 
 
+def _scan_rows(data: bytes, keys: tuple[str, ...]):
+    """Validate every CSV row with bounded cell memory; retain stable keys only."""
+    if not data:
+        raise ValueError("empty CSV is not a verified report")
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeError as exc:
+        raise ValueError("CSV must be UTF-8/UTF-8-BOM") from exc
+    reader = csv.reader(io.StringIO(text), delimiter=";")
+    fields = next(reader, [])
+    if not fields or len(fields) != len(set(fields)) or not set(keys).issubset(fields):
+        raise ValueError("missing/duplicate CSV header or stable-key columns")
+    indices = [fields.index(k) for k in keys]
+    def records():
+        seen = set()
+        for line, values in enumerate(reader, 2):
+            if not values:  # DictReader also ignores genuinely blank records.
+                continue
+            if len(values) != len(fields):
+                raise ValueError("invalid CSV row at line %d" % line)
+            key = tuple(values[i].strip() for i in indices)
+            if not all(key) or key in seen:
+                raise ValueError("incomplete/duplicate stable key at line %d" % line)
+            seen.add(key)
+            yield key, values
+    return fields, records()
+
+
 def _rows(data: bytes, keys: tuple[str, ...]):
     if not data:
         raise ValueError("empty CSV is not a verified report")

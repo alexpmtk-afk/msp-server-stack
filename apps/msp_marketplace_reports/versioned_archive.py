@@ -9,12 +9,12 @@ requires a separately reviewed, verified, no-write-to-legacy procedure.
 """
 from __future__ import annotations
 
-import json
+import json,csv,io
 from pathlib import Path
 
 from .archive import (
     DATASETS, _encode, _location, _metadata, _ozon_annual_path,
-    _rows, _validate, _sha, _lock,
+    _rows, _validate, _sha, _lock, _scan_rows,
 )
 from .generation_store import (
     GenerationError, publish_batch, read_active, read_generation,
@@ -59,14 +59,48 @@ def _assert_no_legacy(root: Path, dataset: str, cabinet: str, period: str):
         raise GenerationError("legacy CSV scope exists; migration required")
 
 
+def _merge_wb_csv(old_data, incoming_fields, incoming, keys):
+    """Stream annual rows; hold only the current report and stable-key set.
+
+    Existing CSV row order is retained (not assumed sorted). New keys append
+    deterministically; order is not part of WB financial row identity.
+    """
+    old_fields, records = _scan_rows(old_data, keys) if old_data else ([], ())
+    fields = list(dict.fromkeys([*old_fields, *incoming_fields]))
+    output = io.StringIO(newline='')
+    writer = csv.writer(output, delimiter=';', lineterminator='\n')
+    writer.writerow(fields)
+    remaining = dict(incoming)
+    indices = [old_fields.index(f) if f in old_fields else None for f in fields]
+    count = 0
+    for key, values in records:
+        update = remaining.pop(key, None)
+        if update is None:
+            writer.writerow([values[i] if i is not None else '' for i in indices])
+        else:
+            row = dict(zip(old_fields, values))
+            if any(row[f] != update[f] for f in set(row) & set(update)):
+                raise ValueError('conflicting WB stable key: '+repr(key))
+            row.update(update)
+            writer.writerow([row.get(f, '') for f in fields])
+        count += 1
+    for key in sorted(remaining):
+        writer.writerow([remaining[key].get(f, '') for f in fields])
+    return ('\ufeff'+output.getvalue()).encode('utf-8'), count+len(remaining), len(remaining)
+
+
 def _pair(files, name, raw, dataset, cabinet, period, keys):
     """Keep byte-identical existing CSV+metadata to make no-op stable."""
     if files.get(name) == raw and name + ".meta.json" in files:
         return
-    _, mapping = _rows(raw, keys)
+    if dataset.startswith("wb_weekly_finance_"):
+        _, records = _scan_rows(raw, keys)
+        count = sum(1 for _ in records)
+    else:
+        count = len(_rows(raw, keys)[1])
     files[name] = raw
     files[name + ".meta.json"] = json.dumps(
-        _metadata(raw, len(mapping), dataset, cabinet, period),
+        _metadata(raw, count, dataset, cabinet, period),
         ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8") + b"\n"
 
@@ -132,23 +166,9 @@ def import_csv_versioned(root: Path, dataset: str, cabinet: str,
         parent = active["generation"] if active else None
         candidate = dict(active["files"]) if active else {}
         if dataset.startswith("wb_weekly_finance_"):
-            old_fields, old_rows = (
-                _rows(candidate["data.csv"], keys) if active else ([], {})
-            )
-            merged = dict(old_rows)
-            for key, value in incoming.items():
-                if key in merged:
-                    common = set(merged[key]) & set(value)
-                    if any(merged[key].get(f, "") != value.get(f, "") for f in common):
-                        raise ValueError("conflicting WB stable key: " + repr(key))
-                    merged[key] = dict(merged[key], **value)
-                else:
-                    merged[key] = value
-            combined_fields = list(dict.fromkeys([*old_fields, *fields]))
-            payload = _encode(combined_fields, merged)
+            payload, row_count, additions = _merge_wb_csv(
+                candidate.get('data.csv'), fields, incoming, keys)
             _pair(candidate, "data.csv", payload, dataset, cabinet, period, keys)
-            row_count = len(merged)
-            additions = len(merged) - len(old_rows)
         elif dataset == "ozon_final_realization":
             payload = _encode(fields, incoming)
             _pair(candidate, "monthly/" + period + ".csv", payload,
