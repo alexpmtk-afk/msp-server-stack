@@ -1,0 +1,12 @@
+{
+  "cabinet": "wb_novokshenov",
+  "year": 2026,
+  "closed_period_through": "2026-11-01",
+  "release": "/opt/mcp/projects/msp-marketplace-reports-releases/control-638be59c983a0b6769d149cc1d577799a6aec346dabb8e83ed6d9aa18c7ac508",
+  "driver_sha256": "4d062537ea9ec7dd4200e1957828a613493facb5c00fd0fe0340ddadd9a8ccc2",
+  "wrapper_sha256": "50abed21b6e70ce63b1eb02c4b9f0e89dd12858cdee5daeec1cacd9c05ef2ea5",
+  "root_control_sha256": "8e9ec88f284c11a3950558633d4de674bff97e3aae55e0f419237ad89430d55d",
+  "daily_schedule": false,
+  "other_cabinets": false,
+  "state": "/home/hermes/.local/state/msp-finance-history-wb-novokshenov-20261108"
+}
