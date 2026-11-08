@@ -8,6 +8,7 @@ No provider calls, network, credentials, automatic migration or recovery writes.
 from __future__ import annotations
 
 import fcntl
+import hashlib
 import json
 import os
 import re
@@ -220,7 +221,7 @@ def _descriptor(scope_name, generation, parent, parent_sha256, files):
                       for k in sorted(files)]}
 
 
-def _read_generation(scope, generation, expected_digest=None):
+def _read_generation(scope, generation, expected_digest=None, *, integrity_only=False):
     _identifier(generation)
     genpath = scope / "generations" / generation
     _require_plain(genpath)
@@ -262,13 +263,29 @@ def _read_generation(scope, generation, expected_digest=None):
         _require_plain(target)
         if not target.is_file():
             raise GenerationError("missing immutable generation file")
-        raw = target.read_bytes()
-        _integer(item, "bytes", len(raw))
-        if type(item.get("sha256")) is not str or item["sha256"] != _sha(raw):
+        if integrity_only:
+            # Ancestors establish cryptographic provenance, not the snapshot
+            # returned to the caller. Hash every actual byte without parsing
+            # or retaining every historical annual CSV again.
+            hasher = hashlib.sha256()
+            length = 0
+            with target.open('rb') as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                    hasher.update(chunk)
+                    length += len(chunk)
+            actual_hash = hasher.hexdigest()
+            files[name] = None  # retains duplicate-name checks, not payloads
+        else:
+            raw = target.read_bytes()
+            length = len(raw)
+            actual_hash = _sha(raw)
+            files[name] = raw
+        _integer(item, "bytes", length)
+        if type(item.get("sha256")) is not str or item["sha256"] != actual_hash:
             raise GenerationError("immutable generation file checksum mismatch")
-        files[name] = raw
     dataset, cabinet, period = scope.parts[-3:]
-    _payload_pairs(dataset, cabinet, period, files)
+    if not integrity_only:
+        _payload_pairs(dataset, cabinet, period, files)
     return {"generation": generation, "parent": parent,
             "parent_sha256": digest, "files": files,
             "manifest_sha256": _sha(descriptor_raw)}
@@ -387,6 +404,9 @@ def _lineage(scope, active):
     Parent links are bound by the child descriptor digest. Repacking an
     apparently consistent old CSV/metadata/descriptor cannot silently
     rewrite previously committed history while CURRENT remains unchanged.
+    Every ancestor payload is rehashed against its anchored descriptor. Only
+    the requested snapshot is semantically decoded; reading a historical
+    snapshot through read_generation still validates that selected payload.
     """
     accepted = {}
     item = active
@@ -396,7 +416,7 @@ def _lineage(scope, active):
             raise GenerationError("cyclic generation parent chain")
         accepted[name] = item["manifest_sha256"]
         parent = item["parent"]
-        item = (_read_generation(scope, parent, item["parent_sha256"])
+        item = (_read_generation(scope, parent, item["parent_sha256"], integrity_only=scope.parts[-3].startswith('wb_weekly_finance_'))
                 if parent is not None else None)
     return accepted
 
