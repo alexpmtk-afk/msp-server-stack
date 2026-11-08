@@ -19,3 +19,10 @@ LINEAGE_MANIFEST.json pins the reviewed37-file installed baseline and every new 
 Use only ROOT_LINEAGE_REPAIR_AND_RESUME.txt, not the historical memory/discovery commands. The helper is unprivileged and pins the new root controller and exact nonce82bf.../report812549574/type1. It checks fresh root terminal/publication evidence, known HTTP outcomes and original sealed budget through the same bounded recovery predicate; preserves state and wrapper backups, counters and budgets; writes a scoped pinned driver, recovers to cooldown, and starts only the existing WB Laser Master campaign. It does not perform provider requests or wait in the operator console for the whole campaign. A repeated invocation after admission is rejected. Unknown outcomes/corruption/different claims remain HOLD.
 
 Status at packaging: NOT INSTALLED; no production resume attempted. After owner installation, verify exact next root receipt, confirmed local publication, unchanged original budget and advancement to a subsequent report before claiming recovery. Not all history is confirmed yet.
+
+
+## Installed production verification
+
+The owner installed control638be59c983a0b6769d149cc1d577799a6aec346dabb8e83ed6d9aa18c7ac508. Fresh read-only root proof for exact failed nonce82bf1ab2ecf94c79810d82f739232c84 verified report812549574/type1:1434 rows, publication/page hashes valid, original budget3/DONE, known200/200/204, no unknown outcomes. Handoff had not executed; Hermes ran the pinned unprivileged helper once after verifying idle units and the fresh proof. Original campaign resumed, retaining counters and budgets.
+
+Next root receipt9df75b19c3224027a12db6d77e76577c is PASS: report812549544/type2,46 rows, one saved page,2 HTTP attempts200/204,unknown0,budget2,publication/page hashes verified. Original scoped driver active in normal COOLDOWN, wake93. This verifies genuine continuation beyond the interrupted report, not merely service startup. All historical reports remain unconfirmed pending final inventory reconciliation; no claim of measured whole-process4.35x production improvement or permanent absence of failures.
