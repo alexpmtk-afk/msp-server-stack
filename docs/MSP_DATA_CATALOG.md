@@ -48,3 +48,16 @@ Check SQLite and four-source ingestion without fetching live sources:
 `python3 /opt/mcp/projects/msp-server-stack/apps/msp_data_sync/sync.py --config /opt/mcp/projects/msp-server-stack/config/msp-data/sync.json --verify-only`
 
 A timer being enabled does not prove the scheduled sync actually ran: verify the latest `sync_run` status and timestamps for each of the four sources. SQLite integrity and foreign keys should also be checked before claiming acceptance.
+
+<!-- MSP_WB_FINANCIAL_SEMANTICS_20261109 -->
+## Финансовые отчёты WB — единый смысловой вход
+
+Для задач о финансовых отчётах WB (продажи/возвраты, комиссия, логистика,
+хранение, штрафы/удержания, кешбэк, перечисление, daily/weekly, полнота)
+сначала читать `/opt/mcp/projects/msp-server-stack/docs/data-sources/WB_FINANCIAL_REPORTS.md`
+или выполнить `msp-wb-report-guide route 'вопрос' --json`.
+Навык: `msp-wb-financial-reports`; словарь, формулы и расположение архива — в едином входе.
+Не путать реализацию, перечисление, банковскую выплату и прибыль; не складывать
+пересекающиеся daily/weekly и версии документов. Выкупы WB не наши самовыкупы.
+Неподтверждённые поля API не угадывать; семантика не расширяет права доступа к архиву.
+<!-- /MSP_WB_FINANCIAL_SEMANTICS_20261109 -->

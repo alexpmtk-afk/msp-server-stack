@@ -1,0 +1,13 @@
+{
+  "id": "msp.wb.financial_reports",
+  "schema_version": 1,
+  "triggers": ["отчёты WB", "финансы Wildberries", "реализация", "возвраты", "комиссия", "к перечислению", "логистика", "хранение", "удержания", "кешбэк", "daily", "weekly"],
+  "entrypoint": "docs/data-sources/WB_FINANCIAL_REPORTS.md",
+  "ontology": "docs/data-sources/wb-financial-reports/ontology.json",
+  "procedure": "docs/data-sources/wb-financial-reports/GUIDE.md",
+  "cli": "msp-wb-report-guide",
+  "skill": "msp-wb-financial-reports",
+  "data_is_not_in_msp_sqlite": true,
+  "guide_grants_financial_data_access": false,
+  "daily_dataset_verified": false
+}

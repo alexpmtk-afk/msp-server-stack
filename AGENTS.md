@@ -61,3 +61,16 @@ If the required REMOTE execution channel is not available, stop at preparation: 
 ## Финансовый архив WB/Ozon — новое решение владельца 02.11.2026
 
 Поиск старого REMOTE прекращён: доступ потерян, это не доказательство его отключения. Не возвращать владельца к WinSCP/старой консоли без нового подтверждённого доступа. Текущий документ — docs/marketplace-reports/AUTONOMOUS_VPS_20261102.md. Подготовлен standalone_wb one-shot поверх PR98/99/102, не новый scheduler/Redis job queue. Реальных установок/Redis writes/API/gate activation нет. До API нужны owner-approved shared quota и исключение конфликтующих клиентов, private root/credential-reader и отдельный bounded pilot approval; новая независимая Redis не доказывает общую квоту. Pilot main883801632 wb_laser_master 19–25.10.2026 имеет неизвестный полный размер и максимум3 durable send entries; повтор не сбрасывает бюджет. Сохранять существующие службы, root0700/0600 секретов и историю PR.
+
+<!-- MSP_WB_FINANCIAL_SEMANTICS_20261109 -->
+## Финансовые отчёты WB — единый смысловой вход
+
+Для задач о финансовых отчётах WB (продажи/возвраты, комиссия, логистика,
+хранение, штрафы/удержания, кешбэк, перечисление, daily/weekly, полнота)
+сначала читать `/opt/mcp/projects/msp-server-stack/docs/data-sources/WB_FINANCIAL_REPORTS.md`
+или выполнить `msp-wb-report-guide route 'вопрос' --json`.
+Навык: `msp-wb-financial-reports`; словарь, формулы и расположение архива — в едином входе.
+Не путать реализацию, перечисление, банковскую выплату и прибыль; не складывать
+пересекающиеся daily/weekly и версии документов. Выкупы WB не наши самовыкупы.
+Неподтверждённые поля API не угадывать; семантика не расширяет права доступа к архиву.
+<!-- /MSP_WB_FINANCIAL_SEMANTICS_20261109 -->

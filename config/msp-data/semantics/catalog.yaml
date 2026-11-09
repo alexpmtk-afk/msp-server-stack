@@ -175,6 +175,7 @@ additional_catalogs:
     daily_schedule: not_yet_requested
     semantics: production_metal.yaml
 semantics_files:
+  - wb_financial_reports.json
   - production_sewing.yaml
   - production_metal.yaml
   - product_catalog.yaml

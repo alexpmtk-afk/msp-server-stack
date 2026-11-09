@@ -1,0 +1,1800 @@
+{
+  "schema_version": 1,
+  "id": "msp.wb.financial_reports",
+  "language": "ru",
+  "maintained_on": "2026-11-09",
+  "source_article_updated_on": "2026-11-02",
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://seller.wildberries.ru/instructions/ru/ru/material/how-to-read-fimancial-reports-detalization",
+      "title": "Детализация еженедельного отчёта реализации",
+      "access": "search-index text; direct URL returned navigation only",
+      "scope": "UI detail field semantics; not a complete daily-report manual"
+    },
+    {
+      "id": 2,
+      "url": "https://seller.wildberries.ru/instructions/ru/ru/material/how-to-read-general-financial-report",
+      "title": "Еженедельные отчёты реализации",
+      "access": "search-index text",
+      "scope": "Summary and reconciliation formulas"
+    },
+    {
+      "id": 3,
+      "url": "https://dev.wildberries.ru/docs/openapi/financial-reports-and-accounting",
+      "title": "WB Finance API",
+      "access": "UNAVAILABLE during this verification",
+      "scope": "Do not treat unverified API field bindings as confirmed"
+    }
+  ],
+  "fields": [
+    {
+      "id": "row_number",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "№"
+      ],
+      "meaning": "Позиция в выгрузке, не устойчивый ключ финансовой операции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "supply_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Номер поставки"
+      ],
+      "meaning": "Идентификатор поставки FBW; технический ноль не доказывает отсутствие операции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "nm_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Код номенклатуры"
+      ],
+      "meaning": "Артикул карточки WB; связывать с product_listing вместе с площадкой и магазином.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "supplier_article",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Артикул поставщика"
+      ],
+      "meaning": "Артикул продавца; не заменяет автоматически внутренний артикул 1С.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "barcode",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Баркод"
+      ],
+      "meaning": "Идентификатор варианта товара; не уникальный экземпляр.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "mp_sticker",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Стикер МП"
+      ],
+      "meaning": "Маркер товара по FBS.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "office_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Номер офиса"
+      ],
+      "meaning": "Идентификатор ПВЗ.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "partner_inn",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "ИНН партнёра"
+      ],
+      "meaning": "Налоговый идентификатор партнёра, не продавца.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "assembly_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Номер сборочного задания"
+      ],
+      "meaning": "Задание FBS; ноль может быть неприменимым значением.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "marking_code",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Код маркировки"
+      ],
+      "meaning": "Индивидуальный код маркируемой единицы.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "warehouse_barcode",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "ШК"
+      ],
+      "meaning": "Складской идентификатор единицы; не приравнивать к баркоду варианта.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "srid",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Srid"
+      ],
+      "meaning": "Связь операций заказа; один заказ может иметь несколько строк с одинаковым Srid.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "processing_box",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Номер короба для обработки товара"
+      ],
+      "meaning": "Короб группировки товаров одного покупателя.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "order_cart_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "ID корзины заказа"
+      ],
+      "meaning": "Группа покупательского заказа; не уникальный ключ строки.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "seller_promo_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "ID собственной акции продавца с дополнительной скидкой"
+      ],
+      "meaning": "Идентификатор собственной акции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "loyalty_discount_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Уникальный идентификатор скидки лояльности от продавца"
+      ],
+      "meaning": "Ссылка на выданную скидку лояльности.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "promocode_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "ID промокода"
+      ],
+      "meaning": "Ссылка на акцию с промокодом.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "substitution_id",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "ID подменного артикула"
+      ],
+      "meaning": "Идентификатор подменного артикула, не основной SKU.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "buyer_inn",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "ИНН покупателя-юрлица или ИП"
+      ],
+      "meaning": "ИНН корпоративного покупателя.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "buyer_kpp",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "КПП покупателя-юрлица"
+      ],
+      "meaning": "КПП корпоративного покупателя; технический ноль не самостоятельный контрагент.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "upd_number",
+      "group": "identity",
+      "kind": "identifier",
+      "ui_labels": [
+        "Номер УПД или УКД"
+      ],
+      "meaning": "Документ продажи/возврата корпоративному покупателю.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "subject",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Предмет"
+      ],
+      "meaning": "Товарная категория карточки.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "brand",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Бренд"
+      ],
+      "meaning": "Бренд карточки.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "product_name",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Название"
+      ],
+      "meaning": "Название карточки; не бизнес-ключ.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "size",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Размер"
+      ],
+      "meaning": "Вариант размера; ноль может обозначать неприменимость.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "document_type",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Тип документа"
+      ],
+      "meaning": "Направление начисления/списания; не исчерпывает вид операции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "payment_reason",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Обоснование для оплаты"
+      ],
+      "meaning": "Фактический вид финансовой операции; читать раньше агрегирования.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "payment_fee_type",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Тип платежа: компенсация платёжных услуг/комиссия за интеграцию платёжных сервисов",
+        "Тип платежа за Эквайринг/Комиссии за организацию платежей"
+      ],
+      "meaning": "Категория платёжного расхода, не ещё одна денежная сумма.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "paid_delivery_flag",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Признак услуги платной доставки"
+      ],
+      "meaning": "Признак платной доставки DBS/EDBS.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "operation_detail",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Виды доставок, штрафов и корректировок ВВ"
+      ],
+      "meaning": "Расшифровка логистики, штрафа, удержания или коррекции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "acquiring_bank",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Наименование банка-эквайера"
+      ],
+      "meaning": "Платёжный банк.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "office_name",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Наименование офиса доставки"
+      ],
+      "meaning": "Название пункта доставки.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "partner_name",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Партнёр"
+      ],
+      "meaning": "Юридическое лицо партнёра ПВЗ.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "warehouse",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Склад"
+      ],
+      "meaning": "Место обработки; значение склада поставщика может обозначать FBS.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "country",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Страна"
+      ],
+      "meaning": "Страна реализации; не единственный способ определения типа отчёта.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "box_type",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Тип коробов"
+      ],
+      "meaning": "Вид упаковки поставки, влияющий на тариф.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "customs_declaration",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Номер таможенной декларации"
+      ],
+      "meaning": "Исторический реквизит; не выводить отсутствие экспорта из пустого поля.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "carrier",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Организатор перевозки"
+      ],
+      "meaning": "Юридическое лицо перевозчика.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "legal_entity_sale",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Признак продажи юридическому лицу"
+      ],
+      "meaning": "Признак корпоративного покупателя.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "sale_model_cargo",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Способ продажи и тип товара"
+      ],
+      "meaning": "Модель исполнения и габаритный класс для логистических строк.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "social_certificate",
+      "group": "classification",
+      "kind": "text",
+      "ui_labels": [
+        "Оплата социальным сертификатом"
+      ],
+      "meaning": "Признак источника оплаты.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "group_or_filter"
+    },
+    {
+      "id": "order_date",
+      "group": "dates",
+      "kind": "date",
+      "ui_labels": [
+        "Дата заказа покупателем"
+      ],
+      "meaning": "Дата заказа, не дата признания реализации.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "filter_by_explicit_date_role"
+    },
+    {
+      "id": "operation_date",
+      "group": "dates",
+      "kind": "date",
+      "ui_labels": [
+        "Дата продажи"
+      ],
+      "meaning": "Для продажи — выкуп; для возврата — возврат; у прочих операций — дата операции списания.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "filter_by_explicit_date_role"
+    },
+    {
+      "id": "fixation_start",
+      "group": "dates",
+      "kind": "date",
+      "ui_labels": [
+        "Дата начала действия фиксации"
+      ],
+      "meaning": "Начало периода фиксированного тарифа.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "filter_by_explicit_date_role"
+    },
+    {
+      "id": "fixation_end",
+      "group": "dates",
+      "kind": "date",
+      "ui_labels": [
+        "Дата конца действия фиксации"
+      ],
+      "meaning": "Окончание периода фиксированного тарифа.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "filter_by_explicit_date_role"
+    },
+    {
+      "id": "upd_date",
+      "group": "dates",
+      "kind": "date",
+      "ui_labels": [
+        "Дата УПД или УКД"
+      ],
+      "meaning": "Дата корпоративного документа, не универсальная дата операции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "filter_by_explicit_date_role"
+    },
+    {
+      "id": "quantity",
+      "group": "operations",
+      "kind": "count",
+      "ui_labels": [
+        "Кол-во"
+      ],
+      "meaning": "Количество операций с разным смыслом по виду строки; не суммировать как продажи весь столбец.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "not_automatically_sold_units",
+      "values_note": "В справке: 1 для продаж/возвратов; 0 для ряда расходов; 2 для возмещения перевозки. Значение 2 не две проданные единицы."
+    },
+    {
+      "id": "delivery_count",
+      "group": "operations",
+      "kind": "count",
+      "ui_labels": [
+        "Количество доставок"
+      ],
+      "meaning": "Признак/количество прямых доставок соответствующей строки.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "not_automatically_sold_units"
+    },
+    {
+      "id": "return_delivery_count",
+      "group": "operations",
+      "kind": "count",
+      "ui_labels": [
+        "Количество возврата"
+      ],
+      "meaning": "Обратная логистика; не количество возвратов уже проданного товара.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "not_automatically_sold_units"
+    },
+    {
+      "id": "retail_price",
+      "group": "prices",
+      "kind": "money",
+      "ui_labels": [
+        "Цена розничная"
+      ],
+      "meaning": "Цена с применимыми скидками продавца до скидок за счёт WB; не фактическая цена покупателя.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "retail_realized",
+      "group": "prices",
+      "kind": "money",
+      "ui_labels": [
+        "Вайлдберриз реализовал товар (Пр)",
+        "Вайлдберриз реализовал Товар (Пр)"
+      ],
+      "meaning": "Сумма реализации по операции, с учётом скидок за счёт WB.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "retail_price_discounted",
+      "group": "prices",
+      "kind": "money",
+      "ui_labels": [
+        "Цена розничная с учётом согласованной скидки"
+      ],
+      "meaning": "База строки для расчёта перечисления; трактовка зависит от версии и акций.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "payout_for_goods",
+      "group": "prices",
+      "kind": "money",
+      "ui_labels": [
+        "К перечислению Продавцу за реализованный товар",
+        "К перечислению за товар",
+        "К перечислению продавцу за реализованный товар"
+      ],
+      "meaning": "Начисление за товар после комиссии и платёжных услуг, но не после всех затрат магазина.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "legacy_product_discount",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Согласованный продуктовый дисконт, %"
+      ],
+      "meaning": "Историческая скидочная колонка; технический ноль не доказывает отсутствие всех скидок.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "legacy_promocode_rate",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Промокод, %"
+      ],
+      "meaning": "Историческая колонка; не смешивать с новым ID промокода и скидкой акции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "legacy_total_discount",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Итоговая согласованная скидка, %"
+      ],
+      "meaning": "Версионная скидочная колонка; новые опции могут менять её заполнение.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "rating_kvv_change",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Размер изменения кВВ из-за рейтинга, %"
+      ],
+      "meaning": "Историческая поправка коэффициента; не рассчитывать текущую комиссию по нулю.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "promo_kvv_change",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Размер изменения кВВ из-за акции, %"
+      ],
+      "meaning": "Историческая акционная поправка.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "platform_discount",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Платформенные скидки, %",
+        "Скидка постоянного Покупателя, %"
+      ],
+      "meaning": "Скидки за счёт WB; прежнее название — скидка постоянного покупателя.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "kvv",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Размер кВВ, %"
+      ],
+      "meaning": "Коэффициент вознаграждения с применимыми опциями, не универсальная постоянная ставка.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "kvv_base_no_vat",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Размер кВВ без НДС, % Базовый"
+      ],
+      "meaning": "Базовый коэффициент без НДС для соответствующей версии.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "kvv_final_no_vat",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Итоговый кВВ без НДС, %"
+      ],
+      "meaning": "Базовый коэффициент без НДС после поправки на платформенную скидку.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "payment_fee_rate",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Размер компенсации платёжных услуг/комиссии за интеграцию платёжных сервисов, %",
+        "Размер комиссии за эквайринг/комиссии за организацию платежей, %"
+      ],
+      "meaning": "Ставка платёжных услуг; не денежная комиссия.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "warehouse_coefficient",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Фиксированный коэффициент склада по поставке"
+      ],
+      "meaning": "Зафиксированное значение, не доказательство актуальной ставки после окончания фиксации.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "multiplier"
+    },
+    {
+      "id": "wibes_discount",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Скидка Wibes, %"
+      ],
+      "meaning": "Коррекция комиссии при продаже через Wibes.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "seller_promo_rate",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Размер дополнительной скидки по собственной акции продавца, %"
+      ],
+      "meaning": "Процент собственной акции, проверять связь с её ID.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "loyalty_discount_rate",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Размер скидки лояльности от продавца, %"
+      ],
+      "meaning": "Скидка продавца по опции лояльности.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "loyalty_kvv_fee",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "% КВВ за скидку лояльности"
+      ],
+      "meaning": "Компонент итогового коэффициента, не отдельное повторное списание.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "promocode_discount",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Скидка за промокод"
+      ],
+      "meaning": "Скидка соответствующей акции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "substitution_discount",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Скидка по подменному артикулу, %"
+      ],
+      "meaning": "Скидка сервиса подменных артикулов.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "wholesale_discount",
+      "group": "rates",
+      "kind": "rate",
+      "ui_labels": [
+        "Оптовая скидка для бизнеса, %"
+      ],
+      "meaning": "Оптовая скидка корпоративному покупателю.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "unit": "percent"
+    },
+    {
+      "id": "reward_before_agents",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Вознаграждение с продаж до вычета услуг поверенного, без НДС"
+      ],
+      "meaning": "Промежуточная компонента комиссии; не вычитать повторно вместе с итоговой комиссией.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "pickup_compensation",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Возмещение за выдачу и возврат товаров на ПВЗ"
+      ],
+      "meaning": "Расход на услуги ПВЗ; проверить включение в другие итоговые компоненты.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "payment_fee",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Компенсация платёжных услуг/Комиссия за интеграцию платёжных сервисов",
+        "Эквайринг/комиссии за организацию платежей"
+      ],
+      "meaning": "Денежная плата за платёжные услуги; уже участвует в перечислении за товар.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "wb_reward_no_vat",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Вознаграждение Вайлдберриз (ВВ), без НДС"
+      ],
+      "meaning": "Комиссия WB без НДС, не стоимость товара.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "wb_reward_vat",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "НДС с Вознаграждения Вайлдберриз"
+      ],
+      "meaning": "Налог на комиссию WB, не налог продавца на выручку.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "delivery_fee",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Услуги по доставке товара покупателю"
+      ],
+      "meaning": "Сумма логистики соответствующей операции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "penalty",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Общая сумма штрафов"
+      ],
+      "meaning": "Денежный штраф; основание читать в расшифровке операции.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "wb_reward_adjustment",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Корректировка Вознаграждения Вайлдберриз (ВВ)"
+      ],
+      "meaning": "Знаковая корректировка комиссии; отличать удержание от выплаты.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "carrier_reimbursement",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Возмещение издержек по перевозке/по складским операциям с товаром"
+      ],
+      "meaning": "Компенсация расходов стороннего перевозчика, не новая продажа товара.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "storage_fee",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Хранение"
+      ],
+      "meaning": "Общая стоимость хранения; отсутствие SKU не повод отбросить расход.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "deductions",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Удержания"
+      ],
+      "meaning": "Прочие списания/выплаты; положительное — удержание, отрицательное — выплата.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "processing_fee",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Услуга по обработке товара",
+        "Стоимость операций при приёмке"
+      ],
+      "meaning": "Обработка/приёмка, включая применимые услуги FBS; старые периоды могут отражать иначе.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "cofunding_discount",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Скидка по программе софинансирования"
+      ],
+      "meaning": "Сумма софинансирования; может быть уже учтена в реализации и перечислении.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "loyalty_compensation",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Компенсация скидки по программе лояльности"
+      ],
+      "meaning": "Компенсация использованного покупателем кешбэка; входит в сводную реализацию.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "loyalty_fee",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Стоимость участия в программе лояльности"
+      ],
+      "meaning": "Комиссия программы; возврат комиссии зависит от вида возврата.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "loyalty_points",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Сумма, удержанная за начисленные баллы программы лояльности"
+      ],
+      "meaning": "Кешбэк продавца; отдельно от комиссии за участие.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "payment_schedule_fee",
+      "group": "costs",
+      "kind": "money",
+      "ui_labels": [
+        "Разовое изменение срока перечисления денежных средства",
+        "Разовое изменение срока перечисления денежных средств"
+      ],
+      "meaning": "Плата за ускоренное перечисление, не банковская выплата.",
+      "source_ids": [
+        1
+      ],
+      "api_keys": [],
+      "api_binding": "NOT_VERIFIED",
+      "aggregation": "use_operation_and_sign_rule",
+      "unit": "report_currency"
+    },
+    {
+      "id": "report_id",
+      "group": "technical_identity",
+      "kind": "identifier",
+      "ui_labels": [],
+      "meaning": "Идентификатор документа WB.",
+      "source_ids": [
+        "installed_archive_code"
+      ],
+      "api_keys": [
+        "reportId"
+      ],
+      "api_binding": "CONFIRMED_INSTALLED_CONTRACT",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "report_type",
+      "group": "technical_identity",
+      "kind": "identifier",
+      "ui_labels": [],
+      "meaning": "Тип документа: 1 основной, 2 по выкупам; не ежедневный/еженедельный.",
+      "source_ids": [
+        "installed_archive_code"
+      ],
+      "api_keys": [
+        "reportType"
+      ],
+      "api_binding": "CONFIRMED_INSTALLED_CONTRACT",
+      "aggregation": "never_sum"
+    },
+    {
+      "id": "row_id",
+      "group": "technical_identity",
+      "kind": "identifier",
+      "ui_labels": [],
+      "meaning": "Устойчивый идентификатор строки и источник курсора пагинации.",
+      "source_ids": [
+        "installed_archive_code"
+      ],
+      "api_keys": [
+        "rrdId"
+      ],
+      "api_binding": "CONFIRMED_INSTALLED_CONTRACT",
+      "aggregation": "never_sum"
+    }
+  ],
+  "bindings_policy": "UI labels are semantic aliases, not verified current API key mappings. Unknown or multiple matching columns require explicit schema binding. New camelCase aliases must not be inferred from old snake_case names.",
+  "datasets": {
+    "weekly_main": {
+      "name": "wb_weekly_finance_main",
+      "period": "weekly",
+      "report_type": 1,
+      "state": "INSTALLED_ARCHIVE"
+    },
+    "weekly_buyout": {
+      "name": "wb_weekly_finance_buyout",
+      "period": "weekly",
+      "report_type": 2,
+      "state": "INSTALLED_ARCHIVE"
+    },
+    "daily": {
+      "name": null,
+      "period": "daily",
+      "report_type": "independent dimension",
+      "state": "NO_VERIFIED_LOCAL_DAILY_DATASET",
+      "policy": "Do not fabricate a daily CSV/table or sum daily and weekly copies of the same coverage."
+    }
+  },
+  "cabinet_allowlist": [
+    "wb_laser_master",
+    "wb_novokshenov",
+    "wb_dmitrieva"
+  ],
+  "storage": {
+    "archive_root": "/opt/mcp/data/msp-marketplace-reports",
+    "generation_scope": ".b7-generations/{dataset}/{cabinet}/{year}",
+    "current_pointer": "CURRENT.json",
+    "files": [
+      "data.csv",
+      "data.csv.meta.json"
+    ],
+    "public_receipts": "/var/lib/msp-finance-control/results",
+    "installation_receipt": "/var/lib/msp-finance-control/INSTALL.json",
+    "sql_table": null,
+    "credential_access_required_for_guide": false,
+    "permissions_policy": "Existing OS/service boundaries remain unchanged; a semantic guide does not grant protected financial-data access."
+  },
+  "intents": [
+    {
+      "id": "sales",
+      "terms": [
+        "продаж",
+        "реализац",
+        "выруч",
+        "оборот"
+      ],
+      "fields": [
+        "retail_realized",
+        "document_type",
+        "payment_reason",
+        "operation_date"
+      ],
+      "formulas": [
+        "net_sales"
+      ],
+      "notes": [
+        "Не путать заказ, продажу и перечисление."
+      ]
+    },
+    {
+      "id": "payout",
+      "terms": [
+        "перечисл",
+        "выплат",
+        "баланс",
+        "оплат",
+        "сверк"
+      ],
+      "fields": [
+        "payout_for_goods",
+        "document_type",
+        "delivery_fee",
+        "storage_fee",
+        "deductions",
+        "loyalty_fee",
+        "loyalty_points",
+        "loyalty_compensation",
+        "payment_schedule_fee"
+      ],
+      "formulas": [
+        "net_goods_payout",
+        "settlement_core"
+      ],
+      "notes": [
+        "Итого отчёта не равно банковской выписке."
+      ]
+    },
+    {
+      "id": "profit",
+      "terms": [
+        "прибыл",
+        "маржин",
+        "рентабел",
+        "юнит"
+      ],
+      "fields": [
+        "payout_for_goods",
+        "delivery_fee",
+        "storage_fee",
+        "processing_fee"
+      ],
+      "formulas": [],
+      "notes": [
+        "Себестоимость, налоги и внешние расходы требуют других проверенных источников; финансовый отчёт сам не даёт чистую прибыль."
+      ]
+    },
+    {
+      "id": "returns",
+      "terms": [
+        "возврат",
+        "отказ"
+      ],
+      "fields": [
+        "payment_reason",
+        "document_type",
+        "quantity",
+        "return_delivery_count",
+        "operation_detail"
+      ],
+      "formulas": [
+        "net_sales",
+        "net_goods_payout"
+      ],
+      "notes": [
+        "Отказ без выкупа, возврат продажи и обратная логистика — разные события."
+      ]
+    },
+    {
+      "id": "logistics",
+      "terms": [
+        "логист",
+        "достав",
+        "перевоз"
+      ],
+      "fields": [
+        "delivery_fee",
+        "delivery_count",
+        "return_delivery_count",
+        "operation_detail",
+        "warehouse_coefficient",
+        "fixation_start",
+        "fixation_end",
+        "sale_model_cargo"
+      ],
+      "formulas": [],
+      "notes": [
+        "Тариф требует действующих на дату условий; статья не содержит универсального калькулятора доставки."
+      ]
+    },
+    {
+      "id": "storage",
+      "terms": [
+        "хранен",
+        "склад"
+      ],
+      "fields": [
+        "storage_fee",
+        "warehouse"
+      ],
+      "formulas": [],
+      "notes": [
+        "Распределение хранения по SKU — отдельный отчёт/методика; не отбрасывать общие расходы без SKU."
+      ]
+    },
+    {
+      "id": "fees",
+      "terms": [
+        "комисс",
+        "квв",
+        "эквайр",
+        "платёж",
+        "платеж",
+        "ндс"
+      ],
+      "fields": [
+        "kvv",
+        "kvv_base_no_vat",
+        "kvv_final_no_vat",
+        "payment_fee",
+        "wb_reward_no_vat",
+        "wb_reward_vat"
+      ],
+      "formulas": [
+        "item_payout_check",
+        "kvv_final"
+      ],
+      "notes": [
+        "Не вычитать комиссию и эквайринг повторно из перечисления за товар."
+      ]
+    },
+    {
+      "id": "deductions",
+      "terms": [
+        "удержан",
+        "штраф",
+        "коррект",
+        "приём",
+        "прием",
+        "обработ"
+      ],
+      "fields": [
+        "deductions",
+        "penalty",
+        "wb_reward_adjustment",
+        "processing_fee",
+        "operation_detail"
+      ],
+      "formulas": [],
+      "notes": [
+        "Знак выплаты сохранять; отсутствие SKU не делает удержание ошибкой."
+      ]
+    },
+    {
+      "id": "loyalty",
+      "terms": [
+        "кешб",
+        "кэшб",
+        "лояль",
+        "скид",
+        "промок",
+        "wibes"
+      ],
+      "fields": [
+        "platform_discount",
+        "loyalty_fee",
+        "loyalty_points",
+        "loyalty_compensation",
+        "cofunding_discount",
+        "promocode_discount"
+      ],
+      "formulas": [],
+      "notes": [
+        "Скидки продавца, WB и кешбэк различны; не складывать все скидочные проценты механически."
+      ]
+    },
+    {
+      "id": "identity",
+      "terms": [
+        "sku",
+        "артик",
+        "номенклат",
+        "srid",
+        "баркод",
+        "строк"
+      ],
+      "fields": [
+        "nm_id",
+        "supplier_article",
+        "barcode",
+        "srid",
+        "report_id",
+        "row_id",
+        "report_type"
+      ],
+      "formulas": [],
+      "notes": [
+        "Ключ строки: кабинет + набор данных + reportId + rrdId. Srid не уникален для строки."
+      ]
+    },
+    {
+      "id": "coverage",
+      "terms": [
+        "полн",
+        "все отч",
+        "ежеднев",
+        "еженед",
+        "период",
+        "недел"
+      ],
+      "fields": [
+        "report_id",
+        "report_type",
+        "operation_date"
+      ],
+      "formulas": [],
+      "notes": [
+        "Проверять список ID и терминальную детализацию каждого типа, затем календарные даты."
+      ]
+    }
+  ],
+  "formulas": [
+    {
+      "id": "net_sales",
+      "expression": "sales - returns",
+      "inputs": [
+        "sales",
+        "returns"
+      ],
+      "source_ids": [
+        2
+      ],
+      "rules": "Суммы реализации, отдельно уже агрегированные по продажам и возвратам. Входные суммы неотрицательны; не повторять знак."
+    },
+    {
+      "id": "net_goods_payout",
+      "expression": "sales - returns",
+      "inputs": [
+        "sales",
+        "returns"
+      ],
+      "source_ids": [
+        2
+      ],
+      "rules": "Суммы перечисления за товар, отдельно по продажам и возвратам; комиссия уже учтена."
+    },
+    {
+      "id": "kvv_final",
+      "expression": "base_rate - platform_discount_rate",
+      "inputs": [
+        "base_rate",
+        "platform_discount_rate"
+      ],
+      "source_ids": [
+        1
+      ],
+      "rules": "Одинаковые процентные единицы и версия отчёта."
+    },
+    {
+      "id": "item_payout_check",
+      "expression": "price * (1 - commission_rate / 100) - payment_fee",
+      "inputs": [
+        "price",
+        "commission_rate",
+        "payment_fee"
+      ],
+      "source_ids": [
+        1
+      ],
+      "rules": "Проверка строки, не подмена фактического начисления. Исключения/акции/коррекции сверять отдельно; округление согласно версии отчёта."
+    },
+    {
+      "id": "settlement_core",
+      "expression": "goods_net - delivery - storage - processing - penalties - loyalty_fee_net - loyalty_points_net - deductions_signed + loyalty_compensation",
+      "inputs": [
+        "goods_net",
+        "delivery",
+        "storage",
+        "processing",
+        "penalties",
+        "loyalty_fee_net",
+        "loyalty_points_net",
+        "deductions_signed",
+        "loyalty_compensation"
+      ],
+      "source_ids": [
+        2
+      ],
+      "rules": "Базовая опубликованная сверка. deductions_signed: плюс удержание, минус выплата. Дополнительные корректировки/плата за ускорение требуют явного подтверждения включения; неизвестная составляющая означает неполную сверку, не ноль."
+    }
+  ]
+}
