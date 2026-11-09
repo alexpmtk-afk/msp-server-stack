@@ -1,0 +1,1 @@
+msp_schema_stage=$(mktemp -d /var/lib/msp-finance-schema.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/wb-report-column-audit.py "$msp_schema_stage/audit.py" && printf '%s  %s\n' a7b030055c8cee8589339db4ec0648dc677773a1c00318cba2cab5e3a47ad9f9 "$msp_schema_stage/audit.py" | sha256sum -c - && /usr/bin/python3 -I -B "$msp_schema_stage/audit.py"
