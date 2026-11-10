@@ -21,6 +21,12 @@ class Budget:
  def can_start(self,estimated_seconds=0):return self.now()+estimated_seconds<self.soft_deadline
  def context(self):return {'turn_started_at':self.started,'elapsed_seconds':max(0,self.now()-self.started),'soft_deadline':self.soft_deadline,'hard_limit_seconds':600}
 
+def assert_not_retired(db,tid):
+ # Works with both legacy removed rows and new retained ARCHIVED rows.
+ for table,key in (('recovery_tombstones','task_id'),('archived_tasks','task_id')):
+  if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",(table,)).fetchone():
+   if db.execute(f'SELECT 1 FROM {table} WHERE {key}=?',(tid,)).fetchone():raise ValueError('task_retired')
+
 class Journal:
  def __init__(self,root):
   self.root=Path(root).absolute()
@@ -39,9 +45,12 @@ class Journal:
   row=self.db.execute('SELECT body FROM tasks WHERE id=?',(task_id,)).fetchone()
   if not row:raise ValueError('unknown_task')
   return json.loads(row[0])
+ def assert_not_retired(self,tid):assert_not_retired(self.db,tid)
  def save(self,d,kind):
   bounded(d);d['updated_at']=stamp()
   with (contextlib.nullcontext() if getattr(self,"external_transaction",False) else self.db):
+   if not self.db.in_transaction:self.db.execute('BEGIN IMMEDIATE')
+   self.assert_not_retired(d['task_id'])
    self.db.execute('INSERT OR REPLACE INTO tasks VALUES (?,?)',(d['task_id'],json.dumps(d)))
    self.db.execute('INSERT INTO events(task,kind,body) VALUES (?,?,?)',(d['task_id'],kind,json.dumps(d)))
    if d['status']=='DONE':self.db.execute('INSERT OR IGNORE INTO outbox(task,origin,body) VALUES (?,?,?)',(d['task_id'],d['origin_chat'],json.dumps({'status':'PASS','completed_blocks':d['completed_blocks']})))
@@ -59,7 +68,7 @@ class Journal:
   return d
  def create(self,origin,goal,plan):
   d=self.task_document(origin,goal,plan);self.save(d,'created');return d['task_id']
- def unfinished(self):return [json.loads(r[0]) for r in self.db.execute('SELECT body FROM tasks') if json.loads(r[0])['status']!='DONE']
+ def unfinished(self):return [json.loads(r[0]) for r in self.db.execute('SELECT body FROM tasks') if json.loads(r[0])['status'] not in ('DONE','ARCHIVED')]
  def results(self):return [dict(task_id=r[0],origin_chat=r[1],result=json.loads(r[2]),delivered=bool(r[3])) for r in self.db.execute('SELECT task,origin,body,delivered FROM outbox')]
  @contextlib.contextmanager
  def turn(self,tid,writer,started=None):
@@ -69,18 +78,19 @@ class Journal:
   try:
    try:fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB);locked=True
    except BlockingIOError:raise ValueError('active_writer') from None
+   self.assert_not_retired(tid)
    d=self.get(tid)
    if d['status']=='DONE':raise ValueError('task_already_done')
    if d['status'] not in ('READY','PLANNING','INTERRUPTED','RUNNING'):raise ValueError('task_not_runnable')
    if d['status']=='RUNNING':d['status']='INTERRUPTED';d['last_error']='worker_lost';self.save(d,'crash_recovery')
    t=Turn(self,d,writer,Budget(started));yield t
   except BaseException:
-   if locked:
+   if locked and self.db.execute('SELECT 1 FROM tasks WHERE id=?',(tid,)).fetchone():
     d=self.get(tid)
     if d['status']=='RUNNING':d['status']='INTERRUPTED';d['last_error']='turn_interrupted';d['lease']=None;self.save(d,'interrupted')
    raise
   finally:
-   if locked:
+   if locked and self.db.execute('SELECT 1 FROM tasks WHERE id=?',(tid,)).fetchone():
     d=self.get(tid)
     if d['status']=='RUNNING':d['status']='INTERRUPTED';d['lease']=None;self.save(d,'turn_end')
     fcntl.flock(fd,fcntl.LOCK_UN)
