@@ -1,0 +1,12 @@
+{
+  "accepted-assets.json": "446937ed6043072422104abaa06de5b8dc58e39d52369e8cb84f880c1eb3cff9",
+  "apps/msp_marketplace_reports/__init__.py": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
+  "apps/msp_marketplace_reports/archive.py": "7bc136f90efd1c6bd30f741316776ad0d620ace9dc64bcc6586ae9320bb9cc33",
+  "apps/msp_marketplace_reports/ingest.py": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58",
+  "apps/msp_marketplace_reports/providers.py": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676",
+  "apps/msp_marketplace_reports/quota.py": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422",
+  "apps/msp_marketplace_reports/runtime.py": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5",
+  "apps/msp_marketplace_reports/shared_rate_limit.py": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726",
+  "pilot.py": "76e0abdbd264506b7f06b2a094a7cc3427cf77657cad36d2c5f0c4a23117a666",
+  "run_root.py": "df88d273b160a8e37e92cb037e937dcd3497131a0b43584205f83c9e0ae32dcb"
+}

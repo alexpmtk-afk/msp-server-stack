@@ -46,3 +46,8 @@ ID сохраняются при ротации ключа.
 - После исправления ввода секретов все 9 реквизитов успешно прошли локальную проверку формата и прав.
 - `wb_laser_master`: `GET /api/v1/account/balance` → HTTP 200 JSON; `POST /api/finance/v1/sales-reports/list` за 01–27.10.2026 → HTTP 200 JSON, 8 документов: четыре `reportType=1`, четыре `reportType=2` на отчётные периоды 01–04, 05–11, 12–18 и 19–25 октября.
 - Данные отчётов пока **не загружались и не сохранялись**. Проверка списка — не подтверждение корректной детализации. Новая ветка научилась раздельно архивировать оба типа, запуск на VPS только по отдельной команде.
+
+
+## Ozon closed months — 2026-11-10
+
+Owner requested January–October 2026 for all three legal entities; WB current month paused. Fixed one-month Dmitrieva January Ozon FINAL pilot prepared, 12 network-denied tests PASS. No authenticated Ozon request/activation has occurred. Root execution remains the technical prerequisite, not missing authorization/keys. Reuses accepted executor and shared Redis; no broad four-method gate or new scheduler. Exact artifacts and acceptance: `ops/ozon-final-pilot-20261110/STATUS.md`. Pilot is not annual publication or complete Ozon expense coverage.
