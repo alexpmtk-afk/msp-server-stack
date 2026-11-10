@@ -1,0 +1,406 @@
+{
+  "url": "https://dev.wildberries.ru/api/swagger/yaml/ru/13-finances.yaml",
+  "retrieved_on": "2026-11-10",
+  "sha256": "6998ea47923bb34d0db36fec9a9a225e85149a03849935092eb5523e9e74d7e2",
+  "schema": "SalesReportsDetailedRes",
+  "properties": {
+    "reportId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "ID отчёта"
+    },
+    "dateFrom": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата начала отчётного периода"
+    },
+    "dateTo": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата конца отчётного периода"
+    },
+    "createDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата формирования отчёта"
+    },
+    "currency": {
+      "type": "string",
+      "description": "Валюта отчёта"
+    },
+    "reportType": {
+      "type": "integer",
+      "enum": [
+        1,
+        2
+      ],
+      "description": "Тип отчёта:\n  - `1` — основной\n  - `2` — по выкупам\n"
+    },
+    "rrdId": {
+      "type": "integer",
+      "description": "ID строки"
+    },
+    "giId": {
+      "type": "integer",
+      "description": "ID поставки"
+    },
+    "dlvPrc": {
+      "type": "number",
+      "description": "Фиксированный коэффициент склада по поставке"
+    },
+    "fixTariffDateFrom": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата начала действия фиксации"
+    },
+    "fixTariffDateTo": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата конца действия фиксации"
+    },
+    "subjectName": {
+      "type": "string",
+      "description": "Предмет"
+    },
+    "nmId": {
+      "type": "integer",
+      "description": "Артикул WB"
+    },
+    "brandName": {
+      "type": "string",
+      "description": "Бренд"
+    },
+    "vendorCode": {
+      "type": "string",
+      "description": "Артикул продавца"
+    },
+    "title": {
+      "type": "string",
+      "description": "Название товара"
+    },
+    "techSize": {
+      "type": "string",
+      "description": "Размер"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Баркод"
+    },
+    "docTypeName": {
+      "type": "string",
+      "description": "Тип документа"
+    },
+    "quantity": {
+      "type": "integer",
+      "description": "Количество"
+    },
+    "retailPrice": {
+      "type": "string",
+      "description": "Цена розничная"
+    },
+    "retailAmount": {
+      "type": "string",
+      "description": "Wildberries реализовал Товар (Пр)"
+    },
+    "salePercent": {
+      "type": "integer",
+      "description": "Согласованный продуктовый дисконт, %"
+    },
+    "commissionPercent": {
+      "type": "number",
+      "description": "Размер кВВ, %"
+    },
+    "officeName": {
+      "type": "string",
+      "description": "Склад"
+    },
+    "sellerOperName": {
+      "type": "string",
+      "description": "Обоснование для оплаты"
+    },
+    "orderDt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Дата и время заказа"
+    },
+    "saleDt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Дата и время продажи"
+    },
+    "rrDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата операции"
+    },
+    "shkId": {
+      "type": "integer",
+      "description": "Штрихкод"
+    },
+    "retailPriceWithDisc": {
+      "type": "string",
+      "description": "Цена розничная с учётом согласованной скидки"
+    },
+    "deliveryAmount": {
+      "type": "integer",
+      "description": "Количество доставок"
+    },
+    "returnAmount": {
+      "type": "integer",
+      "description": "Количество возврата"
+    },
+    "deliveryService": {
+      "type": "string",
+      "description": "Услуги по доставке товара покупателю"
+    },
+    "giBoxTypeName": {
+      "type": "string",
+      "description": "Тип коробов"
+    },
+    "productDiscountForReport": {
+      "type": "number",
+      "description": "Итоговая согласованная скидка, %"
+    },
+    "sellerPromo": {
+      "type": "number",
+      "description": "Промокод, %"
+    },
+    "spp": {
+      "type": "number",
+      "description": "Платформенные скидки, %"
+    },
+    "kvwBase": {
+      "type": "number",
+      "description": "Размер кВВ без НДС, % базовый"
+    },
+    "kvw": {
+      "type": "number",
+      "description": "Итоговый кВВ без НДС, %"
+    },
+    "supRatingUp": {
+      "type": "number",
+      "description": "Размер снижения кВВ из-за рейтинга, %"
+    },
+    "isKgvpV2": {
+      "type": "number",
+      "description": "Размер снижения кВВ из-за акции, %"
+    },
+    "ppvzSalesCommission": {
+      "type": "string",
+      "description": "Вознаграждение с продаж до вычета услуг поверенного, без НДС"
+    },
+    "forPay": {
+      "type": "string",
+      "description": "К перечислению продавцу за реализованный товар"
+    },
+    "ppvzReward": {
+      "type": "string",
+      "description": "Возмещение за выдачу и возврат товаров на ПВЗ"
+    },
+    "acquiringFee": {
+      "type": "string",
+      "description": "Компенсация платёжных услуг/комиссия за интеграцию платёжных сервисов"
+    },
+    "acquiringPercent": {
+      "type": "number",
+      "description": "Размер компенсации платёжных услуг/комиссии за интеграцию платёжных сервисов"
+    },
+    "paymentProcessing": {
+      "type": "string",
+      "description": "Тип платежа: компенсация платёжных услуг/комиссия за интеграцию платёжных сервисов"
+    },
+    "acquiringBank": {
+      "type": "string",
+      "description": "Наименование банка-эквайера"
+    },
+    "vw": {
+      "type": "string",
+      "description": "Вознаграждение Wildberries (ВВ), без НДС"
+    },
+    "vwNds": {
+      "type": "string",
+      "description": "НДС с вознаграждения Wildberries"
+    },
+    "ppvzOfficeName": {
+      "type": "string",
+      "description": "Наименование офиса доставки"
+    },
+    "ppvzOfficeId": {
+      "type": "integer",
+      "description": "ID офиса доставки"
+    },
+    "ppvzSupplierName": {
+      "type": "string",
+      "description": "Партнёр"
+    },
+    "ppvzSupplierInn": {
+      "type": "string",
+      "description": "ИНН партнёра"
+    },
+    "declarationNumber": {
+      "type": "string",
+      "description": "Номер таможенной декларации"
+    },
+    "bonusTypeName": {
+      "type": "string",
+      "description": "Виды доставок, штрафов и корректировок ВВ"
+    },
+    "stickerId": {
+      "type": "string",
+      "description": "Стикер МП"
+    },
+    "country": {
+      "type": "string",
+      "description": "Страна продажи"
+    },
+    "srvDbs": {
+      "type": "boolean",
+      "description": "Признак услуги платной доставки"
+    },
+    "penalty": {
+      "type": "string",
+      "description": "Общая сумма штрафов"
+    },
+    "additionalPayment": {
+      "type": "string",
+      "description": "Корректировка Вознаграждения Wildberries (ВВ)"
+    },
+    "rebillLogisticCost": {
+      "type": "string",
+      "description": "Возмещение издержек по перемещению и операционной обработке товара"
+    },
+    "rebillLogisticOrg": {
+      "type": "string",
+      "description": "Организатор перевозки"
+    },
+    "paidStorage": {
+      "type": "string",
+      "description": "Хранение"
+    },
+    "deduction": {
+      "type": "string",
+      "description": "Удержания"
+    },
+    "paidAcceptance": {
+      "type": "string",
+      "description": "Операции на приёмке"
+    },
+    "orderId": {
+      "type": "integer",
+      "description": "ID сборочного задания"
+    },
+    "kiz": {
+      "type": "string",
+      "description": "Код маркировки [Честного знака](https://честныйзнак.рф)"
+    },
+    "isB2b": {
+      "type": "boolean",
+      "description": "Признак B2B-продажи"
+    },
+    "trbxId": {
+      "type": "string",
+      "description": "ID короба для обработки товара"
+    },
+    "installmentCofinancingAmount": {
+      "type": "string",
+      "description": "Скидка по программе софинансирования"
+    },
+    "wibesDiscountPercent": {
+      "type": "number",
+      "description": "Скидка Wibes, %"
+    },
+    "cashbackAmount": {
+      "type": "string",
+      "description": "Сумма баллов, удержанных по программе лояльности"
+    },
+    "cashbackDiscount": {
+      "type": "string",
+      "description": "Компенсация скидки по программе лояльности"
+    },
+    "cashbackCommissionChange": {
+      "type": "string",
+      "description": "Стоимость участия в программе лояльности"
+    },
+    "paymentSchedule": {
+      "type": "string",
+      "description": "Разовое изменение срока перечисления денежных средств"
+    },
+    "deliveryMethod": {
+      "type": "string",
+      "description": "Способ продажи и тип товара"
+    },
+    "sellerPromoId": {
+      "type": "integer",
+      "description": "ID собственной акции продавца с дополнительной скидкой"
+    },
+    "sellerPromoDiscount": {
+      "type": "number",
+      "description": "Размер дополнительной скидки по собственной акции продавца, %"
+    },
+    "loyaltyId": {
+      "type": "integer",
+      "description": "ID скидки лояльности от продавца"
+    },
+    "loyaltyDiscount": {
+      "type": "number",
+      "description": "Размер скидки лояльности от продавца, %"
+    },
+    "uuidPromocode": {
+      "type": "string",
+      "description": "ID промокода"
+    },
+    "salePricePromocodeDiscountPrc": {
+      "type": "number",
+      "description": "Скидка за промокод, %"
+    },
+    "articleSubstitution": {
+      "type": "string",
+      "description": "ID подменного артикула"
+    },
+    "salePriceAffiliatedDiscountPrc": {
+      "type": "number",
+      "description": "Скидка по подменному артикулу, %"
+    },
+    "agencyVat": {
+      "type": "number",
+      "description": "Удержание Агентского НДС, %.<br>Только для продавцов из Кыргызстана"
+    },
+    "salePriceWholesaleDiscountPrc": {
+      "type": "number",
+      "description": "Оптовая скидка для бизнеса, %"
+    },
+    "b2bCustomerTin": {
+      "type": "string",
+      "description": "ИНН B2B-покупателя"
+    },
+    "paidWithSocialCertificate": {
+      "type": "boolean",
+      "description": "Оплата социальным сертификатом"
+    },
+    "warehouseLogisticsCoeff": {
+      "type": "number",
+      "description": "Коэффициент доставки"
+    },
+    "buyerTaxRegistrationReasonCode": {
+      "type": "string",
+      "description": "КПП B2B-покупателя"
+    },
+    "utdUcdNumber": {
+      "type": "string",
+      "description": "Номер УПД или УКД"
+    },
+    "utdUcdDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата УПД или УКД"
+    },
+    "orderUid": {
+      "type": "string",
+      "description": "ID корзины заказа — транзакции.<br>Заказы в одной корзине покупателя будут иметь одинаковый `orderUid`\n"
+    },
+    "srid": {
+      "type": "string",
+      "description": "ID заказа.<br>В ответах методов сборочных заданий [FBS](./orders-fbs#tag/fbsAssemblyOrders), [DBW](./orders-dbw#tag/dbwAssemblyOrders), [DBS](./dbs#tag/dbsAssemblyOrders) и [Самовывоз](./in-store-pickup#tag/inStorePickupAssemblyOrders) `srid` равен `rid`\n"
+    }
+  }
+}

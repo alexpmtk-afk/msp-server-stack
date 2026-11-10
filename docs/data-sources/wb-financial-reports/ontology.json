@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "msp.wb.financial_reports",
   "language": "ru",
-  "maintained_on": "2026-11-09",
+  "maintained_on": "2026-11-10",
   "source_article_updated_on": "2026-11-02",
   "sources": [
     {
@@ -21,10 +21,10 @@
     },
     {
       "id": 3,
-      "url": "https://dev.wildberries.ru/docs/openapi/financial-reports-and-accounting",
+      "url": "https://dev.wildberries.ru/api/swagger/yaml/ru/13-finances.yaml",
       "title": "WB Finance API",
-      "access": "UNAVAILABLE during this verification",
-      "scope": "Do not treat unverified API field bindings as confirmed"
+      "access": "Official OpenAPI YAML downloaded 2026-11-10; SalesReportsDetailedRes; HTML remained blocked",
+      "scope": "Exact column names, types and descriptions verified against local snapshots"
     }
   ],
   "fields": [
@@ -40,8 +40,10 @@
         1
       ],
       "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_binding": "UI_ONLY_NO_STANDALONE_LOCAL_COLUMN",
+      "aggregation": "never_sum",
+      "local_column": null,
+      "availability_note": "Номер строки вычисляется только для отображения, не ID."
     },
     {
       "id": "supply_id",
@@ -52,11 +54,19 @@
       ],
       "meaning": "Идентификатор поставки FBW; технический ноль не доказывает отсутствие операции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "giId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "giId",
+      "official_description": "ID поставки",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "nm_id",
@@ -67,11 +77,19 @@
       ],
       "meaning": "Артикул карточки WB; связывать с product_listing вместе с площадкой и магазином.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "nmId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "nmId",
+      "official_description": "Артикул WB",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "supplier_article",
@@ -82,11 +100,19 @@
       ],
       "meaning": "Артикул продавца; не заменяет автоматически внутренний артикул 1С.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "vendorCode"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "vendorCode",
+      "official_description": "Артикул продавца",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "barcode",
@@ -97,11 +123,19 @@
       ],
       "meaning": "Идентификатор варианта товара; не уникальный экземпляр.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "sku"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "sku",
+      "official_description": "Баркод",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "mp_sticker",
@@ -112,11 +146,19 @@
       ],
       "meaning": "Маркер товара по FBS.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "stickerId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "stickerId",
+      "official_description": "Стикер МП",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "office_id",
@@ -127,11 +169,19 @@
       ],
       "meaning": "Идентификатор ПВЗ.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "ppvzOfficeId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "ppvzOfficeId",
+      "official_description": "ID офиса доставки",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "partner_inn",
@@ -142,11 +192,19 @@
       ],
       "meaning": "Налоговый идентификатор партнёра, не продавца.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "ppvzSupplierInn"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "ppvzSupplierInn",
+      "official_description": "ИНН партнёра",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "assembly_id",
@@ -157,11 +215,19 @@
       ],
       "meaning": "Задание FBS; ноль может быть неприменимым значением.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "orderId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "orderId",
+      "official_description": "ID сборочного задания",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "marking_code",
@@ -172,11 +238,19 @@
       ],
       "meaning": "Индивидуальный код маркируемой единицы.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "kiz"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "kiz",
+      "official_description": "Код маркировки [Честного знака](https://честныйзнак.рф)",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "warehouse_barcode",
@@ -187,11 +261,19 @@
       ],
       "meaning": "Складской идентификатор единицы; не приравнивать к баркоду варианта.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "shkId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "shkId",
+      "official_description": "Штрихкод",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "srid",
@@ -202,11 +284,19 @@
       ],
       "meaning": "Связь операций заказа; один заказ может иметь несколько строк с одинаковым Srid.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "srid"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "srid",
+      "official_description": "ID заказа.<br>В ответах методов сборочных заданий [FBS](./orders-fbs#tag/fbsAssemblyOrders), [DBW](./orders-dbw#tag/dbwAssemblyOrders), [DBS](./dbs#tag/dbsAssemblyOrders) и [Самовывоз](./in-store-pickup#tag/inStorePickupAssemblyOrders) `srid` равен `rid`\n",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "processing_box",
@@ -217,11 +307,19 @@
       ],
       "meaning": "Короб группировки товаров одного покупателя.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "trbxId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "trbxId",
+      "official_description": "ID короба для обработки товара",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "order_cart_id",
@@ -232,11 +330,19 @@
       ],
       "meaning": "Группа покупательского заказа; не уникальный ключ строки.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "orderUid"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "orderUid",
+      "official_description": "ID корзины заказа — транзакции.<br>Заказы в одной корзине покупателя будут иметь одинаковый `orderUid`\n",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "seller_promo_id",
@@ -247,11 +353,19 @@
       ],
       "meaning": "Идентификатор собственной акции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "sellerPromoId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "sellerPromoId",
+      "official_description": "ID собственной акции продавца с дополнительной скидкой",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "loyalty_discount_id",
@@ -262,11 +376,19 @@
       ],
       "meaning": "Ссылка на выданную скидку лояльности.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "loyaltyId"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "loyaltyId",
+      "official_description": "ID скидки лояльности от продавца",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "promocode_id",
@@ -277,11 +399,19 @@
       ],
       "meaning": "Ссылка на акцию с промокодом.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "uuidPromocode"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "uuidPromocode",
+      "official_description": "ID промокода",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "substitution_id",
@@ -292,11 +422,19 @@
       ],
       "meaning": "Идентификатор подменного артикула, не основной SKU.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "articleSubstitution"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "articleSubstitution",
+      "official_description": "ID подменного артикула",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "buyer_inn",
@@ -307,11 +445,19 @@
       ],
       "meaning": "ИНН корпоративного покупателя.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "b2bCustomerTin"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "b2bCustomerTin",
+      "official_description": "ИНН B2B-покупателя",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "buyer_kpp",
@@ -322,11 +468,19 @@
       ],
       "meaning": "КПП корпоративного покупателя; технический ноль не самостоятельный контрагент.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "buyerTaxRegistrationReasonCode"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "buyerTaxRegistrationReasonCode",
+      "official_description": "КПП B2B-покупателя",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "upd_number",
@@ -337,11 +491,19 @@
       ],
       "meaning": "Документ продажи/возврата корпоративному покупателю.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "never_sum"
+      "api_keys": [
+        "utdUcdNumber"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "utdUcdNumber",
+      "official_description": "Номер УПД или УКД",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "subject",
@@ -352,11 +514,19 @@
       ],
       "meaning": "Товарная категория карточки.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "subjectName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "subjectName",
+      "official_description": "Предмет",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "brand",
@@ -367,11 +537,19 @@
       ],
       "meaning": "Бренд карточки.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "brandName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "brandName",
+      "official_description": "Бренд",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "product_name",
@@ -382,11 +560,19 @@
       ],
       "meaning": "Название карточки; не бизнес-ключ.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "title"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "title",
+      "official_description": "Название товара",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "size",
@@ -397,11 +583,19 @@
       ],
       "meaning": "Вариант размера; ноль может обозначать неприменимость.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "techSize"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "techSize",
+      "official_description": "Размер",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "document_type",
@@ -412,11 +606,19 @@
       ],
       "meaning": "Направление начисления/списания; не исчерпывает вид операции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "docTypeName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "docTypeName",
+      "official_description": "Тип документа",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "payment_reason",
@@ -427,11 +629,19 @@
       ],
       "meaning": "Фактический вид финансовой операции; читать раньше агрегирования.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "sellerOperName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "sellerOperName",
+      "official_description": "Обоснование для оплаты",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "payment_fee_type",
@@ -443,11 +653,19 @@
       ],
       "meaning": "Категория платёжного расхода, не ещё одна денежная сумма.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "paymentProcessing"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "paymentProcessing",
+      "official_description": "Тип платежа: компенсация платёжных услуг/комиссия за интеграцию платёжных сервисов",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "paid_delivery_flag",
@@ -458,11 +676,19 @@
       ],
       "meaning": "Признак платной доставки DBS/EDBS.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "srvDbs"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "srvDbs",
+      "official_description": "Признак услуги платной доставки",
+      "wire_type": "boolean",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "operation_detail",
@@ -473,11 +699,19 @@
       ],
       "meaning": "Расшифровка логистики, штрафа, удержания или коррекции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "bonusTypeName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "bonusTypeName",
+      "official_description": "Виды доставок, штрафов и корректировок ВВ",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "acquiring_bank",
@@ -488,11 +722,19 @@
       ],
       "meaning": "Платёжный банк.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "acquiringBank"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "acquiringBank",
+      "official_description": "Наименование банка-эквайера",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "office_name",
@@ -503,11 +745,19 @@
       ],
       "meaning": "Название пункта доставки.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "ppvzOfficeName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "ppvzOfficeName",
+      "official_description": "Наименование офиса доставки",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "partner_name",
@@ -518,11 +768,19 @@
       ],
       "meaning": "Юридическое лицо партнёра ПВЗ.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "ppvzSupplierName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "ppvzSupplierName",
+      "official_description": "Партнёр",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "warehouse",
@@ -533,11 +791,19 @@
       ],
       "meaning": "Место обработки; значение склада поставщика может обозначать FBS.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "officeName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "officeName",
+      "official_description": "Склад",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "country",
@@ -548,11 +814,19 @@
       ],
       "meaning": "Страна реализации; не единственный способ определения типа отчёта.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "country"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "country",
+      "official_description": "Страна продажи",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "box_type",
@@ -563,11 +837,19 @@
       ],
       "meaning": "Вид упаковки поставки, влияющий на тариф.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "giBoxTypeName"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "giBoxTypeName",
+      "official_description": "Тип коробов",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "customs_declaration",
@@ -578,11 +860,19 @@
       ],
       "meaning": "Исторический реквизит; не выводить отсутствие экспорта из пустого поля.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "declarationNumber"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "declarationNumber",
+      "official_description": "Номер таможенной декларации",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "carrier",
@@ -593,11 +883,19 @@
       ],
       "meaning": "Юридическое лицо перевозчика.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "rebillLogisticOrg"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "rebillLogisticOrg",
+      "official_description": "Организатор перевозки",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "legal_entity_sale",
@@ -608,11 +906,19 @@
       ],
       "meaning": "Признак корпоративного покупателя.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "isB2b"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "isB2b",
+      "official_description": "Признак B2B-продажи",
+      "wire_type": "boolean",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "sale_model_cargo",
@@ -623,11 +929,19 @@
       ],
       "meaning": "Модель исполнения и габаритный класс для логистических строк.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "deliveryMethod"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "deliveryMethod",
+      "official_description": "Способ продажи и тип товара",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "social_certificate",
@@ -638,11 +952,19 @@
       ],
       "meaning": "Признак источника оплаты.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "group_or_filter"
+      "api_keys": [
+        "paidWithSocialCertificate"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "group_or_filter",
+      "local_column": "paidWithSocialCertificate",
+      "official_description": "Оплата социальным сертификатом",
+      "wire_type": "boolean",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "order_date",
@@ -653,11 +975,19 @@
       ],
       "meaning": "Дата заказа, не дата признания реализации.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "filter_by_explicit_date_role"
+      "api_keys": [
+        "orderDt"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_column": "orderDt",
+      "official_description": "Дата и время заказа",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "operation_date",
@@ -668,11 +998,19 @@
       ],
       "meaning": "Для продажи — выкуп; для возврата — возврат; у прочих операций — дата операции списания.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "filter_by_explicit_date_role"
+      "api_keys": [
+        "saleDt"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_column": "saleDt",
+      "official_description": "Дата и время продажи",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "fixation_start",
@@ -683,11 +1021,19 @@
       ],
       "meaning": "Начало периода фиксированного тарифа.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "filter_by_explicit_date_role"
+      "api_keys": [
+        "fixTariffDateFrom"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_column": "fixTariffDateFrom",
+      "official_description": "Дата начала действия фиксации",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "fixation_end",
@@ -698,11 +1044,19 @@
       ],
       "meaning": "Окончание периода фиксированного тарифа.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "filter_by_explicit_date_role"
+      "api_keys": [
+        "fixTariffDateTo"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_column": "fixTariffDateTo",
+      "official_description": "Дата конца действия фиксации",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "upd_date",
@@ -713,11 +1067,19 @@
       ],
       "meaning": "Дата корпоративного документа, не универсальная дата операции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "filter_by_explicit_date_role"
+      "api_keys": [
+        "utdUcdDate"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_column": "utdUcdDate",
+      "official_description": "Дата УПД или УКД",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "quantity",
@@ -728,12 +1090,20 @@
       ],
       "meaning": "Количество операций с разным смыслом по виду строки; не суммировать как продажи весь столбец.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "quantity"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "not_automatically_sold_units",
-      "values_note": "В справке: 1 для продаж/возвратов; 0 для ряда расходов; 2 для возмещения перевозки. Значение 2 не две проданные единицы."
+      "values_note": "В справке: 1 для продаж/возвратов; 0 для ряда расходов; 2 для возмещения перевозки. Значение 2 не две проданные единицы.",
+      "local_column": "quantity",
+      "official_description": "Количество",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "delivery_count",
@@ -744,11 +1114,19 @@
       ],
       "meaning": "Признак/количество прямых доставок соответствующей строки.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "not_automatically_sold_units"
+      "api_keys": [
+        "deliveryAmount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "not_automatically_sold_units",
+      "local_column": "deliveryAmount",
+      "official_description": "Количество доставок",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "return_delivery_count",
@@ -759,11 +1137,19 @@
       ],
       "meaning": "Обратная логистика; не количество возвратов уже проданного товара.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
-      "aggregation": "not_automatically_sold_units"
+      "api_keys": [
+        "returnAmount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "not_automatically_sold_units",
+      "local_column": "returnAmount",
+      "official_description": "Количество возврата",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "retail_price",
@@ -774,12 +1160,20 @@
       ],
       "meaning": "Цена с применимыми скидками продавца до скидок за счёт WB; не фактическая цена покупателя.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "retailPrice"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "retailPrice",
+      "official_description": "Цена розничная",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "retail_realized",
@@ -791,12 +1185,20 @@
       ],
       "meaning": "Сумма реализации по операции, с учётом скидок за счёт WB.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "retailAmount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "retailAmount",
+      "official_description": "Wildberries реализовал Товар (Пр)",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "retail_price_discounted",
@@ -807,12 +1209,20 @@
       ],
       "meaning": "База строки для расчёта перечисления; трактовка зависит от версии и акций.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "retailPriceWithDisc"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "retailPriceWithDisc",
+      "official_description": "Цена розничная с учётом согласованной скидки",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "payout_for_goods",
@@ -825,12 +1235,20 @@
       ],
       "meaning": "Начисление за товар после комиссии и платёжных услуг, но не после всех затрат магазина.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "forPay"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "forPay",
+      "official_description": "К перечислению продавцу за реализованный товар",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "legacy_product_discount",
@@ -841,12 +1259,20 @@
       ],
       "meaning": "Историческая скидочная колонка; технический ноль не доказывает отсутствие всех скидок.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "salePercent"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "salePercent",
+      "official_description": "Согласованный продуктовый дисконт, %",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "legacy_promocode_rate",
@@ -857,12 +1283,20 @@
       ],
       "meaning": "Историческая колонка; не смешивать с новым ID промокода и скидкой акции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "sellerPromo"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "sellerPromo",
+      "official_description": "Промокод, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "legacy_total_discount",
@@ -873,12 +1307,20 @@
       ],
       "meaning": "Версионная скидочная колонка; новые опции могут менять её заполнение.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "productDiscountForReport"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "productDiscountForReport",
+      "official_description": "Итоговая согласованная скидка, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "rating_kvv_change",
@@ -889,12 +1331,20 @@
       ],
       "meaning": "Историческая поправка коэффициента; не рассчитывать текущую комиссию по нулю.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "supRatingUp"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "supRatingUp",
+      "official_description": "Размер снижения кВВ из-за рейтинга, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "promo_kvv_change",
@@ -905,12 +1355,20 @@
       ],
       "meaning": "Историческая акционная поправка.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "isKgvpV2"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "isKgvpV2",
+      "official_description": "Размер снижения кВВ из-за акции, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "platform_discount",
@@ -922,12 +1380,20 @@
       ],
       "meaning": "Скидки за счёт WB; прежнее название — скидка постоянного покупателя.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "spp"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "spp",
+      "official_description": "Платформенные скидки, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "kvv",
@@ -938,12 +1404,20 @@
       ],
       "meaning": "Коэффициент вознаграждения с применимыми опциями, не универсальная постоянная ставка.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "commissionPercent"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "commissionPercent",
+      "official_description": "Размер кВВ, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "kvv_base_no_vat",
@@ -954,12 +1428,20 @@
       ],
       "meaning": "Базовый коэффициент без НДС для соответствующей версии.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "kvwBase"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "kvwBase",
+      "official_description": "Размер кВВ без НДС, % базовый",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "kvv_final_no_vat",
@@ -970,12 +1452,20 @@
       ],
       "meaning": "Базовый коэффициент без НДС после поправки на платформенную скидку.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "kvw"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "kvw",
+      "official_description": "Итоговый кВВ без НДС, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "payment_fee_rate",
@@ -987,12 +1477,20 @@
       ],
       "meaning": "Ставка платёжных услуг; не денежная комиссия.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "acquiringPercent"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "acquiringPercent",
+      "official_description": "Размер компенсации платёжных услуг/комиссии за интеграцию платёжных сервисов",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "warehouse_coefficient",
@@ -1003,12 +1501,20 @@
       ],
       "meaning": "Зафиксированное значение, не доказательство актуальной ставки после окончания фиксации.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "dlvPrc"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "multiplier"
+      "unit": "multiplier",
+      "local_column": "dlvPrc",
+      "official_description": "Фиксированный коэффициент склада по поставке",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "wibes_discount",
@@ -1019,12 +1525,20 @@
       ],
       "meaning": "Коррекция комиссии при продаже через Wibes.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "wibesDiscountPercent"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "wibesDiscountPercent",
+      "official_description": "Скидка Wibes, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "seller_promo_rate",
@@ -1035,12 +1549,20 @@
       ],
       "meaning": "Процент собственной акции, проверять связь с её ID.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "sellerPromoDiscount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "sellerPromoDiscount",
+      "official_description": "Размер дополнительной скидки по собственной акции продавца, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "loyalty_discount_rate",
@@ -1051,12 +1573,20 @@
       ],
       "meaning": "Скидка продавца по опции лояльности.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "loyaltyDiscount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "loyaltyDiscount",
+      "official_description": "Размер скидки лояльности от продавца, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "loyalty_kvv_fee",
@@ -1070,9 +1600,11 @@
         1
       ],
       "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_binding": "UI_ONLY_NO_STANDALONE_LOCAL_COLUMN",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": null,
+      "availability_note": "Отдельного поля в схеме и локальном CSV нет; не подменять денежной стоимостью лояльности или комиссией."
     },
     {
       "id": "promocode_discount",
@@ -1083,12 +1615,20 @@
       ],
       "meaning": "Скидка соответствующей акции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "salePricePromocodeDiscountPrc"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "salePricePromocodeDiscountPrc",
+      "official_description": "Скидка за промокод, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "substitution_discount",
@@ -1099,12 +1639,20 @@
       ],
       "meaning": "Скидка сервиса подменных артикулов.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "salePriceAffiliatedDiscountPrc"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "salePriceAffiliatedDiscountPrc",
+      "official_description": "Скидка по подменному артикулу, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "wholesale_discount",
@@ -1115,12 +1663,20 @@
       ],
       "meaning": "Оптовая скидка корпоративному покупателю.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "salePriceWholesaleDiscountPrc"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "do_not_sum_or_average_without_weight",
-      "unit": "percent"
+      "unit": "percent",
+      "local_column": "salePriceWholesaleDiscountPrc",
+      "official_description": "Оптовая скидка для бизнеса, %",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "reward_before_agents",
@@ -1131,12 +1687,20 @@
       ],
       "meaning": "Промежуточная компонента комиссии; не вычитать повторно вместе с итоговой комиссией.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "ppvzSalesCommission"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "ppvzSalesCommission",
+      "official_description": "Вознаграждение с продаж до вычета услуг поверенного, без НДС",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "pickup_compensation",
@@ -1147,12 +1711,20 @@
       ],
       "meaning": "Расход на услуги ПВЗ; проверить включение в другие итоговые компоненты.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "ppvzReward"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "ppvzReward",
+      "official_description": "Возмещение за выдачу и возврат товаров на ПВЗ",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "payment_fee",
@@ -1164,12 +1736,20 @@
       ],
       "meaning": "Денежная плата за платёжные услуги; уже участвует в перечислении за товар.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "acquiringFee"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "acquiringFee",
+      "official_description": "Компенсация платёжных услуг/комиссия за интеграцию платёжных сервисов",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "wb_reward_no_vat",
@@ -1180,12 +1760,20 @@
       ],
       "meaning": "Комиссия WB без НДС, не стоимость товара.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "vw"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "vw",
+      "official_description": "Вознаграждение Wildberries (ВВ), без НДС",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "wb_reward_vat",
@@ -1196,12 +1784,20 @@
       ],
       "meaning": "Налог на комиссию WB, не налог продавца на выручку.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "vwNds"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "vwNds",
+      "official_description": "НДС с вознаграждения Wildberries",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "delivery_fee",
@@ -1212,12 +1808,20 @@
       ],
       "meaning": "Сумма логистики соответствующей операции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "deliveryService"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "deliveryService",
+      "official_description": "Услуги по доставке товара покупателю",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "penalty",
@@ -1228,12 +1832,20 @@
       ],
       "meaning": "Денежный штраф; основание читать в расшифровке операции.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "penalty"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "penalty",
+      "official_description": "Общая сумма штрафов",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "wb_reward_adjustment",
@@ -1244,12 +1856,20 @@
       ],
       "meaning": "Знаковая корректировка комиссии; отличать удержание от выплаты.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "additionalPayment"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "additionalPayment",
+      "official_description": "Корректировка Вознаграждения Wildberries (ВВ)",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "carrier_reimbursement",
@@ -1260,12 +1880,20 @@
       ],
       "meaning": "Компенсация расходов стороннего перевозчика, не новая продажа товара.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "rebillLogisticCost"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "rebillLogisticCost",
+      "official_description": "Возмещение издержек по перемещению и операционной обработке товара",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "storage_fee",
@@ -1276,12 +1904,20 @@
       ],
       "meaning": "Общая стоимость хранения; отсутствие SKU не повод отбросить расход.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "paidStorage"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "paidStorage",
+      "official_description": "Хранение",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "deductions",
@@ -1292,12 +1928,20 @@
       ],
       "meaning": "Прочие списания/выплаты; положительное — удержание, отрицательное — выплата.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "deduction"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "deduction",
+      "official_description": "Удержания",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "processing_fee",
@@ -1309,12 +1953,20 @@
       ],
       "meaning": "Обработка/приёмка, включая применимые услуги FBS; старые периоды могут отражать иначе.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "paidAcceptance"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "paidAcceptance",
+      "official_description": "Операции на приёмке",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "cofunding_discount",
@@ -1325,12 +1977,20 @@
       ],
       "meaning": "Сумма софинансирования; может быть уже учтена в реализации и перечислении.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "installmentCofinancingAmount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "installmentCofinancingAmount",
+      "official_description": "Скидка по программе софинансирования",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "loyalty_compensation",
@@ -1341,12 +2001,20 @@
       ],
       "meaning": "Компенсация использованного покупателем кешбэка; входит в сводную реализацию.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "cashbackDiscount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "cashbackDiscount",
+      "official_description": "Компенсация скидки по программе лояльности",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "loyalty_fee",
@@ -1357,12 +2025,20 @@
       ],
       "meaning": "Комиссия программы; возврат комиссии зависит от вида возврата.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "cashbackCommissionChange"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "cashbackCommissionChange",
+      "official_description": "Стоимость участия в программе лояльности",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "loyalty_points",
@@ -1373,12 +2049,20 @@
       ],
       "meaning": "Кешбэк продавца; отдельно от комиссии за участие.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "cashbackAmount"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "cashbackAmount",
+      "official_description": "Сумма баллов, удержанных по программе лояльности",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "payment_schedule_fee",
@@ -1390,12 +2074,20 @@
       ],
       "meaning": "Плата за ускоренное перечисление, не банковская выплата.",
       "source_ids": [
-        1
+        1,
+        3
       ],
-      "api_keys": [],
-      "api_binding": "NOT_VERIFIED",
+      "api_keys": [
+        "paymentSchedule"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
       "aggregation": "use_operation_and_sign_rule",
-      "unit": "report_currency"
+      "unit": "report_currency",
+      "local_column": "paymentSchedule",
+      "official_description": "Разовое изменение срока перечисления денежных средств",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "report_id",
@@ -1404,13 +2096,19 @@
       "ui_labels": [],
       "meaning": "Идентификатор документа WB.",
       "source_ids": [
-        "installed_archive_code"
+        "installed_archive_code",
+        3
       ],
       "api_keys": [
         "reportId"
       ],
-      "api_binding": "CONFIRMED_INSTALLED_CONTRACT",
-      "aggregation": "never_sum"
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "reportId",
+      "official_description": "ID отчёта",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "report_type",
@@ -1419,13 +2117,19 @@
       "ui_labels": [],
       "meaning": "Тип документа: 1 основной, 2 по выкупам; не ежедневный/еженедельный.",
       "source_ids": [
-        "installed_archive_code"
+        "installed_archive_code",
+        3
       ],
       "api_keys": [
         "reportType"
       ],
-      "api_binding": "CONFIRMED_INSTALLED_CONTRACT",
-      "aggregation": "never_sum"
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "reportType",
+      "official_description": "Тип отчёта:\n  - `1` — основной\n  - `2` — по выкупам\n",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
     },
     {
       "id": "row_id",
@@ -1434,16 +2138,176 @@
       "ui_labels": [],
       "meaning": "Устойчивый идентификатор строки и источник курсора пагинации.",
       "source_ids": [
-        "installed_archive_code"
+        "installed_archive_code",
+        3
       ],
       "api_keys": [
         "rrdId"
       ],
-      "api_binding": "CONFIRMED_INSTALLED_CONTRACT",
-      "aggregation": "never_sum"
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "aggregation": "never_sum",
+      "local_column": "rrdId",
+      "official_description": "ID строки",
+      "wire_type": "integer",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
+    },
+    {
+      "id": "report_period_start",
+      "kind": "date",
+      "group": "technical",
+      "ui_labels": [
+        "Дата начала отчётного периода"
+      ],
+      "meaning": "Дата начала отчётного периода",
+      "aggregation": "never_sum",
+      "source_ids": [
+        3
+      ],
+      "api_keys": [
+        "dateFrom"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "local_column": "dateFrom",
+      "official_description": "Дата начала отчётного периода",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
+    },
+    {
+      "id": "report_period_end",
+      "kind": "date",
+      "group": "technical",
+      "ui_labels": [
+        "Дата конца отчётного периода"
+      ],
+      "meaning": "Дата конца отчётного периода",
+      "aggregation": "never_sum",
+      "source_ids": [
+        3
+      ],
+      "api_keys": [
+        "dateTo"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "local_column": "dateTo",
+      "official_description": "Дата конца отчётного периода",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
+    },
+    {
+      "id": "report_created_date",
+      "kind": "date",
+      "group": "technical",
+      "ui_labels": [
+        "Дата формирования отчёта"
+      ],
+      "meaning": "Дата формирования отчёта",
+      "aggregation": "never_sum",
+      "source_ids": [
+        3
+      ],
+      "api_keys": [
+        "createDate"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "local_column": "createDate",
+      "official_description": "Дата формирования отчёта",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
+    },
+    {
+      "id": "currency",
+      "kind": "category",
+      "group": "additional",
+      "ui_labels": [
+        "Валюта отчёта"
+      ],
+      "meaning": "Валюта отчёта",
+      "aggregation": "never_sum",
+      "source_ids": [
+        3
+      ],
+      "api_keys": [
+        "currency"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "local_column": "currency",
+      "official_description": "Валюта отчёта",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
+    },
+    {
+      "id": "report_operation_date",
+      "kind": "date",
+      "group": "technical",
+      "ui_labels": [
+        "Дата операции"
+      ],
+      "meaning": "Дата операции",
+      "aggregation": "never_sum",
+      "source_ids": [
+        3
+      ],
+      "api_keys": [
+        "rrDate"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "local_column": "rrDate",
+      "official_description": "Дата операции",
+      "wire_type": "string",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
+    },
+    {
+      "id": "delivery_coefficient",
+      "kind": "rate",
+      "group": "additional",
+      "ui_labels": [
+        "Коэффициент доставки"
+      ],
+      "meaning": "Коэффициент доставки",
+      "aggregation": "not_sum",
+      "source_ids": [
+        3
+      ],
+      "api_keys": [
+        "warehouseLogisticsCoeff"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "local_column": "warehouseLogisticsCoeff",
+      "official_description": "Коэффициент доставки",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "OBSERVED"
+    },
+    {
+      "id": "agency_vat_rate",
+      "kind": "rate",
+      "group": "additional",
+      "ui_labels": [
+        "Удержание Агентского НДС, %."
+      ],
+      "meaning": "Удержание Агентского НДС, %.<br>Только для продавцов из Кыргызстана",
+      "aggregation": "not_sum",
+      "source_ids": [
+        3
+      ],
+      "api_keys": [
+        "agencyVat"
+      ],
+      "api_binding": "CONFIRMED_OFFICIAL_SCHEMA_NOT_PRESENT_LOCALLY",
+      "local_column": "agencyVat",
+      "official_description": "Удержание Агентского НДС, %.<br>Только для продавцов из Кыргызстана",
+      "wire_type": "number",
+      "binding_evidence": "field-bindings.json + schema-profile.json",
+      "local_presence": "NOT_IN_SAVED_HEADERS"
     }
   ],
-  "bindings_policy": "UI labels are semantic aliases, not verified current API key mappings. Unknown or multiple matching columns require explicit schema binding. New camelCase aliases must not be inferred from old snake_case names.",
+  "bindings_policy": "Explicit exact official SalesReportsDetailedRes names, matched to local CSV/raw JSON. API keys here mean column identifiers, not authentication secrets. No inferred aliases or zero fallback.",
   "datasets": {
     "weekly_main": {
       "name": "wb_weekly_finance_main",

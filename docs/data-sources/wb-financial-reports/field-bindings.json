@@ -1,0 +1,895 @@
+{
+  "version": 1,
+  "scope": "Saved weekly 2026 CSV, three cabinets, reportType 1/2; daily excluded",
+  "source": "https://dev.wildberries.ru/api/swagger/yaml/ru/13-finances.yaml",
+  "source_sha256": "6998ea47923bb34d0db36fec9a9a225e85149a03849935092eb5523e9e74d7e2",
+  "fields": {
+    "row_number": {
+      "column": null,
+      "status": "UI_ONLY_NO_STANDALONE_LOCAL_COLUMN",
+      "kind": "identifier",
+      "meaning": "Позиция в выгрузке, не устойчивый ключ финансовой операции.",
+      "aggregation": "never_sum"
+    },
+    "supply_id": {
+      "column": "giId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Идентификатор поставки FBW; технический ноль не доказывает отсутствие операции.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "nm_id": {
+      "column": "nmId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Артикул карточки WB; связывать с product_listing вместе с площадкой и магазином.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "supplier_article": {
+      "column": "vendorCode",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Артикул продавца; не заменяет автоматически внутренний артикул 1С.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "barcode": {
+      "column": "sku",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Идентификатор варианта товара; не уникальный экземпляр.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "mp_sticker": {
+      "column": "stickerId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Маркер товара по FBS.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "office_id": {
+      "column": "ppvzOfficeId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Идентификатор ПВЗ.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "partner_inn": {
+      "column": "ppvzSupplierInn",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Налоговый идентификатор партнёра, не продавца.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "assembly_id": {
+      "column": "orderId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Задание FBS; ноль может быть неприменимым значением.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "marking_code": {
+      "column": "kiz",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Индивидуальный код маркируемой единицы.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "warehouse_barcode": {
+      "column": "shkId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Складской идентификатор единицы; не приравнивать к баркоду варианта.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "srid": {
+      "column": "srid",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Связь операций заказа; один заказ может иметь несколько строк с одинаковым Srid.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "processing_box": {
+      "column": "trbxId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Короб группировки товаров одного покупателя.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "order_cart_id": {
+      "column": "orderUid",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Группа покупательского заказа; не уникальный ключ строки.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "seller_promo_id": {
+      "column": "sellerPromoId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Идентификатор собственной акции.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "loyalty_discount_id": {
+      "column": "loyaltyId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Ссылка на выданную скидку лояльности.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "promocode_id": {
+      "column": "uuidPromocode",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Ссылка на акцию с промокодом.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "substitution_id": {
+      "column": "articleSubstitution",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Идентификатор подменного артикула, не основной SKU.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "buyer_inn": {
+      "column": "b2bCustomerTin",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "ИНН корпоративного покупателя.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "buyer_kpp": {
+      "column": "buyerTaxRegistrationReasonCode",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "КПП корпоративного покупателя; технический ноль не самостоятельный контрагент.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "upd_number": {
+      "column": "utdUcdNumber",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Документ продажи/возврата корпоративному покупателю.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "subject": {
+      "column": "subjectName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Товарная категория карточки.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "brand": {
+      "column": "brandName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Бренд карточки.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "product_name": {
+      "column": "title",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Название карточки; не бизнес-ключ.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "size": {
+      "column": "techSize",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Вариант размера; ноль может обозначать неприменимость.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "document_type": {
+      "column": "docTypeName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Направление начисления/списания; не исчерпывает вид операции.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "payment_reason": {
+      "column": "sellerOperName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Фактический вид финансовой операции; читать раньше агрегирования.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "payment_fee_type": {
+      "column": "paymentProcessing",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Категория платёжного расхода, не ещё одна денежная сумма.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "paid_delivery_flag": {
+      "column": "srvDbs",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Признак платной доставки DBS/EDBS.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "operation_detail": {
+      "column": "bonusTypeName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Расшифровка логистики, штрафа, удержания или коррекции.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "acquiring_bank": {
+      "column": "acquiringBank",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Платёжный банк.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "office_name": {
+      "column": "ppvzOfficeName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Название пункта доставки.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "partner_name": {
+      "column": "ppvzSupplierName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Юридическое лицо партнёра ПВЗ.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "warehouse": {
+      "column": "officeName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Место обработки; значение склада поставщика может обозначать FBS.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "country": {
+      "column": "country",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Страна реализации; не единственный способ определения типа отчёта.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "box_type": {
+      "column": "giBoxTypeName",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Вид упаковки поставки, влияющий на тариф.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "customs_declaration": {
+      "column": "declarationNumber",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Исторический реквизит; не выводить отсутствие экспорта из пустого поля.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "carrier": {
+      "column": "rebillLogisticOrg",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Юридическое лицо перевозчика.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "legal_entity_sale": {
+      "column": "isB2b",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Признак корпоративного покупателя.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "sale_model_cargo": {
+      "column": "deliveryMethod",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Модель исполнения и габаритный класс для логистических строк.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "social_certificate": {
+      "column": "paidWithSocialCertificate",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "text",
+      "meaning": "Признак источника оплаты.",
+      "aggregation": "group_or_filter",
+      "local_presence": "OBSERVED"
+    },
+    "order_date": {
+      "column": "orderDt",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Дата заказа, не дата признания реализации.",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_presence": "OBSERVED"
+    },
+    "operation_date": {
+      "column": "saleDt",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Для продажи — выкуп; для возврата — возврат; у прочих операций — дата операции списания.",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_presence": "OBSERVED"
+    },
+    "fixation_start": {
+      "column": "fixTariffDateFrom",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Начало периода фиксированного тарифа.",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_presence": "OBSERVED"
+    },
+    "fixation_end": {
+      "column": "fixTariffDateTo",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Окончание периода фиксированного тарифа.",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_presence": "OBSERVED"
+    },
+    "upd_date": {
+      "column": "utdUcdDate",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Дата корпоративного документа, не универсальная дата операции.",
+      "aggregation": "filter_by_explicit_date_role",
+      "local_presence": "OBSERVED"
+    },
+    "quantity": {
+      "column": "quantity",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "count",
+      "meaning": "Количество операций с разным смыслом по виду строки; не суммировать как продажи весь столбец.",
+      "aggregation": "not_automatically_sold_units",
+      "local_presence": "OBSERVED"
+    },
+    "delivery_count": {
+      "column": "deliveryAmount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "count",
+      "meaning": "Признак/количество прямых доставок соответствующей строки.",
+      "aggregation": "not_automatically_sold_units",
+      "local_presence": "OBSERVED"
+    },
+    "return_delivery_count": {
+      "column": "returnAmount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "count",
+      "meaning": "Обратная логистика; не количество возвратов уже проданного товара.",
+      "aggregation": "not_automatically_sold_units",
+      "local_presence": "OBSERVED"
+    },
+    "retail_price": {
+      "column": "retailPrice",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Цена с применимыми скидками продавца до скидок за счёт WB; не фактическая цена покупателя.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "retail_realized": {
+      "column": "retailAmount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Сумма реализации по операции, с учётом скидок за счёт WB.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "retail_price_discounted": {
+      "column": "retailPriceWithDisc",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "База строки для расчёта перечисления; трактовка зависит от версии и акций.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "payout_for_goods": {
+      "column": "forPay",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Начисление за товар после комиссии и платёжных услуг, но не после всех затрат магазина.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "legacy_product_discount": {
+      "column": "salePercent",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Историческая скидочная колонка; технический ноль не доказывает отсутствие всех скидок.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "legacy_promocode_rate": {
+      "column": "sellerPromo",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Историческая колонка; не смешивать с новым ID промокода и скидкой акции.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "legacy_total_discount": {
+      "column": "productDiscountForReport",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Версионная скидочная колонка; новые опции могут менять её заполнение.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "rating_kvv_change": {
+      "column": "supRatingUp",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Историческая поправка коэффициента; не рассчитывать текущую комиссию по нулю.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "promo_kvv_change": {
+      "column": "isKgvpV2",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Историческая акционная поправка.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "platform_discount": {
+      "column": "spp",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Скидки за счёт WB; прежнее название — скидка постоянного покупателя.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "kvv": {
+      "column": "commissionPercent",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Коэффициент вознаграждения с применимыми опциями, не универсальная постоянная ставка.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "kvv_base_no_vat": {
+      "column": "kvwBase",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Базовый коэффициент без НДС для соответствующей версии.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "kvv_final_no_vat": {
+      "column": "kvw",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Базовый коэффициент без НДС после поправки на платформенную скидку.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "payment_fee_rate": {
+      "column": "acquiringPercent",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Ставка платёжных услуг; не денежная комиссия.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "warehouse_coefficient": {
+      "column": "dlvPrc",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Зафиксированное значение, не доказательство актуальной ставки после окончания фиксации.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "wibes_discount": {
+      "column": "wibesDiscountPercent",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Коррекция комиссии при продаже через Wibes.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "seller_promo_rate": {
+      "column": "sellerPromoDiscount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Процент собственной акции, проверять связь с её ID.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "loyalty_discount_rate": {
+      "column": "loyaltyDiscount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Скидка продавца по опции лояльности.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "loyalty_kvv_fee": {
+      "column": null,
+      "status": "UI_ONLY_NO_STANDALONE_LOCAL_COLUMN",
+      "kind": "rate",
+      "meaning": "Компонент итогового коэффициента, не отдельное повторное списание.",
+      "aggregation": "do_not_sum_or_average_without_weight"
+    },
+    "promocode_discount": {
+      "column": "salePricePromocodeDiscountPrc",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Скидка соответствующей акции.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "substitution_discount": {
+      "column": "salePriceAffiliatedDiscountPrc",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Скидка сервиса подменных артикулов.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "wholesale_discount": {
+      "column": "salePriceWholesaleDiscountPrc",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Оптовая скидка корпоративному покупателю.",
+      "aggregation": "do_not_sum_or_average_without_weight",
+      "local_presence": "OBSERVED"
+    },
+    "reward_before_agents": {
+      "column": "ppvzSalesCommission",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Промежуточная компонента комиссии; не вычитать повторно вместе с итоговой комиссией.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "pickup_compensation": {
+      "column": "ppvzReward",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Расход на услуги ПВЗ; проверить включение в другие итоговые компоненты.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "payment_fee": {
+      "column": "acquiringFee",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Денежная плата за платёжные услуги; уже участвует в перечислении за товар.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "wb_reward_no_vat": {
+      "column": "vw",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Комиссия WB без НДС, не стоимость товара.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "wb_reward_vat": {
+      "column": "vwNds",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Налог на комиссию WB, не налог продавца на выручку.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "delivery_fee": {
+      "column": "deliveryService",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Сумма логистики соответствующей операции.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "penalty": {
+      "column": "penalty",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Денежный штраф; основание читать в расшифровке операции.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "wb_reward_adjustment": {
+      "column": "additionalPayment",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Знаковая корректировка комиссии; отличать удержание от выплаты.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "carrier_reimbursement": {
+      "column": "rebillLogisticCost",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Компенсация расходов стороннего перевозчика, не новая продажа товара.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "storage_fee": {
+      "column": "paidStorage",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Общая стоимость хранения; отсутствие SKU не повод отбросить расход.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "deductions": {
+      "column": "deduction",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Прочие списания/выплаты; положительное — удержание, отрицательное — выплата.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "processing_fee": {
+      "column": "paidAcceptance",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Обработка/приёмка, включая применимые услуги FBS; старые периоды могут отражать иначе.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "cofunding_discount": {
+      "column": "installmentCofinancingAmount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Сумма софинансирования; может быть уже учтена в реализации и перечислении.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "loyalty_compensation": {
+      "column": "cashbackDiscount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Компенсация использованного покупателем кешбэка; входит в сводную реализацию.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "loyalty_fee": {
+      "column": "cashbackCommissionChange",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Комиссия программы; возврат комиссии зависит от вида возврата.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "loyalty_points": {
+      "column": "cashbackAmount",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Кешбэк продавца; отдельно от комиссии за участие.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "payment_schedule_fee": {
+      "column": "paymentSchedule",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "money",
+      "meaning": "Плата за ускоренное перечисление, не банковская выплата.",
+      "aggregation": "use_operation_and_sign_rule",
+      "local_presence": "OBSERVED"
+    },
+    "report_id": {
+      "column": "reportId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Идентификатор документа WB.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "report_type": {
+      "column": "reportType",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Тип документа: 1 основной, 2 по выкупам; не ежедневный/еженедельный.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "row_id": {
+      "column": "rrdId",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "identifier",
+      "meaning": "Устойчивый идентификатор строки и источник курсора пагинации.",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "report_period_start": {
+      "column": "dateFrom",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Дата начала отчётного периода",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "report_period_end": {
+      "column": "dateTo",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Дата конца отчётного периода",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "report_created_date": {
+      "column": "createDate",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Дата формирования отчёта",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "currency": {
+      "column": "currency",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "category",
+      "meaning": "Валюта отчёта",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "report_operation_date": {
+      "column": "rrDate",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "date",
+      "meaning": "Дата операции",
+      "aggregation": "never_sum",
+      "local_presence": "OBSERVED"
+    },
+    "delivery_coefficient": {
+      "column": "warehouseLogisticsCoeff",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_AND_LOCAL_COLUMNS",
+      "kind": "rate",
+      "meaning": "Коэффициент доставки",
+      "aggregation": "not_sum",
+      "local_presence": "OBSERVED"
+    },
+    "agency_vat_rate": {
+      "column": "agencyVat",
+      "status": "CONFIRMED_OFFICIAL_SCHEMA_NOT_PRESENT_LOCALLY",
+      "kind": "rate",
+      "meaning": "Удержание Агентского НДС, %.<br>Только для продавцов из Кыргызстана",
+      "aggregation": "not_sum",
+      "local_presence": "NOT_IN_SAVED_HEADERS"
+    }
+  },
+  "columns": {
+    "giId": "supply_id",
+    "nmId": "nm_id",
+    "vendorCode": "supplier_article",
+    "sku": "barcode",
+    "stickerId": "mp_sticker",
+    "ppvzOfficeId": "office_id",
+    "ppvzSupplierInn": "partner_inn",
+    "orderId": "assembly_id",
+    "kiz": "marking_code",
+    "shkId": "warehouse_barcode",
+    "srid": "srid",
+    "trbxId": "processing_box",
+    "orderUid": "order_cart_id",
+    "sellerPromoId": "seller_promo_id",
+    "loyaltyId": "loyalty_discount_id",
+    "uuidPromocode": "promocode_id",
+    "articleSubstitution": "substitution_id",
+    "b2bCustomerTin": "buyer_inn",
+    "buyerTaxRegistrationReasonCode": "buyer_kpp",
+    "utdUcdNumber": "upd_number",
+    "subjectName": "subject",
+    "brandName": "brand",
+    "title": "product_name",
+    "techSize": "size",
+    "docTypeName": "document_type",
+    "sellerOperName": "payment_reason",
+    "paymentProcessing": "payment_fee_type",
+    "srvDbs": "paid_delivery_flag",
+    "bonusTypeName": "operation_detail",
+    "acquiringBank": "acquiring_bank",
+    "ppvzOfficeName": "office_name",
+    "ppvzSupplierName": "partner_name",
+    "officeName": "warehouse",
+    "country": "country",
+    "giBoxTypeName": "box_type",
+    "declarationNumber": "customs_declaration",
+    "rebillLogisticOrg": "carrier",
+    "isB2b": "legal_entity_sale",
+    "deliveryMethod": "sale_model_cargo",
+    "paidWithSocialCertificate": "social_certificate",
+    "orderDt": "order_date",
+    "saleDt": "operation_date",
+    "fixTariffDateFrom": "fixation_start",
+    "fixTariffDateTo": "fixation_end",
+    "utdUcdDate": "upd_date",
+    "quantity": "quantity",
+    "deliveryAmount": "delivery_count",
+    "returnAmount": "return_delivery_count",
+    "retailPrice": "retail_price",
+    "retailAmount": "retail_realized",
+    "retailPriceWithDisc": "retail_price_discounted",
+    "forPay": "payout_for_goods",
+    "salePercent": "legacy_product_discount",
+    "sellerPromo": "legacy_promocode_rate",
+    "productDiscountForReport": "legacy_total_discount",
+    "supRatingUp": "rating_kvv_change",
+    "isKgvpV2": "promo_kvv_change",
+    "spp": "platform_discount",
+    "commissionPercent": "kvv",
+    "kvwBase": "kvv_base_no_vat",
+    "kvw": "kvv_final_no_vat",
+    "acquiringPercent": "payment_fee_rate",
+    "dlvPrc": "warehouse_coefficient",
+    "wibesDiscountPercent": "wibes_discount",
+    "sellerPromoDiscount": "seller_promo_rate",
+    "loyaltyDiscount": "loyalty_discount_rate",
+    "salePricePromocodeDiscountPrc": "promocode_discount",
+    "salePriceAffiliatedDiscountPrc": "substitution_discount",
+    "salePriceWholesaleDiscountPrc": "wholesale_discount",
+    "ppvzSalesCommission": "reward_before_agents",
+    "ppvzReward": "pickup_compensation",
+    "acquiringFee": "payment_fee",
+    "vw": "wb_reward_no_vat",
+    "vwNds": "wb_reward_vat",
+    "deliveryService": "delivery_fee",
+    "penalty": "penalty",
+    "additionalPayment": "wb_reward_adjustment",
+    "rebillLogisticCost": "carrier_reimbursement",
+    "paidStorage": "storage_fee",
+    "deduction": "deductions",
+    "paidAcceptance": "processing_fee",
+    "installmentCofinancingAmount": "cofunding_discount",
+    "cashbackDiscount": "loyalty_compensation",
+    "cashbackCommissionChange": "loyalty_fee",
+    "cashbackAmount": "loyalty_points",
+    "paymentSchedule": "payment_schedule_fee",
+    "reportId": "report_id",
+    "reportType": "report_type",
+    "rrdId": "row_id",
+    "dateFrom": "report_period_start",
+    "dateTo": "report_period_end",
+    "createDate": "report_created_date",
+    "currency": "currency",
+    "rrDate": "report_operation_date",
+    "warehouseLogisticsCoeff": "delivery_coefficient",
+    "agencyVat": "agency_vat_rate"
+  },
+  "ui_only": [
+    "row_number",
+    "loyalty_kvv_fee"
+  ],
+  "technical_columns": {
+    "_raw_json": "Original row JSON, traceability only"
+  }
+}
