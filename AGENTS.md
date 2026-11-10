@@ -72,5 +72,8 @@ If the required REMOTE execution channel is not available, stop at preparation: 
 Навык: `msp-wb-financial-reports`; словарь, формулы и расположение архива — в едином входе.
 Не путать реализацию, перечисление, банковскую выплату и прибыль; не складывать
 пересекающиеся daily/weekly и версии документов. Выкупы WB не наши самовыкупы.
-Неподтверждённые поля API не угадывать; семантика не расширяет права доступа к архиву.
+Сопоставление сохранённых колонок: `docs/data-sources/wb-financial-reports/COLUMN_BINDINGS.md`,
+`field-bindings.json`; чтение без API — `msp-wb-report-guide summary`. Общая точка приложений
+`/opt/mcp/data/wb-financial-reports/guide.py` (проверить deployment.json).
+Новые поля не угадывать; обычный net не равен полному итогу с корректировками.
 <!-- /MSP_WB_FINANCIAL_SEMANTICS_20261109 -->
