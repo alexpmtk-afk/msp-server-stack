@@ -24,6 +24,8 @@ DROP = Path('/run/systemd/system/msp-wb-pilot.service.d/91-ozon-final-pilot.conf
 ENV = Path('/etc/msp-marketplace-reports-executor/redis-runtime.env')
 MASTER = Path('/etc/msp-marketplace-reports/cabinets.json')
 RESULT = Path('/var/lib/msp-finance-control/results/ozon-dmitrieva-2026-01-pilot.json')
+PARTIAL = Path('/var/lib/msp-ozon-final.esz6i2qs')
+PARTIAL_MANIFEST = '1f40f499ed24c79771a63fb5e0a3f6e1fda02307a08c6ff55722ea5a10d925dd'
 
 def sha(raw):
     return hashlib.sha256(raw).hexdigest()
@@ -108,6 +110,55 @@ def verify_synthetic(raw, expected_probe_hash):
     if not isinstance(result, dict) or any(type(result.get(k)) is not type(v) or result[k] != v for k, v in expected.items()):
         raise ValueError('synthetic acceptance evidence')
 
+def verify_empty_partial(minimal):
+    """Only the exact failed pre-dispatch snapshot can reuse an empty state.
+
+    Never delete/reset an entry, response, receipt or any unknown state file.
+    """
+    trust(STATE, 0o711, 995)
+    if any(STATE.iterdir()):
+        raise ValueError('prior state is not empty; no recovery admission')
+    trust(PARTIAL, 0o755)
+    manifest = PARTIAL / 'MANIFEST.json'
+    trust(manifest)
+    if sha(manifest.read_bytes()) != PARTIAL_MANIFEST:
+        raise ValueError('unknown partial payload')
+    for name, digest in json.loads(manifest.read_bytes()).items():
+        if Path(name).is_absolute() or '..' in Path(name).parts:
+            raise ValueError('partial manifest path')
+        path = PARTIAL / name
+        trust(path)
+        if sha(path.read_bytes()) != digest:
+            raise ValueError('partial payload changed')
+    credential = PARTIAL / 'cabinets.json'
+    trust(credential, 0o640)
+    if credential.stat().st_gid != 985 or json.loads(credential.read_bytes()) != minimal:
+        raise ValueError('partial credential scope mismatch')
+    approval = PARTIAL / 'approval.json'
+    trust(approval, 0o644)
+    expected = {'cabinet': 'ozon_dmitrieva', 'year': 2026, 'month': 1,
+                'path': '/v1/finance/realization/posting', 'max_send_entries': 1}
+    if json.loads(approval.read_bytes()).get('plan') != expected:
+        raise ValueError('partial plan mismatch')
+    trust(DROP.parent, 0o700)
+    if any(DROP.parent.iterdir()):
+        raise ValueError('foreign partial activation files')
+
+def prepare_drop_directory(path, *, recovering):
+    if not path.exists():
+        os.mkdir(path, 0o755)
+        # mkdir's mode is masked by umask077; set the final mode explicitly.
+        os.chmod(path, 0o755)
+    else:
+        trust(path)
+        if any(path.iterdir()):
+            raise ValueError('nonempty activation directory')
+        if stat.S_IMODE(path.stat().st_mode) == 0o700 and recovering:
+            os.chmod(path, 0o755)  # literal known empty directory only
+    trust(path, 0o755)
+    syncdir(path)
+    syncdir(path.parent)
+
 def preflight():
     assets = json.loads((ROOT / 'accepted-assets.json').read_bytes())
     if sha((ACCEPTED / 'assets.json').read_bytes()) != assets['accepted_assets_sha256']:
@@ -148,7 +199,7 @@ def preflight():
     status = show()
     if status['ActiveState'] not in ('inactive', 'failed') or status['DropInPaths'] or status['PrivateNetwork'] != 'yes':
         raise ValueError('executor busy or has unknown controls')
-    for p in (STATE, RESULT, DROP, ROOT / 'cabinets.json', ROOT / 'approval.json'):
+    for p in (RESULT, DROP, ROOT / 'cabinets.json', ROOT / 'approval.json'):
         if p.exists() or p.is_symlink():
             raise ValueError('prior or partial pilot exists; reconcile first')
     account = pwd.getpwnam('msp-reports')
@@ -164,6 +215,12 @@ def preflight():
         raise ValueError('Ozon quota identity unavailable')
     # Never expose other cabinets or unrelated metadata to the executor.
     minimal = {'ozon_dmitrieva': {k: cred[k] for k in ('client_id', 'api_key')}}
+    if STATE.exists() or STATE.is_symlink():
+        verify_empty_partial(minimal)
+    elif DROP.parent.exists():
+        trust(DROP.parent, 0o755)
+        if any(DROP.parent.iterdir()):
+            raise ValueError('foreign activation files')
     addresses = {str(ipaddress.ip_address(x[4][0])) for x in socket.getaddrinfo('api-seller.ozon.ru', 443, type=socket.SOCK_STREAM)}
     if not addresses or len(addresses) > 32 or any(not ipaddress.ip_address(x).is_global for x in addresses):
         raise ValueError('provider DNS bounds')
@@ -183,10 +240,12 @@ def execute():
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         minimal, allow = preflight()
         # All unknown-target checks above precede mutation.
-        os.mkdir(STATE, 0o711)
-        os.chown(STATE, 995, 985)
-        os.chmod(STATE, 0o711)
-        syncdir(ARCHIVE)
+        recovering = STATE.exists()
+        if not recovering:
+            os.mkdir(STATE, 0o711)
+            os.chown(STATE, 995, 985)
+            os.chmod(STATE, 0o711)
+            syncdir(ARCHIVE)
         credential_raw = doc(minimal)
         save(ROOT / 'cabinets.json', credential_raw, 0o640, 985)
         # PLAN is data; do not import the network-capable worker in root.
@@ -201,9 +260,7 @@ def execute():
             'ExecStart=\nExecStart=' + str(RUNTIME / 'bin/python') + ' -I -B ' + str(ROOT / 'pilot.py') + '\n'
             'Restart=no\nRuntimeMaxSec=180\nTimeoutStartSec=180\n'
             'StandardOutput=null\nStandardError=null\n').encode()
-        if not DROP.parent.exists():
-            os.mkdir(DROP.parent, 0o755)
-        trust(DROP.parent, 0o755)
+        prepare_drop_directory(DROP.parent, recovering=recovering)
         save(DROP, drop, 0o644)
         cleanup = False
         start_attempted = False

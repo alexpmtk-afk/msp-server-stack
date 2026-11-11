@@ -54,6 +54,56 @@ class PilotTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             run_root.verify_synthetic(b'{"probe_sha256":"a","probe_sha256":"a"}', 'a')
 
+    def test_drop_directory_under_strict_umask_and_known_partial(self):
+        path = self.state / 'drop.d'
+        mask = os.umask(0o077)
+        try:
+            # Ownership mocked only because real root ownership isn't available.
+            with patch.object(run_root, 'trust'):
+                run_root.prepare_drop_directory(path, recovering=False)
+                self.assertEqual(path.stat().st_mode & 0o777, 0o755)
+                path.chmod(0o700)
+                run_root.prepare_drop_directory(path, recovering=True)
+                self.assertEqual(path.stat().st_mode & 0o777, 0o755)
+                path.chmod(0o700)
+                (path / 'foreign.conf').write_text('preserve')
+                with self.assertRaises(ValueError):
+                    run_root.prepare_drop_directory(path, recovering=True)
+                self.assertEqual(path.stat().st_mode & 0o777, 0o700)
+                self.assertEqual((path / 'foreign.conf').read_text(), 'preserve')
+        finally:
+            os.umask(mask)
+
+    def test_partial_recovery_refuses_any_prior_budget_before_secrets(self):
+        (self.state / 'entry.json').write_text('preserved')
+        with patch.object(run_root, 'STATE', self.state), patch.object(run_root, 'trust'):
+            with self.assertRaises(ValueError):
+                run_root.verify_empty_partial({})
+        self.assertEqual((self.state / 'entry.json').read_text(), 'preserved')
+
+    def test_exact_empty_partial_validates_without_deleting_evidence(self):
+        partial = self.state / 'partial'; partial.mkdir()
+        state = self.state / 'state'; state.mkdir()
+        drop = self.state / 'unit.d'; drop.mkdir(); drop.chmod(0o700)
+        minimal = {'ozon_dmitrieva': {'client_id': '123', 'api_key': 'fixture'}}
+        (partial / 'program.py').write_bytes(b'fixture')
+        manifest = json.dumps({'program.py': pilot.sha(b'fixture')}).encode()
+        (partial / 'MANIFEST.json').write_bytes(manifest)
+        (partial / 'cabinets.json').write_text(json.dumps(minimal))
+        (partial / 'approval.json').write_text(json.dumps({'plan': pilot.PLAN}))
+        from types import SimpleNamespace
+        real_stat = Path.stat
+        def stat_path(path, *a, **kw):
+            if path == partial / 'cabinets.json': return SimpleNamespace(st_gid=985)
+            return real_stat(path, *a, **kw)
+        with patch.object(run_root, 'STATE', state), patch.object(run_root, 'PARTIAL', partial), patch.object(run_root, 'PARTIAL_MANIFEST', pilot.sha(manifest)), patch.object(run_root, 'DROP', drop / 'fixed.conf'), patch.object(run_root, 'trust'), patch.object(Path, 'stat', stat_path):
+            run_root.verify_empty_partial(minimal)
+            (partial / 'program.py').write_bytes(b'changed')
+            with self.assertRaises(ValueError):
+                run_root.verify_empty_partial(minimal)
+        self.assertTrue((partial / 'cabinets.json').exists())
+        self.assertEqual(list(state.iterdir()), [])
+
     def test_replay_does_not_construct_transport_or_read_credentials(self):
         self.retain()
         with patch.object(pilot, 'load_credentials', side_effect=AssertionError('credentials')), patch.object(pilot.FinalQuota, '__init__', side_effect=AssertionError('quota')):
