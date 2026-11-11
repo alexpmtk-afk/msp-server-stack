@@ -1,5 +1,5 @@
 {
-  "status": "PREPARED_MONTH_NOT_EXECUTED",
+  "status": "MONTH_SOURCE_CSV_VERIFIED_EXTERNAL_RECONCILIATION_PENDING",
   "cabinet": "ozon_dmitrieva",
   "period": "2026-01",
   "days": 31,
@@ -9,12 +9,17 @@
   "types_reused": 138,
   "pilot_real_read_verified": true,
   "provider_calls_during_month_preparation": 0,
-  "root_executed": false,
+  "root_executed": true,
   "financial_month_reconciliation_complete": false,
   "offline_tests": {
     "python3.14": 14,
     "python3.12": 14,
     "network_denied": true
   },
-  "remaining": "owner root launch, collect January candidate day coverage, reconcile actual cabinet export; later all30month scopes"
+  "remaining": "Independent cabinet XLSX accruals and compensations by products, Dmitrieva January2026; then all30month rollout",
+  "confirmed_days_collected": 31,
+  "rows_collected": 728,
+  "worker_inactive": true,
+  "isolation_restored": true,
+  "source_csv_values_match": true
 }

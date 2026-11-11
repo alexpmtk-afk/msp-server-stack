@@ -1,5 +1,5 @@
 {
-  "status": "REAL_PILOT_CAPTURE_VERIFIED_MONTH_PENDING",
+  "status": "FIRST_MONTH_SOURCE_VERIFIED_WAITING_CABINET_EXPORT",
   "task_complete": false,
   "primary_source": "Ozon accruals and compensations by product, not realization",
   "cabinet_order": [
@@ -32,7 +32,7 @@
   "provider_calls_this_task": 2,
   "root_executed": true,
   "realization_source_deleted": false,
-  "blocker": "owner root launch of prepared January month package",
+  "blocker": "Need independent cabinet export: accruals and compensations by products, ozon_dmitrieva,2026-01-01..2026-01-31",
   "remaining": [
     "Real two-read capture and readback",
     "Validate current payload and pagination terminal semantics",
@@ -40,5 +40,6 @@
     "All30 cabinet-months with verified daily coverage",
     "Complete field-role bindings and canonical calculations"
   ],
-  "next_artifact": "/home/hermes/workspace/ozon-accrual-month-20261111/STATUS.json"
+  "next_artifact": "/home/hermes/workspace/ozon-accrual-month-20261111/STATUS.json",
+  "first_month_rows": 728
 }
