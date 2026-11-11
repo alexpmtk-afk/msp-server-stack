@@ -1,0 +1,1 @@
+ozon_stage=$(mktemp -d /var/lib/msp-ozon-history-launch.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/ozon-history-20261111/launch_verified.py "$ozon_stage/launch.py" && printf '%s  %s\n' dd5ccdb4710f59380c24095f29ee152be9aa3642c9ef129d3452496d9306b88f "$ozon_stage/launch.py" | sha256sum -c - && /usr/bin/python3 -I -B "$ozon_stage/launch.py"

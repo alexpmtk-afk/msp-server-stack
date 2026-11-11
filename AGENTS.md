@@ -77,3 +77,16 @@ If the required REMOTE execution channel is not available, stop at preparation: 
 `/opt/mcp/data/wb-financial-reports/guide.py` (проверить deployment.json).
 Новые поля не угадывать; обычный net не равен полному итогу с корректировками.
 <!-- /MSP_WB_FINANCIAL_SEMANTICS_20261109 -->
+
+
+<!-- MSP_OZON_FINANCIAL_REPORTS_20261111 -->
+## Финансовые отчёты Ozon — общий источник default-профиля
+
+Для реализации/возвратов/комиссий и финансовых отчётов Ozon сначала читать
+`/opt/mcp/projects/msp-server-stack/docs/data-sources/OZON_FINANCIAL_REPORTS.md`.
+Источник общий для панели/TUI/разрешённых Telegram-чатов, не только текущей сессии.
+Статус и фактическое покрытие проверять отдельно; подготовленный пакет или
+активная служба не означают, что месяцы скачаны. Реализация не равна всем расходам,
+заказам, банковской выплате или прибыли. Не складывать поколения/annual/monthly.
+Не использовать root или повторное скачивание для чтения доступных отчётов.
+<!-- /MSP_OZON_FINANCIAL_REPORTS_20261111 -->

@@ -1,6 +1,6 @@
 # Ozon closed-month collection — 10 November 2026
 
-**Prepared and locally tested; no authenticated Ozon request or privileged activation has run.**
+**Pilot VERIFIED on11.11.2026: actual API200,151JanuaryDmitrieva rows; raw/CSV hashes, dates, unique keys and read access independently checked. Temporary activation removed; unit inactive/private network restored. Historical preparation notes below are superseded by this result.**
 
 Owner scope: collect closed months January–October 2026 for Dmitrieva, Laser Master,
 Novokshenov. November/current data and daily WB collection remain paused.

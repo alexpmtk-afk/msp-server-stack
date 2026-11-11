@@ -1,0 +1,7 @@
+{
+  "actual_pilot_offline_roundtrip": "PASS",
+  "rows": 151,
+  "provider_calls": 0,
+  "production_archive_writes": 0,
+  "values_compared": true
+}
