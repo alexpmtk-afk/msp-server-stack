@@ -1,5 +1,5 @@
 {
-  "status": "MONTH_SOURCE_CSV_VERIFIED_EXTERNAL_RECONCILIATION_PENDING",
+  "status": "FIRST_MONTH_ACCEPTED_HISTORY_ROLLOUT_PENDING",
   "cabinet": "ozon_dmitrieva",
   "period": "2026-01",
   "days": 31,
@@ -10,7 +10,7 @@
   "pilot_real_read_verified": true,
   "provider_calls_during_month_preparation": 0,
   "root_executed": true,
-  "financial_month_reconciliation_complete": false,
+  "financial_month_reconciliation_complete": true,
   "offline_tests": {
     "python3.14": 14,
     "python3.12": 14,
@@ -21,5 +21,9 @@
   "rows_collected": 728,
   "worker_inactive": true,
   "isolation_restored": true,
-  "source_csv_values_match": true
+  "source_csv_values_match": true,
+  "blocker": null,
+  "cabinet_export_reconciliation_complete": true,
+  "accepted_months": 1,
+  "expected_months": 30
 }
