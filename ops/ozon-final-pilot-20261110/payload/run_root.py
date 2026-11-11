@@ -85,6 +85,29 @@ def verify_payload():
         if sha(path.read_bytes()) != digest:
             raise ValueError('payload hash mismatch')
 
+def verify_synthetic(raw, expected_probe_hash):
+    """Match the installed supervisor's probe-origin AND acceptance contract.
+
+    synthetic_probe_sha256 identifies the tested probe program, not the JSON
+    receipt bytes. Receipt formatting/timestamps are not that program's digest.
+    """
+    def unique(items):
+        result = {}
+        for key, value in items:
+            if key in result:
+                raise ValueError('duplicate evidence key')
+            result[key] = value
+        return result
+    evidence = json.loads(raw, object_pairs_hook=unique)
+    if not isinstance(evidence, dict) or evidence.get('probe_sha256') != expected_probe_hash:
+        raise ValueError('synthetic evidence origin')
+    expected = {'synthetic_quota': 'PASS', 'clients': 2, 'keys': 4,
+                'ttl_ceiling_seconds': 715, 'provider_calls': 0,
+                'live_seller_keys_touched': 0, 'api_enabled': False}
+    result = evidence.get('result')
+    if not isinstance(result, dict) or any(type(result.get(k)) is not type(v) or result[k] != v for k, v in expected.items()):
+        raise ValueError('synthetic acceptance evidence')
+
 def preflight():
     assets = json.loads((ROOT / 'accepted-assets.json').read_bytes())
     if sha((ACCEPTED / 'assets.json').read_bytes()) != assets['accepted_assets_sha256']:
@@ -107,8 +130,9 @@ def preflight():
             raise ValueError('runtime link drift')
     synthetic = Path('/var/lib/msp-quota-probe-i8kqe69o/result.json')
     trust(synthetic)
-    if sha(synthetic.read_bytes()) != old['synthetic_probe_sha256']:
-        raise ValueError('accepted Redis evidence drift')
+    verify_synthetic(synthetic.read_bytes(), old['synthetic_probe_sha256'])
+    if run(['/usr/bin/systemctl', 'is-active', 'msp-quota-redis.service']).strip() != b'active':
+        raise ValueError('quota service inactive')
     trust(ENV, 0o600)
     pairs = {}
     for line in ENV.read_text().splitlines():

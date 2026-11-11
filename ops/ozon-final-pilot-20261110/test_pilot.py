@@ -34,6 +34,26 @@ class PilotTests(unittest.TestCase):
         pilot.save(self.state / 'response.json', raw)
         pilot.save(self.state / 'response.meta.json', pilot.doc({'status': 200, 'sha256': pilot.sha(raw)}))
 
+    def test_synthetic_probe_digest_is_not_receipt_digest(self):
+        evidence = {'probe_sha256': 'a'*64, 'result': {'synthetic_quota': 'PASS',
+                    'clients': 2, 'keys': 4, 'ttl_ceiling_seconds': 715,
+                    'provider_calls': 0, 'live_seller_keys_touched': 0, 'api_enabled': False}}
+        raw = json.dumps(evidence).encode()
+        self.assertNotEqual(pilot.sha(raw), evidence['probe_sha256'])
+        run_root.verify_synthetic(raw, 'a'*64)
+        # Formatting is not part of probe-origin identity.
+        run_root.verify_synthetic(json.dumps(evidence, indent=2).encode(), 'a'*64)
+        with self.assertRaises(ValueError):
+            run_root.verify_synthetic(raw, 'b'*64)
+        for key, value in [('synthetic_quota', 'FAIL'), ('clients', True),
+                           ('provider_calls', 1), ('api_enabled', 0),
+                           ('live_seller_keys_touched', 1), ('ttl_ceiling_seconds', 714)]:
+            broken = json.loads(raw); broken['result'][key] = value
+            with self.assertRaises(ValueError):
+                run_root.verify_synthetic(json.dumps(broken).encode(), 'a'*64)
+        with self.assertRaises(ValueError):
+            run_root.verify_synthetic(b'{"probe_sha256":"a","probe_sha256":"a"}', 'a')
+
     def test_replay_does_not_construct_transport_or_read_credentials(self):
         self.retain()
         with patch.object(pilot, 'load_credentials', side_effect=AssertionError('credentials')), patch.object(pilot.FinalQuota, '__init__', side_effect=AssertionError('quota')):

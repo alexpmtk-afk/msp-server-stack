@@ -80,3 +80,8 @@ read access through the default-profile instruction, remaining January–October
 under original cumulative per-month plans and same controller, then coverage reconciliation
 for all three legal entities. Additional Ozon financial expense reports need explicit
 source semantics; realization is not total profit or a bank payment.
+
+
+## Preflight correction — 11 November 2026
+
+Owner ran the pinned launcher: snapshot `/var/lib/msp-ozon-final._6rkj4nr`, preflight line111 HOLD before any executor start/state/admission. Root console frames establish erroneous whole-receipt SHA comparison. The accepted supervisor compares receipt.probe_sha256 (probe program origin), then exact typed acceptance fields. Fixed Ozon verifier to reproduce that contract, reject duplicate keys/wrong origin/failed results/type-confused values, and require active existing Redis. No new synthetic writes or backend/credential permission changes. 13 network-denied tests PASS. Revised bundle/launcher prepared, NOT root-executed; old preflight failure is not a provider error or consumed send entry. Preserve old snapshot; same January cabinet/plan and max1 budget.

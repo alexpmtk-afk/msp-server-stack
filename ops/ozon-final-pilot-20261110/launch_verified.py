@@ -3,7 +3,7 @@ assert os.geteuid()==0,"Run in Linux root console"
 os.umask(0o077)
 stage=pathlib.Path(tempfile.mkdtemp(prefix="msp-ozon-final.",dir="/var/lib"))
 raw=pathlib.Path('/home/hermes/workspace/ozon-final-20261110/ozon-final-pilot.tar.gz').read_bytes()
-assert len(raw)<16000000 and hashlib.sha256(raw).hexdigest()=='01b9f91924c9f7856fdbe6fa24246e8a464b11f994c7df44e68501a0248ff7d4',"Archive hash mismatch"
+assert len(raw)<16000000 and hashlib.sha256(raw).hexdigest()=='8233976de0c5334388bfec348701fb8e480b0daa95d0bf2fbf51ba1a033622f8',"Archive hash mismatch"
 (stage/"package.tar.gz").write_bytes(raw)
 with tarfile.open(fileobj=io.BytesIO(raw),mode="r:gz") as t:
  members=t.getmembers();names=[m.name for m in members]
@@ -11,7 +11,7 @@ with tarfile.open(fileobj=io.BytesIO(raw),mode="r:gz") as t:
  assert all(m.isfile() and m.mode==0o644 and m.size<4000000 and not pathlib.PurePosixPath(m.name).is_absolute() and ".." not in pathlib.PurePosixPath(m.name).parts for m in members)
  data={m.name:t.extractfile(m).read() for m in members}
  assert sum(map(len,data.values()))<16000000
- assert hashlib.sha256(data["MANIFEST.json"]).hexdigest()=='355436c0a086fb8d1124567d0d2e933332be848222f3b420f980258c27c10ba4'
+ assert hashlib.sha256(data["MANIFEST.json"]).hexdigest()=='1f40f499ed24c79771a63fb5e0a3f6e1fda02307a08c6ff55722ea5a10d925dd'
  expected=json.loads(data["MANIFEST.json"])
  assert set(data)==set(expected)|{"MANIFEST.json"}
  assert all(hashlib.sha256(data[n]).hexdigest()==h for n,h in expected.items())

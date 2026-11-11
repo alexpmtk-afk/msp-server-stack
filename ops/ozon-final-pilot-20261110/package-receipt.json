@@ -1,10 +1,10 @@
 {
   "status": "PREPARED_NOT_EXECUTED",
-  "archive_sha256": "01b9f91924c9f7856fdbe6fa24246e8a464b11f994c7df44e68501a0248ff7d4",
-  "manifest_sha256": "355436c0a086fb8d1124567d0d2e933332be848222f3b420f980258c27c10ba4",
-  "launcher_sha256": "8b09a3e6732d4da30eb9e537f95950e6a4b10947f75dd5fe7b6bf639760e2266",
+  "archive_sha256": "8233976de0c5334388bfec348701fb8e480b0daa95d0bf2fbf51ba1a033622f8",
+  "manifest_sha256": "1f40f499ed24c79771a63fb5e0a3f6e1fda02307a08c6ff55722ea5a10d925dd",
+  "launcher_sha256": "84489f80253aa22577f9bd04ea33f6535fee16a81128f69fc1af2243c51f6134",
   "files": 11,
-  "command_sha256": "e76401ffee6e24a7fad3cfa199abb6213d514b99d3c9624a2dd4cfb1e98b3257",
+  "command_sha256": "7c4ce5cd2039f66510e67ac7bf0de805ecc22280ef07ba3722f82aabd551e412",
   "scope": "ozon_dmitrieva January 2026, one FINAL request; no annual publication, no background model, temporary existing executor activation",
   "command_physical_lines": 1
 }

@@ -51,3 +51,8 @@ ID сохраняются при ротации ключа.
 ## Ozon closed months — 2026-11-10
 
 Owner requested January–October 2026 for all three legal entities; WB current month paused. Fixed one-month Dmitrieva January Ozon FINAL pilot prepared, 12 network-denied tests PASS. No authenticated Ozon request/activation has occurred. Root execution remains the technical prerequisite, not missing authorization/keys. Reuses accepted executor and shared Redis; no broad four-method gate or new scheduler. Exact artifacts and acceptance: `ops/ozon-final-pilot-20261110/STATUS.md`. Pilot is not annual publication or complete Ozon expense coverage.
+
+
+## Preflight correction — 11 November 2026
+
+Owner ran the pinned launcher: snapshot `/var/lib/msp-ozon-final._6rkj4nr`, preflight line111 HOLD before any executor start/state/admission. Root console frames establish erroneous whole-receipt SHA comparison. The accepted supervisor compares receipt.probe_sha256 (probe program origin), then exact typed acceptance fields. Fixed Ozon verifier to reproduce that contract, reject duplicate keys/wrong origin/failed results/type-confused values, and require active existing Redis. No new synthetic writes or backend/credential permission changes. 13 network-denied tests PASS. Revised bundle/launcher prepared, NOT root-executed; old preflight failure is not a provider error or consumed send entry. Preserve old snapshot; same January cabinet/plan and max1 budget.
