@@ -1,0 +1,28 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "cabinet": "ozon_dmitrieva",
+  "year": 2026,
+  "from_month": 1,
+  "to_month": 10,
+  "accepted_january_reused": true,
+  "new_months": 9,
+  "new_days": 273,
+  "max_new_send_entries": 1152,
+  "offline_tests": {
+    "python3.14": 21,
+    "python3.12": 21,
+    "network_denied": true
+  },
+  "root_required": true,
+  "root_executed": false,
+  "provider_calls_during_preparation": 0,
+  "task_launcher": "common task-visibility/run.py with actual source/CSV/publication verifier",
+  "scope_excludes": [
+    "November/current month",
+    "other cabinets",
+    "WB",
+    "new timers",
+    "LLM calls"
+  ],
+  "runtime_not_verified_until_owner_launch": true
+}
