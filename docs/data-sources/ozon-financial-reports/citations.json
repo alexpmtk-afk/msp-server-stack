@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://seller-edu.ozon.ru/libra/finances-documents/documents/otchet-o-realizacii-tovarov",
+      "title": "",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "Похоже, нет соединения",
+          "added": "2026-11-11"
+        },
+        {
+          "text": "Отчёт о реализации товаров",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "url": "https://seller-edu.ozon.ru/libra/finances-documents/documents/reporting-documents",
+      "title": "",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "Похоже, нет соединения",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "url": "https://docs.ozon.ru/api/seller",
+      "title": "",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "Похоже, нет соединения",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "url": "https://dev.ozon.ru/community/1069-Otchet-o-realizatsii",
+      "title": "",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "pick_up_point_coinvestment (Скидка АПВЗ)",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "url": "https://dev.ozon.ru/community/1776-Voprosy-po-Ozon-Logistike",
+      "title": "",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "позаказный отчет о реализации",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "url": "https://dev.ozon.ru/community/778-Otchet-o-realizatsii-tovara-Bally-za-skidki",
+      "title": "",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "bonus` (Баллы за скидки) `standard_fee` (Базовая комиссия)",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "url": "https://raw.githubusercontent.com/miilv/ozon-seller-api-skill/main/swagger.json",
+      "title": "",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "Seller's discounted price.",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "url": "https://cdn1.ozonusercontent.com/s3/kms-files-prod/seller-edu/69651267-a322-4093-9fb8-2ee13f1e5e3d/otchet-o-realizatsii-tovara-s-1032026.xlsx",
+      "title": "Официальный пример отчёта о реализации",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "Итого реализовано (за вычетом возвратов) (руб.):",
+          "added": "2026-11-11"
+        }
+      ]
+    }
+  ]
+}

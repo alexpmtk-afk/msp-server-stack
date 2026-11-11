@@ -1,0 +1,34 @@
+{
+  "status": "PRIMARY_PDF_AND_OFFICIAL_EXAMPLE_RECONCILED",
+  "article_url": "https://seller-edu.ozon.ru/libra/finances-documents/documents/otchet-o-realizacii-tovarov",
+  "pdf_file": "sources/owner-official-realization-20261111.pdf",
+  "pdf_sha256": "247ebcdb14a114806bf8f812935adc475ed1c1aa272a90455681847bb702a75b",
+  "pdf_pages": 6,
+  "text_pages_reviewed": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "illustrated_pages_visually_reviewed": [
+    2,
+    5
+  ],
+  "pdf_origin": "owner-supplied browser print of official article; direct site retrieval remains blocked",
+  "official_example_url": "https://cdn1.ozonusercontent.com/s3/kms-files-prod/seller-edu/69651267-a322-4093-9fb8-2ee13f1e5e3d/otchet-o-realizatsii-tovara-s-1032026.xlsx",
+  "official_example_file": "sources/official-example.xlsx",
+  "official_example_sha256": "ef8d46c978446cfa13f565e19dc1fccca11ff7c70363df6125dae957276f9c0a",
+  "verified_formulas": {
+    "C28": "F24-J24",
+    "C29": "G24-K24"
+  },
+  "scope": "closing realization report; not a full current posting API specification",
+  "source_nits": [
+    "PDF says two loyalty programs but names three; preserve names, do not repeat count",
+    "Official sample A4 contains 31.04.2026; not a valid reporting date and not cabinet data"
+  ],
+  "source_report_data_changed": false,
+  "provider_api_calls": 0
+}
