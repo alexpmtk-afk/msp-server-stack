@@ -1,0 +1,8 @@
+{
+  "real_user_systemd_condition_reset": "PASS",
+  "before": "ExecMainStartTimestamp=\nConditionResult=no\n",
+  "after": "ExecMainStartTimestamp=Wed 2026-11-11 09:16:10 MSK\nExecMainStatus=0\nFragmentPath=/home/hermes/.config/systemd/user/msp-ozon-condition-fixture-20261111.service\nDropInPaths=/home/hermes/.config/systemd/user/msp-ozon-condition-fixture-20261111.service.d/90-own-approval.conf\nConditionResult=yes\nConditionTimestamp=Wed 2026-11-11 09:16:10 MSK\n",
+  "provider_calls": 0,
+  "root_executor_touched": false,
+  "fixture": "/home/hermes/.hermes/cache/scratch/ozon-condition-hfr1xql2"
+}

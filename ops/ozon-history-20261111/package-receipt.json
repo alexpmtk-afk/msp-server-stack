@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "50667e395684311d12ec0e5b5ca0a9868472a293ccddab8cdb367ddb9f1829d7",
+  "manifest_sha256": "862bb29bebd6aa7f4727ffc202e3e50f857bb68356ae74b1b58f99b355ad1a73",
+  "launcher_sha256": "dd5ccdb4710f59380c24095f29ee152be9aa3642c9ef129d3452496d9306b88f",
+  "files": 15,
+  "command_sha256": "d1ba8709618dc7cadf06e6170a17e7e26ba8c3f07869f585a9ca0e6710224c3a",
+  "scope": "Jan-Oct2026 three Ozon cabinets: fixed 30 realization reports, verified pilot reused, max29 new sends, existing executor and Redis, background deterministic supervisor with no LLM calls",
+  "command_physical_lines": 1
+}

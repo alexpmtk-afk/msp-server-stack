@@ -1,0 +1,455 @@
+{
+  "provenance": "Mirrored Ozon OpenAPI snapshot; not confirmed current primary delivery. Bounded live pilot still pending.",
+  "url": "https://raw.githubusercontent.com/miilv/ozon-seller-api-skill/main/swagger.json",
+  "path": "/v1/finance/realization/posting",
+  "definition": {
+    "post": {
+      "summary": "Sales report by order",
+      "description": "Returns a report on delivered and returned products with details by order. Canceled or non-purchased products aren't included. Report is available from the current date until August, 2023 inclusive.",
+      "operationId": "FinanceAPI_GetRealizationReportV1",
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Client-Id"
+        },
+        {
+          "$ref": "#/components/parameters/Api-Key"
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/v1GetRealizationReportPostingRequest"
+            },
+            "example": {
+              "month": 2,
+              "year": 2025
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Sales report by order",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/v1GetRealizationReportPostingResponse"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid parameter",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/rpcStatus"
+              }
+            }
+          }
+        },
+        "403": {
+          "description": "Access denied",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/rpcStatus"
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Response not found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/rpcStatus"
+              }
+            }
+          }
+        },
+        "409": {
+          "description": "Request conflict",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/rpcStatus"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Internal server error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/rpcStatus"
+              }
+            }
+          }
+        }
+      },
+      "tags": [
+        "FinanceAPI"
+      ]
+    }
+  },
+  "referenced_components": {
+    "#/components/parameters/Client-Id": {
+      "description": "Client ID.",
+      "in": "header",
+      "name": "Client-Id",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    "#/components/parameters/Api-Key": {
+      "description": "API key.",
+      "in": "header",
+      "name": "Api-Key",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    "#/components/schemas/v1GetRealizationReportPostingRequest": {
+      "required": [
+        "month",
+        "year"
+      ],
+      "type": "object",
+      "properties": {
+        "month": {
+          "description": "Month.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "year": {
+          "description": "Year.",
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "#/components/schemas/v1GetRealizationReportPostingResponse": {
+      "type": "object",
+      "title": "object",
+      "description": "Request result.",
+      "properties": {
+        "header": {
+          "$ref": "#/components/schemas/GetRealizationReportResponseV2Header"
+        },
+        "rows": {
+          "description": "Report table.",
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/v1GetRealizationReportPostingResponseRow"
+          }
+        }
+      }
+    },
+    "#/components/schemas/GetRealizationReportResponseV2Header": {
+      "properties": {
+        "contract_date": {
+          "type": "string",
+          "description": "Date of contract conclusion."
+        },
+        "contract_number": {
+          "type": "string",
+          "description": "Contract number."
+        },
+        "currency_sys_name": {
+          "type": "string",
+          "description": "Currency."
+        },
+        "doc_date": {
+          "type": "string",
+          "description": "Document generation date."
+        },
+        "number": {
+          "type": "string",
+          "description": "Report ID."
+        },
+        "payer_inn": {
+          "type": "string",
+          "description": "Payer's Tax Identification Number."
+        },
+        "payer_kpp": {
+          "type": "string",
+          "description": "Payer's Tax Registration Reason Code."
+        },
+        "payer_name": {
+          "type": "string",
+          "description": "Payer's name."
+        },
+        "receiver_inn": {
+          "type": "string",
+          "description": "Recipient's Tax Identification Number."
+        },
+        "receiver_kpp": {
+          "type": "string",
+          "description": "Recipient's Tax Registration Reason Code."
+        },
+        "receiver_name": {
+          "type": "string",
+          "description": "Recipient's name."
+        },
+        "start_date": {
+          "type": "string",
+          "description": "Start date."
+        },
+        "stop_date": {
+          "type": "string",
+          "description": "End date."
+        }
+      },
+      "type": "object",
+      "title": "object",
+      "description": "Report title page."
+    },
+    "#/components/schemas/v1GetRealizationReportPostingResponseRow": {
+      "type": "object",
+      "title": "object",
+      "properties": {
+        "commission_ratio": {
+          "type": "number",
+          "format": "double",
+          "description": "Percentage of sales commission by category."
+        },
+        "delivery_commission": {
+          "$ref": "#/components/schemas/RowItemCommission"
+        },
+        "item": {
+          "$ref": "#/components/schemas/RowItem"
+        },
+        "return_commission": {
+          "$ref": "#/components/schemas/RowItemCommissionReturn"
+        },
+        "row_number": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Row number."
+        },
+        "seller_price_per_instance": {
+          "type": "number",
+          "format": "double",
+          "description": "Seller's discounted price."
+        },
+        "order": {
+          "$ref": "#/components/schemas/RowItemOrder"
+        },
+        "legal_entity_document": {
+          "$ref": "#/components/schemas/RowItemLegalEntityDocument"
+        }
+      }
+    },
+    "#/components/schemas/RowItemCommission": {
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double",
+          "description": "Amount."
+        },
+        "bonus": {
+          "type": "number",
+          "format": "double",
+          "description": "Points for discounts."
+        },
+        "commission": {
+          "type": "number",
+          "format": "double",
+          "description": "Commission for sold products, including discounts and extra charges.\n\n<aside class=\"warning\">For reports generated before April 30, 2024.</aside>\n"
+        },
+        "compensation": {
+          "type": "number",
+          "format": "double",
+          "description": "Additional payment at the expense of Ozon.\n\n<aside class=\"warning\">For reports generated before April 30, 2024.</aside>\n"
+        },
+        "price_per_instance": {
+          "type": "number",
+          "format": "double",
+          "description": "Price per item."
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Product quantity."
+        },
+        "standard_fee": {
+          "type": "number",
+          "format": "double",
+          "description": "Ozon referral fee."
+        },
+        "bank_coinvestment": {
+          "type": "number",
+          "format": "double",
+          "description": "Payouts on partner loyalty mechanics: green prices."
+        },
+        "stars": {
+          "type": "number",
+          "format": "double",
+          "description": "Payouts on partner loyalty mechanics: stars."
+        },
+        "total": {
+          "type": "number",
+          "format": "double",
+          "description": "Total accrual."
+        }
+      },
+      "description": "Delivery fee.",
+      "type": "object",
+      "title": "object"
+    },
+    "#/components/schemas/RowItem": {
+      "properties": {
+        "barcode": {
+          "type": "string",
+          "description": "Product barcode."
+        },
+        "name": {
+          "type": "string",
+          "description": "Product name."
+        },
+        "offer_id": {
+          "type": "string",
+          "description": "Product identifier in the seller's system."
+        },
+        "sku": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Product identifier in the Ozon system, SKU."
+        }
+      },
+      "type": "object",
+      "title": "object",
+      "description": "Product Information."
+    },
+    "#/components/schemas/RowItemCommissionReturn": {
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double",
+          "description": "Amount."
+        },
+        "bonus": {
+          "type": "number",
+          "format": "double",
+          "description": "Points for discounts."
+        },
+        "commission": {
+          "type": "number",
+          "format": "double",
+          "description": "Commission for sold products, including discounts and extra charges.\n\n<aside class=\"warning\">For reports generated before April 30, 2024.</aside>\n"
+        },
+        "compensation": {
+          "type": "number",
+          "format": "double",
+          "description": "Additional payment at the expense of Ozon.\n\n<aside class=\"warning\">For reports generated before April 30, 2024.</aside>\n"
+        },
+        "price_per_instance": {
+          "type": "number",
+          "format": "double",
+          "description": "Price per item."
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Product quantity."
+        },
+        "standard_fee": {
+          "type": "number",
+          "format": "double",
+          "description": "Ozon referral fee."
+        },
+        "bank_coinvestment": {
+          "type": "number",
+          "format": "double",
+          "description": "Payouts on partner loyalty mechanics: green prices."
+        },
+        "stars": {
+          "type": "number",
+          "format": "double",
+          "description": "Payouts on partner loyalty mechanics: stars."
+        },
+        "total": {
+          "type": "number",
+          "format": "double",
+          "description": "Total accrual."
+        }
+      },
+      "description": "Fee for product return.",
+      "type": "object",
+      "title": "object"
+    },
+    "#/components/schemas/RowItemOrder": {
+      "type": "object",
+      "title": "object",
+      "description": "Order information.",
+      "properties": {
+        "posting_number": {
+          "type": "string",
+          "description": "Shipment number."
+        },
+        "created_date": {
+          "type": "string",
+          "description": "Order date in the “YYYY-MM-DD” format."
+        }
+      }
+    },
+    "#/components/schemas/RowItemLegalEntityDocument": {
+      "type": "object",
+      "title": "object",
+      "description": "Information on sale to a legal entity.",
+      "properties": {
+        "number": {
+          "type": "string",
+          "description": "Invoice number."
+        },
+        "sale_date": {
+          "type": "string",
+          "description": "Date in the “YYYY-MM-DD” format."
+        }
+      }
+    },
+    "#/components/schemas/rpcStatus": {
+      "type": "object",
+      "title": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Error code."
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/protobufAny"
+          },
+          "description": "Error details."
+        },
+        "message": {
+          "type": "string",
+          "description": "Error description."
+        }
+      }
+    },
+    "#/components/schemas/protobufAny": {
+      "type": "object",
+      "title": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string",
+          "description": "URL type."
+        },
+        "value": {
+          "type": "string",
+          "format": "byte",
+          "description": "Error value."
+        }
+      }
+    }
+  }
+}
