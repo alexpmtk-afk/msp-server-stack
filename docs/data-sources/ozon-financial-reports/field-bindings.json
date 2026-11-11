@@ -1,0 +1,956 @@
+{
+  "schema": 1,
+  "status": "ALL_OBSERVED_FIELDS_MAPPED_PRIMARY_HELP_FULL_TEXT_PENDING",
+  "verified_at": "2026-11-11T09:37:53.031187+00:00",
+  "method": "/v1/finance/realization/posting",
+  "reports": 30,
+  "rows": 14204,
+  "fields": {
+    "header.contract_date": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "71efdbb0b6edce412a62b1a6fbb2e76fed3afa2f5ae7867316c770ce36adcd0f",
+      "label_ru": "Дата договора",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.contract_number": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "9a37dcf3b9e56091307badeb0caf81c885bc2116e0d08071ec37071cd6fa0972",
+      "label_ru": "Номер договора",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.currency_sys_name": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "636a3e8d17821ad38cbda8022006546eb4cd76ecf32e625b80c396bcb6b49645",
+      "label_ru": "Валюта",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.doc_date": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "1cfc18c745c1f2fc5c9116355ef92007189a948b822a9f7e10c12406d161c61e",
+      "label_ru": "Дата формирования документа",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.number": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "32ac4a99b281a94263e85f8d91c1981056b161efa7f21eca3e3b5978442fc3d7",
+      "label_ru": "Номер отчёта",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.payer_inn": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "16d3b5db2258cf3394341b08fa2064da810a4aa6d83b13a39c503a6ebe828bf0",
+      "label_ru": "ИНН плательщика",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.payer_kpp": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "4fea2ef416da90ddb13507a4c9ece562616c558ee9e7aa5a14ce9da863a6d662",
+      "label_ru": "КПП плательщика",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.payer_name": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "c493ff6db20dc2bf3c98755cd63e5da69a3b0f2714f867a219b23a38fafa891f",
+      "label_ru": "Плательщик",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.receiver_inn": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "58e48f2a4f5fba75e6a35d43b331503ebd5b992eca19f8f4824e1333709aac25",
+      "label_ru": "ИНН получателя",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.receiver_kpp": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "75938cb69fa50328740d25d2e6efe72543f9162080e8b4c1a0afeff0d46a89e2",
+      "label_ru": "КПП получателя",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.receiver_name": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "9ad610d1a3f03be45b8207928b204f2cd022e8b28867174553dfa6e069ef6a8a",
+      "label_ru": "Получатель",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.start_date": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "cfaafe9ccc704d62907b5cea99fa924fc4988bb5fbd8b7d4eb89c96b34b773cb",
+      "label_ru": "Начало отчётного периода",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "header.stop_date": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "b31ac791fcdcc100703f19dbeb1119cfc89bce85e61f780ce6d200d8b87a1d4f",
+      "label_ru": "Конец отчётного периода",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 30,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].commission_ratio": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "077c9e9e6b11e3f68d49b8ac5ca4f78c261bc6d15e185ccdee38ad4829d94e4a",
+      "label_ru": "Процент комиссии по категории",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "float"
+      ]
+    },
+    "rows[].delivery_commission.amount": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "da4b0e023ecd518548732294b8423c26479aa319db649d6b372f6aaa78adc97b",
+      "label_ru": "Сумма раздела",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.bonus": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        6,
+        7
+      ],
+      "source_description_sha256": "064e5aa1b8de971c53120dd172ab9d9d7f0a67a29b5da8e62689b8149c061dcf",
+      "label_ru": "Баллы за скидки",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.commission": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "0e600d9ecd882fbffee66b16a9c4895c1ea9c6626fdb229236550bb735c1e8fa",
+      "label_ru": "Историческая комиссия до30.04.2024",
+      "aggregation": "excluded_legacy_2026",
+      "legacy_2026_do_not_use": true,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.compensation": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "0401e69dc59187b922f374124236dcd4f1e561a96a9165d9183928672826d2e7",
+      "label_ru": "Историческая доплата Ozon до30.04.2024",
+      "aggregation": "excluded_legacy_2026",
+      "legacy_2026_do_not_use": true,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.price_per_instance": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "43ec1d41ee4ee3683b946c88f604dc9534ccd23297c9f93cd10cceb9745891fa",
+      "label_ru": "Цена единицы в разделе",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.quantity": {
+      "type": "integer",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "f654caabcc22604d022fbcf155f91edd53c959527a5fb3ec76747affdbed12aa",
+      "label_ru": "Количество единиц в разделе",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.standard_fee": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        6,
+        7
+      ],
+      "source_description_sha256": "5e881a0eae5fbcd4bc12c9df6b6e852a1e3ef52badf6a4c8512dfdd7f7c4d2d5",
+      "label_ru": "Базовое вознаграждение Ozon",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.bank_coinvestment": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "a613b854395519f0c29037c56dffc992cf029b64012ac3a012e1ccb334027153",
+      "label_ru": "Зелёные цены, выплаты партнёров",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.stars": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "ef1a53c1589d4f95556dc4e00c7c4fc078bbd1b1c754b31a60b886bcf755df87",
+      "label_ru": "Звёзды, выплаты партнёров",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].delivery_commission.total": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "a6d1a3a9bb40edae8d28c429bce12e04dc7cce8987ea5a5fc9ab35e6b1f6ad00",
+      "label_ru": "Итог начисления раздела",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].item.barcode": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "1bde8e7640fe446c6fa24edeeb9f50106991fb03c6b99e40b9a4b49d7ca9433a",
+      "label_ru": "Штрихкод",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].item.name": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "14b190850935a37c19cf121fd8192013dce65e99ca0ab01657ff77a8f187912b",
+      "label_ru": "Название товара",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].item.offer_id": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "e3287f67d3f369c545d4b007d564b62eb55bd04bc62e0c4b46c38e45ea552923",
+      "label_ru": "Артикул продавца",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].item.sku": {
+      "type": "integer",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "1e19feed3f6272049ffd077541f6f74ff7bf4863c1812f101041c1fca9ac09b6",
+      "label_ru": "SKU Ozon",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].return_commission.amount": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "da4b0e023ecd518548732294b8423c26479aa319db649d6b372f6aaa78adc97b",
+      "label_ru": "Сумма раздела",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].return_commission.bonus": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        6,
+        7
+      ],
+      "source_description_sha256": "064e5aa1b8de971c53120dd172ab9d9d7f0a67a29b5da8e62689b8149c061dcf",
+      "label_ru": "Баллы за скидки",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].return_commission.commission": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "0e600d9ecd882fbffee66b16a9c4895c1ea9c6626fdb229236550bb735c1e8fa",
+      "label_ru": "Историческая комиссия до30.04.2024",
+      "aggregation": "excluded_legacy_2026",
+      "legacy_2026_do_not_use": true,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].return_commission.compensation": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "0401e69dc59187b922f374124236dcd4f1e561a96a9165d9183928672826d2e7",
+      "label_ru": "Историческая доплата Ozon до30.04.2024",
+      "aggregation": "excluded_legacy_2026",
+      "legacy_2026_do_not_use": true,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].return_commission.price_per_instance": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "43ec1d41ee4ee3683b946c88f604dc9534ccd23297c9f93cd10cceb9745891fa",
+      "label_ru": "Цена единицы в разделе",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].return_commission.quantity": {
+      "type": "integer",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "f654caabcc22604d022fbcf155f91edd53c959527a5fb3ec76747affdbed12aa",
+      "label_ru": "Количество единиц в разделе",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].return_commission.standard_fee": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        6,
+        7
+      ],
+      "source_description_sha256": "5e881a0eae5fbcd4bc12c9df6b6e852a1e3ef52badf6a4c8512dfdd7f7c4d2d5",
+      "label_ru": "Базовое вознаграждение Ozon",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].return_commission.bank_coinvestment": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "a613b854395519f0c29037c56dffc992cf029b64012ac3a012e1ccb334027153",
+      "label_ru": "Зелёные цены, выплаты партнёров",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].return_commission.stars": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "ef1a53c1589d4f95556dc4e00c7c4fc078bbd1b1c754b31a60b886bcf755df87",
+      "label_ru": "Звёзды, выплаты партнёров",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].return_commission.total": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "a6d1a3a9bb40edae8d28c429bce12e04dc7cce8987ea5a5fc9ab35e6b1f6ad00",
+      "label_ru": "Итог начисления раздела",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].row_number": {
+      "type": "integer",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "c944ae3e484bd00354075fb2f956e79f03209d28e5573c12434b3f9192c89a44",
+      "label_ru": "Номер строки внутри месяца",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "int"
+      ]
+    },
+    "rows[].seller_price_per_instance": {
+      "type": "number",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "c1f8477c8af5ae4024367d641603ac1765fcb6c227e1bb9184f8faec2a7908e6",
+      "label_ru": "Цена продавца после скидки",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].order.posting_number": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "1c48b563533291491d652d98fcdcb1ba9a1fb78c9f92f26959986a390c894630",
+      "label_ru": "Номер отправления",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].order.created_date": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "bdc0c1df19abaaa094ebbcd7a57c8fb1fe75f8c72cf70b7698f39b03b852eb41",
+      "label_ru": "Дата заказа, не дата реализации",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14204,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].legal_entity_document.number": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "05e333ec9dc84c43a822e3f078f0fe1fa744941a3a30ca50ef72b69b7475f5d3",
+      "label_ru": "Номер документа invoice",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 766,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].legal_entity_document.sale_date": {
+      "type": "string",
+      "provenance": "official_schema_mirror",
+      "citation_ids": [
+        7
+      ],
+      "source_description_sha256": "8afb9c8ac7099872a7d787649f089f18510612050800289be3add9eb7b4d45dc",
+      "label_ru": "Дата sale_date документа, роль уточнить",
+      "aggregation": "never_sum",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 766,
+      "observed_types": [
+        "str"
+      ]
+    },
+    "rows[].delivery_commission.pick_up_point_coinvestment": {
+      "type": "number",
+      "provenance": "official_moderator_and_observed_API",
+      "citation_ids": [
+        4
+      ],
+      "source_description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "label_ru": "Скидка АПВЗ, выплаты партнёров",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 14145,
+      "observed_types": [
+        "float",
+        "int"
+      ]
+    },
+    "rows[].return_commission.pick_up_point_coinvestment": {
+      "type": "number",
+      "provenance": "official_moderator_and_observed_API",
+      "citation_ids": [
+        4
+      ],
+      "source_description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "label_ru": "Скидка АПВЗ, выплаты партнёров",
+      "aggregation": "sum_present_blocks_separately",
+      "legacy_2026_do_not_use": false,
+      "normative_business_formula_verified": false,
+      "observed_count": 380,
+      "observed_types": [
+        "int"
+      ]
+    }
+  },
+  "null_containers": {
+    "rows[].return_commission": 13824,
+    "rows[].legal_entity_document": 13438,
+    "rows[].delivery_commission": 59
+  },
+  "unmapped_observed_fields": [],
+  "full_live_primary_help_read": false,
+  "current_normative_formulas_verified": false,
+  "archive_sources": [
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-01",
+      "sha256": "e2373acc17d2dedbbc8dacc8a072d8ecb9bc1b8b02e54bc24d3b434933cc5e49",
+      "rows": 151
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-02",
+      "sha256": "392ddc6d22f356648719705c43ce220b8697144305277595b8858ee603483345",
+      "rows": 76
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-03",
+      "sha256": "2e2616606c634520ffcd4c62b8f508f5564e4199246baf659522fc74f02ac9ec",
+      "rows": 237
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-04",
+      "sha256": "82f3d4c9275e1fedceb0caf4c4aef296c6f87ad15c975046b4b1139a25c5032a",
+      "rows": 236
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-05",
+      "sha256": "72a38fe91d1dea8d93b5eb578721c822935e06b5cf47c49600bb969ff640159c",
+      "rows": 196
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-06",
+      "sha256": "a5de4563acc64437d3774c3a575b55fb332d83f4e9f28ea712ccdb67ab32c8e5",
+      "rows": 197
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-07",
+      "sha256": "d5aeee8f85c8ac041e4517d58d489d0383abc25fa49ea6e85d6a7ec825ba78cf",
+      "rows": 150
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-08",
+      "sha256": "7b8b2947ed1f4540e845decc6a5ee081f07a389aab3179eaa41f5a9993dacc48",
+      "rows": 143
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-09",
+      "sha256": "c2ecd6cece24aa93fc711f02c278113f2a87b640ce2e9b5a0cec2445bfb240e1",
+      "rows": 188
+    },
+    {
+      "cabinet": "ozon_dmitrieva",
+      "period": "2026-10",
+      "sha256": "4226c4076c02635c4a896cbbe81180b7a12a4a36649a70b33893525d1a929b59",
+      "rows": 150
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-01",
+      "sha256": "6cc49fe8586ee9a050fb158bdc1bfc9c41b5017304668065bc67d5bd5bf4fb55",
+      "rows": 1595
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-02",
+      "sha256": "0f3d63958c8488288bacf215f540c0979dfd4e0cf85b432db5129022006a9fc3",
+      "rows": 638
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-03",
+      "sha256": "0a9584b58a1ca47a08a7244c40ecac8e15883cd0aac5e42901ecce2961b16be1",
+      "rows": 922
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-04",
+      "sha256": "591912007d36fe2dd9db5ae670b02d9cba8b9e3ee8de93a448670b576cf7c370",
+      "rows": 1267
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-05",
+      "sha256": "a746bf7e236abf92627681814666994ac574b60478a6b059128bf269175b323e",
+      "rows": 1097
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-06",
+      "sha256": "0f374b7f32dbb7b7113afba969fe35aa5f9df4f59a9d6e910b07fd202a3813ad",
+      "rows": 634
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-07",
+      "sha256": "f5b0b53ed3c2d45dc960176725c470626e5a14fa624a4eeabcc01f4e27d9fc3c",
+      "rows": 597
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-08",
+      "sha256": "1cf0613012690e3d0d964db624d6e65461297c976671f714986e5d8d12b20ccb",
+      "rows": 670
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-09",
+      "sha256": "809f048a48755de810fa94cf785c358cde8fe8a26f8af758b27eb9f6823c1873",
+      "rows": 869
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "period": "2026-10",
+      "sha256": "14844e6a6124e255bf07ed123d335c75e3997918fcee17aa1e0a9cd3b6686e2a",
+      "rows": 878
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-01",
+      "sha256": "1046c90cb60d970e597ae56119ef3eede38b708f9f11b4dfdab6a0b20012b1f0",
+      "rows": 459
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-02",
+      "sha256": "d4cc36703bcaf9762d139b3987288666658501e1b61b6ae2e371aed6b1198bdb",
+      "rows": 173
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-03",
+      "sha256": "fbbaf73e8c7623cfc67700928e2bed352f1af1c5ab5c3426edc826fae07f4348",
+      "rows": 395
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-04",
+      "sha256": "5d93a0d069d547a14d4e9f97e731a16f140183578eea09e0138eb18d15e7c77d",
+      "rows": 412
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-05",
+      "sha256": "c12a86ca32634c2180c055861791a1562876065e4f854c38701f8cb38d524146",
+      "rows": 299
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-06",
+      "sha256": "dee05195c4ae412c09b51c2fdfd048af9eb35e66a379b49b348d92cab176ac03",
+      "rows": 295
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-07",
+      "sha256": "a07446f5c9c7e5e9afb071a90e142f0387972575b9fc44601b29afdb459906ea",
+      "rows": 223
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-08",
+      "sha256": "e11d01a5361f2891e17797d2ffe02f5efa9ae2554d2c5f3b45c3ab1bfd57b6b2",
+      "rows": 228
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-09",
+      "sha256": "a2f5657b1d980fb9f91229bf6062269b222a14f1127ef230a920c879f66b7c4d",
+      "rows": 353
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "period": "2026-10",
+      "sha256": "c47159296c754cacf986a6c9ad9912fe7c2e2161aca7d77143a7de0a50bf5605",
+      "rows": 476
+    }
+  ]
+}

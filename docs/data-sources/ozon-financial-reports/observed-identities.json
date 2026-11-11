@@ -1,0 +1,14 @@
+{
+  "status": "OBSERVED_ONLY_NOT_NORMATIVE_FORMULAS",
+  "tests": {
+    "amount_eq_unit_x_qty": {
+      "PASS": 14525
+    },
+    "total_eq_amount_bonus_partners_minus_standard": {
+      "PASS": 14525
+    },
+    "legacy_fields_zero": {
+      "PASS": 14525
+    }
+  }
+}

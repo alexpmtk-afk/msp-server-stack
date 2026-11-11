@@ -78,3 +78,8 @@ Actual January2026 Dmitrieva realization:151unique rows,200,raw/CSV hash/date/va
 ## Actual six-cabinet reading VERIFIED; Ozon collection COMPLETE —11.11.2026
 
 Independent read audit source/result: `ops/marketplace-access-audit-20261111/`. Consumed all6WBmain/buyout archives fully with raw-value/hash checks, selectedOctober380/5276/2569rows(Dmitrieva/Laser/Novokshenov). Verified all30Ozonraw/staged/published monthly snapshots and pinned receipts against three annual business-value unions;1724/9167/3313annualrows,150/878/476Octoberrows. Realreceiver identities matched. No newAPIrequests or sourcewrites. Backgroundhistory rootunit successful/inactive; workerinactive/privateNetworkyes/noDropIns. CollectionJanOctrealization complete, readingwithoutroot proved. Canonicalsource updated. This doesnot prove unrestrictedwebcabinet/allAPI/allperiod access or allOzonexpense coverage; WBdaily/current and OzonNovember excluded.
+
+
+## Ozon semantics sources —11.11.2026 PARTIAL
+
+Official SellerEducation source located but actual browser403/redirect challenge prevents currentarticletext; not read. Historic primarymoderator evidence + attributedschemamirror + real30reports establish46 observedfieldbindings,14204rows,14525populated-block observedidentity checks. Practical guide and sourceflags installed, but currentnormativeformulas/fullXLSX mapping remainpending. Importantcorrection: monthlyOzon reportdoesnot give arbitrarydailysales; orderdate isnotrealizationdate. No money/source/API/scheduler changes. Canonical: docs/data-sources/ozon-financial-reports/; evidenceacceptance: ops/ozon-report-semantics-20261111/PROVENANCE.md.
