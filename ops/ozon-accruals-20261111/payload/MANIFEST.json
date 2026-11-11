@@ -1,0 +1,17 @@
+{
+  "accepted-assets.json": "446937ed6043072422104abaa06de5b8dc58e39d52369e8cb84f880c1eb3cff9",
+  "apps/msp_marketplace_reports/__init__.py": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
+  "apps/msp_marketplace_reports/archive.py": "7bc136f90efd1c6bd30f741316776ad0d620ace9dc64bcc6586ae9320bb9cc33",
+  "apps/msp_marketplace_reports/generation_store.py": "56bab0d7af01d2cec20b551521af25a5dedaefbd890cf3d0aa476dcfef783e7d",
+  "apps/msp_marketplace_reports/ingest.py": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58",
+  "apps/msp_marketplace_reports/ozon_accruals.py": "33f624a23f06cbafe5a5721e418f810770082f77c1e33d9ab124b772dc5b13fb",
+  "apps/msp_marketplace_reports/providers.py": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676",
+  "apps/msp_marketplace_reports/quota.py": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422",
+  "apps/msp_marketplace_reports/runtime.py": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5",
+  "apps/msp_marketplace_reports/shared_rate_limit.py": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726",
+  "apps/msp_marketplace_reports/versioned_archive.py": "7c6c0e747f0be05cfe0d06caefc98bf9af3e55b73d9b98ce25fe601b7537fd04",
+  "capture_root.py": "a13a28ed575360dfff6308f9dca22ed0fde6a7547b94afaf700b1784c210387d",
+  "capture_worker.py": "7fa4dd11fa71a06ac2cb3945c630ceef82859eeb921e341128e44866151bb881",
+  "root_common.py": "e290ab1f2211921d469052668bf7999e75dcb07ff8307bc0ada795eb16e71db5",
+  "start_root.py": "a473e3745d9af39c7d973f97a63d3f56ef0e30c0606c1e0925faa8bfc58bc8ff"
+}

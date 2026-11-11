@@ -1,0 +1,42 @@
+{
+  "status": "PREPARED_PILOT_NOT_EXECUTED",
+  "task_complete": false,
+  "primary_source": "Ozon accruals and compensations by product, not realization",
+  "cabinet_order": [
+    "ozon_dmitrieva",
+    "ozon_laser_master",
+    "ozon_novokshenov"
+  ],
+  "scope": {
+    "from": "2026-01-01",
+    "to": "2026-10-31",
+    "month_cabinet_pairs": 30,
+    "cabinet_day_pairs": 912
+  },
+  "pilot": {
+    "cabinet": "ozon_dmitrieva",
+    "date": "2026-01-15",
+    "max_send_entries": 2,
+    "methods": [
+      "/v1/finance/accrual/types",
+      "/v1/finance/accrual/by-day"
+    ],
+    "purpose": "types and FIRST PAGE capture, NOT full day/month"
+  },
+  "offline_tests": {
+    "python3.14": 35,
+    "python3.12": 35,
+    "network_denied": true
+  },
+  "provider_calls_this_task": 0,
+  "root_executed": false,
+  "realization_source_deleted": false,
+  "blocker": "privileged existing executor activation requires owner root console",
+  "remaining": [
+    "Real two-read capture and readback",
+    "Validate current payload and pagination terminal semantics",
+    "First full month and independent cabinet-export reconciliation",
+    "All30 cabinet-months with verified daily coverage",
+    "Complete field-role bindings and canonical calculations"
+  ]
+}

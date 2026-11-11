@@ -1,0 +1,40 @@
+test_cleanup_restores_before_credential_removal (__main__.CaptureTests.test_cleanup_restores_before_credential_removal) ... ok
+test_foreign_activation_not_removed (__main__.CaptureTests.test_foreign_activation_not_removed) ... ok
+test_full_two_read_capture_has_no_coverage_claim (__main__.CaptureTests.test_full_two_read_capture_has_no_coverage_claim) ... ok
+test_http_error_retained_and_no_retry (__main__.CaptureTests.test_http_error_retained_and_no_retry) ... ok
+test_import_and_nonroot_do_not_activate (__main__.CaptureTests.test_import_and_nonroot_do_not_activate) ... ok
+test_invalid_json_raw_saved_before_parser (__main__.CaptureTests.test_invalid_json_raw_saved_before_parser) ... ok
+test_quota_busy_consumes_no_sender_entry (__main__.CaptureTests.test_quota_busy_consumes_no_sender_entry) ... ok
+test_quota_rejects_other_endpoint (__main__.CaptureTests.test_quota_rejects_other_endpoint) ... ok
+test_unit_rebinds_conditions_and_minimal_credentials (__main__.CaptureTests.test_unit_rebinds_conditions_and_minimal_credentials) ... ok
+test_unknown_outcome_never_retried (__main__.CaptureTests.test_unknown_outcome_never_retried) ... ok
+test_bootstrap_nonroot_refuses_before_staging (__main__.PackageTests.test_bootstrap_nonroot_refuses_before_staging) ... ok
+test_bootstrap_tamper_refuses_before_execution (__main__.PackageTests.test_bootstrap_tamper_refuses_before_execution) ... ok
+test_exact_archive_and_manifest (__main__.PackageTests.test_exact_archive_and_manifest) ... ok
+test_one_line_command_digest (__main__.PackageTests.test_one_line_command_digest) ... ok
+test_categories_retained (__main__.ReaderTests.test_categories_retained) ... ok
+test_closed_plan_permanent_all_912_dates (__main__.ReaderTests.test_closed_plan_permanent_all_912_dates) ... ok
+test_conflicting_duplicate_rejected (__main__.ReaderTests.test_conflicting_duplicate_rejected) ... ok
+test_cursor_cycle_rejected (__main__.ReaderTests.test_cursor_cycle_rejected) ... ok
+test_cursor_ttl_prevents_silent_restart (__main__.ReaderTests.test_cursor_ttl_prevents_silent_restart) ... ok
+test_duplicate_json_keys_rejected (__main__.ReaderTests.test_duplicate_json_keys_rejected) ... ok
+test_empty_page_with_cursor_holds (__main__.ReaderTests.test_empty_page_with_cursor_holds) ... ok
+test_explicit_empty_cursor_not_complete (__main__.ReaderTests.test_explicit_empty_cursor_not_complete) ... ok
+test_false_identifier_rejected (__main__.ReaderTests.test_false_identifier_rejected) ... ok
+test_identical_duplicate_retained_once (__main__.ReaderTests.test_identical_duplicate_retained_once) ... ok
+test_missing_cursor_not_terminal (__main__.ReaderTests.test_missing_cursor_not_terminal) ... ok
+test_negative_money_and_currency (__main__.ReaderTests.test_negative_money_and_currency) ... ok
+test_nonfinite_money_rejected (__main__.ReaderTests.test_nonfinite_money_rejected) ... ok
+test_november_rejected (__main__.ReaderTests.test_november_rejected) ... ok
+test_null_cursor_not_terminal (__main__.ReaderTests.test_null_cursor_not_terminal) ... ok
+test_precision_id_preserved (__main__.ReaderTests.test_precision_id_preserved) ... ok
+test_types_duplicates_rejected (__main__.ReaderTests.test_types_duplicates_rejected) ... ok
+test_unknown_fee_not_discarded (__main__.ReaderTests.test_unknown_fee_not_discarded) ... ok
+test_unknown_nested_field_retained (__main__.ReaderTests.test_unknown_nested_field_retained) ... ok
+test_wrong_day_rejected (__main__.ReaderTests.test_wrong_day_rejected) ... ok
+test_wrong_request_date_rejected (__main__.ReaderTests.test_wrong_request_date_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.076s
+
+OK
