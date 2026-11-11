@@ -1,0 +1,20 @@
+{
+  "status": "PREPARED_MONTH_NOT_EXECUTED",
+  "cabinet": "ozon_dmitrieva",
+  "period": "2026-01",
+  "days": 31,
+  "max_send_entries": 128,
+  "max_pages_per_day": 10,
+  "source_day_reused": "2026-01-15",
+  "types_reused": 138,
+  "pilot_real_read_verified": true,
+  "provider_calls_during_month_preparation": 0,
+  "root_executed": false,
+  "financial_month_reconciliation_complete": false,
+  "offline_tests": {
+    "python3.14": 14,
+    "python3.12": 14,
+    "network_denied": true
+  },
+  "remaining": "owner root launch, collect January candidate day coverage, reconcile actual cabinet export; later all30month scopes"
+}

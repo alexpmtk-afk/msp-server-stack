@@ -1,5 +1,5 @@
 {
-  "status": "PREPARED_PILOT_NOT_EXECUTED",
+  "status": "REAL_PILOT_CAPTURE_VERIFIED_MONTH_PENDING",
   "task_complete": false,
   "primary_source": "Ozon accruals and compensations by product, not realization",
   "cabinet_order": [
@@ -21,22 +21,24 @@
       "/v1/finance/accrual/types",
       "/v1/finance/accrual/by-day"
     ],
-    "purpose": "types and FIRST PAGE capture, NOT full day/month"
+    "purpose": "types and FIRST PAGE capture, NOT full day/month",
+    "status": "CAPTURED_NOT_RECONCILED"
   },
   "offline_tests": {
     "python3.14": 35,
     "python3.12": 35,
     "network_denied": true
   },
-  "provider_calls_this_task": 0,
-  "root_executed": false,
+  "provider_calls_this_task": 2,
+  "root_executed": true,
   "realization_source_deleted": false,
-  "blocker": "privileged existing executor activation requires owner root console",
+  "blocker": "owner root launch of prepared January month package",
   "remaining": [
     "Real two-read capture and readback",
     "Validate current payload and pagination terminal semantics",
     "First full month and independent cabinet-export reconciliation",
     "All30 cabinet-months with verified daily coverage",
     "Complete field-role bindings and canonical calculations"
-  ]
+  ],
+  "next_artifact": "/home/hermes/workspace/ozon-accrual-month-20261111/STATUS.json"
 }

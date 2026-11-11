@@ -67,3 +67,8 @@ launcher tamper refusal и Bash one-line syntax. Реальный sandbox нов
 сверить с кабинетом и только после этого собирать все30месяцев. Независимая
 сверка календарного покрытия, исходных значений и общих списаний обязательна.
 Полный загрузчик и карта ролей ещё не приняты в production.
+
+
+## Superseding actual result
+
+Real owner launch succeeded:138types and15Jan15records retained,2HTTP200 and bothrawhashes independently verified; worker inactive/PrivateNetworkyes/noDropIns. Rawdata not published. See actual-pilot-validation.json; primary task remains incomplete. Next preparedfirstmonth package: ../ozon-accrual-month-20261111/.
