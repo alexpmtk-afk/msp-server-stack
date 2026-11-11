@@ -1,6 +1,7 @@
 # Карта полей позаказного месячного отчёта Ozon
 
-Статус: все наблюдаемые поля описаны; полный актуальный текст основной справки недоступен.
+Статус: все 46 наблюдаемых полей описаны. Переданный PDF основной справки прочитан;
+он описывает закрывающий отчёт, не подтверждает каждую привязку JSON позаказного API.
 Часть описаний — сохранённая копия схемы API, а не заново полученная текущая спецификация.
 
 | Путь JSON | Значение | Основание |
@@ -52,8 +53,17 @@
 | `rows[].delivery_commission.pick_up_point_coinvestment` | Скидка АПВЗ, выплаты партнёров | [4] |
 | `rows[].return_commission.pick_up_point_coinvestment` | Скидка АПВЗ, выплаты партнёров | [4] |
 
+## Дополнение по первичному источнику
+
+PDF и официальный пример сверены: две формулы закрывающего отчёта и различия
+цен, сумм, количеств, баллов и партнёрских выплат закреплены в `GUIDE.md`, раздел 7.[1][8]
+Не приписывать этим источникам прямую проверку каждого JSON-пути или API `total`.
+Происхождение и локальные источники: `source-reconciliation.json`.
+
 ## Sources
 
+[1] https://seller-edu.ozon.ru/libra/finances-documents/documents/otchet-o-realizacii-tovarov
 [4] https://dev.ozon.ru/community/1069-Otchet-o-realizatsii
 [6] https://dev.ozon.ru/community/778-Otchet-o-realizatsii-tovara-Bally-za-skidki
 [7] https://raw.githubusercontent.com/miilv/ozon-seller-api-skill/main/swagger.json
+[8] https://cdn1.ozonusercontent.com/s3/kms-files-prod/seller-edu/69651267-a322-4093-9fb8-2ee13f1e5e3d/otchet-o-realizatsii-tovara-s-1032026.xlsx — Официальный пример отчёта о реализации

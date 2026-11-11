@@ -1,12 +1,18 @@
 {
-  "status": "PARTIAL_PRIMARY_HELP_FULL_TEXT_PENDING",
+  "status": "PRIMARY_PDF_RECONCILED_SCOPED",
   "read_instruction_installed": true,
   "observed_fields_mapped": 46,
   "reports_profiled": 30,
   "rows_profiled": 14204,
   "normative_formulas_complete": false,
-  "seller_edu_current_text": "BLOCKED_OZON_403_BROWSER_AND_REDIRECT_LOOP",
+  "seller_edu_current_text": "OWNER_PROVIDED_OFFICIAL_ARTICLE_PDF_FULLY_READ",
   "schema_source": "attributed mirror, not current official delivery",
   "root_required": false,
-  "source_data_changed": false
+  "source_data_changed": false,
+  "primary_article_pdf_read": true,
+  "closing_report_formulas_verified": true,
+  "official_example_formulas_verified": true,
+  "posting_api_current_schema_verified": false,
+  "all_financial_formulas_complete": false,
+  "source_reconciliation": "source-reconciliation.json"
 }

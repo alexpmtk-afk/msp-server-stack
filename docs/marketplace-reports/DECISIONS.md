@@ -101,3 +101,8 @@ Independent read audit source/result: `ops/marketplace-access-audit-20261111/`. 
 ## Ozon semantics sources —11.11.2026 PARTIAL
 
 Official SellerEducation source located but actual browser403/redirect challenge prevents currentarticletext; not read. Historic primarymoderator evidence + attributedschemamirror + real30reports establish46 observedfieldbindings,14204rows,14525populated-block observedidentity checks. Practical guide and sourceflags installed, but currentnormativeformulas/fullXLSX mapping remainpending. Importantcorrection: monthlyOzon reportdoesnot give arbitrarydailysales; orderdate isnotrealizationdate. No money/source/API/scheduler changes. Canonical: docs/data-sources/ozon-financial-reports/; evidenceacceptance: ops/ozon-report-semantics-20261111/PROVENANCE.md.
+
+
+## Ozon official PDF reconciled —11.11.2026
+
+Owner-provided official six-page realization article read including illustrations; linked official XLSX confirms closing totals C28=F24-J24 and C29=G24-K24. Canonical guide and46-field map updated, source-reconciliation.json records SHA256/scope. Full source copies retained only on server. Closing document is distinct from downloaded posting API; API total remains empirical, not normative. Daily endpoint subscription/32-day limitation documented, not enabled or called. No source-report/API/root changes. Shared default-profile read entrypoints updated.

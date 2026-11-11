@@ -10,6 +10,10 @@
         {
           "text": "Похоже, нет соединения",
           "added": "2026-11-11"
+        },
+        {
+          "text": "Отчёт о реализации товаров",
+          "added": "2026-11-11"
         }
       ]
     },
@@ -81,6 +85,18 @@
       "quotes": [
         {
           "text": "Seller's discounted price.",
+          "added": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "url": "https://cdn1.ozonusercontent.com/s3/kms-files-prod/seller-edu/69651267-a322-4093-9fb8-2ee13f1e5e3d/otchet-o-realizatsii-tovara-s-1032026.xlsx",
+      "title": "Официальный пример отчёта о реализации",
+      "accessed": "2026-11-11",
+      "quotes": [
+        {
+          "text": "Итого реализовано (за вычетом возвратов) (руб.):",
           "added": "2026-11-11"
         }
       ]
