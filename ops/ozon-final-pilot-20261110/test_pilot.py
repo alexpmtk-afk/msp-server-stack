@@ -84,25 +84,32 @@ class PilotTests(unittest.TestCase):
     def test_exact_empty_partial_validates_without_deleting_evidence(self):
         partial = self.state / 'partial'; partial.mkdir()
         state = self.state / 'state'; state.mkdir()
-        drop = self.state / 'unit.d'; drop.mkdir(); drop.chmod(0o700)
+        drop = self.state / 'unit.d'; drop.mkdir(); drop.chmod(0o755)
         minimal = {'ozon_dmitrieva': {'client_id': '123', 'api_key': 'fixture'}}
         (partial / 'program.py').write_bytes(b'fixture')
         manifest = json.dumps({'program.py': pilot.sha(b'fixture')}).encode()
         (partial / 'MANIFEST.json').write_bytes(manifest)
-        (partial / 'cabinets.json').write_text(json.dumps(minimal))
         (partial / 'approval.json').write_text(json.dumps({'plan': pilot.PLAN}))
+        result = self.state / 'result.json'
+        raw_result = json.dumps({'status': 'HOLD_NO_WORKER_RECEIPT', 'entry_consumed': False,
+                               'temporary_activation_removed': True, 'installed_release': str(partial)}).encode()
+        result.write_bytes(raw_result)
         from types import SimpleNamespace
         real_stat = Path.stat
         def stat_path(path, *a, **kw):
             if path == partial / 'cabinets.json': return SimpleNamespace(st_gid=985)
             return real_stat(path, *a, **kw)
-        with patch.object(run_root, 'STATE', state), patch.object(run_root, 'PARTIAL', partial), patch.object(run_root, 'PARTIAL_MANIFEST', pilot.sha(manifest)), patch.object(run_root, 'DROP', drop / 'fixed.conf'), patch.object(run_root, 'trust'), patch.object(Path, 'stat', stat_path):
+        with patch.object(run_root, 'STATE', state), patch.object(run_root, 'PARTIAL', partial), patch.object(run_root, 'PARTIAL_MANIFEST', pilot.sha(manifest)), patch.object(run_root, 'RESULT', result), patch.object(run_root, 'PREVIOUS_RESULT_SHA', pilot.sha(raw_result)), patch.object(run_root, 'PREVIOUS_RESULT', self.state / 'archived.json'), patch.object(run_root, 'DROP', drop / 'fixed.conf'), patch.object(run_root, 'trust'), patch.object(Path, 'stat', stat_path):
             run_root.verify_empty_partial(minimal)
             (partial / 'program.py').write_bytes(b'changed')
             with self.assertRaises(ValueError):
                 run_root.verify_empty_partial(minimal)
-        self.assertTrue((partial / 'cabinets.json').exists())
+        self.assertTrue(result.exists())
         self.assertEqual(list(state.iterdir()), [])
+
+    def test_condition_override_replaces_wb_guard_with_own_approval(self):
+        text = run_root.unit_condition_override(Path('/var/lib/fixed/approval.json'), Path('/archive'))
+        self.assertEqual(text, '[Unit]\nConditionPathExists=\nConditionPathIsDirectory=/archive\nConditionPathExists=/var/lib/fixed/approval.json\n')
 
     def test_replay_does_not_construct_transport_or_read_credentials(self):
         self.retain()

@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import pwd
+import re
 import socket
 import stat
 import subprocess
@@ -24,8 +25,10 @@ DROP = Path('/run/systemd/system/msp-wb-pilot.service.d/91-ozon-final-pilot.conf
 ENV = Path('/etc/msp-marketplace-reports-executor/redis-runtime.env')
 MASTER = Path('/etc/msp-marketplace-reports/cabinets.json')
 RESULT = Path('/var/lib/msp-finance-control/results/ozon-dmitrieva-2026-01-pilot.json')
-PARTIAL = Path('/var/lib/msp-ozon-final.esz6i2qs')
-PARTIAL_MANIFEST = '1f40f499ed24c79771a63fb5e0a3f6e1fda02307a08c6ff55722ea5a10d925dd'
+PARTIAL = Path('/var/lib/msp-ozon-final._impcshq')
+PARTIAL_MANIFEST = 'f4cf55dcf1064c37a20e0fa4de679f83b94525a3fe6732858b6a17eca158b604'
+PREVIOUS_RESULT_SHA = '229e8b8ae9a631b92e91ba9a158b2dc363a2ef73307b9e7e37fc6e23e06ce87c'
+PREVIOUS_RESULT = RESULT.with_name('ozon-dmitrieva-2026-01-pilot-condition-skipped.json')
 
 def sha(raw):
     return hashlib.sha256(raw).hexdigest()
@@ -72,7 +75,7 @@ def run(args, timeout=30):
     return p.stdout
 
 def show():
-    raw = run(['/usr/bin/systemctl', 'show', SERVICE, '-p', 'ActiveState', '-p', 'PrivateNetwork', '-p', 'DropInPaths']).decode()
+    raw = run(['/usr/bin/systemctl', 'show', SERVICE, '-p', 'ActiveState', '-p', 'PrivateNetwork', '-p', 'DropInPaths', '-p', 'ConditionResult', '-p', 'Result', '-p', 'ExecMainStatus', '-p', 'ExecMainStartTimestamp']).decode()
     return dict(line.split('=', 1) for line in raw.splitlines() if '=' in line)
 
 def verify_payload():
@@ -131,18 +134,33 @@ def verify_empty_partial(minimal):
         if sha(path.read_bytes()) != digest:
             raise ValueError('partial payload changed')
     credential = PARTIAL / 'cabinets.json'
-    trust(credential, 0o640)
-    if credential.stat().st_gid != 985 or json.loads(credential.read_bytes()) != minimal:
-        raise ValueError('partial credential scope mismatch')
+    if credential.exists() or credential.is_symlink():
+        raise ValueError('prior cleaned credential unexpectedly exists')
     approval = PARTIAL / 'approval.json'
     trust(approval, 0o644)
     expected = {'cabinet': 'ozon_dmitrieva', 'year': 2026, 'month': 1,
                 'path': '/v1/finance/realization/posting', 'max_send_entries': 1}
     if json.loads(approval.read_bytes()).get('plan') != expected:
         raise ValueError('partial plan mismatch')
-    trust(DROP.parent, 0o700)
+    trust(RESULT, 0o644)
+    raw = RESULT.read_bytes()
+    if sha(raw) != PREVIOUS_RESULT_SHA:
+        raise ValueError('prior outcome differs from pinned skipped start')
+    receipt = json.loads(raw)
+    if receipt.get('status') != 'HOLD_NO_WORKER_RECEIPT' or receipt.get('entry_consumed') is not False or receipt.get('temporary_activation_removed') is not True or receipt.get('installed_release') != str(PARTIAL):
+        raise ValueError('prior outcome not proven pre-dispatch')
+    if PREVIOUS_RESULT.exists() or PREVIOUS_RESULT.is_symlink():
+        raise ValueError('prior receipt already archived; no repeat')
+    trust(DROP.parent, 0o755)
     if any(DROP.parent.iterdir()):
         raise ValueError('foreign partial activation files')
+
+def unit_condition_override(approval, archive=ARCHIVE):
+    # Replace WB's approval condition with this attempt's own root approval.
+    # Empty condition assignment resets the condition list; explicitly retain
+    # the original archive-directory guard, not only the new approval guard.
+    return ('[Unit]\nConditionPathExists=\nConditionPathIsDirectory=' + str(archive)
+            + '\nConditionPathExists=' + str(approval) + '\n')
 
 def prepare_drop_directory(path, *, recovering):
     if not path.exists():
@@ -199,7 +217,7 @@ def preflight():
     status = show()
     if status['ActiveState'] not in ('inactive', 'failed') or status['DropInPaths'] or status['PrivateNetwork'] != 'yes':
         raise ValueError('executor busy or has unknown controls')
-    for p in (RESULT, DROP, ROOT / 'cabinets.json', ROOT / 'approval.json'):
+    for p in (DROP, ROOT / 'cabinets.json', ROOT / 'approval.json'):
         if p.exists() or p.is_symlink():
             raise ValueError('prior or partial pilot exists; reconcile first')
     account = pwd.getpwnam('msp-reports')
@@ -221,6 +239,8 @@ def preflight():
         trust(DROP.parent, 0o755)
         if any(DROP.parent.iterdir()):
             raise ValueError('foreign activation files')
+    if RESULT.exists() and not STATE.exists():
+        raise ValueError('prior receipt without expected state')
     addresses = {str(ipaddress.ip_address(x[4][0])) for x in socket.getaddrinfo('api-seller.ozon.ru', 443, type=socket.SOCK_STREAM)}
     if not addresses or len(addresses) > 32 or any(not ipaddress.ip_address(x).is_global for x in addresses):
         raise ValueError('provider DNS bounds')
@@ -241,6 +261,9 @@ def execute():
         minimal, allow = preflight()
         # All unknown-target checks above precede mutation.
         recovering = STATE.exists()
+        if recovering:
+            os.rename(RESULT, PREVIOUS_RESULT)
+            syncdir(RESULT.parent)
         if not recovering:
             os.mkdir(STATE, 0o711)
             os.chown(STATE, 995, 985)
@@ -252,14 +275,14 @@ def execute():
         plan = {'cabinet': 'ozon_dmitrieva', 'year': 2026, 'month': 1,
                 'path': '/v1/finance/realization/posting', 'max_send_entries': 1}
         save(ROOT / 'approval.json', doc({'plan': plan, 'expires_epoch': time.time() + 300}), 0o644)
-        drop = ('[Service]\nPrivateNetwork=no\nEnvironmentFile=' + str(ENV) + '\n'
+        drop = (unit_condition_override(ROOT / 'approval.json') + '[Service]\nPrivateNetwork=no\nEnvironmentFile=' + str(ENV) + '\n'
             'Environment=MARKETPLACE_REQUIRE_REDIS=1 MSP_REPORTS_SHARED_QUEUE_VERIFIED=YES\n'
             'Environment=HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy=\n'
             'LoadCredential=\nLoadCredential=cabinets.json:' + str(ROOT / 'cabinets.json') + '\n'
             'IPAddressAllow=' + ' '.join(allow) + '\n'
             'ExecStart=\nExecStart=' + str(RUNTIME / 'bin/python') + ' -I -B ' + str(ROOT / 'pilot.py') + '\n'
             'Restart=no\nRuntimeMaxSec=180\nTimeoutStartSec=180\n'
-            'StandardOutput=null\nStandardError=null\n').encode()
+            'StandardOutput=null\nStandardError=file:' + str(STATE / 'worker-stderr.txt') + '\n').encode()
         prepare_drop_directory(DROP.parent, recovering=recovering)
         save(DROP, drop, 0o644)
         cleanup = False
@@ -296,10 +319,21 @@ def execute():
             result = json.loads(worker.read_bytes())
         else:
             result = {'status': 'HOLD_NO_WORKER_RECEIPT', 'entry_consumed': (STATE / 'entry.json').exists()}
+            status = show()
+            result['executor_state'] = {k: status.get(k) for k in ('ConditionResult', 'Result', 'ExecMainStatus', 'ExecMainStartTimestamp')}
+            stderr = STATE / 'worker-stderr.txt'
+            if stderr.exists():
+                st = stderr.lstat()
+                if stat.S_ISREG(st.st_mode) and st.st_uid in (0, 995) and st.st_nlink == 1:
+                    with stderr.open('rb') as stream:
+                        raw = stream.read(16384).decode('utf-8', 'replace')
+                    kinds = re.findall(r'^([A-Za-z_][A-Za-z0-9_]*(?:Error|Exception)):', raw, flags=re.M)
+                    if kinds:
+                        result['startup_error_type'] = kinds[-1]
         # Only known fields leave the private executor state.
         allowed = {'status', 'cabinet', 'period', 'rows', 'response_sha256', 'csv_sha256',
                    'provider_http_status', 'max_send_entries', 'annual_coverage_complete',
-                   'error_type', 'response_retained', 'entry_consumed', 'frames', 'response_shape'}
+                   'error_type', 'response_retained', 'entry_consumed', 'frames', 'response_shape', 'executor_state', 'startup_error_type'}
         result = {k: v for k, v in result.items() if k in allowed}
         result['temporary_activation_removed'] = cleanup
         result['source_method'] = plan['path']
