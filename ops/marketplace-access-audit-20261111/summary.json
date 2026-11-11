@@ -1,0 +1,108 @@
+{
+  "verified_at": "2026-11-11T07:50:50.891319+00:00",
+  "uid": 1001,
+  "provider_calls": 0,
+  "source_writes": 0,
+  "sample_period": "2026-10-01/2026-10-31",
+  "wb": [
+    {
+      "cabinet": "wb_dmitrieva",
+      "status": "READ_VERIFIED",
+      "october_rows": 380,
+      "annual_rows": 16597,
+      "datasets": [
+        {
+          "type": 1,
+          "rows": 16271,
+          "date_min": "2026-01-01",
+          "date_max": "2026-11-01",
+          "column_count": 96,
+          "sha256": "c30a19418facec65f436a1dff1fc9798395001c579cc6a7d9c3342dfa50f16c5"
+        },
+        {
+          "type": 2,
+          "rows": 326,
+          "date_min": "2026-01-06",
+          "date_max": "2026-10-30",
+          "column_count": 94,
+          "sha256": "7b5da79329273ab191afb821fa3d6bd8c44b29189168df94023cfcf6e7fd32f5"
+        }
+      ]
+    },
+    {
+      "cabinet": "wb_laser_master",
+      "status": "READ_VERIFIED",
+      "october_rows": 5276,
+      "annual_rows": 87174,
+      "datasets": [
+        {
+          "type": 1,
+          "rows": 84676,
+          "date_min": "2026-01-01",
+          "date_max": "2026-11-01",
+          "column_count": 96,
+          "sha256": "7e50877f6cf8baad7477212f39c7cc8045a732fa166e783e660a838ee7cb2aae"
+        },
+        {
+          "type": 2,
+          "rows": 2498,
+          "date_min": "2026-01-02",
+          "date_max": "2026-11-01",
+          "column_count": 95,
+          "sha256": "cdf066dd983cb9c1732e207d7ad389a8544e650eadac6d03f76723578cd041a1"
+        }
+      ]
+    },
+    {
+      "cabinet": "wb_novokshenov",
+      "status": "READ_VERIFIED",
+      "october_rows": 2569,
+      "annual_rows": 30104,
+      "datasets": [
+        {
+          "type": 1,
+          "rows": 29436,
+          "date_min": "2026-01-01",
+          "date_max": "2026-11-01",
+          "column_count": 96,
+          "sha256": "a93d9e278fec99379855e4107eb271d1402fcb977001599e6c7817d0c71bb2f5"
+        },
+        {
+          "type": 2,
+          "rows": 668,
+          "date_min": "2026-01-02",
+          "date_max": "2026-10-31",
+          "column_count": 94,
+          "sha256": "748cc9fa22c98f569901e69dc0551448b64a42a03976993bce047628c29ace9e"
+        }
+      ]
+    }
+  ],
+  "ozon": [
+    {
+      "cabinet": "ozon_dmitrieva",
+      "status": "READ_VERIFIED",
+      "october_rows": 150,
+      "annual_rows": 1724,
+      "verified_months": 10,
+      "manifest_sha256": "c5d8d4a80a813a45306bd84397643fc42a58bda29d14a2773f7d74df0ea0490f"
+    },
+    {
+      "cabinet": "ozon_laser_master",
+      "status": "READ_VERIFIED",
+      "october_rows": 878,
+      "annual_rows": 9167,
+      "verified_months": 10,
+      "manifest_sha256": "a216cb5029867f413f521e941ce109c7591ea1d742f45f16b2d74d2a19348cd7"
+    },
+    {
+      "cabinet": "ozon_novokshenov",
+      "status": "READ_VERIFIED",
+      "october_rows": 476,
+      "annual_rows": 3313,
+      "verified_months": 10,
+      "manifest_sha256": "fe4aff41f119cd114794ffb767769e1a8e200b61598d0ce7d6903a78dc724001"
+    }
+  ],
+  "limits": "Saved financial reports, not unrestricted browser/account access. Ozon realization Jan-Oct2026 only; WB weekly2026, no daily, current month paused. No new API test during this audit."
+}
