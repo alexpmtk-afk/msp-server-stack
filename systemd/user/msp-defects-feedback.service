@@ -1,0 +1,10 @@
+[Unit]
+Description=MSP defects and feedback daily task admission
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/hermes/.local/share/msp-defects-feedback/dispatch.py
+UMask=0077
+NoNewPrivileges=true
