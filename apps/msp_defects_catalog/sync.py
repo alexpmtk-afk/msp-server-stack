@@ -11,6 +11,11 @@ from pathlib import Path
 import sqlite3
 import urllib.parse
 
+try:
+    from apps.msp_defects_catalog import status_observations as observations
+except ModuleNotFoundError:
+    import status_observations as observations
+
 SHEET='1YMvYrVoPkMv5N1ig7tDaBz10_Epxpkglrkc2V4q-KDE'
 TABS={'main':('Таблица по бракам',0),'laser':('Таблица по бракам для Лазер',1442102002)}
 HEADERS={
@@ -110,11 +115,16 @@ CREATE VIEW IF NOT EXISTS defects_current AS SELECT r.source_row,json_extract(r.
 
 def store_snapshot(db,records,snapshot_sha):
     db=Path(db);db.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
-    con=sqlite3.connect(db);con.executescript(SCHEMA)
+    con=sqlite3.connect(db);con.executescript(SCHEMA+observations.SCHEMA)
     stats={'inserted':0,'changed':0,'unchanged':0,'retired':0}
     try:
         with con:
+            observations.initialize_baseline(con)
+            previous_run=con.execute("select max(id) from defects_run where status='success'").fetchone()[0]
+            observed_at=now()
             run=con.execute('insert into defects_run(started_at,status,snapshot_sha) values(?,?,?)',(now(),'running',snapshot_sha)).lastrowid
+            observations.observe(con,records,run=run,observed_at=observed_at,
+                previous_run=previous_run,baseline=previous_run is None)
             for source,rows in records.items():
                 for r in rows:
                     payload=encode(r);hash_=digest(r);key=(source,r['source_row'])
@@ -182,6 +192,7 @@ def verify(root):
             assert got==[(r['source_row'],encode(r)) for r in rows]
         got=c.execute('select main_row,laser_row,state,effective_status,effective_comment from defects_link order by main_row').fetchall()
         assert got==[(r['main_row'],r['laser_row'],r['state'],r['effective_status'],r['effective_comment']) for r in link_rows(records['main'],records['laser'])]
+        observations.verify_observations(c,records,receipt['run_id'])
     return {'verified':True,**receipt}
 
 def main():
@@ -195,6 +206,10 @@ def main():
             if a.start:sql+=' and received_date>=?';args.append(a.start)
             if a.end:sql+=' and received_date<=?';args.append(a.end)
             rows=[dict(r) for r in c.execute(sql+' order by received_date,source_row',args)]
+            for r in rows:
+                r['main_status_observations']=observations.history_for_row(c,'main',r['source_row'])
+                link=c.execute('select laser_row,state from defects_link where main_row=?',(r['source_row'],)).fetchone()
+                r['status_observations']=observations.history_for_row(c,'laser',link[0]) if link and link[1]=='EXACT_MATCH' else (r['main_status_observations'] if link and link[1]=='NOT_APPLICABLE' else {'tracking_quality':'UNRESOLVED_STATUS_LINK','status_changed_at':None,'events':[]})
         print(encode({'internal_article':a.article,'complaint_count':len(rows),'records':rows}));return
     a.root.mkdir(parents=True,exist_ok=True,mode=0o700)
     with (a.root/'sync.lock').open('a') as lock:

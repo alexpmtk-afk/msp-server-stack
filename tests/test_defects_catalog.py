@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from apps.msp_defects_catalog.sync import HEADERS,parse_rows,link_rows,store_snapshot
@@ -53,6 +54,6 @@ class CatalogTests(unittest.TestCase):
             changed=store_snapshot(db,{'main':m,'laser':[]},'hash-two')
             self.assertEqual(changed['changed'],1)
             store_snapshot(db,{'main':[],'laser':[]},'hash-three')
-            with sqlite3.connect(db) as c:
+            with closing(sqlite3.connect(db)) as c, c:
                 self.assertEqual(c.execute('select count(*) from defects_current').fetchone()[0],0)
                 self.assertEqual(c.execute('select count(*) from defects_row_revision').fetchone()[0],3)
