@@ -1,0 +1,12 @@
+[Unit]
+Description=MSP defects and feedback daily 08:30 Moscow
+
+[Timer]
+OnCalendar=*-*-* 08:30:00 Europe/Moscow
+Persistent=false
+AccuracySec=1s
+RandomizedDelaySec=0
+Unit=msp-defects-feedback.service
+
+[Install]
+WantedBy=timers.target
