@@ -7,6 +7,14 @@ test_both_cabinets_all_ten_months_and_corruption (__main__.ChildTests.test_both_
 test_dmitrieva_and_november_excluded (__main__.ChildTests.test_dmitrieva_and_november_excluded) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 2.252s
+Ran 7 tests in 2.300s
+
+OK
+
+test_deployed_archive_contains_executable_child_manifests (__main__.PackagingTests.test_deployed_archive_contains_executable_child_manifests) ... ok
+test_failed_child_has_safe_diagnostic_not_exception_text (__main__.PackagingTests.test_failed_child_has_safe_diagnostic_not_exception_text) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.572s
 
 OK

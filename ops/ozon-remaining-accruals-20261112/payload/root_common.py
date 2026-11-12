@@ -66,7 +66,13 @@ def run(args, timeout=30):
     p = subprocess.run(args, capture_output=True, timeout=timeout,
                        env={'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8'})
     if p.returncode:
-        raise RuntimeError('command failed: ' + Path(args[0]).name)
+        # Retain only traceback locations and exception class, never messages/source lines.
+        stderr=p.stderr.decode('utf-8',errors='replace')
+        frames=[{'file':Path(name).name,'line':int(line),'function':function}
+                for name,line,function in re.findall(r'File "([^"\n]+)", line ([0-9]+), in ([A-Za-z_<>][A-Za-z0-9_<>]*)',stderr)][-6:]
+        classes=re.findall(r'^([A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception))(?::|$)',stderr,re.M)
+        diagnostic={'error_type':classes[-1] if classes else 'ChildProcessFailure','frames':frames}
+        raise RuntimeError('command failed: '+Path(args[0]).name+' '+json.dumps(diagnostic,sort_keys=True))
     return p.stdout
 
 def show():

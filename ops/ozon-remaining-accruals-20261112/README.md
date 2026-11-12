@@ -36,3 +36,15 @@ Child receipts: ozon-novokshenov-accruals-2026-remaining.json and
  ozon-laser-master-accruals-2026-remaining.json under that same results directory.
 Current child counters are in its receipt current_period/months; main chain
 records verified finished cabinets. No special task-panel code was added.
+
+## Packaging correction —12.11.2026
+
+Initial root activation stopped before installation/provider calls: nested child
+MANIFEST.json files were incorrectly excluded by the outer archive builder.
+The exclusion now applies only to the outer manifest; 36 files are included.
+Added regression against the actual extracted deployment artifact and child
+verify_payload (only inode ownership mocked in nonroot test), plus sanitized
+child-failure diagnostics that exclude exception text/source lines. Both tests
+were observed failing then passing; nine total tests PASS on3.14 and3.12.
+Original root snapshot remains intact. Use only the regenerated pinned command.
+Production activation remains pending, not verified by local packing tests.

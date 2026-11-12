@@ -1,0 +1,11 @@
+{
+  "status": "FIXED_PREPARED_NOT_EXECUTED",
+  "failed_root_snapshot": "/var/lib/msp-ozon-remaining-accruals.__l5v_hk",
+  "cause": "build excluded every basename MANIFEST.json, not only root; both child manifests omitted",
+  "before_service_install": true,
+  "new_provider_calls": 0,
+  "root_service_load_state": "not-found",
+  "worker_isolated": true,
+  "regression": "actual archive extraction and child verify_payload; RED then GREEN; sanitized subprocess error RED then GREEN",
+  "tests": 9
+}

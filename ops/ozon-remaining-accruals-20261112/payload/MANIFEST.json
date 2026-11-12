@@ -1,5 +1,6 @@
 {
   "chain.py": "7a21e973fb30dd85f726e1aa24fff463cdb52bb557a75773e7387e1fdde6d7d7",
+  "ozon_laser_master/MANIFEST.json": "132f49d366250d588dba2dd77def9b72cd318da0c4d6dbed951dba19259f614b",
   "ozon_laser_master/accepted-assets.json": "446937ed6043072422104abaa06de5b8dc58e39d52369e8cb84f880c1eb3cff9",
   "ozon_laser_master/apps/msp_marketplace_reports/__init__.py": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
   "ozon_laser_master/apps/msp_marketplace_reports/archive.py": "ad6868424077b01721fafc249354daf4954f7ceafabd9090c4c401e8c3fe31e3",
@@ -15,6 +16,7 @@
   "ozon_laser_master/root_common.py": "ee7767e248a93d5377384c94f06dbc5a55ae35876c29afce54feff9f14fc21f9",
   "ozon_laser_master/verify_results.py": "2cf422b94805cc3d1a28f42da255209b91374151a474b4f821eb2197fff7b38a",
   "ozon_laser_master/year_root.py": "bd8156c217b5dee1aebc35263b7b35e5867b353ac845f9a413ebdc6203f11b78",
+  "ozon_novokshenov/MANIFEST.json": "268dac0c5e0f120687693818ce91a417c5d8bc0a34ef0876b8c6031907a47f1b",
   "ozon_novokshenov/accepted-assets.json": "446937ed6043072422104abaa06de5b8dc58e39d52369e8cb84f880c1eb3cff9",
   "ozon_novokshenov/apps/msp_marketplace_reports/__init__.py": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
   "ozon_novokshenov/apps/msp_marketplace_reports/archive.py": "ad6868424077b01721fafc249354daf4954f7ceafabd9090c4c401e8c3fe31e3",
@@ -30,6 +32,6 @@
   "ozon_novokshenov/root_common.py": "ee7767e248a93d5377384c94f06dbc5a55ae35876c29afce54feff9f14fc21f9",
   "ozon_novokshenov/verify_results.py": "11562a86004bd1a42e33774821a42d410c72274d9808f3fa3a54c94490463d25",
   "ozon_novokshenov/year_root.py": "93266fbdbd084e0053c3d92937164c3a5f6724f84a740360443eb2c6fbee584c",
-  "root_common.py": "4a4a32c18a7dc874d382890f873fc25fd90b598af70197a226ebc4bce5374ab0",
+  "root_common.py": "3699132001870610217e665710b3dab6f41d5fbe35662879d270f58203130de6",
   "start_root.py": "a5d2738ce80a4f15f7567e1ee90b74369f367e1c9d18ddf96e14b3ae589a76ed"
 }

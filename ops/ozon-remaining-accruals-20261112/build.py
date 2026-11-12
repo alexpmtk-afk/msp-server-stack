@@ -10,7 +10,7 @@ import tarfile
 BASE = Path(__file__).parent
 PAYLOAD = BASE / 'payload'
 sha = lambda b: hashlib.sha256(b).hexdigest()
-files = {str(p.relative_to(PAYLOAD)): p.read_bytes() for p in PAYLOAD.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.name != 'MANIFEST.json'}
+files = {str(p.relative_to(PAYLOAD)): p.read_bytes() for p in PAYLOAD.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.relative_to(PAYLOAD).as_posix() != 'MANIFEST.json'}
 manifest = (json.dumps({name: sha(raw) for name, raw in sorted(files.items())}, sort_keys=True, indent=2) + '\n').encode()
 (PAYLOAD / 'MANIFEST.json').write_bytes(manifest)
 files['MANIFEST.json'] = manifest
