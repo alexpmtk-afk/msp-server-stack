@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "6cd1d6b72e1da34d129b014c6dea4ccdd53418a38cfd77c5c82468b8935e0712",
+  "manifest_sha256": "e628b8dde95c7d95128d93ce5cc3631940eb5346fab4016bf4228f9b2f74c30e",
+  "launcher_sha256": "27e9730f22d0a5b0b574c5405892989c74daeb51111523130af431c2e4a4ca35",
+  "files": 34,
+  "command_sha256": "bdccfa0c2d9fc88052edfaf18709db8d8ab412aef34176bc492e8630534495c3",
+  "scope": "Only ozon_novokshenov then ozon_laser_master Jan-Oct2026 accruals, max128entries/month and2560total; 608days/20months; source/publicationverification before cabinet transition; no Dmitrieva/November/LLM/timer; existing worker/controller/Redis; common run.py; scoped temporary rule cleanup",
+  "command_physical_lines": 1
+}

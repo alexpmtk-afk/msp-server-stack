@@ -1,0 +1,12 @@
+test_fixed_order_and_each_verified_before_next (__main__.ChainTests.test_fixed_order_and_each_verified_before_next) ... ok
+test_fixed_start_only_policy_no_pkcheck (__main__.ChainTests.test_fixed_start_only_policy_no_pkcheck) ... ok
+test_nonroot_installer_refuses (__main__.ChainTests.test_nonroot_installer_refuses) ... ok
+test_service_no_restart_and_cleanup (__main__.ChainTests.test_service_no_restart_and_cleanup) ... ok
+test_unknown_outcome_stops_chain (__main__.ChainTests.test_unknown_outcome_stops_chain) ... ok
+test_both_cabinets_all_ten_months_and_corruption (__main__.ChildTests.test_both_cabinets_all_ten_months_and_corruption) ... ok
+test_dmitrieva_and_november_excluded (__main__.ChildTests.test_dmitrieva_and_november_excluded) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 2.252s
+
+OK
