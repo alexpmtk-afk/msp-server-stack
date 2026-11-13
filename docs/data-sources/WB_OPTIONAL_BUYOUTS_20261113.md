@@ -1,3 +1,5 @@
+SUPERSEDED: see WB_ANY_REPORT_V2_20261113.md. V1 was not installed and its root command must not be used. Historical preparation follows.
+
 # WB optional buyout publication policy —13.11.2026
 
 Status: PREPARED_NOT_INSTALLED. Existing Root934_py03 continues collecting.
