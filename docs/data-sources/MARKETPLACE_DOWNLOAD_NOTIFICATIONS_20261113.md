@@ -1,6 +1,6 @@
 # Completion notice and verified weekly cleanup upgrade
 
-PREPARED_NOT_INSTALLED. Full82-file immutable release copied from verified
+INSTALLED_RUNTIME_VERIFIED (13Nov2026); first scheduled delivery not yet observed. Full82-file immutable release copied from verified
 installed WBfbkt0_6o and accepted nested Ozon code; only controller/plan/worker
 and Ozon notification suppression change among existing modules. New shared
 summary model/sender/daemon and local cleanup are added. Financial ingestion
@@ -90,13 +90,13 @@ notification before weekly9–15Nov. Do not simulate a Telegram send to prove it
    Пустая очередь службы итогов — служба включена, а не «задача выполняется»;
    неизвестный источник — UNKNOWN. Панель читает реальную очередь SQLite.
 
-Статус: PREPARED_NOT_INSTALLED. Пакет и ROOT_SUMMARIES.txt находятся в
+Статус: INSTALLED_RUNTIME_VERIFIED — установка13.11.2026 независимо проверена. Первая плановая Telegram-доставка ещё не наблюдалась. Пакет и ROOT_SUMMARIES.txt находятся в
 /home/hermes/workspace/marketplace-download-summaries-20261113.
 Подготовка/тесты/публикация не доказывают установку или Telegram-доставку.
 Установку проверять по /var/lib/msp-finance-notices/installation.json,
 policy=MP_DOWNLOAD_SUMMARY_V1_20261113, фактическим ExecStart обеих площадок,
 живому msp-finance-notices.service, неизменным таймерам и квитанциям deliveries.
 Этот документ заменяет старый порядок «сначала недельные» и старые отдельные
-уведомления каждого кабинета. До установки действует прежний защищённый код.
+уведомления каждого кабинета. Установленный выпуск: /var/lib/msp-marketplace-download-summaries.vyz32ik7. Старая схема отдельных уведомлений отключена после готовности новой службы.
 Постоянный резервный запрос общей детализации этим изменением НЕ включается;
 однократное внесение данных Новокшенова за9ноября уже независимо проверено.
