@@ -1,0 +1,15 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "offline_tests": 14,
+  "real_user_systemd_fixture": "PASS; not root/provider/reboot acceptance",
+  "requires": "one root installation, then actual continuation/readback",
+  "scope": "Existing interrupted CURRENT 2026-11-01..13 all3Ozon cabinets",
+  "recovery_window_hours": 24,
+  "original_budget_per_cabinet": 128,
+  "retained_days": {
+    "ozon_dmitrieva": 13,
+    "ozon_novokshenov": 1,
+    "ozon_laser_master": 0
+  },
+  "root_executed": false
+}

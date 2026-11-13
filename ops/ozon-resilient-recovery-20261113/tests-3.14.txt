@@ -1,0 +1,25 @@
+test_expired_cursor_is_hold_not_new_day_request (__main__.RecoveryTests.test_expired_cursor_is_hold_not_new_day_request) ... ok
+test_inactive_worker_without_result_requests_reconciliation (__main__.RecoveryTests.test_inactive_worker_without_result_requests_reconciliation) ... ok
+test_lost_start_notification_does_not_stop_or_start_twice (__main__.RecoveryTests.test_lost_start_notification_does_not_stop_or_start_twice) ... ok
+test_no_entry_is_new_but_orphan_response_is_hold (__main__.RecoveryTests.test_no_entry_is_new_but_orphan_response_is_hold) ... ok
+test_retained_page_replay_does_not_enter_transport (__main__.RecoveryTests.test_retained_page_replay_does_not_enter_transport) ... ok
+test_terminal_receipt_never_restarts_worker (__main__.RecoveryTests.test_terminal_receipt_never_restarts_worker) ... ok
+test_unsafe_reconciliation_failure_not_treated_as_bus_pause (__main__.RecoveryTests.test_unsafe_reconciliation_failure_not_treated_as_bus_pause) ... ok
+test_completed_pages_are_reused_through_publication_without_http (__main__.WorkerRecoveryTests.test_completed_pages_are_reused_through_publication_without_http) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.459s
+
+OK
+
+test_controller_restart_skips_completed_cabinet_and_reattaches (__main__.ControllerTests.test_controller_restart_skips_completed_cabinet_and_reattaches) ... ok
+test_cooperative_root_stop_during_child_verifier_is_pause_not_hold (__main__.ControllerTests.test_cooperative_root_stop_during_child_verifier_is_pause_not_hold) ... ok
+test_manager_disconnect_is_recoverable_pause (__main__.ControllerTests.test_manager_disconnect_is_recoverable_pause) ... ok
+test_no_stop_during_live_cleanup (__main__.ControllerTests.test_no_stop_during_live_cleanup) ... ok
+test_nonroot_install_refuses_before_reads (__main__.ControllerTests.test_nonroot_install_refuses_before_reads) ... ok
+test_persistent_service_recovers_but_holds_unknowns (__main__.ControllerTests.test_persistent_service_recovers_but_holds_unknowns) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.011s
+
+OK

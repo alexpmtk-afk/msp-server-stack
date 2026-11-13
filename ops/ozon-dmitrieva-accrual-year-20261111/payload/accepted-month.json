@@ -1,0 +1,17 @@
+{
+  "status": "CABINET_EXPORT_RECONCILIATION_PASS",
+  "cabinet": "ozon_dmitrieva",
+  "period": "2026-01",
+  "days": 31,
+  "api_grouped_rows": 728,
+  "cabinet_component_rows": 1637,
+  "all_components_including_zero_match": true,
+  "daily_totals_match": true,
+  "month_total_matches": true,
+  "source_csv_sha256": "7089e1dca18b155e8f9e5e4155d8bbd9c86849f18e391cab1db6f2c6ae42d68e",
+  "xlsx_sha256": "ba02d7f88f9f5a9c6dcff40ccb97ca643fadf0543635acabe5484df78f0342e6",
+  "auditor_sha256": "66bb58b7f9b20bf46d3e2e03424adb34bde4ce1dc6e99db0ca8d50dc86c419fa",
+  "cabinet_export_reconciliation_complete": true,
+  "provider_coverage_verified_for_this_saved_cabinet_export": true,
+  "scope": "Only January2026Dmitrieva; not universal API terminal contract or all30month coverage. Original worker receipt kept unchanged."
+}

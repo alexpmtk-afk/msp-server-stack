@@ -1,0 +1,717 @@
+{
+  "paths": {
+    "/v1/finance/accrual/postings": {
+      "post": {
+        "description": "Вы можете оставить обратную связь о работе метода в [комментариях](https://dev.ozon.ru/community/2008-Novye-beta-metody-dlia-polucheniia-nachislenii/) в сообществе разработчиков Ozon for dev.",
+        "tags": [
+          "BetaMethod",
+          "Прочие методы"
+        ],
+        "summary": "Получить начисления по отправлениям",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Client-Id"
+          },
+          {
+            "$ref": "#/components/parameters/Api-Key"
+          }
+        ],
+        "operationId": "GetFinanceAccrualPostings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualPostingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Начисления по отправлениям",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualPostingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/googlerpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "x-ozon-section": {
+          "name": "BetaMethod",
+          "title": "Прочие методы",
+          "group": "Бета-методы"
+        }
+      }
+    },
+    "/v1/finance/accrual/types": {
+      "post": {
+        "description": "Вы можете оставить обратную связь о работе метода в [комментариях](https://dev.ozon.ru/community/2008-Novye-beta-metody-dlia-polucheniia-nachislenii/) в сообществе разработчиков Ozon for dev.",
+        "tags": [
+          "BetaMethod",
+          "Прочие методы"
+        ],
+        "summary": "Получить справочник начислений",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Client-Id"
+          },
+          {
+            "$ref": "#/components/parameters/Api-Key"
+          }
+        ],
+        "operationId": "GetFinanceAccrualTypes",
+        "responses": {
+          "200": {
+            "description": "Справочник начислений",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualTypesResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/googlerpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "x-ozon-section": {
+          "name": "BetaMethod",
+          "title": "Прочие методы",
+          "group": "Бета-методы"
+        }
+      }
+    },
+    "/v1/finance/accrual/by-day": {
+      "post": {
+        "description": "Если укажете `last_id` в запросе, передайте значение `date` из предыдущего запроса, иначе вернётся ошибка `400 Bad Request`.\n\nВы можете оставить обратную связь о работе метода в [комментариях](https://dev.ozon.ru/community/2008-Novye-beta-metody-dlia-polucheniia-nachislenii/) в сообществе разработчиков Ozon for dev.\n",
+        "tags": [
+          "BetaMethod",
+          "Прочие методы"
+        ],
+        "summary": "Получить начисления за день",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Client-Id"
+          },
+          {
+            "$ref": "#/components/parameters/Api-Key"
+          }
+        ],
+        "operationId": "GetFinanceAccrualByDay",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Начисления за день",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Ошибка",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/googlerpcStatus"
+                }
+              }
+            }
+          }
+        },
+        "x-ozon-section": {
+          "name": "BetaMethod",
+          "title": "Прочие методы",
+          "group": "Бета-методы"
+        }
+      }
+    }
+  },
+  "schemas": {
+    "finance.v1.GetFinanceAccrualByDayRequest": {
+      "type": "object",
+      "required": [
+        "date",
+        "last_id"
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "Дата начислений. Самая ранняя — 1 января 2022 года.\n\nЕсли укажете `last_id`, передайте значение `date` из предыдущего запроса.\n",
+          "pattern": " YYYY-MM-DD"
+        },
+        "last_id": {
+          "type": "string",
+          "description": "Идентификатор последнего значения на странице. При первом запросе оставьте это поле пустым.\n\nЧтобы получить следующие значения, укажите `last_id` из ответа предыдущего запроса.\n\nСрок жизни идентификатора — 15 минут.\n"
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse": {
+      "type": "object",
+      "properties": {
+        "accruals": {
+          "type": "array",
+          "description": "Список начислений по отправлению.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual"
+          }
+        },
+        "last_id": {
+          "type": "string",
+          "description": "Идентификатор последнего значения на странице.\n\nСрок жизни идентификатора — 15 минут.\n"
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual": {
+      "type": "object",
+      "properties": {
+        "accrued_category": {
+          "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.AccruedCategory.Enum"
+        },
+        "container_fees": {
+          "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.ContainerFees"
+        },
+        "date": {
+          "type": "string",
+          "description": "Дата начислений.",
+          "pattern": " YYYY-MM-DD"
+        },
+        "item_fees": {
+          "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.ItemFees"
+        },
+        "non_item_fee": {
+          "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.NonItemFee"
+        },
+        "posting": {
+          "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting"
+        },
+        "total_amount": {
+          "$ref": "#/components/schemas/money.MoneyTotalAmount"
+        },
+        "accrual_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Идентификатор начисления."
+        },
+        "unit_number": {
+          "type": "string",
+          "description": "Идентификатор заказа или услуги. Например, номер отправления или номер рекламного договора."
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.AccruedCategory.Enum": {
+      "type": "string",
+      "description": "Тип начисления:\n- `UNSPECIFIED` — не определён;\n- `POSTING` — начисление по отправлению;\n- `ITEM` — начисление по товару;\n- `NON_ITEM` — начисление по продавцу без привязки к товару;\n- `CONTAINER_FEES` — начисление по контейнеру.\n",
+      "default": "UNSPECIFIED",
+      "enum": [
+        "UNSPECIFIED",
+        "POSTING",
+        "ITEM",
+        "NON_ITEM",
+        "CONTAINER_FEES"
+      ]
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.ContainerFees": {
+      "type": "object",
+      "description": "Начисления по контейнеру.",
+      "properties": {
+        "fees": {
+          "type": "array",
+          "description": "Начисления.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.ContainerFees.ContainerFee"
+          }
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.ContainerFees.ContainerFee": {
+      "type": "object",
+      "properties": {
+        "accrued": {
+          "$ref": "#/components/schemas/money.MoneyAccrued"
+        },
+        "type_id": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Идентификатор типа начисления. Получите значение параметра методом [/v1/finance/accrual/types](#operation/GetFinanceAccrualTypes)."
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.ItemFees": {
+      "type": "object",
+      "description": "Начисления по товарам.",
+      "nullable": true,
+      "properties": {
+        "fees": {
+          "type": "array",
+          "description": "Начисления по товару.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.ItemFees.ItemFee"
+          }
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.ItemFees.ItemFee": {
+      "type": "object",
+      "properties": {
+        "fees": {
+          "type": "array",
+          "description": "Начисления.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.ItemFees.ItemFee.Fee"
+          }
+        },
+        "sku": {
+          "description": "Идентификатор товара в системе Ozon — SKU.",
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.ItemFees.ItemFee.Fee": {
+      "type": "object",
+      "properties": {
+        "accrued": {
+          "$ref": "#/components/schemas/money.MoneyAccrued"
+        },
+        "type_id": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Идентификатор типа начисления. Получите значение параметра методом [/v1/finance/accrual/types](#operation/GetFinanceAccrualTypes)."
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.NonItemFee": {
+      "type": "object",
+      "description": "Начисление по продавцу без привязки к товару.",
+      "properties": {
+        "accrued": {
+          "$ref": "#/components/schemas/money.MoneyAccrued"
+        },
+        "type_id": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Идентификатор типа начисления. Можно получить методом [/v1/finance/accrual/types](#operation/GetFinanceAccrualTypes)."
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting": {
+      "type": "object",
+      "description": "Начисления по отправлению.",
+      "nullable": true,
+      "properties": {
+        "delivery_schema": {
+          "description": "Схема продаж.",
+          "type": "string"
+        },
+        "delivery_speed": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Скорость доставки."
+        },
+        "products": {
+          "type": "array",
+          "description": "Данные по товарам из отправления.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product"
+          }
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product": {
+      "type": "object",
+      "properties": {
+        "commission": {
+          "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product.Commission"
+        },
+        "delivery": {
+          "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product.Delivery"
+        },
+        "sku": {
+          "description": "Идентификатор товара в системе Ozon — SKU.",
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product.Commission": {
+      "type": "object",
+      "description": "Итоговая комиссия с учётом скидок и наценки.",
+      "properties": {
+        "bonus": {
+          "$ref": "#/components/schemas/money.MoneyBonus"
+        },
+        "coinvestment": {
+          "$ref": "#/components/schemas/money.MoneyCoinvestment"
+        },
+        "commission": {
+          "$ref": "#/components/schemas/money.MoneyCommission"
+        },
+        "commission_ratio": {
+          "type": "string",
+          "description": "Доля комиссии за продажу по категории."
+        },
+        "sale_amount": {
+          "$ref": "#/components/schemas/money.MoneySaleAmount"
+        },
+        "sale_commission": {
+          "$ref": "#/components/schemas/money.MoneySaleCommission"
+        },
+        "sale_price": {
+          "$ref": "#/components/schemas/money.MoneySalePrice"
+        },
+        "seller_price": {
+          "$ref": "#/components/schemas/money.MoneySellerPrice"
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product.Delivery": {
+      "type": "object",
+      "description": "Начисления по доставке.",
+      "properties": {
+        "services": {
+          "type": "array",
+          "description": "Начисления по услугам доставки.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product.Delivery.Service"
+          }
+        },
+        "total_accrued": {
+          "$ref": "#/components/schemas/money.MoneyTotalAccrued"
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualByDayResponse.Accrual.Posting.Product.Delivery.Service": {
+      "type": "object",
+      "properties": {
+        "accrued": {
+          "$ref": "#/components/schemas/money.MoneyAccrued"
+        },
+        "type_id": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Идентификатор типа начисления. Получите значение параметра методом [/v1/finance/accrual/types](#operation/GetFinanceAccrualTypes)."
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualPostingsRequest": {
+      "type": "object",
+      "required": [
+        "posting_numbers"
+      ],
+      "properties": {
+        "posting_numbers": {
+          "description": "Номера отправлений.",
+          "minItems": 1,
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualPostingsResponse": {
+      "type": "object",
+      "properties": {
+        "posting_accruals": {
+          "type": "array",
+          "description": "Список начислений по отправлениям.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualPostingsResponse.PostingAccruals"
+          }
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualPostingsResponse.PostingAccruals": {
+      "type": "object",
+      "properties": {
+        "accruals": {
+          "type": "array",
+          "description": "Список начислений.",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualPostingsResponse.PostingAccruals.Accrual"
+          }
+        },
+        "posting_number": {
+          "type": "string",
+          "description": "Номер отправления."
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualPostingsResponse.PostingAccruals.Accrual": {
+      "type": "object",
+      "properties": {
+        "accrual_date": {
+          "type": "string",
+          "description": "Дата начисления.",
+          "pattern": " YYYY-MM-DD"
+        },
+        "accrued": {
+          "$ref": "#/components/schemas/money.MoneyAccrued"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Количество товара.",
+          "nullable": true
+        },
+        "seller_price": {
+          "$ref": "#/components/schemas/money.MoneySellerPrice"
+        },
+        "sku": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Идентификатор товара в системе Ozon — SKU.",
+          "nullable": true
+        },
+        "type_id": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Идентификатор типа начисления. Можно получить методом [/v1/finance/accrual/types](#operation/GetFinanceAccrualTypes)."
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualTypesResponse": {
+      "type": "object",
+      "properties": {
+        "accrual_types": {
+          "description": "Информация о начислениях.",
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/finance.v1.GetFinanceAccrualTypesResponse.AccrualType"
+          }
+        }
+      }
+    },
+    "finance.v1.GetFinanceAccrualTypesResponse.AccrualType": {
+      "type": "object",
+      "description": "Информация о начислении.",
+      "properties": {
+        "description": {
+          "description": "Описание начисления.",
+          "type": "string"
+        },
+        "id": {
+          "description": "Идентификатор начисления.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "description": "Название начисления.",
+          "type": "string"
+        }
+      }
+    },
+    "googlerpcStatus": {
+      "type": "object",
+      "title": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Код ошибки."
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/protobufAny"
+          },
+          "description": "Дополнительная информация об ошибке."
+        },
+        "message": {
+          "type": "string",
+          "description": "Описание ошибки."
+        }
+      }
+    },
+    "money.MoneyAccrued": {
+      "type": "object",
+      "description": "Начислено за услугу.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneyBonus": {
+      "type": "object",
+      "description": "Начислено баллов за скидки.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneyCoinvestment": {
+      "type": "object",
+      "description": "Начислено по программе партнёров.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneyCommission": {
+      "type": "object",
+      "description": "Итоговая комиссия с учётом скидок и наценки.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneySaleAmount": {
+      "type": "object",
+      "description": "Реализовано на сумму.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneySaleCommission": {
+      "type": "object",
+      "description": "Комиссия по прайс-листу.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneySalePrice": {
+      "type": "object",
+      "description": "Цена покупателя.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneySellerPrice": {
+      "type": "object",
+      "description": "Цена за единицу.",
+      "nullable": true,
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным, если начисляется комиссия за продажу.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneyTotalAccrued": {
+      "type": "object",
+      "description": "Общая сумма начислений за услугу.",
+      "properties": {
+        "amount": {
+          "description": "Сумма. Значение может быть отрицательным.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "money.MoneyTotalAmount": {
+      "type": "object",
+      "description": "Общая сумма начислений.",
+      "properties": {
+        "amount": {
+          "description": "Сумма.",
+          "type": "string"
+        },
+        "currency": {
+          "description": "Валюта.",
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "title": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string",
+          "description": "Тип протокола передачи данных."
+        },
+        "value": {
+          "type": "string",
+          "format": "byte",
+          "description": "Значение ошибки."
+        }
+      }
+    }
+  }
+}

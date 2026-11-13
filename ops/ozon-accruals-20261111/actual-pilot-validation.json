@@ -1,0 +1,78 @@
+{
+  "status": "REAL_TWO_READ_CAPTURE_VERIFIED_NOT_MONTH_COVERAGE",
+  "types": 138,
+  "rows": 15,
+  "monetary_leaves": 54,
+  "unknown_type_ids": [],
+  "source_categories": {
+    "ITEM": 10,
+    "POSTING": 4,
+    "NON_ITEM": 1
+  },
+  "observed_fee_types": [
+    {
+      "id": 1,
+      "name": "Acquiring",
+      "description": "Эквайринг",
+      "occurrences": 5
+    },
+    {
+      "id": 9,
+      "name": "ClientReturn",
+      "description": "Обработка возвратов",
+      "occurrences": 1
+    },
+    {
+      "id": 16,
+      "name": "Drop-Off",
+      "description": "Обработка отправления Drop-off",
+      "occurrences": 2
+    },
+    {
+      "id": 29,
+      "name": "LastMileCourier",
+      "description": "Доставка до места выдачи",
+      "occurrences": 2
+    },
+    {
+      "id": 32,
+      "name": "Logistic",
+      "description": "Логистика",
+      "occurrences": 3
+    },
+    {
+      "id": 45,
+      "name": "PickUpPointReturnAcceptance",
+      "description": "Обработка возвратов, отмен и невыкупов партнёрами",
+      "occurrences": 1
+    },
+    {
+      "id": 46,
+      "name": "Placements",
+      "description": "Размещение товаров на складах Ozon",
+      "occurrences": 1
+    },
+    {
+      "id": 48,
+      "name": "PremiumCashbackIndividualPoints",
+      "description": "Бонусы продавца",
+      "occurrences": 2
+    },
+    {
+      "id": 59,
+      "name": "ReturnFlowLogistic",
+      "description": "Обратная логистика",
+      "occurrences": 1
+    },
+    {
+      "id": 74,
+      "name": "StarsMembership",
+      "description": "Звёздные товары",
+      "occurrences": 3
+    }
+  ],
+  "full_month_complete": false,
+  "provider_coverage_verified": false,
+  "raw_hashes_verified": true,
+  "isolation_restored": true
+}

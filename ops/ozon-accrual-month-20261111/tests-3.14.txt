@@ -1,0 +1,19 @@
+test_actual_seed_offline_all_fields_preserved (__main__.MonthTests.test_actual_seed_offline_all_fields_preserved) ... ok
+test_budget_refused_before_transport (__main__.MonthTests.test_budget_refused_before_transport) ... ok
+test_conflicting_pages_hold (__main__.MonthTests.test_conflicting_pages_hold) ... ok
+test_expired_cursor_no_dispatch (__main__.MonthTests.test_expired_cursor_no_dispatch) ... ok
+test_full31days_mocked_execution (__main__.MonthTests.test_full31days_mocked_execution) ... ok
+test_invalid_payload_durable_before_page_parser (__main__.MonthTests.test_invalid_payload_durable_before_page_parser) ... ok
+test_missing_cursor_retained_not_complete (__main__.MonthTests.test_missing_cursor_retained_not_complete) ... ok
+test_month_views_roundtrip_and_no_money_double_count (__main__.MonthTests.test_month_views_roundtrip_and_no_money_double_count) ... ok
+test_nonroot_no_scheduling (__main__.MonthTests.test_nonroot_no_scheduling) ... ok
+test_page_limit_not_marked_complete (__main__.MonthTests.test_page_limit_not_marked_complete) ... ok
+test_quota_denies_february_and_unrelated_method (__main__.MonthTests.test_quota_denies_february_and_unrelated_method) ... ok
+test_two_pages_dedup_identical_not_conflict (__main__.MonthTests.test_two_pages_dedup_identical_not_conflict) ... ok
+test_unit_runtime_and_credentials (__main__.MonthTests.test_unit_runtime_and_credentials) ... ok
+test_unknown_http_outcome_cannot_dispatch_again (__main__.MonthTests.test_unknown_http_outcome_cannot_dispatch_again) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.145s
+
+OK

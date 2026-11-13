@@ -1,0 +1,96 @@
+{
+  "progress": {
+    "sources": [
+      {
+        "path": "/var/lib/msp-finance-control/results/ozon-current-accruals-2026.json",
+        "fields": {
+          "who": "current_cabinet"
+        },
+        "field_defaults": {
+          "who": "verify"
+        },
+        "optional": true,
+        "defaults": {
+          "who": "ozon_dmitrieva"
+        }
+      },
+      {
+        "path": "/opt/mcp/data/msp-marketplace-reports/ozon-current-accruals-20261113-ozon_dmitrieva",
+        "glob": "2026-11/*.summary.json",
+        "sum": "rows",
+        "prefix": "d_",
+        "require": {
+          "status": "CURSOR_EXHAUSTED_UNRECONCILED"
+        }
+      },
+      {
+        "path": "/opt/mcp/data/msp-marketplace-reports/ozon-current-accruals-20261113-ozon_novokshenov",
+        "glob": "2026-11/*.summary.json",
+        "sum": "rows",
+        "prefix": "n_",
+        "require": {
+          "status": "CURSOR_EXHAUSTED_UNRECONCILED"
+        }
+      },
+      {
+        "path": "/opt/mcp/data/msp-marketplace-reports/ozon-current-accruals-20261113-ozon_laser_master",
+        "glob": "2026-11/*.summary.json",
+        "sum": "rows",
+        "prefix": "l_",
+        "require": {
+          "status": "CURSOR_EXHAUSTED_UNRECONCILED"
+        }
+      }
+    ],
+    "derive": {
+      "total": {
+        "sum": [
+          "d_completed",
+          "n_completed",
+          "l_completed"
+        ]
+      },
+      "left": {
+        "subtract": [
+          39,
+          "total"
+        ]
+      }
+    },
+    "maps": {
+      "who": {
+        "ozon_dmitrieva": "Дмитриева",
+        "ozon_novokshenov": "Новакшенов",
+        "ozon_laser_master": "Лазермастер",
+        "verify": "проверка"
+      }
+    },
+    "label": "{who} · ноябрь {total}/39 дней, осталось {left}. Дмитриева {d_completed}/13, Новакшенов {n_completed}/13, Лазермастер {l_completed}/13. ",
+    "stale_after": 600
+  },
+  "receipt": {
+    "rules": [
+      {
+        "when": {
+          "status": "VERIFIED"
+        },
+        "code": "done",
+        "label": "Срез проверен; текущий день предварительный."
+      },
+      {
+        "when": {
+          "status": "ERROR"
+        },
+        "code": "blocked",
+        "label": "Сбор остановлен; нужна проверка причины."
+      },
+      {
+        "when": {
+          "status": "AWAITING_REVIEW"
+        },
+        "code": "review",
+        "label": "Скачано, ожидает проверки."
+      }
+    ]
+  }
+}

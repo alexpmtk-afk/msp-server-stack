@@ -1,0 +1,118 @@
+{
+  "progress": {
+    "sources": [
+      {
+        "path": "/var/lib/msp-finance-control/results/ozon-current-recovery-20261113.json",
+        "fields": {
+          "who": "current_cabinet"
+        },
+        "field_defaults": {
+          "who": "verify"
+        },
+        "optional": true,
+        "defaults": {
+          "who": "ozon_novokshenov"
+        }
+      },
+      {
+        "path": "/opt/mcp/data/msp-marketplace-reports/ozon-current-accruals-20261113-ozon_dmitrieva",
+        "glob": "2026-11/*.summary.json",
+        "sum": "rows",
+        "prefix": "d_",
+        "require": {
+          "status": "CURSOR_EXHAUSTED_UNRECONCILED"
+        }
+      },
+      {
+        "path": "/opt/mcp/data/msp-marketplace-reports/ozon-current-accruals-20261113-ozon_novokshenov",
+        "glob": "2026-11/*.summary.json",
+        "sum": "rows",
+        "prefix": "n_",
+        "require": {
+          "status": "CURSOR_EXHAUSTED_UNRECONCILED"
+        }
+      },
+      {
+        "path": "/opt/mcp/data/msp-marketplace-reports/ozon-current-accruals-20261113-ozon_laser_master",
+        "glob": "2026-11/*.summary.json",
+        "sum": "rows",
+        "prefix": "l_",
+        "require": {
+          "status": "CURSOR_EXHAUSTED_UNRECONCILED"
+        }
+      }
+    ],
+    "derive": {
+      "total": {
+        "sum": [
+          "d_completed",
+          "n_completed",
+          "l_completed"
+        ]
+      },
+      "left": {
+        "subtract": [
+          39,
+          "total"
+        ]
+      }
+    },
+    "maps": {
+      "who": {
+        "ozon_dmitrieva": "Дмитриева",
+        "ozon_novokshenov": "Новакшенов",
+        "ozon_laser_master": "Лазермастер",
+        "verify": "проверка"
+      }
+    },
+    "label": "{who} · ноябрь {total}/39 дней, осталось {left}. Дмитриева {d_completed}/13, Новакшенов {n_completed}/13, Лазермастер {l_completed}/13. ",
+    "stale_after": 600
+  },
+  "receipt": {
+    "allow_pending": true,
+    "rules": [
+      {
+        "when": {
+          "status": "VERIFIED"
+        },
+        "code": "done",
+        "label": "Восстановление и сверка завершены."
+      },
+      {
+        "when": {
+          "status": "HOLD"
+        },
+        "code": "blocked",
+        "label": "Нужна проверка сохранённых результатов; автоматический повтор запрещён."
+      },
+      {
+        "when": {
+          "status": "HOLD_OWNERSHIP"
+        },
+        "code": "blocked",
+        "label": "Не подтверждена принадлежность процесса; он не остановлен."
+      },
+      {
+        "when": {
+          "status": "PAUSED_CONTROLLER_LINK"
+        },
+        "code": "waiting_system",
+        "label": "Пауза: восстановление связи с systemd. Продолжение автоматическое."
+      },
+      {
+        "when": {
+          "status": "PAUSED_NETWORK_OR_SERVICE"
+        },
+        "code": "waiting_system",
+        "label": "Пауза: ожидание сети или службы квоты. Продолжение автоматическое."
+      },
+      {
+        "when": {
+          "status": "PAUSED_RECOVERABLE"
+        },
+        "code": "waiting_system",
+        "label": "Пауза: проверка сохранённых страниц перед продолжением. Продолжение автоматическое."
+      }
+    ]
+  }
+}

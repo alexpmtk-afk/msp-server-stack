@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "52e027b4f9280e5dccd5019b1fd19d25bf4feebb85fdd709d1eeaf9e28e9e520",
+  "manifest_sha256": "5361b9766ac155fb6c270765f78ed5f5efc83232f15ee79afc68946a131e41b5",
+  "launcher_sha256": "d8ab243551a70c6bed951a9c96bd9de0d68a03f1a72fbf71ee75c746cc8f229c",
+  "files": 16,
+  "command_sha256": "c72b9dbadf4c1ab968b4bb38de7c6951bacc92fc00cdeaa62337b065ca25fda5",
+  "scope": "Only ozon_dmitrieva, types plus first accrual page2026-01-15, max2 durable sender entries; no pagination/publication/full-day claim, existing executor and Redis; no timer or LLM calls",
+  "command_physical_lines": 1
+}

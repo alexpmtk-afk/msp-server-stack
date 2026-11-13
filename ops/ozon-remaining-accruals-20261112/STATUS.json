@@ -1,0 +1,12 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "completed_cabinets": [
+    "ozon_dmitrieva"
+  ],
+  "pending_cabinets": [
+    "ozon_novokshenov",
+    "ozon_laser_master"
+  ],
+  "scope": "2026-01-01 through 2026-10-31",
+  "requires": "one root activation; Hermes sudo unavailable"
+}

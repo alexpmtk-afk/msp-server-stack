@@ -1,0 +1,16 @@
+{
+  "apps/msp_marketplace_reports/__init__.py": "62db73a52752cf06b4a4c5c9d04a4b44e78c3208361773dda8d27a6958bc7858",
+  "apps/msp_marketplace_reports/archive.py": "37613891a9418b6a92ac95d365e0c7f8230fde160ba939b6db6a259ec03bc8e2",
+  "apps/msp_marketplace_reports/generation_store.py": "56bab0d7af01d2cec20b551521af25a5dedaefbd890cf3d0aa476dcfef783e7d",
+  "apps/msp_marketplace_reports/ingest.py": "f1d67ee3f0bde5e69012b45e8bcf72e1c4ccaeb1a6ed955ab3d7c740f1696c58",
+  "apps/msp_marketplace_reports/ozon_accruals.py": "b744ebd78495d92fdb2bfe763e1c2cca2e70e1abef8714f5d8ddc744e67e92cc",
+  "apps/msp_marketplace_reports/providers.py": "ce761fcdc43a141663044156c460c9aa976f481cf1a7a2c778b0f3dcf0a57676",
+  "apps/msp_marketplace_reports/quota.py": "ff3d0dd56605c8c6c9c98744b0e3ce75f15d99e2dda2a6ad68b366e4177ed422",
+  "apps/msp_marketplace_reports/runtime.py": "a243543d53e5347dbcf42bf8e5b0558bf1e305bc9d708a0a06657d9dbd8f6ad5",
+  "apps/msp_marketplace_reports/shared_rate_limit.py": "1a9a165c30f03f7f50abc38564eb7134677a6e282248d3e56806fbc8ded33726",
+  "apps/msp_marketplace_reports/versioned_archive.py": "7c6c0e747f0be05cfe0d06caefc98bf9af3e55b73d9b98ce25fe601b7537fd04",
+  "capture_worker.py": "944557a61540b37b929355f7002f643cfdbce49bcb4425836aeac6ca14309bfb",
+  "probe_retained.py": "c5f01634d37bd80a5ff9ca2f1ee6cc8db4e7d836af0be74418b8abd82dae8d0e",
+  "recovery.py": "0a090595c2adbac7b8239b8c8c9ab932c83a12a36668dd4b5b631413ec593af0",
+  "verify_results.py": "08090d69cb8a5c6ea7595eae959257a06b811ce181054bc22241f1a27b35c25e"
+}

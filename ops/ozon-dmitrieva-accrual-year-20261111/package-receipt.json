@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "53160088786ba71b452575e117b6e4ef9f4b2fe041c816e952dcb13d88e7f989",
+  "manifest_sha256": "e9716211d91206765470b5359f257c10f64626569cb3c9d6d7dbadc2d5b1d21e",
+  "launcher_sha256": "292632535ce32b354a542c01a711f4de8f2a42002b9b4f2b41c39270d24ddb44",
+  "files": 19,
+  "command_sha256": "64bfbae2c84711a1a1a46c96c7e3ae0ff6d959cc235fd4a7ebaeacd9a4aa25e7",
+  "scope": "Only ozon_dmitrieva Jan-Oct2026 accruals, acceptedJanuary reused without HTTP; Feb-Oct max128senderentries/month and1152total; existingfinanceworker/controller/Redis; commonrun.py with realverifier; fixedtemporaryunit-startpolicy removedafterrun; no November/othercabinets/LLM/timer",
+  "command_physical_lines": 1
+}

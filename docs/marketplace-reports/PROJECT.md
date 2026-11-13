@@ -88,3 +88,28 @@ Official SellerEducation source located but actual browser403/redirect challenge
 ## Ozon official PDF reconciled —11.11.2026
 
 Owner-provided official six-page realization article read including illustrations; linked official XLSX confirms closing totals C28=F24-J24 and C29=G24-K24. Canonical guide and46-field map updated, source-reconciliation.json records SHA256/scope. Full source copies retained only on server. Closing document is distinct from downloaded posting API; API total remains empirical, not normative. Daily endpoint subscription/32-day limitation documented, not enabled or called. No source-report/API/root changes. Shared default-profile read entrypoints updated.
+
+
+## Owner replaces Ozon primary source with accruals —11.11.2026
+
+Realization-only30/30 does NOT complete desired Ozon financial base. Retain old files as separate reference, never sum overlapping sources. New permanent JanOct accrual scope30cabinet-months/912cabinet-days, Dmitrieva→Laser→Novokshenov; November excluded. Lossless candidate reader handles POSTING/ITEM/NON_ITEM/CONTAINER_FEES and unknowns, raw preserved, Decimal, no aggregate-of-all-money-fields. First pinned root package in ops/ozon-accruals-20261111: only types+January15FIRSTpage forDmitrieva, max2sendentries, same existing worker/controller/Redis, no timer/LLM/globalflag.35network-denied testsPASSon3.14/3.12 incl mockedcapture and bootstrap/unknown-outcome cases. PREPARED_NOT_EXECUTED; currenthermesUID1001 no passwordlessroot. Fullmonth/backfill/coverage/reconciliation not executed. Current detailedschema from attributedMissiaL mirror; primaryOzon2008 confirms bydayallaccruals and typespurpose. Emptylast_id is only candidateexhaustion, not proven financialcoverage. Read actualrootreceipt before retry; retain originalbudgets/raw onHOLD. Shareddefaultsourcepriority updated.
+
+
+## Actual accrual capture VERIFIED; January month PREPARED —11.11.2026
+
+Owner rootcommand succeeded. Independentraw HTTP200/digest validation:138types and15Jan15accruals forDmitrieva,ITEM10/POSTING4/NON_ITEM1;10observedtypeIDs all known. Acquiring/logistics/returnprocessing/storage and generalfees actuallypresent. Workerinactive/PrivateNetworkyes/noDropIns; originalcapture complete as capture ONLY, not verifiedfinancialcoverage. New ops/ozon-accrual-month-20261111 package prepared: fixedDmitrievaJan2026 all31days, exacttypes/day15seeds reused withzeroHTTP, max128newentries/10pagesday, existingquota/worker/controller, no timer/LLM.14networkdenied testsPASSon3.14/3.12 incl actual15rowseedreplay and fullmocked31dayCSVroundtrip. Newmonth ROOT NOT EXECUTED. Emptylast_id remains candidateexhaustion; aftercollect statusMONTH_COLLECTED_NOT_RECONCILED notCOMPLETE. Must reconcile actualcabinetexport before all30months. Originalrealization unmodified and not taskcompletion.
+
+
+## January accrual collection actually complete as capture, external reconciliation pending
+
+DmitrievaJan2026 all31candidate days/728rows(POSTING205/ITEM447/NON_ITEM76). Independently replayed30newHTTP200 retained pages + exactJan15seed; matched allnested sourcevalues to monthCSV, unique(day,accrual_id)keys, datecoverage, percurrencyDecimalnet and metadatahashes. ZeroAPIcalls duringaudit; no lostunknownfields/types/overlaps. monthCSV SHA7089e1dca18b155e8f9e5e4155d8bbd9c86849f18e391cab1db6f2c6ae42d68e. Worker/supervisorinactive and isolationrestored. NOT verifiedfinancialcoverage: await independent JanuarycabinetXLSX accruals+compensationsbyproduct (not realization). Uploadfolder /home/hermes/workspace/ozon-accruals-20261111/incoming/. WholethreecabinetJanOcttask notdone. Observeralreadydeclaredbygenericdataregistry; receipt MONTH_COLLECTED_NOT_RECONCILED mapsreview, notdone; norestart or newbackground task needed. Evidence ops/ozon-accrual-month-20261111/actual-month-validation.json and verify_month.py.
+
+
+## Independent cabinet export reconciled PASS —11.11.2026
+
+Owner supplied JanuaryDmitrieva Excel(SHAba02d7f88f9f5a9c6dcff40ccb97ca643fadf0543635acabe5484df78f0342e6). All1637components(33UIlabels) includingzeros match728APIgroupedrows exactly with date/unit/SKU/role/signedDecimal/multiplicity; all31daytotals andmonthtotalmatch. No monetaryvalues or sourceXLSX/raw published. Accepted-month receipt plus new docs/data-sources/ozon-accruals/GUIDE.md installed; originalworkerreceipt unchanged. All154commissionproducts havequantity1, so q>1rules not accepted bythissample. APItype14/71 coarsenUIreasonlabels; no inventedfineclassification. Firstmonth accepted, remaining29monthlyscopes NOT collected; no additionalproviderrequests/downloadstart inthisaudit. Existingtask no longer awaitingfile; rollout stillpending.
+
+
+## Owner authorizes Dmitrieva2026closedmonth accrual collection
+
+ExplicitscopeONLYDmitrievaJanOct; acceptedJanuary728row/1637XLSXcomponentmonth reused noHTTP;273newFebOctdays. ops/ozon-dmitrieva-accrual-year-20261111 prepared19-file immutablepackage, max128entries/month1152total, sameexistingfinanceexecutor/controller/Redis. Commonrun.py launchesfixedrootcoordinator throughtemporaryoneunit/startonlyhermesPolkitrule; exactownedrulecleanup and actual fullraw/CSV/B7verifier required, no panelcodechange/heartbeat/LLM/timer/newqueue. Permanentdataset ozon_financial_accruals separatefromrealization/CURRENT;10monthly scopes provide annualunion.21networkdeniedtestsPASSon3.14/3.12inclactualJanuaryofflinepublish/nocredentials+mocked10monthroundtrip. ROOT NOT EXECUTED,newPolkit/systemdruntime NOT VERIFIED. NeedoneownerrootcommandbecausecurrenthermesUID1001no passwordlessroot. No othercabinet/November/WB.

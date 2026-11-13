@@ -1,0 +1,18 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "tests_python314": 14,
+  "tests_python312": 14,
+  "tests_from_verified_extracted_payload": true,
+  "real_systemd_fixture": {
+    "result": "PASS",
+    "managed_launches": 1,
+    "simulated_notification_loss": 1,
+    "worker_survived": true,
+    "completion_observed": true,
+    "provider_calls": 0,
+    "root_changes": 0
+  },
+  "unit_syntax_exit": 0,
+  "unit_syntax_warning": "Nonroot verifier cannot open the existing protected base msp-wb-pilot.service; root/runtime acceptance remains pending",
+  "root_provider_acceptance": false
+}

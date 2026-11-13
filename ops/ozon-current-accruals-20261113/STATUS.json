@@ -1,0 +1,20 @@
+{
+  "status": "HOLD",
+  "root_attempt": "/var/lib/msp-ozon-current-accruals.ukayjhrw",
+  "completed": {
+    "ozon_dmitrieva": {
+      "days": 13,
+      "rows": 169
+    },
+    "ozon_novokshenov": {
+      "days": 1,
+      "rows": 37
+    },
+    "ozon_laser_master": {
+      "days": 0,
+      "rows": 0
+    }
+  },
+  "recovery": "PREPARED_NOT_INSTALLED: /home/hermes/workspace/ozon-resilient-recovery-20261113",
+  "do_not_repeat_original_launch": true
+}

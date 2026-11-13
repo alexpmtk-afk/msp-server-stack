@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "d91882c26cbc74f89e266d1f62a5b90402623557fd98fab377d97649c58ad875",
+  "manifest_sha256": "dfc46ba46167baf458e2b0b4b68963718864a848c12db75c82c5ccfca7f077ad",
+  "launcher_sha256": "78fd97ef3de12f313972ff93fa7f141f7304ca9e6c4d35091042dc22ce0feafa",
+  "files": 53,
+  "command_sha256": "4f5737fb3b3ff6f6bedd5f49421b8f15ecff904b509fddf245298ca855ebbb72",
+  "scope": "Recovery of fixed all3 Ozon Nov1-13 CURRENT snapshot only; original128entries/cabinet including retained entries preserved; Dmitrieva reuse; Novokshenov resume after retained day1; one fixed24h recovery lease; no JanOct/WB/LLM/cron/provider retry for unknown outcome; service pause/reconcile/restart/checkpoint; owned controls only",
+  "command_physical_lines": 1
+}

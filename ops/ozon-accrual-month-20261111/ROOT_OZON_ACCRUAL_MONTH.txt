@@ -1,0 +1,1 @@
+ozon_stage=$(mktemp -d /var/lib/msp-ozon-accrual-month-launch.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/ozon-accrual-month-20261111/launch_verified.py "$ozon_stage/launch.py" && printf '%s  %s\n' 300ed3e7f7e437314be09ff0ad07fa1fd07e77f43c2fe1176574ae1ae989a96b "$ozon_stage/launch.py" | sha256sum -c - && /usr/bin/python3 -I -B "$ozon_stage/launch.py"

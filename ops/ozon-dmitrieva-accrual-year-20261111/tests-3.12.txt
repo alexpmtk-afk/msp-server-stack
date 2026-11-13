@@ -1,0 +1,26 @@
+test_actual_january_publish_without_credentials_or_http (__main__.YearTests.test_actual_january_publish_without_credentials_or_http) ... ok
+test_budget_exhausted_before_transport (__main__.YearTests.test_budget_exhausted_before_transport) ... ok
+test_conflicting_published_month_not_overwritten (__main__.YearTests.test_conflicting_published_month_not_overwritten) ... ok
+test_cursor_expired_no_hidden_restart (__main__.YearTests.test_cursor_expired_no_hidden_restart) ... ok
+test_duplicate_month_cannot_claim_complete (__main__.YearTests.test_duplicate_month_cannot_claim_complete) ... ok
+test_foreign_policy_not_removed (__main__.YearTests.test_foreign_policy_not_removed) ... ok
+test_foreign_worker_activation_not_removed (__main__.YearTests.test_foreign_worker_activation_not_removed) ... ok
+test_full_mocked_ten_month_roundtrip_independent_verifier (__main__.YearTests.test_full_mocked_ten_month_roundtrip_independent_verifier) ... ok
+test_identical_page_overlap_once_conflict_hold (__main__.YearTests.test_identical_page_overlap_once_conflict_hold) ... ok
+test_january_refetch_quota_denied (__main__.YearTests.test_january_refetch_quota_denied) ... ok
+test_monthly_worker_keeps_january_network_closed (__main__.YearTests.test_monthly_worker_keeps_january_network_closed) ... ok
+test_nested_unknowns_and_container_retained (__main__.YearTests.test_nested_unknowns_and_container_retained) ... ok
+test_nonroot_installer_refuses_before_reads (__main__.YearTests.test_nonroot_installer_refuses_before_reads) ... ok
+test_november_other_month_method_denied (__main__.YearTests.test_november_other_month_method_denied) ... ok
+test_permanent_not_current (__main__.YearTests.test_permanent_not_current) ... ok
+test_policy_is_one_unit_one_verb_one_user (__main__.YearTests.test_policy_is_one_unit_one_verb_one_user) ... ok
+test_quota_only_wait_consumes_no_entry (__main__.YearTests.test_quota_only_wait_consumes_no_entry) ... ok
+test_raw_corruption_rejected (__main__.YearTests.test_raw_corruption_rejected) ... ok
+test_root_service_is_fixed_no_restart_and_cleanup (__main__.YearTests.test_root_service_is_fixed_no_restart_and_cleanup) ... ok
+test_unknown_outcome_entry_preserved_no_retry (__main__.YearTests.test_unknown_outcome_entry_preserved_no_retry) ... ok
+test_zero_money_and_no_sku_not_dropped (__main__.YearTests.test_zero_money_and_no_sku_not_dropped) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 7.612s
+
+OK

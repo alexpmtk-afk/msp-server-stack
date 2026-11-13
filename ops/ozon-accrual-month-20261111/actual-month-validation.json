@@ -1,0 +1,126 @@
+{
+  "status": "SOURCE_CSV_VALUES_VERIFIED_EXTERNAL_RECONCILIATION_PENDING",
+  "cabinet": "ozon_dmitrieva",
+  "period": "2026-01",
+  "days": 31,
+  "rows": 728,
+  "categories": {
+    "NON_ITEM": 76,
+    "POSTING": 205,
+    "ITEM": 447
+  },
+  "new_http_responses_verified": {
+    "200": 30
+  },
+  "seed_day_reused": true,
+  "csv_sha256": "7089e1dca18b155e8f9e5e4155d8bbd9c86849f18e391cab1db6f2c6ae42d68e",
+  "all_source_fields_preserved": true,
+  "identical_overlaps": 0,
+  "fee_types_observed": [
+    {
+      "id": 1,
+      "description": "Эквайринг",
+      "occurrences": 120
+    },
+    {
+      "id": 6,
+      "description": "Обработка отменённых и невостребованных товаров",
+      "occurrences": 21
+    },
+    {
+      "id": 9,
+      "description": "Обработка возвратов",
+      "occurrences": 7
+    },
+    {
+      "id": 14,
+      "description": "Обработка операционных ошибок продавца",
+      "occurrences": 44
+    },
+    {
+      "id": 16,
+      "description": "Обработка отправления Drop-off",
+      "occurrences": 137
+    },
+    {
+      "id": 22,
+      "description": "Рассрочка",
+      "occurrences": 4
+    },
+    {
+      "id": 29,
+      "description": "Доставка до места выдачи",
+      "occurrences": 124
+    },
+    {
+      "id": 32,
+      "description": "Логистика",
+      "occurrences": 171
+    },
+    {
+      "id": 45,
+      "description": "Обработка возвратов, отмен и невыкупов партнёрами",
+      "occurrences": 10
+    },
+    {
+      "id": 46,
+      "description": "Размещение товаров на складах Ozon",
+      "occurrences": 27
+    },
+    {
+      "id": 48,
+      "description": "Бонусы продавца",
+      "occurrences": 162
+    },
+    {
+      "id": 52,
+      "description": "Подписка Premium",
+      "occurrences": 1
+    },
+    {
+      "id": 57,
+      "description": "Корректировка стоимости услуг",
+      "occurrences": 1
+    },
+    {
+      "id": 59,
+      "description": "Обратная логистика",
+      "occurrences": 28
+    },
+    {
+      "id": 62,
+      "description": "Перечисление за доставку от покупателя",
+      "occurrences": 1
+    },
+    {
+      "id": 63,
+      "description": "Агентское вознаграждение Ozon Агрегатор realFBS",
+      "occurrences": 1
+    },
+    {
+      "id": 64,
+      "description": "Доставка Партнёром Ozon",
+      "occurrences": 1
+    },
+    {
+      "id": 71,
+      "description": "Вывоз товара со склада силами Ozon",
+      "occurrences": 6
+    },
+    {
+      "id": 74,
+      "description": "Звёздные товары",
+      "occurrences": 151
+    },
+    {
+      "id": 79,
+      "description": "Временное размещение товара партнерами",
+      "occurrences": 4
+    }
+  ],
+  "unknown_type_ids": [],
+  "net_totals_match_source": true,
+  "cabinet_export_reconciliation_complete": false,
+  "provider_coverage_verified": false,
+  "provider_requests_during_audit": 0
+}

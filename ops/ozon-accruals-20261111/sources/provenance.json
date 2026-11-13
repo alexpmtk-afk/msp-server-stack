@@ -1,0 +1,16 @@
+[
+  {
+    "url": "https://dev.ozon.ru/community/2008-Novye-beta-metody-dlia-polucheniia-nachislenii/",
+    "retrieval_error_type": "HTTPError"
+  },
+  {
+    "url": "https://dev.ozon.ru/news/783-Izmeneniia-v-metodakh-dlia-raboty-s-finansovymi-otchetami-v-Seller-API/",
+    "retrieval_error_type": "HTTPError"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/MissiaL/ozon-api/main/references/ozon-seller-openapi.json",
+    "sha256": "a49dc6568ef52113d77035602b91f1e4b7d2fb77fbc8a9cd0e45a0b72abfc358",
+    "file": "candidate-openapi.json",
+    "kind": "external attributed mirror, NOT fresh official contract; candidate only"
+  }
+]

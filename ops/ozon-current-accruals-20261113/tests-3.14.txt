@@ -1,0 +1,9 @@
+test_nonroot_refuses_before_protected_reads (__main__.CurrentTests.test_nonroot_refuses_before_protected_reads) ... ok
+test_packed_artifact_nested_manifests (__main__.CurrentTests.test_packed_artifact_nested_manifests) ... ok
+test_three_cabinet_current_snapshot_and_scope_guards (__main__.CurrentTests.test_three_cabinet_current_snapshot_and_scope_guards) ... ok
+test_three_cabinet_sequence_and_hold (__main__.CurrentTests.test_three_cabinet_sequence_and_hold) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.177s
+
+OK

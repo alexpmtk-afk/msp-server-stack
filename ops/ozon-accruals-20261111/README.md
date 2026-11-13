@@ -1,0 +1,74 @@
+# Начисления Ozon: новый основной источник
+
+## Готово к первому запуску, НЕ выполнено
+
+Задача владельца: январь–октябрь 2026, ИП Дмитриева → Лазермастер → ИП Новокшенов.
+Основной источник — все начисления и компенсации по товарам, не реализация.
+Тридцать старых отчётов реализации остаются отдельным справочным архивом;
+с новой базой их не суммировать. Ноябрь исключён. План: 30 кабинет-месяцев,
+912 кабинет-дней. Это объём плана, не уже выполненная загрузка.
+
+## Первый пакет
+
+Один фиксированный запуск читает только /v1/finance/accrual/types и первую страницу
+/v1/finance/accrual/by-day за 15.01.2026, кабинет ozon_dmitrieva, максимум 2
+durable sender entries. Последовательный доступ через существующий исполнитель,
+контроллер и общий Redis Client-Id budget. Минимальная копия credentials;
+временная активация снимается с проверкой принадлежности и исходной изоляции.
+Нет новой очереди/таймера/LLM-job/глобального разрешающего флага. Нет удаления
+старых отчётов и публикации непроверенного дня как полного месяца.
+
+Команда ROOT_OZON_ACCRUAL.txt — одна физическая строка для Linux root-консоли.
+Она проверяет SHA архива и manifest, копирует в root-owned snapshot и только
+затем запускает фиксированный supervisor. Текущая identity hermes1001 не имеет
+sudo без пароля, поэтому root-запуск здесь не выполнен.
+
+Результат: /var/lib/msp-finance-control/results/ozon-accrual-pilot-20261111.json
+Исходные ответы: /opt/mcp/data/msp-marketplace-reports/ozon-accrual-pilot-20261111/
+
+CAPTURED_NOT_RECONCILED означает только сохранённый и разобранный ответ,
+не полноту дня/месяца и не совпадение с выгрузкой кабинета. При HOLD сначала
+читать сохранённые ответы и entry/meta; повторный launcher не сбрасывает бюджет.
+
+## Чтение и ограничения
+
+Новый transport-free reader хранит все ветви: POSTING, ITEM, NON_ITEM,
+CONTAINER_FEES, неизвестные категории/поля. Общие списания не пропускаются из-за
+отсутствия SKU/отправления. Суммы Decimal, знаки/валюта сохраняются; каждый
+денежный лист имеет путь. Итоги/цены/комиссии могут перекрываться: не суммировать
+все денежные поля подряд, пока роли не сопоставлены с фактическим источником.
+
+Текущая официальная полная схема заблокирована; candidate-accrual-contract
+получен из атрибутированного внешнего зеркала MissiaL/ozon-api. Официальный
+модератор2008 подтверждает назначение by-day как всех начислений за день.
+Не выдавать зеркало за свежую официальную спецификацию. TTL15мин/ранняя2022
+дата пока имеют только mirror provenance. Не переносить Premium/32дня от
+другого метода realization/by-day. Вызов по дате января — ограниченная
+проверка доступности истории, не утверждение, что вся история уже доступна.
+
+Нет явного документированного terminal condition: last_id пустой помечается
+CURSOR_EXHAUSTED_UNRECONCILED. Missing/null cursor, cycle, changed-date, conflicting
+duplicate — HOLD. При истёкшем курсоре не начинать скрыто новый обход.
+
+## Выполненные проверки
+
+35 network-denied tests PASS на Python3.14 и хостовом3.12. В том числе full
+mocked two-read capture (не реальный Ozon), NON_ITEM/CONTAINER/unknown fields,
+ключи больше2^53, знаки/валюта/Decimal, курсоры/дубликаты/даты, no retry after
+unknown HTTP, сохранение raw до parsing и HTTP403, quota-busy без sender entry,
+refusal nonroot, foreign-control cleanup protection, archive/manifest digest,
+launcher tamper refusal и Bash one-line syntax. Реальный sandbox нового
+пакета и API-доступ НЕ проверены до root-запуска.
+
+## После первого запуска
+
+Проверить фактические types и ветви/даты/деньги raw; не терять поля. Затем
+подготовить постраничный полный месяц с сохранением страниц/бюджета/курсоров,
+сверить с кабинетом и только после этого собирать все30месяцев. Независимая
+сверка календарного покрытия, исходных значений и общих списаний обязательна.
+Полный загрузчик и карта ролей ещё не приняты в production.
+
+
+## Superseding actual result
+
+Real owner launch succeeded:138types and15Jan15records retained,2HTTP200 and bothrawhashes independently verified; worker inactive/PrivateNetworkyes/noDropIns. Rawdata not published. See actual-pilot-validation.json; primary task remains incomplete. Next preparedfirstmonth package: ../ozon-accrual-month-20261111/.

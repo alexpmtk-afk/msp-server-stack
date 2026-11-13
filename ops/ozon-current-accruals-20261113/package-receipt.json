@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "e8e18af539389830bd4ac7d1707d9ce7864884bf71005d0e4bed4a3d5d19f906",
+  "manifest_sha256": "e2b1664aa7d288b0bbffdbf8d5bb2fc3cf7089610f24617318e7297d9a8d0f85",
+  "launcher_sha256": "680469c3ba1bb053fcd0541ce18848a279e4b54186d734cc1856d012f99fe2e0",
+  "files": 53,
+  "command_sha256": "d46499333854bc26cb9302020d7d50792fee771711669e4b229ff4b81f0719e7",
+  "scope": "Dmitrieva then Novokshenov then Laser Master Nov1-13 CURRENT observed snapshot;13dates/cabinet39total;128entries/cabinet384total;today/current month provisional; no JanOct overwrite; no LLM/timer; shared worker/Redis/controller; common run.py and exact cleanup",
+  "command_physical_lines": 1
+}
