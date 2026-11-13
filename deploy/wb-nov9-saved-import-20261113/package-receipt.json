@@ -1,0 +1,14 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "49b7716842d4a51d09ae3c4b8e6b1547bee0c0b7165fe2429aa0e78da62186e0",
+  "manifest_sha256": "c8dfb280af26b5df0200ac822b3899297f9d01a06b9cda0ec777acb033b59dec",
+  "launcher_sha256": "8f65c930d35354530e6dcf8ebd17521d15a4c88a311a7bb7c89ac2e6b4e53e35",
+  "files": {
+    "baseline.json": "7cb8c8142785e731c5e61a09eb73b6e411f7a59651e360c7212ae516a9908352",
+    "publish.py": "4609253b1381f0e6ae6ba0320db7482078cf9724a31db5d3845492dcb751ab95",
+    "import_root.py": "b89113005c3d3b1de64cfdab5b68dd3a062ad63646fe0936ff445c2c2380146b",
+    "MANIFEST.json": "c8dfb280af26b5df0200ac822b3899297f9d01a06b9cda0ec777acb033b59dec"
+  },
+  "provider_calls": 0,
+  "scope": "One verified saved Nov9 document and exact queue settlement only; no transport, timer change or recurring fallback"
+}
