@@ -1,0 +1,10 @@
+{
+  "recovery_receipt_sha256": "32b16e8c8e41c853e3bc2274320b13cbdb8690ebf5d9daaaf825b7ce956c8e12",
+  "recovery_root": "/var/lib/msp-ozon-resilient-recovery.vd5jlhmt",
+  "recovery_manifest_sha256": "dfc46ba46167baf458e2b0b4b68963718864a848c12db75c82c5ccfca7f077ad",
+  "pointers": {
+    "ozon_dmitrieva": "1e74b102a287aa0fa3c0e858eaff6dc6e7ff40d5e10b119af38d8b273172c757",
+    "ozon_novokshenov": "65f61d727c0ec75d5b76c4b1ad8eee779836beb638c157675ff1c0c7b337fd18",
+    "ozon_laser_master": "08de2d281e54a6e5ce52f68921b0255820fa411f93740c05ffea4a12c0f8fb16"
+  }
+}

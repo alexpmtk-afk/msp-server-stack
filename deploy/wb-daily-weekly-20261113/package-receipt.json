@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "63427b33c75bfe27d435c6801c12895af9962e73750ae87303295176dd0651a8",
+  "manifest_sha256": "9207bdf359edfbb16fca413814f446eea45a31a55fdb0aa187b3230c27b9e1e2",
+  "launcher_sha256": "7b06b066f4fd8b8590d126a2f9fa600dece7a98d1f3e0d97c3290ea44f54385b",
+  "files": 71,
+  "command_sha256": "1816c30814dd1f7cd3a43c34c9c4f72cdfe281e0ebdf4de8a016084c79ecfb79",
+  "scope": "WB08:45 three cabinets both daily types, fresh initial weekly discovery and uncovered daily backfill through yesterday; Monday weekly10 total checks; daily3 total checks;20min intervals; immutable source retained, weekly replaces equivalent daily in canonical reader; fixed Remote Server notices; narrow Ozon shared-slot lifetime upgrade preserves08:40; no models/gateway/infrastructure/token installation; prepared not installed",
+  "command_physical_lines": 1
+}

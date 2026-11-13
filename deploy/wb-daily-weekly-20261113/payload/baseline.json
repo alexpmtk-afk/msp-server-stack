@@ -1,0 +1,16 @@
+{
+  "reader": "/opt/mcp/projects/msp-server-stack/docs/data-sources/wb-financial-reports/local_reports.py",
+  "reader_sha256": "3e6dd5dbfbc41500c7376f956daa5ffb820fed65539472f2a8db6a1e440dd0ee",
+  "ozon_root": "/var/lib/msp-ozon-daily-wait.g7spniwr",
+  "ozon_manifest_sha256": "bbeb3441e265d4dbd1b076a9abaeb3b9ea28d367ebd0c5857c7a032ae37243d8",
+  "ozon_controller_sha256": "0f131c8f998abed7df4923d1f31be15a215edd20a458ed2513d76174011adcfb",
+  "wiring": {
+    "/etc/systemd/system/msp-ozon-daily.service": "613f024729d671a7dc1cc581d4163ef0105f2586c37ca84e62dadfd88ef16786",
+    "/var/lib/msp-ozon-daily/schedule.json": "80eef70a619506d4398a7a6978485623dc5daa3c36af998485d822c03e81b24e",
+    "/var/lib/msp-ozon-daily/installation.json": "635e573168b7e2ac1636fdf2f8c49ec0eb2b1c7595a55c51fc700dee5818b3d5",
+    "/var/lib/msp-ozon-daily/installed-wiring.json": "6c357ad4ff9546e89ec0e927a6e9fab18a222a00c189496808fade4e82367a80",
+    "/var/lib/msp-finance-control/results/ozon-daily.json": "635e573168b7e2ac1636fdf2f8c49ec0eb2b1c7595a55c51fc700dee5818b3d5"
+  },
+  "guide": "/opt/mcp/projects/msp-server-stack/docs/data-sources/wb-financial-reports/guide.py",
+  "guide_sha256": "f045203760402b7dc689defa2b12a5dd3a2e028c00c2770e8c9a2470cf121764"
+}
