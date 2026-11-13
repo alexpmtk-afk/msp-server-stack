@@ -1,0 +1,13 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "cabinet_scope": [
+    "ozon_dmitrieva",
+    "ozon_novokshenov",
+    "ozon_laser_master"
+  ],
+  "from_date": "2026-11-01",
+  "snapshot_through": "2026-11-13",
+  "today_provisional": true,
+  "max_sender_entries": 384,
+  "root_required": true
+}
