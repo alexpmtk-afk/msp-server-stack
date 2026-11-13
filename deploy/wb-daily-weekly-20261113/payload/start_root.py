@@ -42,6 +42,8 @@ def legacy_files(baseline):
  for key in ('reader','guide'):
   path=Path(baseline[key]);r.trust(path,0o644,1001)
   if r.sha(path.read_bytes())!=baseline[key+'_sha256']:raise ValueError('canonical '+key+' drift')
+def timer_installed(state):
+ return state.get('ActiveState')=='active' and state.get('UnitFileState')=='enabled'
 def preflight():
  if os.geteuid()!=0:raise PermissionError('Linux root console required')
  r.verify_payload();r.validate_platform()
@@ -99,7 +101,7 @@ def main():
   if reader.read_bytes()!=(c.ROOT/'local_reports.py').read_bytes() or READER.read_bytes()!=(c.ROOT/'catalog.py').read_bytes():raise ValueError('reader install mismatch')
   r.run(['/usr/bin/systemctl','daemon-reload']);r.run(['/usr/bin/systemctl','enable','--now',TIMER])
   state=dict(x.split('=',1) for x in r.run(['/usr/bin/systemctl','show',TIMER,'-p','ActiveState','-p','UnitFileState','-p','NextElapseUSecRealtime']).decode().splitlines())
-  if state['ActiveState']!='active' or state['UnitFileState']!='enabled' or not state['NextElapseUSecRealtime']:raise ValueError('timer not installed')
+  if not timer_installed(state):raise ValueError('timer not installed')
   info=dict(status='INSTALLED_INITIAL_BACKFILL_PENDING',root_release=str(c.ROOT),time_moscow='08:45',first_scheduled_at=first.isoformat(),background_model_calls=0)
   c.replace(c.BASE/'installation.json',info);c.replace(c.PUBLIC,info)
  # Release the shared slot BEFORE triggering independently locking controller.

@@ -1,0 +1,12 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "script_sha256": "a021d83a60946702a9cd574cc6af1933701607c3cfe3c12fa00e8ceac1e7d96d",
+  "command_sha256": "3563119eb62b040473a078b119004123ce44ecdd054759f14ba949c7c40030e4",
+  "writes": [
+    "/var/lib/msp-wb-daily-weekly/installation.json",
+    "/var/lib/msp-wb-daily-weekly/backups/installation-before-finalize.json"
+  ],
+  "service_changes": false,
+  "provider_calls": 0,
+  "fixed_installed_release": "/var/lib/msp-wb-daily-weekly.934_py03"
+}
