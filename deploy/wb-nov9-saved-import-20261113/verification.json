@@ -1,0 +1,25 @@
+{
+  "status": "PREPARED_NOT_IMPORTED",
+  "tests": [
+    {
+      "python": "python3",
+      "tests": 12,
+      "status": "PASS",
+      "network": "denied",
+      "payload_imports": "extracted archive"
+    },
+    {
+      "python": "/usr/bin/python3",
+      "tests": 12,
+      "status": "PASS",
+      "network": "denied",
+      "payload_imports": "extracted archive"
+    }
+  ],
+  "actual_saved_rows_roundtrip": 92,
+  "repeated_import_no_duplicates": true,
+  "reproducible_archive": true,
+  "provider_calls": 0,
+  "production_writes": 0,
+  "root_execution": false
+}
