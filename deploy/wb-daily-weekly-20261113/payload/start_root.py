@@ -38,19 +38,21 @@ def verify_ozon(baseline):
  target=str(old/'controller.py').encode()
  if text.count(target)!=1:raise ValueError('Ozon exact service target')
  return text.replace(target,str(incoming/'controller.py').encode())
+def legacy_files(baseline):
+ for key in ('reader','guide'):
+  path=Path(baseline[key]);r.trust(path,0o644,1001)
+  if r.sha(path.read_bytes())!=baseline[key+'_sha256']:raise ValueError('canonical '+key+' drift')
 def preflight():
  if os.geteuid()!=0:raise PermissionError('Linux root console required')
  r.verify_payload();r.validate_platform()
- baseline=json.loads((c.ROOT/'baseline.json').read_bytes());reader=Path(baseline['reader']);r.trust(reader,0o644)
- if r.sha(reader.read_bytes())!=baseline['reader_sha256']:raise ValueError('canonical reader drift')
- guide=Path(baseline['guide']);r.trust(guide,0o644)
- if r.sha(guide.read_bytes())!=baseline['guide_sha256']:raise ValueError('canonical guide drift')
+ baseline=json.loads((c.ROOT/'baseline.json').read_bytes());reader=Path(baseline['reader'])
+ legacy_files(baseline)
  unit=Path('/etc/systemd/system')/c.UNIT;timer=unit.with_name(TIMER)
  for p in (c.BASE,c.PUBLIC,unit,timer,READER,r.ARCHIVE/'wb-current-catalog',r.ARCHIVE/'wb-scheduled-capture'):
   if p.exists() or p.is_symlink():raise ValueError('existing/partial WB install; reconcile before repeat')
  for name in (c.UNIT,TIMER):
   if r.run(['/usr/bin/systemctl','show',name,'-p','LoadState']).strip()!=b'LoadState=not-found':raise ValueError('unknown existing unit')
- for p in (c.BASE.parent,unit.parent,READER.parent,reader.parent,c.PUBLIC.parent):r.trust(p)
+ for p in (c.BASE.parent,unit.parent,READER.parent,c.PUBLIC.parent):r.trust(p)
  r.trust(r.ARCHIVE,0o711,995)
  for path,pin in json.loads((c.ROOT/'baseline-coverage.json').read_bytes())['pointers'].items():
   p=Path(path);r.trust(p,0o644,995)
@@ -72,8 +74,8 @@ def main():
   c.mkdir(c.BASE);r.save(c.BASE/'installation.json',r.doc(dict(status='INSTALLING',root_release=str(c.ROOT))),0o644)
   c.mkdir(c.BASE/'backups');c.mkdir(c.BASE/'cycles');c.mkdir(c.BASE/'runs')
   for i,(path,pin) in enumerate(baseline['wiring'].items()):r.save(c.BASE/'backups'/('ozon-%02d'%i),Path(path).read_bytes(),0o600)
-  r.save(c.BASE/'backups'/'canonical-reader.py',reader.read_bytes(),0o644)
-  r.save(c.BASE/'backups'/'canonical-guide.py',Path(baseline['guide']).read_bytes(),0o644)
+  r.save(c.BASE/'backups'/'canonical-reader.py',(c.ROOT/'baseline_reader.py').read_bytes(),0o644)
+  r.save(c.BASE/'backups'/'canonical-guide.py',(c.ROOT/'baseline_guide.py').read_bytes(),0o644)
   r.save(c.BASE/'backups'/'targets.json',r.doc(baseline),0o600)
   for name in ('wb-current-catalog','wb-scheduled-capture'):c.mkdir(r.ARCHIVE/name,995)
   r.save(c.BASE/'controller.lock',b'',0o600);r.save(c.BASE/'jobs.json',r.doc({}),0o600)
@@ -84,8 +86,9 @@ def main():
   # Root-owned atomic file replacements, preserving original backups and data.
   def bytes_replace(path,raw):
    tmp=path.with_name(path.name+'.wb-upgrade.tmp');r.save(tmp,raw,0o644);os.replace(tmp,path);r.syncdir(path.parent)
-  bytes_replace(reader,(c.ROOT/'local_reports.py').read_bytes())
-  bytes_replace(Path(baseline['guide']),(c.ROOT/'guide.py').read_bytes())
+  # Canonical sources are updated as hermes before this root transaction.
+  # Root never replaces files inside the user-owned source checkout.
+  legacy_files(baseline)
   r.save(OBASE/'controller.lock',b'',0o600)
   bytes_replace(OUNIT,ozon_unit)
   for path in (OBASE/'schedule.json',OBASE/'installation.json',OPUBLIC):

@@ -1,6 +1,6 @@
 # WB daily/weekly — candidate 13.11.2026
 
-Status: PREPARED_NOT_INSTALLED. No production provider calls or test Telegram sends.
+Status: protected scheduler PREPARED_NOT_INSTALLED. Canonical reader/guide updated as hermes after the v1 early ownership refusal. No production provider calls or test Telegram sends.
 The root command is ROOT_WB_DAILY.txt, one physical Bash line, Linux root console.
 Never execute start_root.py directly from a Hermes-writable checkout. The command
 copies a pinned launcher into a fresh root-owned directory; it verifies the
@@ -46,7 +46,7 @@ installation before writes. Preserves backups of exact reader/guide/Ozon wiring
 under /var/lib/msp-wb-daily-weekly/backups; preserves old immutable Ozon release.
 No root installation has been exercised; transaction tests are isolated fixtures.
 verify_release.py tests the actual extracted archive on Python3.14 and3.12,
-checks import isolation, disables live network, runs WB35 and Ozon22 tests,
+checks import isolation, disables live network, runs WB39 and Ozon22 tests,
 checks a real flock fixture and systemd unit syntax, and checks reproducibility.
 Those tests do not establish live daily API permission, installed sandbox
 acceptance, delivery, or successful initial/scheduled loading.
@@ -64,3 +64,28 @@ service is not proof of backfill completion. source204 means unavailable, not0.
 
 Archive and source IDs stay local to this candidate directory. Published source
 handoff excludes production baseline-coverage.json and original financial data.
+
+## v1 root refusal and corrected boundary
+
+Owner root attempt /var/lib/msp-wb-daily-weekly.mgf81r9k stopped at the
+first canonical-reader ownership check, before any installer writes or starts.
+All Ozon wiring/source hashes and WB source pointers were unchanged. Failed
+immutable stage and original launcher/archive/receipts retained; no cleanup.
+Actual canonical files are uid1001 mode0644 under a user-owned checkout, not
+root-owned files. The old installer incorrectly treated them as root targets.
+Regression reproduced the same untrusted-inode failure before correction.
+
+Correction: update those two code files with their existing hermes identity,
+preserving original immutable copies for root backups. The root installer
+only checks their exact knownuid1001, mode0644, plain inode and SHA256; it
+never executes them or writes inside that user-controlled source tree. All
+privileged payload/runtime/unit ownership checks remain root-only unchanged.
+The canonical fallback still reads existing weekly data until the verified
+new current catalog is published. No reports were refetched or removed.
+
+Real nonprivileged prerequisite replay passed: current file ownership/hashes,
+all known source pointers, unit absence, Ozon idle/wiring, and notification
+credential availability. Root-only runtime/config checks are not re-executed
+as hermes; the failed owner root attempt had passed that earlier phase.
+Details: owner-failure-reconciliation.json, prerequisite-replay.json; current
+ROOT_WB_DAILY.txt supersedes the preserved failed-ownership-v1 command.

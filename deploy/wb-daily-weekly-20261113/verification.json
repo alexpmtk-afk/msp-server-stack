@@ -1,11 +1,11 @@
 {
   "status": "PREPARED_NOT_INSTALLED",
-  "archive_sha256": "63427b33c75bfe27d435c6801c12895af9962e73750ae87303295176dd0651a8",
+  "archive_sha256": "f51291332600a6c945a72592e539c724b7105cabe5bc810dc2c944160315e700",
   "tests": [
     {
       "python": "3.14",
       "suite": "wb",
-      "tests": 35,
+      "tests": 39,
       "status": "PASS",
       "imports": "extracted payload only",
       "live_network": "denied"
@@ -21,7 +21,7 @@
     {
       "python": "3.12",
       "suite": "wb",
-      "tests": 35,
+      "tests": 39,
       "status": "PASS",
       "imports": "extracted payload only",
       "live_network": "denied"

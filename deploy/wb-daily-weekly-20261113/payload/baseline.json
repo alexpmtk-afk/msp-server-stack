@@ -1,6 +1,6 @@
 {
   "reader": "/opt/mcp/projects/msp-server-stack/docs/data-sources/wb-financial-reports/local_reports.py",
-  "reader_sha256": "3e6dd5dbfbc41500c7376f956daa5ffb820fed65539472f2a8db6a1e440dd0ee",
+  "reader_sha256": "b74be96513d2e1922b543da7fad8368a6c86f3fef570b6e3682ff9a877a428ab",
   "ozon_root": "/var/lib/msp-ozon-daily-wait.g7spniwr",
   "ozon_manifest_sha256": "bbeb3441e265d4dbd1b076a9abaeb3b9ea28d367ebd0c5857c7a032ae37243d8",
   "ozon_controller_sha256": "0f131c8f998abed7df4923d1f31be15a215edd20a458ed2513d76174011adcfb",
@@ -12,5 +12,7 @@
     "/var/lib/msp-finance-control/results/ozon-daily.json": "635e573168b7e2ac1636fdf2f8c49ec0eb2b1c7595a55c51fc700dee5818b3d5"
   },
   "guide": "/opt/mcp/projects/msp-server-stack/docs/data-sources/wb-financial-reports/guide.py",
-  "guide_sha256": "f045203760402b7dc689defa2b12a5dd3a2e028c00c2770e8c9a2470cf121764"
+  "guide_sha256": "b0308784cef4d8251a4feaa06c70aa4173de39466ba2b765171b5269e943ff50",
+  "reader_original_sha256": "3e6dd5dbfbc41500c7376f956daa5ffb820fed65539472f2a8db6a1e440dd0ee",
+  "guide_original_sha256": "f045203760402b7dc689defa2b12a5dd3a2e028c00c2770e8c9a2470cf121764"
 }

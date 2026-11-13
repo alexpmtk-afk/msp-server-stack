@@ -197,10 +197,11 @@ class InstallTests(unittest.TestCase):
   with tempfile.TemporaryDirectory(dir=TMP) as t:
    root=Path(t);base=root/'wb';obase=root/'ozon';obase.mkdir();(root/'units').mkdir();(root/'results').mkdir();archive=root/'archive';archive.mkdir();payload=root/'payload';payload.mkdir();(payload/'ozon').mkdir()
    for name in ('catalog.py','local_reports.py','guide.py'):(payload/name).write_bytes((P/name).read_bytes())
-   reader=root/'reader.py';reader.write_text('old reader');guide=root/'guide.py';guide.write_text('old guide');ounit=root/'units/ozon.service';ounit.write_text('old Ozon unit');opublic=root/'results/ozon.json';opublic.write_text('{"root_release":"old","time_moscow":"08:40"}')
+   (payload/'baseline_reader.py').write_text('old reader');(payload/'baseline_guide.py').write_text('old guide')
+   reader=root/'reader.py';reader.write_bytes((P/'local_reports.py').read_bytes());guide=root/'guide.py';guide.write_bytes((P/'guide.py').read_bytes());ounit=root/'units/ozon.service';ounit.write_text('old Ozon unit');opublic=root/'results/ozon.json';opublic.write_text('{"root_release":"old","time_moscow":"08:40"}')
    for name in ('schedule.json','installation.json'):(obase/name).write_text('{"root_release":"old","time":"08:40"}')
    (obase/'installed-wiring.json').write_text('{"unit_sha256":"old"}');lock=root/'finance.lock';lock.touch();unit=root/'units/wb.service';timer=root/'units/wb.timer';public=root/'results/wb.json';target=root/'effective.py'
-   baseline=dict(guide=str(guide),wiring={str(ounit):c.r.sha(ounit.read_bytes())});started=[]
+   baseline=dict(reader=str(reader),reader_sha256=c.r.sha(reader.read_bytes()),guide=str(guide),guide_sha256=c.r.sha(guide.read_bytes()),wiring={str(ounit):c.r.sha(ounit.read_bytes())});started=[]
    def mkdir(path,uid=0):path.mkdir()
    def save(path,raw,mode=0o600,gid=0):
     with path.open('xb') as f:f.write(raw)
@@ -215,6 +216,23 @@ class InstallTests(unittest.TestCase):
    import contextlib
    with patch.object(install,'preflight',return_value=(baseline,reader,unit,timer,b'new Ozon unit')),patch.object(install,'verify_ozon'),patch.object(install,'OBASE',obase),patch.object(install,'OUNIT',ounit),patch.object(install,'OPUBLIC',opublic),patch.object(install,'READER',target),patch.object(c,'BASE',base),patch.object(c,'ROOT',payload),patch.object(c,'PUBLIC',public),patch.object(c,'FINANCE_LOCK',lock),patch.object(c.r,'ARCHIVE',archive),patch.object(c,'mkdir',side_effect=mkdir),patch.object(c.r,'save',side_effect=save),patch.object(c.r,'trust'),patch.object(c.r,'run',side_effect=run),patch.object(c,'state',return_value=dict(ActiveState='inactive',PrivateNetwork='yes',DropInPaths='')),contextlib.redirect_stdout(io.StringIO()):install.main()
    self.assertEqual(started,[c.UNIT]);self.assertEqual(reader.read_bytes(),(P/'local_reports.py').read_bytes());self.assertEqual(target.read_bytes(),(P/'catalog.py').read_bytes());self.assertEqual((base/'backups/canonical-reader.py').read_text(),'old reader');self.assertEqual(json.loads((obase/'schedule.json').read_bytes())['time'],'08:40');self.assertEqual(json.loads((base/'schedule.json').read_bytes())['time'],'08:45');self.assertTrue((obase/'controller.lock').exists());self.assertEqual(ounit.read_bytes(),b'new Ozon unit');self.assertEqual(json.loads(public.read_bytes())['status'],'INSTALLED_INITIAL_BACKFILL_PENDING')
+ def test_real_canonical_owner1001_read_only_preflight(self):
+  import start_root as install
+  install.legacy_files(json.loads((P/'baseline.json').read_bytes()))
+ def test_legacy_hash_drift_stops_before_root_mutation(self):
+  import start_root as install
+  baseline=json.loads((P/'baseline.json').read_bytes());baseline['reader_sha256']='0'*64
+  with self.assertRaises(ValueError):install.legacy_files(baseline)
+ def test_legacy_symlink_is_not_trusted(self):
+  import start_root as install
+  with tempfile.TemporaryDirectory(dir=TMP) as t:
+   root=Path(t);file=root/'file';file.write_bytes(b'pinned');link=root/'link';link.symlink_to(file);baseline=dict(reader=str(link),guide=str(file),reader_sha256=c.r.sha(b'pinned'),guide_sha256=c.r.sha(b'pinned'))
+   with self.assertRaises(ValueError):install.legacy_files(baseline)
+ def test_group_writable_legacy_file_is_not_trusted(self):
+  import start_root as install
+  with tempfile.TemporaryDirectory(dir=TMP) as t:
+   file=Path(t)/'file';file.write_bytes(b'pinned');file.chmod(0o664);baseline=dict(reader=str(file),guide=str(file),reader_sha256=c.r.sha(b'pinned'),guide_sha256=c.r.sha(b'pinned'))
+   with self.assertRaises(ValueError):install.legacy_files(baseline)
  def test_preflight_failure_has_no_install_side_effect(self):
   import start_root as install
   with patch.object(install,'preflight',side_effect=ValueError('drift')),patch.object(c.r,'save',side_effect=AssertionError('NO WRITE')),self.assertRaises(ValueError):install.main()
