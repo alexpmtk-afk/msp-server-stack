@@ -1,0 +1,148 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "archive_sha256": "ad7814f2f38bc044e25973407b2b3b7824f1063076ed5b023acfebfb6952e59d",
+  "tests": [
+    {
+      "python": "3.14",
+      "suite": "notices",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.14",
+      "suite": "cleanup_plan",
+      "tests": 13,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.14",
+      "suite": "upgrade",
+      "tests": 5,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_regression",
+      "tests": 39,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_policy",
+      "tests": 3,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_policy_edges",
+      "tests": 12,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_variants",
+      "tests": 10,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.14",
+      "suite": "ozon_regression",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "notices",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "cleanup_plan",
+      "tests": 13,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "upgrade",
+      "tests": 5,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_regression",
+      "tests": 39,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_policy",
+      "tests": 3,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_policy_edges",
+      "tests": 12,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_variants",
+      "tests": 10,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    },
+    {
+      "python": "3.12",
+      "suite": "ozon_regression",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "project_imports": "extracted payload"
+    }
+  ],
+  "changed_existing_modules": [
+    "controller.py",
+    "ozon/MANIFEST.json",
+    "ozon/controller.py",
+    "plan.py",
+    "worker.py"
+  ],
+  "systemd_syntax": "PASS_not_runtime_acceptance",
+  "source_timer_changes": false,
+  "provider_calls": 0,
+  "telegram_messages": 0,
+  "background_model_calls": 0,
+  "reproducible_archive": true,
+  "root_upgrade_executed": false
+}

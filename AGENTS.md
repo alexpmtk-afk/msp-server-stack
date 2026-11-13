@@ -103,3 +103,20 @@ Instructions for chats, coding agents and automated assistants working with this
 7. After every state-changing action, perform an independent verification and report the result.
 
 If the required REMOTE execution channel is not available, stop at preparation: produce the exact safe task or command for an authorized executor instead of pretending it was executed.
+
+
+<!-- MP_DOWNLOAD_SUMMARIES_20261113 -->
+## Итоги загрузки WB/Ozon — правило владельца13.11.2026
+
+Канон: /opt/mcp/projects/msp-server-stack/docs/data-sources/MARKETPLACE_DOWNLOAD_NOTIFICATIONS_20261113.md;
+навык data-pipeline-operations, references/marketplace-download-summaries-20261113.md.
+Ежедневно один общий Telegram-итог WB+Ozon в «Удалённый сервер»: всё загружено
+либо точные пропуски по площадке/юрлицу/периоду после3проверок через20минут.
+Понедельник: WB сначала дневные за воскресенье, затем неделя; отдельный недельный
+итог после10проверок через20минут, и только после доставки дневного итога.
+Покрытые дневные CSV удаляются из рабочего каталога только после проверенного
+weekly того же типа/валюты и сохранения сжатого аудита/квитанции. Остальные
+даты, исходные HTTP, квоты, попытки и журналы сохраняются. Не создавать дубли.
+Пустая очередь службы итогов — idle, не «Выполняется». Текущую установку
+проверять отдельно: пакет сейчас подготовлен, root-установка ещё не выполнена.
+<!-- /MP_DOWNLOAD_SUMMARIES_20261113 -->

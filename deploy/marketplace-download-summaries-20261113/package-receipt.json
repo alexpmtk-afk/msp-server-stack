@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "ad7814f2f38bc044e25973407b2b3b7824f1063076ed5b023acfebfb6952e59d",
+  "manifest_sha256": "adafdf0cd921aa5795ddf3c08cece70dc4706c358a6a83cbff027712acd70b65",
+  "launcher_sha256": "168c3f323c1275f1c3458ddd4000fa39708b7e6197bd337661549a6b0cb94405",
+  "files": 82,
+  "command_sha256": "42ca9ef5bd7ddae62466c476f3e1b1aa574a125c7c28e13eee6633ac6c0ac6a3",
+  "scope": "Daily consolidated WB+Ozon notices, Monday daily then weekly WB, three and ten checks/20min unchanged, quiet normal optional counterpart absence, verified weekly replacement with daily operational CSV cleanup and compressed audit retention; no model calls, no test messages, root-only protected upgrade prepared not installed",
+  "command_physical_lines": 1
+}
