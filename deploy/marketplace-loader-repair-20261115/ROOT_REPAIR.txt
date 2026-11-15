@@ -1,0 +1,1 @@
+mp_repair=$(mktemp -d /var/lib/msp-ozon-calendar-launch.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/marketplace-loader-repair-20261115/launch_verified.py "$mp_repair/launch.py" && printf '%s  %s\n' 4335ff01682f3adcb047b2ce35ff37df8c3ed4812775e04e30afc2fd27471853 "$mp_repair/launch.py" | sha256sum -c - && /usr/bin/python3 -I -B "$mp_repair/launch.py"

@@ -1,0 +1,226 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "tests": [
+    {
+      "python": "3.14",
+      "suite": "notices",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "cleanup_plan",
+      "tests": 13,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "previous_upgrade",
+      "tests": 5,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_regression",
+      "tests": 39,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_policy",
+      "tests": 3,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_policy_edges",
+      "tests": 12,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "wb_variants",
+      "tests": 10,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "ozon_regression",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "recovery",
+      "tests": 3,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "loader_audit",
+      "tests": 6,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "calendar_ozon_dmitrieva",
+      "tests": 4,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "calendar_ozon_laser_master",
+      "tests": 4,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.14",
+      "suite": "calendar_ozon_novokshenov",
+      "tests": 4,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "notices",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "cleanup_plan",
+      "tests": 13,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "previous_upgrade",
+      "tests": 5,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_regression",
+      "tests": 39,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_policy",
+      "tests": 3,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_policy_edges",
+      "tests": 12,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb_variants",
+      "tests": 10,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "ozon_regression",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "recovery",
+      "tests": 3,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "loader_audit",
+      "tests": 6,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "calendar_ozon_dmitrieva",
+      "tests": 4,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "calendar_ozon_laser_master",
+      "tests": 4,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    },
+    {
+      "python": "3.12",
+      "suite": "calendar_ozon_novokshenov",
+      "tests": 4,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted release"
+    }
+  ],
+  "tests_per_python": 147,
+  "baseline_regression": "RED_BOTH_PYTHONS",
+  "changed_existing_modules": [
+    "ozon/MANIFEST.json",
+    "ozon/ozon_dmitrieva/apps/msp_marketplace_reports/ozon_accruals.py",
+    "ozon/ozon_laser_master/apps/msp_marketplace_reports/ozon_accruals.py",
+    "ozon/ozon_novokshenov/apps/msp_marketplace_reports/ozon_accruals.py"
+  ],
+  "archive_sha256": "f196496209bbf168275a1020e65d7621d527f6e27c32b27a181591cbff841b07",
+  "reproducible": true,
+  "provider_calls": 0,
+  "telegram_messages": 0,
+  "root_install_executed": false
+}

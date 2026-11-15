@@ -1,0 +1,1 @@
+Public review delta only. The complete85-file activation archive and exact live wiring baseline remain on VPS; do not run this partial payload as an installer. See OPERATIONS.md and the root-owned-snapshot launcher. PREPARED_NOT_INSTALLED;147 offline tests per Python3.12/3.14. No provider calls, source replay, merge or root activation performed during preparation.

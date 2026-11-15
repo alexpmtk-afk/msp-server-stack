@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "f196496209bbf168275a1020e65d7621d527f6e27c32b27a181591cbff841b07",
+  "manifest_sha256": "a8f9a666d0ea6da082889a927262d53dd375dce15dec259369e2db38c5cbd41c",
+  "launcher_sha256": "4335ff01682f3adcb047b2ce35ff37df8c3ed4812775e04e30afc2fd27471853",
+  "files": 85,
+  "command_sha256": "b7882be265b166e09a64ef943dcd7a184cb59b1a1abc0a43cb05e1e588d35ff9",
+  "scope": "Ozon three-cabinet recurring calendar fix and reconciled no-send Nov14 recovery; WB and notification code unchanged; same cycle nonce attempt, original preflight errors retained, source calls only after supervised recovery start; no models or test messages",
+  "command_physical_lines": 1
+}
