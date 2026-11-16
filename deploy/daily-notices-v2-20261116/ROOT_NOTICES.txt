@@ -1,0 +1,1 @@
+mp_notices=$(mktemp -d /var/lib/msp-daily-notices-launch.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/daily-notices-v2-20261116/launch_verified.py "$mp_notices/launch.py" && printf '%s  %s\n' 797c417a94b6222e2d1a049ed58d3e4e801f6a89f111bff58ce574928a1e3e21 "$mp_notices/launch.py" | sha256sum -c - && /usr/bin/python3 -I -B "$mp_notices/launch.py"

@@ -1,0 +1,45 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "tests": [
+    {
+      "python": "3.14",
+      "suite": "test_daily_v2.py",
+      "tests": 17,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted archive"
+    },
+    {
+      "python": "3.14",
+      "suite": "test_regression.py",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted archive"
+    },
+    {
+      "python": "3.12",
+      "suite": "test_daily_v2.py",
+      "tests": 17,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted archive"
+    },
+    {
+      "python": "3.12",
+      "suite": "test_regression.py",
+      "tests": 22,
+      "status": "PASS",
+      "network": "denied",
+      "imports": "extracted archive"
+    }
+  ],
+  "tests_per_python": 39,
+  "systemd_syntax": "PASS_NOT_RUNTIME",
+  "reproducible": true,
+  "provider_calls": 0,
+  "telegram_messages": 0,
+  "source_changes": false,
+  "weekly_format_changed": false,
+  "root_executed": false
+}
