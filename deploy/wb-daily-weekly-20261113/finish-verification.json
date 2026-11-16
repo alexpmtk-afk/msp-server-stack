@@ -1,0 +1,25 @@
+{
+  "status": "FINALIZER_PREPARED_NOT_EXECUTED",
+  "current_timer_and_ingestion": "installed and running",
+  "known_partial_checkpoint": "installation.json INSTALLING",
+  "runtime_code_changed_by_finalizer": false,
+  "metadata_only": true,
+  "root_execution_required": true,
+  "finalizer_tests": {
+    "python3.14": 5,
+    "python3.12": 5,
+    "status": "PASS"
+  },
+  "timer_regression_tests": {
+    "red_observed": true,
+    "green_tests": 2
+  },
+  "wb_regressions": {
+    "tests": 39,
+    "status": "PASS"
+  },
+  "actual_readonly_preflight": "PASS",
+  "live_http_responses_observed": 5,
+  "new_complete_weekly_documents_observed": 2,
+  "financial_source_writes_by_test_or_finalizer": 0
+}

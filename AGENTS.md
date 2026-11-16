@@ -103,3 +103,53 @@ Instructions for chats, coding agents and automated assistants working with this
 7. After every state-changing action, perform an independent verification and report the result.
 
 If the required REMOTE execution channel is not available, stop at preparation: produce the exact safe task or command for an authorized executor instead of pretending it was executed.
+
+
+<!-- MP_DOWNLOAD_SUMMARIES_20261113 -->
+## Итоги загрузки WB/Ozon — правило владельца13.11.2026
+
+Канон: /opt/mcp/projects/msp-server-stack/docs/data-sources/MARKETPLACE_DOWNLOAD_NOTIFICATIONS_20261113.md;
+навык data-pipeline-operations, references/marketplace-download-summaries-20261113.md.
+Ежедневно один общий Telegram-итог WB+Ozon в «Удалённый сервер»: всё загружено
+либо точные пропуски по площадке/юрлицу/периоду после3проверок через20минут.
+Понедельник: WB сначала дневные за воскресенье, затем неделя; отдельный недельный
+итог после10проверок через20минут, и только после доставки дневного итога.
+Покрытые дневные CSV удаляются из рабочего каталога только после проверенного
+weekly того же типа/валюты и сохранения сжатого аудита/квитанции. Остальные
+даты, исходные HTTP, квоты, попытки и журналы сохраняются. Не создавать дубли.
+Пустая очередь службы итогов — idle, не «Выполняется». Текущую установку
+проверять отдельно: общие итоги установлены13ноября, доставка подтверждена; календарное исправление Ozon15ноября установлено; докачка14ноября проверена по всем трём кабинетам.
+<!-- /MP_DOWNLOAD_SUMMARIES_20261113 -->
+
+<!-- MSP_LOADER_CALENDAR_REPAIR_20261115 -->
+## Календарная приёмка загрузчиков WB/Ozon —15.11.2026
+
+Сбой Ozon14ноября вызван старым потолком request_body13ноября, не отсутствием
+отчёта: все три кабинета остановлены до sender entry. Исправление
+OZON_ROLLING_CALENDAR_V1_20261115 установлено и независимо проверено15ноября; Ozon14ноября VERIFIED по всем трём кабинетам.
+Перед операциями читать data-pipeline-operations/references/marketplace-loader-calendar-repair-20261115.md
+(канон docs/data-sources/MARKETPLACE_LOADER_CALENDAR_REPAIR_20261115.md).
+Не переносить верхнюю дату исторического снимка в повторяющийся worker.
+Обязательная проверка реальной цепочки request_body→inspect_page→publication→readback
+на следующем дне, месяце, годе и29февраля; один тест планировщика недостаточен.
+Сегодня/будущее по Москве, чужой кабинет и неизвестный исход остаются запрещены.
+HOLD восстанавливать только после точной сверки; сохранять ошибку, nonce,
+cycle_id, attempt, бюджеты и опубликованные данные. Не обнулять попытки и не
+повторять неизвестные запросы. Установку и докачку подтверждать отдельно.
+<!-- /MSP_LOADER_CALENDAR_REPAIR_20261115 -->
+
+<!-- MSP_DAILY_NOTICE_V2_20261116 -->
+## Ежедневные сообщения WB/Ozon — правило16.11.2026
+
+Читать docs/data-sources/DAILY_DOWNLOAD_NOTICES_V2_20261116.md и навык
+ data-pipeline-operations/references/daily-download-notices-v2-20261116.md.
+Ежедневный итог: заголовок с датой, «Загружены:», отдельные площадки и
+каждое юрлицо с новой строки. Различать промежуточное ожидание, окончательный
+пропуск после3проверок с фактическим временем последней и технический HOLD.
+Поздний успех/покрытие недельным источником — дополнительное сообщение,
+не ложное утверждение о скачанном daily. Старые daily ради сообщения не
+перекачивать. Изменяются только ежедневные сообщения, не недельный формат.
+Сохранить SENT/outbox/журналы, защиту от повторов и неизвестных отправок.
+Статус DAILY_READABLE_FOLLOWUPS_V2_20261116 — подготовлено, НЕ установлено;
+проверять /var/lib/msp-daily-notices-v2-20261116/installation.json и ExecStart.
+<!-- /MSP_DAILY_NOTICE_V2_20261116 -->

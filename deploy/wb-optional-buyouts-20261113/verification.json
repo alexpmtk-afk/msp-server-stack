@@ -1,0 +1,82 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "archive_sha256": "f0fa1870e87364ecaff666095b03b7891f3f6d0c2cbf8ef79e694c59fe3a3b40",
+  "tests": [
+    {
+      "python": "3.14",
+      "suite": "policy",
+      "tests": 3,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.14",
+      "suite": "policy_more",
+      "tests": 12,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.14",
+      "suite": "upgrade",
+      "tests": 6,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.14",
+      "suite": "existing_wb",
+      "tests": 39,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "policy",
+      "tests": 3,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "policy_more",
+      "tests": 12,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "upgrade",
+      "tests": 6,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "existing_wb",
+      "tests": 39,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    }
+  ],
+  "existing_changed_modules": [
+    "controller.py",
+    "notify.py",
+    "plan.py",
+    "worker.py"
+  ],
+  "ozon_payload": "unchanged",
+  "request_budgets_reset": false,
+  "provider_calls": 0,
+  "telegram_messages_sent": 0,
+  "root_upgrade_executed": false,
+  "reproducible_archive": true
+}

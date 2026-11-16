@@ -1,0 +1,11 @@
+{
+  "old_root": "/var/lib/msp-marketplace-download-summaries.vyz32ik7",
+  "files": {
+    "/etc/systemd/system/msp-finance-notices.service": "e94c3a394541c11d5ade83d078aca4172664b7f4ca1c479deb10823bd2cb3419",
+    "/var/lib/msp-finance-notices/config.json": "dab62be85d9e46a5fdbff69f6c315164d625a4e203aa307d68dafc9724cea166",
+    "/var/lib/msp-finance-notices/installation.json": "36cec791b7e5dd588e956b88a61d21a9e5fe3f8d7af50fa8c56be59208b0505c",
+    "/var/lib/msp-marketplace-download-summaries.vyz32ik7/notices/controller.py": "feacb0d488766c1dec88f58698c8a0063a1dcf2c012a036fe592195c1453a83c",
+    "/var/lib/msp-marketplace-download-summaries.vyz32ik7/notices/model.py": "e47d1e6f1b46b6e6a1d2e053f3878fb04612252898df4d9100ea04ed9d891950",
+    "/var/lib/msp-marketplace-download-summaries.vyz32ik7/notices/sender.py": "c5a748664f5d74273f3a25d73ee26bcd1596c190af5c50ad581b90ca4701a1c0"
+  }
+}

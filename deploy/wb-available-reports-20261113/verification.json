@@ -1,0 +1,99 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "archive_sha256": "6f606ae4e9de86d3ae1efe272f14ecfe00a62e3062bbfe6756fdc19d10a95122",
+  "tests": [
+    {
+      "python": "3.14",
+      "suite": "policy",
+      "tests": 3,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.14",
+      "suite": "policy_more",
+      "tests": 12,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.14",
+      "suite": "availability",
+      "tests": 10,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.14",
+      "suite": "upgrade",
+      "tests": 6,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.14",
+      "suite": "existing_wb",
+      "tests": 39,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "policy",
+      "tests": 3,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "policy_more",
+      "tests": 12,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "availability",
+      "tests": 10,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "upgrade",
+      "tests": 6,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    },
+    {
+      "python": "3.12",
+      "suite": "existing_wb",
+      "tests": 39,
+      "status": "PASS",
+      "live_network": "denied",
+      "imports": "extracted payload only"
+    }
+  ],
+  "existing_changed_modules": [
+    "catalog.py",
+    "controller.py",
+    "notify.py",
+    "plan.py",
+    "worker.py"
+  ],
+  "ozon_payload": "unchanged",
+  "request_budgets_reset": false,
+  "provider_calls": 0,
+  "telegram_messages_sent": 0,
+  "root_upgrade_executed": false,
+  "reproducible_archive": true
+}

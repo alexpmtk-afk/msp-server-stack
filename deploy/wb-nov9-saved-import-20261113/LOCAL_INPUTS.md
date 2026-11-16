@@ -1,0 +1,1 @@
+Private baseline.json (report identity and accepted source capture/manifest pins), financial JSON and full activation archive stay on VPS. Public source alone is not a runnable package. Package hashes describe the locally tested full artifact. No financial rows or report IDs are published.

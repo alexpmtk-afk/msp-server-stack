@@ -1,0 +1,1 @@
+wb_finish=$(mktemp -d /var/lib/msp-wb-finish.XXXXXXXX) && install -o root -g root -m 600 /home/hermes/workspace/wb-daily-weekly-20261113/finish_verified.py "$wb_finish/finish.py" && printf '%s  %s\n' a021d83a60946702a9cd574cc6af1933701607c3cfe3c12fa00e8ceac1e7d96d "$wb_finish/finish.py" | sha256sum -c - && /usr/bin/python3 -I -B "$wb_finish/finish.py"

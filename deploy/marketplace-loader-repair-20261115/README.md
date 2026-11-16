@@ -1,0 +1,3 @@
+Public review delta only. The complete85-file activation archive and exact live wiring baseline remain on VPS; do not run this partial payload as an installer. See OPERATIONS.md and the root-owned-snapshot launcher. PREPARED_NOT_INSTALLED;147 offline tests per Python3.12/3.14. No provider calls, source replay, merge or root activation performed during preparation.
+
+15Nov installed acceptance: INSTALLED_AND_RECOVERY_VERIFIED, all three Ozon cabinets14Nov independently checked against retained source responses and prior committed generation. See OPERATIONS.md. Original package test/manifest receipts remain immutable preparation records. Do not replay root launcher or source downloads. No merge performed.

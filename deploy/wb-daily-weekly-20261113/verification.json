@@ -1,0 +1,46 @@
+{
+  "status": "PREPARED_NOT_INSTALLED",
+  "archive_sha256": "f51291332600a6c945a72592e539c724b7105cabe5bc810dc2c944160315e700",
+  "tests": [
+    {
+      "python": "3.14",
+      "suite": "wb",
+      "tests": 39,
+      "status": "PASS",
+      "imports": "extracted payload only",
+      "live_network": "denied"
+    },
+    {
+      "python": "3.14",
+      "suite": "ozon",
+      "tests": 22,
+      "status": "PASS",
+      "imports": "extracted payload only",
+      "live_network": "denied"
+    },
+    {
+      "python": "3.12",
+      "suite": "wb",
+      "tests": 39,
+      "status": "PASS",
+      "imports": "extracted payload only",
+      "live_network": "denied"
+    },
+    {
+      "python": "3.12",
+      "suite": "ozon",
+      "tests": 22,
+      "status": "PASS",
+      "imports": "extracted payload only",
+      "live_network": "denied"
+    }
+  ],
+  "unit_syntax": "PASS",
+  "ozon_shared_slot_real_flock_fixture": "PASS",
+  "nonroot_boundary": "PASS",
+  "reproducible_archive": "PASS",
+  "provider_calls": 0,
+  "telegram_messages_sent": 0,
+  "root_installation": false,
+  "initial_backfill_verified": false
+}

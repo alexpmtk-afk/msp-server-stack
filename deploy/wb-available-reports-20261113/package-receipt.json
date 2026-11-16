@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "6f606ae4e9de86d3ae1efe272f14ecfe00a62e3062bbfe6756fdc19d10a95122",
+  "manifest_sha256": "ca9c9ff4009354371efcfed316c492470142f6835e2dd9587a02aa99e890bd14",
+  "launcher_sha256": "9fef5b8a129d269976c0c21ed85c95ffaca7d80dfb7d1429fa24b455b1572fc8",
+  "files": 75,
+  "command_sha256": "c80d0b01f0c117ec053c8d72ec6b5dcb9fdef63dd8ad7d9ca7f32823cfc9ff3c",
+  "scope": "WB_ANY_REPORT_V2_20261113: either main or buyout or both verified immediately complete availability; counterpart absence never waits or alerts; both absent retain 3daily/10Monday checks; listed incomplete documents remain required, root reassessment preserves original source results and budgets; upgrade existing coordinator only, no shared worker kill, no reinstallation/backfill replay, existing08:45 timer and Ozon08:40 unchanged; prepared not installed",
+  "command_physical_lines": 1
+}

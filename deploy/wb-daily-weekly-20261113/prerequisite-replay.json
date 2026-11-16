@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "scope": "actual nonprivileged prerequisite reads, owner/hash/permissions/absence checks, real systemctl readback and notification credential availability; no writes/network",
+  "skipped_root_only_checks": [
+    "snapshot ownership/manifest: covered by archive verification",
+    "protected accepted runtime/quota config: previous root attempt passed this phase, not repeated as root"
+  ],
+  "service_started": false,
+  "provider_calls": 0,
+  "telegram_messages": 0,
+  "calls": [
+    [
+      "systemctl",
+      "show",
+      "msp-wb-daily-weekly.service"
+    ],
+    [
+      "systemctl",
+      "show",
+      "msp-wb-daily-weekly.timer"
+    ],
+    [
+      "runuser",
+      "-u",
+      "hermes"
+    ],
+    [
+      "systemctl",
+      "show",
+      "msp-ozon-daily.service"
+    ]
+  ]
+}

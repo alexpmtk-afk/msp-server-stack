@@ -1,0 +1,1 @@
+Delta source handoff only. The full75-file candidate, original financial document metadata and exact activation archive stay on VPS at /home/hermes/workspace/wb-optional-buyouts-20261113. package-receipt pins that local artifact; the public delta alone is not a runnable package. Tests were run against the complete extracted local artifact.

@@ -1,0 +1,19 @@
+{
+  "old_root": "/var/lib/msp-wb-daily-weekly.934_py03",
+  "old_manifest_sha256": "df979f756f96384f39e84019bf67862e4857c407f6dfd0b8822161e9d3329544",
+  "status": "INSTALLED_RUNNING_SOURCE_PRESERVED",
+  "files": {
+    "/etc/systemd/system/msp-wb-daily-weekly.service": "03bbe333ea9bf0fda1bfec6d57c76a387020354de353185e9558d498de87c1eb",
+    "/etc/systemd/system/msp-wb-daily-weekly.timer": "a67ccd879bdaa4302bf98ad15c8273044f4e6b3fe28fdd6cb02272da23f01cc3",
+    "/var/lib/msp-wb-daily-weekly/schedule.json": "b0f3205a7fd771198cdd7c2f17129e7d522b5f4ec62d86fc2b3a52a7d6ed0d5b",
+    "/var/lib/msp-wb-daily-weekly/installation.json": "e9e006194e393470e52e45a45bc01d98d7d23b0662488a6e168d3a1d307459d9",
+    "/etc/systemd/system/msp-ozon-daily.service": "f7f60134ff0fe1dfe6bea7bb514cf877d308fa6e5bf8d8eb23dcc28455a6fd8d",
+    "/etc/systemd/system/msp-ozon-daily.timer": "a4a7e84d6bbc13ba884b1355e09e73519f25b59f8c5d71f05fdf92486700164e",
+    "/var/lib/msp-ozon-daily/schedule.json": "9c1bf38fa40aa2bbd90a68661076b28a735643c4b5ca1f622db862d6d3e85a0d"
+  },
+  "changed_files": [
+    "/etc/systemd/system/msp-wb-daily-weekly.service",
+    "/var/lib/msp-wb-daily-weekly/schedule.json",
+    "/var/lib/msp-wb-daily-weekly/installation.json"
+  ]
+}

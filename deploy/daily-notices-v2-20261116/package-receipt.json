@@ -1,0 +1,10 @@
+{
+  "status": "PREPARED_NOT_EXECUTED",
+  "archive_sha256": "d43e089400436ada1ef6b0ec6b566d25c8980053800f581fd41e862a5008aa0c",
+  "manifest_sha256": "1213081eb87603ebbfa3c418ec57f90f2cc8036995bfd3891bfb80d465045e5a",
+  "launcher_sha256": "797c417a94b6222e2d1a049ed58d3e4e801f6a89f111bff58ce574928a1e3e21",
+  "files": 6,
+  "command_sha256": "73a280ec1af6136076662192724b366860d0acb4187df8ffd48860d84ff571e2",
+  "scope": "Readable daily WB/Ozon notices with grouped cabinets, waiting/final/later-success/weekly-coverage followups, trusted actual last-check timestamps, idempotent delivery, notifier-only restart; source workers/data/timers unchanged; no provider or test-message calls",
+  "command_physical_lines": 1
+}

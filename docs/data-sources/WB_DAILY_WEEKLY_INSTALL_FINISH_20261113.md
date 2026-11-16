@@ -1,0 +1,3 @@
+
+
+An elapsed OnBootSec can fire during enable --now, before the installer stores its final receipt. Never equate an initially empty NextElapseUSecRealtime with an uninstalled active/enabled timer; validate fixed timer bytes, enabled/active state and trigger semantics separately. Reconcile current units and durable source pages before any retry. If wiring and collection are already live, finish only the exact pinned metadata checkpoint, preserving public controller progress and all request ledgers; do not reinstall or restart the sender. Test the transient predicate RED/GREEN and the metadata finisher idempotence separately.

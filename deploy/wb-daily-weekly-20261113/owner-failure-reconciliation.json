@@ -1,0 +1,11 @@
+{
+  "status": "FAILURE_RECONCILED_BEFORE_ROOT_MUTATION",
+  "failed_release": "/var/lib/msp-wb-daily-weekly.mgf81r9k",
+  "cause": "canonical reader/guide and parent checkout owned by hermes1001, not root0",
+  "source_hashes_at_failure": "unchanged",
+  "ozon_wiring_at_failure": "unchanged",
+  "wb_root_installation_at_failure": false,
+  "original_failed_artifacts_preserved": "/home/hermes/workspace/wb-daily-weekly-20261113/failed-ownership-v1",
+  "repair": "canonical files atomically updated by hermes preservinguid1001; root installer only validates exact uid/mode/hash and installs protected code/units; no root writes into source checkout",
+  "provider_calls": 0
+}

@@ -1,0 +1,7 @@
+{
+  "baseline.json": "a96803b7dbf2be6cc6e92f7ce711ff81cb9da3963b92a2236db3159cd5441ecc",
+  "notices/controller.py": "2216d6d0f8fc11e90382b77de58249d546f090dc34abb676d811b6928ab68889",
+  "notices/model.py": "f75b101094acd52b8b19476bc086c67d3218f03d5536b4eef690aaa9a81b08c6",
+  "notices/sender.py": "89f642b5e2db20da36b1fccfecde6939cec46798edd9a331e393cd17ea60ff8a",
+  "upgrade.py": "217eb4aa40d5b69563d0c5d4528e21c5e0571d4ec9926891355ccebf31e46807"
+}
