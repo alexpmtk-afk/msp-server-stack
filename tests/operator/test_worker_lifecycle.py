@@ -12,7 +12,9 @@ class LifecycleTests(unittest.TestCase):
    self.assertEqual(j.db.execute('select count(*) from recovery_tombstones').fetchone()[0],5)
    q=TaskQueue(j,allowed_scope=SCOPE)
    tid='47fc93fd-4d76-4e9f-b34c-18c752762a1a'
-   d=j.task_document(SCOPE[2],'old probe',PLAN,tid);j.save(d,'fixture')
+   d=j.task_document(SCOPE[2],'old probe',PLAN,tid)
+   with self.assertRaisesRegex(ValueError,'task_retired'):j.save(d,'fixture')
+   self.assertIsNone(j.db.execute('SELECT id FROM tasks WHERE id=?',(tid,)).fetchone())
    with self.assertRaises(ValueError):q.submit(dict(task_id=tid,request_id='old',profile=SCOPE[0],owner=SCOPE[1],origin_chat=SCOPE[2],session_key=SCOPE[3],origin_platform='telegram'))
    tid=j.create(SCOPE[2],'delivery',PLAN)
    j.db.execute('insert into outbox(task,origin,body) values (?,?,?)',(tid,SCOPE[2],'{}'));j.db.commit()

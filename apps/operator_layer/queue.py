@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS task_queue_events(seq INTEGER PRIMARY KEY, task TEXT,
    from .worker_service import migrate
    migrate(journal)
  def _transition(self,tid,state,**updates):
+  self.j.assert_not_retired(tid)
   if state not in STATES:raise ValueError('invalid_queue_state')
   self.db.execute('UPDATE task_queue SET state=?,updated=? WHERE task=?',(state,time.time(),tid))
   d=self.j.get(tid);d.update(status=state,updated_at=stamp(),**updates)

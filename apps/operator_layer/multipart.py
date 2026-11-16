@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS multipart_dispatch(task TEXT PRIMARY KEY, durable TEX
   return json.loads(r[0])
  def _put(self,d):
   if d.get('durable_task_id') and d['status'] in ('ERROR','CANCELLED'):
+   self.j.assert_not_retired(d['durable_task_id'])
    self.db.execute("DELETE FROM multipart_dispatch WHERE task=? AND state='PENDING'",(d['multipart_task_id'],))
    task=self.j.get(d['durable_task_id']);task['status']='CANCELLED' if d['status']=='CANCELLED' else 'BLOCKED';task['next_action']='multipart '+d['status'].lower();task['updated_at']=stamp()
    self.db.execute('UPDATE tasks SET body=? WHERE id=?',(json.dumps(task),task['task_id']))
@@ -156,6 +157,7 @@ CREATE TABLE IF NOT EXISTS multipart_dispatch(task TEXT PRIMARY KEY, durable TEX
    task['requires_decomposition']=True
    task['status']='PLANNING'
    task['input_reference']={'multipart_task_id':mid,'assembled_hash':digest(assembled)}
+   self.j.assert_not_retired(tid)
    self.db.execute('INSERT INTO tasks VALUES (?,?)',(tid,json.dumps(task)))
    self.db.execute('INSERT INTO events(task,kind,body) VALUES (?,?,?)',(tid,'multipart_created',json.dumps(task)))
    d['assembled_hash']=digest(assembled);d['durable_task_id']=tid;d['status']='ASSEMBLED';self._put(d)
